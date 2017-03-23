@@ -36,6 +36,7 @@ and testers to remotely access and control hardware devices.
     ],
 
     install_requires=[
-        "pyserial>=2.6"
+        "pyserial>=2.6",
+        "pyusb>=1.0"
     ],
 )
