@@ -5,7 +5,7 @@ import configparser
 import importlib
 
 # Local imports
-import mtda.power_controller
+import mtda.power.controller
 
 class MultiTenantDeviceAccess:
 
@@ -55,7 +55,7 @@ class MultiTenantDeviceAccess:
            # Get variant
            variant = parser.get('power', 'variant')
            # Try loading its support class
-           mod = importlib.import_module("mtda.power_" + variant)
+           mod = importlib.import_module("mtda.power." + variant)
            factory = getattr(mod, 'instantiate')
            self.power_controller = factory()
            # Configure and probe the power controller
@@ -83,7 +83,7 @@ class MultiTenantDeviceAccess:
             # Get variant
             variant = parser.get(section, 'variant')
             # Try loading its support class
-            mod = importlib.import_module("mtda." + variant)
+            mod = importlib.import_module("mtda.usb." + variant)
             factory = getattr(mod, 'instantiate')
             usb_switch = factory()
             # Configure and probe the USB switch
