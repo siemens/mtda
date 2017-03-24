@@ -38,6 +38,9 @@ and testers to remotely access and control hardware devices.
 
     install_requires=[
         "pyserial>=2.6",
-        "pyusb>=1.0"
+        "python-daemon>=2.1.2",
+        "pyusb>=1.0",
+        "pyzmq>=16.0",
+        "zerorpc>=0.6.0"
     ],
 )
