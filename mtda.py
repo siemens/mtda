@@ -6,6 +6,7 @@ import getopt
 import os
 import signal
 import sys
+import threading
 import zerorpc
 
 # Local imports
@@ -16,6 +17,8 @@ class Application:
 
     def __init__(self):
         self.agent  = None
+        self.console_rx_alive = False
+        self.console_rx_thread = None
         self.remote = None
 
     def daemonize(self):
@@ -35,7 +38,28 @@ class Application:
         with context:
             self.server()
 
+    def start_console_reader(self):
+        self.console_rx_alive = True
+        self.console_rx_thread = threading.Thread(target=self.console_reader, name='console_rx')
+        self.console_rx_thread.daemon = True
+        self.console_rx_thread.start()
+
+    def console_reader(self):
+        try:
+            con = self.agent.console
+            con.probe()
+            while self.console_rx_alive == True:
+                data = con.read(con.pending() or 1)
+                sys.stdout.buffer.write(data)
+                sys.stdout.buffer.flush()
+        except Exception:
+            self.console_rx_alive = False
+            print("read error on the console!", file=sys.stderr)
+
     def server(self):
+        if self.agent.console is not None:
+            self.start_console_reader()
+
         uri = "tcp://*:%d" % (self.agent.ctrlport)
         s = zerorpc.Server(self.agent)
         s.bind(uri)
