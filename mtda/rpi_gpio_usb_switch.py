@@ -3,7 +3,7 @@ import abc
 import RPi.GPIO as GPIO
 
 # Local imports
-from usb_switch import UsbSwitch
+from mtda.usb_switch import UsbSwitch
 
 class RPiGpioUsbSwitch(UsbSwitch):
 

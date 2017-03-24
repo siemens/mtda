@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 VERSION = '0.1'
 
 setup(
     name='mtda',
     version=VERSION,
-    scripts=['mtda','aviosys_8800.py','power_controller.py','rpi_gpio_usb_switch.py','usb_switch.py'],
+    scripts=['mtda.py'],
+    packages=find_packages(),
     author='Cedric Hombourger',
     author_email='Cedric_Hombourger@mentor.com',
 

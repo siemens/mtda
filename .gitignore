@@ -1,2 +1,4 @@
 *.pyc
 build
+dist
+mtda.egg-info
