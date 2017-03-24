@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # System imports
 import configparser
 import importlib
 
 # Local imports
-import power_controller
+import mtda.power_controller
 
 class MultiTenantDeviceAccess:
 
@@ -17,10 +17,30 @@ class MultiTenantDeviceAccess:
     def target_on(self):
         if self.power_controller is not None:
             self.power_controller.on()
+        else:
+            print("No power controller found!")
 
     def target_off(self):
         if self.power_controller is not None:
             self.power_controller.off()
+        else:
+            print("No power controller found!")
+
+    def usb_on(self, ndx):
+        try:
+            if ndx > 0:
+                usb_switch = self.usb_switches[ndx-1]
+                usb_switch.on()
+        except IndexError:
+            print("invalid USB switch #" + str(ndx))
+
+    def usb_off(self, ndx):
+        try:
+            if ndx > 0:
+                usb_switch = self.usb_switches[ndx-1]
+                usb_switch.off()
+        except IndexError:
+            print("invalid USB switch #" + str(ndx))
 
     def load_config(self):
         parser = configparser.ConfigParser()
@@ -35,7 +55,7 @@ class MultiTenantDeviceAccess:
            # Get variant
            variant = parser.get('power', 'variant')
            # Try loading its support class
-           mod = importlib.import_module("power_" + variant)
+           mod = importlib.import_module("mtda.power_" + variant)
            factory = getattr(mod, 'instantiate')
            self.power_controller = factory()
            # Configure and probe the power controller
@@ -63,7 +83,7 @@ class MultiTenantDeviceAccess:
             # Get variant
             variant = parser.get(section, 'variant')
             # Try loading its support class
-            mod = importlib.import_module(variant)
+            mod = importlib.import_module("mtda." + variant)
             factory = getattr(mod, 'instantiate')
             usb_switch = factory()
             # Configure and probe the USB switch
@@ -78,5 +98,6 @@ class MultiTenantDeviceAccess:
 if __name__ == '__main__':
     mtda = MultiTenantDeviceAccess()
     mtda.load_config()
-    mtda.target_off()
+    mtda.usb_on(1)
+    mtda.target_on()
 
