@@ -35,7 +35,7 @@ class MentorTestDeviceAgent:
            # Get variant
            variant = parser.get('power', 'variant')
            # Try loading its support class
-           mod = importlib.import_module(variant)
+           mod = importlib.import_module("power_" + variant)
            factory = getattr(mod, 'instantiate')
            self.power_controller = factory()
            # Configure and probe the power controller
