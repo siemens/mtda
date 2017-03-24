@@ -3,7 +3,7 @@ import abc
 import usb.core
 
 # Local imports
-from mtda.power_controller import PowerController
+from mtda.power.controller import PowerController
 
 class Aviosys8800PowerController(PowerController):
 
