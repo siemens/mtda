@@ -50,15 +50,16 @@ class MentorTestDeviceAgent:
         except IndexError:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
-    def load_config(self):
+    def load_config(self, is_remote):
         parser = configparser.ConfigParser()
         configs_found = parser.read(self.config_files)
-        if parser.has_section('console'):
-            self.load_console_config(parser)
-        if parser.has_section('power'):
-            self.load_power_config(parser)
-        if parser.has_section('usb'):
-            self.load_usb_config(parser)
+        if is_remote == False:
+            if parser.has_section('console'):
+                self.load_console_config(parser)
+            if parser.has_section('power'):
+                self.load_power_config(parser)
+            if parser.has_section('usb'):
+                self.load_usb_config(parser)
 
     def load_console_config(self, parser):
         try:
