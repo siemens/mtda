@@ -104,7 +104,7 @@ class Application:
         self.agent = MentorTestDeviceAgent() 
 
         # Load default/specified configuration
-        self.agent.load_config()
+        self.agent.load_config(self.remote is not None)
 
         # Start our server
         if daemonize == True:
