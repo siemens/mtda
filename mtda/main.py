@@ -9,6 +9,7 @@ import sys
 import zerorpc
 
 # Local imports
+from   mtda.console.logger import ConsoleLogger
 import mtda.power.controller
 
 class MultiTenantDeviceAccess:
@@ -16,11 +17,13 @@ class MultiTenantDeviceAccess:
     def __init__(self):
         self.config_files = [ 'mtda.ini' ]
         self.console = None
+        self.console_logger = None
         self.power_controller = None
         self.usb_switches = []
         self.pidfile = "/var/run/mtda.pid"
         self.logfile = "/var/log/mtda.log"
         self.ctrlport = 5556
+        self.is_remote = False
 
     def target_on(self):
         if self.power_controller is not None:
@@ -51,6 +54,7 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     def load_config(self, is_remote):
+        self.is_remote = is_remote
         parser = configparser.ConfigParser()
         configs_found = parser.read(self.config_files)
         if is_remote == False:
@@ -71,6 +75,10 @@ class MultiTenantDeviceAccess:
             self.console = factory()
             # Configure and probe the console
             self.console.configure(dict(parser.items('console')))
+            self.console.probe()
+            # Create and start console logger
+            self.console_logger = ConsoleLogger(self.console)
+            self.console_logger.start()
         except configparser.NoOptionError:
             print('console variant not defined!', file=sys.stderr)
         except ImportError:
