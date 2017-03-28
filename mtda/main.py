@@ -2,7 +2,6 @@
 import configparser
 import daemon
 import importlib
-import lockfile
 import os
 import signal
 import sys
@@ -20,8 +19,6 @@ class MultiTenantDeviceAccess:
         self.console_logger = None
         self.power_controller = None
         self.usb_switches = []
-        self.pidfile = "/var/run/mtda.pid"
-        self.logfile = "/var/log/mtda.log"
         self.ctrlport = 5556
         self.is_remote = False
 
