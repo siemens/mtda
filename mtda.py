@@ -3,6 +3,7 @@
 # System imports
 import daemon
 import getopt
+import lockfile
 import os
 import signal
 import sys
@@ -17,6 +18,8 @@ class Application:
     def __init__(self):
         self.agent  = None
         self.remote = None
+        self.logfile = "/var/log/mtda.log"
+        self.pidfile = "/var/run/mtda.pid"
 
     def daemonize(self):
         context = daemon.DaemonContext(
