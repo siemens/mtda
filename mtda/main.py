@@ -22,6 +22,13 @@ class MentorTestDeviceAgent:
         self.ctrlport = 5556
         self.is_remote = False
 
+    def console_head(self):
+        if self.console_logger is not None:
+            return self.console_logger.head()
+        else:
+            print("no console configured/found!", file=sys.stderr)
+            return None
+
     def target_on(self):
         if self.power_controller is not None:
             self.power_controller.on()

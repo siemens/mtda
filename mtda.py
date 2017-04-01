@@ -53,6 +53,17 @@ class Application:
         else:
             return self.agent
 
+    def console_cmd(self, args):
+        if len(args) > 0:
+            cmd = args[0]
+            args.pop(0)
+            if cmd == "head":
+                line = self.client().console_head()
+                if line is not None:
+                    print(line)
+            else:
+                print("unknown console command '%s'!" %(cmd), file=sys.stderr)
+
     def target_cmd(self, args):
         if len(args) > 0:
             cmd = args[0]
@@ -98,7 +109,8 @@ class Application:
            stuff.pop(0)
 
            cmds = {
-              'target' : self.target_cmd
+              'console' : self.console_cmd,
+              'target'  : self.target_cmd
            } 
 
            if cmd in cmds:
