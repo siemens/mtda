@@ -53,14 +53,22 @@ class Application:
         else:
             return self.agent
 
+    def console_head(self, args):
+        line = self.client().console_head()
+        if line is not None:
+            print(line)
+
     def console_cmd(self, args):
         if len(args) > 0:
             cmd = args[0]
             args.pop(0)
-            if cmd == "head":
-                line = self.client().console_head()
-                if line is not None:
-                    print(line)
+
+            cmds = {
+               'head' : self.console_head
+            }
+
+            if cmd in cmds:
+                cmds[cmd](args)
             else:
                 print("unknown console command '%s'!" %(cmd), file=sys.stderr)
 
