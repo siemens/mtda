@@ -34,12 +34,14 @@ class ConsoleLogger:
     def process_rx(self, data):
         # Add received data to the RX queue
         self.rx_queue.extend(data)
+
         # Find lines we have in the queue
         while True:
-            off = self.rx_queue.find(b'\r', 0)
+            off = self.rx_queue.find(b'\n', 0)
             if off >= 0:
                 # Extract line from the RX queue
-                line = self.rx_queue[0:off]
+                off = off + 1
+                line = self.rx_queue[:off]
 
                 # Add this line to the circular buffer
                 self.rx_lock.acquire()
