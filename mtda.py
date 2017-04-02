@@ -56,7 +56,8 @@ class Application:
     def console_head(self, args):
         line = self.client().console_head()
         if line is not None:
-            print(line)
+            sys.stdout.write(line)
+            sys.stdout.flush()
 
     def console_cmd(self, args):
         if len(args) > 0:
