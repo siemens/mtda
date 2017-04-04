@@ -73,11 +73,11 @@ class Application:
             else:
                 print("unknown console command '%s'!" %(cmd), file=sys.stderr)
 
-    def target_off(self):
+    def target_off(self, args=None):
         self.client().target_off()
 
-    def target_on(self):
-        self.client().target_off()
+    def target_on(self, args=None):
+        self.client().target_on()
 
     def target_cmd(self, args):
         if len(args) > 0:
