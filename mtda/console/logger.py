@@ -9,13 +9,14 @@ import threading
 
 class ConsoleLogger:
 
-    def __init__(self, console):
+    def __init__(self, console, socket=None):
         self.console = console
         self.rx_alive = False
         self.rx_thread = None
         self.rx_queue = bytearray()
         self.rx_buffer = deque(maxlen=1000)
         self.rx_lock = threading.Lock()
+        self.socket = socket
 
     def start(self):
         self.rx_alive = True
@@ -26,7 +27,7 @@ class ConsoleLogger:
     def head(self):
         self.rx_lock.acquire()
         if len(self.rx_buffer) > 0:
-            line = self.rx_buffer.popleft()
+            line = self.rx_buffer.popleft().decode("utf-8")
         else:
             line = None
         self.rx_lock.release()
@@ -40,6 +41,10 @@ class ConsoleLogger:
             print("write error on the console (%s)!" % e.strerror, file=sys.stderr)
 
     def process_rx(self, data):
+        # Publish received data
+        if self.socket is not None:
+            self.socket.send(data)
+
         # Add received data to the RX queue
         self.rx_queue.extend(data)
 
@@ -53,7 +58,7 @@ class ConsoleLogger:
 
                 # Add this line to the circular buffer
                 self.rx_lock.acquire()
-                self.rx_buffer.append(line.decode("utf-8"))
+                self.rx_buffer.append(line)
                 self.rx_lock.release()
 
                 # Remove consumed bytes from the queue
