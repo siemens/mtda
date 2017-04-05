@@ -19,7 +19,12 @@ class ConsoleInterface(object):
         return 0
 
     @abc.abstractmethod
-    def read(self,n=1):
+    def read(self, n=1):
         """ Read from the console"""
+        return 0
+
+    @abc.abstractmethod
+    def write(self, data):
+        """ Write to the console"""
         return 0
 
