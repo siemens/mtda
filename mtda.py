@@ -59,6 +59,12 @@ class Application:
             sys.stdout.write(line)
             sys.stdout.flush()
 
+    def console_interactive(self, args):
+        if self.remote is None:
+            print("'interactive' console may only be used remotely", file=sys.stderr)
+            return None
+        self.agent.console_interactive(self.remote)
+
     def console_send(self, args):
         self.client().console_send(args[0])
 
@@ -68,8 +74,9 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'head' : self.console_head,
-               'send' : self.console_send
+               'head'        : self.console_head,
+               'interactive' : self.console_interactive,
+               'send'        : self.console_send
             }
 
             if cmd in cmds:
@@ -118,6 +125,9 @@ class Application:
 
         # Load default/specified configuration
         self.agent.load_config(self.remote is not None)
+
+        # Start our agent
+        self.agent.start()
 
         # Start our server
         if daemonize == True:

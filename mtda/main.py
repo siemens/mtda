@@ -5,7 +5,7 @@ import importlib
 import os
 import signal
 import sys
-import zerorpc
+import zmq
 
 # Local imports
 from   mtda.console.logger import ConsoleLogger
@@ -20,6 +20,7 @@ class MultiTenantDeviceAccess:
         self.power_controller = None
         self.usb_switches = []
         self.ctrlport = 5556
+        self.conport = 5557
         self.is_remote = False
 
     def console_head(self):
@@ -28,6 +29,16 @@ class MultiTenantDeviceAccess:
         else:
             print("no console configured/found!", file=sys.stderr)
             return None
+
+    def console_interactive(self, host):
+        context = zmq.Context()
+        socket = context.socket(zmq.SUB)
+        socket.connect ("tcp://%s:%s" % (host,self.conport))
+        socket.setsockopt(zmq.SUBSCRIBE, b'')
+        while True:
+            data = socket.recv()
+            sys.stdout.buffer.write(data)
+            sys.stdout.flush()
 
     def console_send(self, data):
         if self.console_logger is not None:
@@ -87,9 +98,6 @@ class MultiTenantDeviceAccess:
             # Configure and probe the console
             self.console.configure(dict(parser.items('console')))
             self.console.probe()
-            # Create and start console logger
-            self.console_logger = ConsoleLogger(self.console)
-            self.console_logger.start()
         except configparser.NoOptionError:
             print('console variant not defined!', file=sys.stderr)
         except ImportError:
@@ -139,4 +147,19 @@ class MultiTenantDeviceAccess:
             print('usb switch variant not defined!', file=sys.stderr)
         except ImportError:
             print('usb switch "%s" could not be found/loaded!' % (variant), file=sys.stderr)
+
+    def start(self):
+        if self.is_remote == True:
+            # No services to be started if we are remote
+            return None
+
+        if self.console is not None:
+            # Create a publisher
+            context = zmq.Context()
+            socket = context.socket(zmq.PUB)
+            socket.bind("tcp://*:%s" % self.conport)
+
+            # Create and start console logger
+            self.console_logger = ConsoleLogger(self.console, socket)
+            self.console_logger.start()
 
