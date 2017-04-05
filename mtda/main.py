@@ -29,6 +29,13 @@ class MultiTenantDeviceAccess:
             print("no console configured/found!", file=sys.stderr)
             return None
 
+    def console_send(self, data):
+        if self.console_logger is not None:
+            return self.console_logger.write(data)
+        else:
+            print("no console configured/found!", file=sys.stderr)
+            return None
+
     def target_on(self):
         if self.power_controller is not None:
             self.power_controller.on()

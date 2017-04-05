@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # System imports
+import codecs
 from   collections import deque
 import os
 import sys
@@ -30,6 +31,13 @@ class ConsoleLogger:
             line = None
         self.rx_lock.release()
         return line
+
+    def write(self, data):
+        try:
+            data = codecs.escape_decode(bytes(data, "utf-8"))[0]
+            self.console.write(data)
+        except Exception as e:
+            print("write error on the console (%s)!" % e.strerror, file=sys.stderr)
 
     def process_rx(self, data):
         # Add received data to the RX queue

@@ -59,13 +59,17 @@ class Application:
             sys.stdout.write(line)
             sys.stdout.flush()
 
+    def console_send(self, args):
+        self.client().console_send(args[0])
+
     def console_cmd(self, args):
         if len(args) > 0:
             cmd = args[0]
             args.pop(0)
 
             cmds = {
-               'head' : self.console_head
+               'head' : self.console_head,
+               'send' : self.console_send
             }
 
             if cmd in cmds:
