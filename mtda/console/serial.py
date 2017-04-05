@@ -42,6 +42,13 @@ class SerialConsole(ConsoleInterface):
         else:
             return None
 
+    def write(self, data):
+        """ Write to the console"""
+        if self.ser is not None:
+            return self.ser.write(data)
+        else:
+            return None
+
 def instantiate():
     return SerialConsole()
 
