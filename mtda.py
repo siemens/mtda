@@ -83,6 +83,12 @@ class Application:
     def console_send(self, args):
         self.client().console_send(args[0])
 
+    def console_help(self, args=None):
+       print("The 'console' command accepts the following sub-commands:")
+       print("   head          Fetch and print the first line from the console buffer")
+       print("   interactive   Open the device console for interactive use")
+       print("   send          Send characters to the device console")
+
     def console_cmd(self, args):
         if len(args) > 0:
             cmd = args[0]
@@ -98,6 +104,34 @@ class Application:
                 cmds[cmd](args)
             else:
                 print("unknown console command '%s'!" %(cmd), file=sys.stderr)
+
+    def help_cmd(self, args=None):
+        if len(args) > 0:
+            cmd = args[0]
+            args.pop(0)
+
+            cmds = {
+               'console' : self.console_help,
+               'target'  : self.target_help
+            }
+
+            if cmd in cmds:
+                cmds[cmd](args)
+            else:
+                print("no help found for command '%s'!" %(cmd), file=sys.stderr)
+        else:
+            print("usage: mtda [options] <command> [<args>]")
+            print("")
+            print("The most commonly used mtda commands are:")
+            print("   console   Interact with the device console")
+            print("   target    Power control the device")
+            print("   usb       Control USB devices attached to the device")
+            print("")
+
+    def target_help(self, args=None):
+       print("The 'target' command accepts the following sub-commands:")
+       print("   on   Power on the device")
+       print("   off  Power off the device")
 
     def target_off(self, args=None):
         self.client().target_off()
@@ -161,6 +195,7 @@ class Application:
 
            cmds = {
               'console' : self.console_cmd,
+              'help'    : self.help_cmd,
               'target'  : self.target_cmd
            } 
 
@@ -168,6 +203,7 @@ class Application:
                cmds[cmd](stuff)
            else:
                print("unknown command '%s'!" %(cmd), file=sys.stderr)
+               self.help_cmd()
                sys.exit(1)
         else:
             # Assume we want an interactive console if called without a command
