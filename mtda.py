@@ -60,7 +60,7 @@ class Application:
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def console_interactive(self, args):
+    def console_interactive(self, args=None):
         client = self.agent
         server = self.client()
         while self.exiting == False:
@@ -169,6 +169,9 @@ class Application:
            else:
                print("unknown command '%s'!" %(cmd), file=sys.stderr)
                sys.exit(1)
+        else:
+            # Assume we want an interactive console if called without a command
+            self.console_interactive()
 
 if __name__ == '__main__':
     app = Application()
