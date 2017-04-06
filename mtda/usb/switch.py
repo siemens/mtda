@@ -29,5 +29,10 @@ class UsbSwitch(object):
     @abc.abstractmethod
     def status(self):
         """ Determine the current power state of the USB port"""
-        return POWERED_OFF
+        return self.POWERED_OFF
+
+    @abc.abstractmethod
+    def toggle(self):
+        """ Toggle power state of the USB port"""
+        return self.POWERED_OFF
 
