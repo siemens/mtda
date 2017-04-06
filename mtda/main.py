@@ -9,6 +9,7 @@ import zmq
 
 # Local imports
 from   mtda.console.logger import ConsoleLogger
+from   mtda.console.remote_output import RemoteConsoleOutput
 import mtda.power.controller
 
 class MentorTestDeviceAgent:
@@ -17,6 +18,7 @@ class MentorTestDeviceAgent:
         self.config_files = [ 'mtda.ini' ]
         self.console = None
         self.console_logger = None
+        self.console_output = None
         self.power_controller = None
         self.usb_switches = []
         self.ctrlport = 5556
@@ -29,16 +31,6 @@ class MentorTestDeviceAgent:
         else:
             print("no console configured/found!", file=sys.stderr)
             return None
-
-    def console_interactive(self, host):
-        context = zmq.Context()
-        socket = context.socket(zmq.SUB)
-        socket.connect ("tcp://%s:%s" % (host,self.conport))
-        socket.setsockopt(zmq.SUBSCRIBE, b'')
-        while True:
-            data = socket.recv()
-            sys.stdout.buffer.write(data)
-            sys.stdout.flush()
 
     def console_send(self, data):
         if self.console_logger is not None:
@@ -148,9 +140,11 @@ class MentorTestDeviceAgent:
         except ImportError:
             print('usb switch "%s" could not be found/loaded!' % (variant), file=sys.stderr)
 
-    def start(self):
+    def start(self, host=None):
         if self.is_remote == True:
-            # No services to be started if we are remote
+            # Create and start our remote console
+            self.console_output = RemoteConsoleOutput(host, self.conport)
+            self.console_output.start()
             return None
 
         if self.console is not None:
