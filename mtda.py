@@ -20,6 +20,7 @@ class Application:
         self.remote = None
         self.logfile = "/var/log/mtda.log"
         self.pidfile = "/var/run/mtda.pid"
+        self.exiting = False
 
     def daemonize(self):
         context = daemon.DaemonContext(
@@ -60,11 +61,24 @@ class Application:
             sys.stdout.flush()
 
     def console_interactive(self, args):
-        if self.remote is None:
-            print("'interactive' console may only be used remotely", file=sys.stderr)
-            return None
-        for line in sys.stdin:
-            self.client().console_send(line)
+        client = self.agent
+        server = self.client()
+        while self.exiting == False:
+            c = client.console_getkey()
+            if c == '\x01':
+                c = client.console_getkey()
+                self.console_menukey(c)
+            else:
+                server.console_send(c)
+
+    def console_menukey(self, c):
+        server = self.client()
+        if c == 'p':
+            server.target_toggle()
+        elif c == 'q':
+            self.exiting = True
+        elif c == 'u':
+            server.usb_toggle(1)
 
     def console_send(self, args):
         self.client().console_send(args[0])
@@ -90,6 +104,9 @@ class Application:
 
     def target_on(self, args=None):
         self.client().target_on()
+
+    def target_toggle(self, args=None):
+        self.client().target_toggle()
 
     def target_cmd(self, args):
         if len(args) > 0:

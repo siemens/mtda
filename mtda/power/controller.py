@@ -31,3 +31,8 @@ class PowerController(object):
         """ Determine the current power state of the attached device"""
         return POWERED_OFF
 
+    @abc.abstractmethod
+    def toggle(self):
+        """ Toggle power for the attached device"""
+        return
+

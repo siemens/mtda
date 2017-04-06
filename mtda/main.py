@@ -8,6 +8,7 @@ import sys
 import zmq
 
 # Local imports
+from   mtda.console.input import ConsoleInput
 from   mtda.console.logger import ConsoleLogger
 from   mtda.console.remote_output import RemoteConsoleOutput
 import mtda.power.controller
@@ -18,12 +19,19 @@ class MultiTenantDeviceAccess:
         self.config_files = [ 'mtda.ini' ]
         self.console = None
         self.console_logger = None
+        self.console_input = None
         self.console_output = None
         self.power_controller = None
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
         self.is_remote = False
+
+    def console_getkey(self):
+        if self.console_input is None:
+            self.console_input = ConsoleInput()
+            self.console_input.start()
+        return self.console_input.getkey()
 
     def console_head(self):
         if self.console_logger is not None:
@@ -51,6 +59,12 @@ class MultiTenantDeviceAccess:
         else:
             print("no power controller found!", file=sys.stderr)
 
+    def target_toggle(self):
+        if self.power_controller is not None:
+            self.power_controller.toggle()
+        else:
+            print("no power controller found!", file=sys.stderr)
+
     def usb_on(self, ndx):
         try:
             if ndx > 0:
@@ -64,6 +78,14 @@ class MultiTenantDeviceAccess:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
                 usb_switch.off()
+        except IndexError:
+            print("invalid USB switch #" + str(ndx), file=sys.stderr)
+
+    def usb_toggle(self, ndx):
+        try:
+            if ndx > 0:
+                usb_switch = self.usb_switches[ndx-1]
+                usb_switch.toggle()
         except IndexError:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
