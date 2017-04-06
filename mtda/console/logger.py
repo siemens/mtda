@@ -44,6 +44,10 @@ class ConsoleLogger:
         # Publish received data
         if self.socket is not None:
             self.socket.send(data)
+        else:
+            # Write to stdout if received are not pushed to the network
+            sys.stdout.buffer.write(line)
+            sys.stdout.buffer.flush()
 
         # Add received data to the RX queue
         self.rx_queue.extend(data)
@@ -63,10 +67,6 @@ class ConsoleLogger:
 
                 # Remove consumed bytes from the queue
                 self.rx_queue = self.rx_queue[off+1:]
-
-                # Write this line to stdout
-                sys.stdout.buffer.write(line)
-                sys.stdout.buffer.flush()
             else:
                 break
 
