@@ -63,7 +63,8 @@ class Application:
         if self.remote is None:
             print("'interactive' console may only be used remotely", file=sys.stderr)
             return None
-        self.agent.console_interactive(self.remote)
+        for line in sys.stdin:
+            self.client().console_send(line)
 
     def console_send(self, args):
         self.client().console_send(args[0])
@@ -127,7 +128,7 @@ class Application:
         self.agent.load_config(self.remote is not None)
 
         # Start our agent
-        self.agent.start()
+        self.agent.start(self.remote)
 
         # Start our server
         if daemonize == True:
