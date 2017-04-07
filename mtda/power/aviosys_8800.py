@@ -47,8 +47,10 @@ class Aviosys8800PowerController(PowerController):
         s = self.status()
         if s == self.POWERED_OFF:
             self.on()
+            return self.POWERED_ON
         else:
             self.off()
+            return self.POWERED_OFF
 
 def instantiate():
    return Aviosys8800PowerController()
