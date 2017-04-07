@@ -70,6 +70,8 @@ $ python3 mtda.py -r 192.168.0.104 console send "run boot_usb\n"
 $ python3 mtda.py -r 192.168.0.104 console head
 
 # Interact with the console
+$ python3 mtda.py -r 192.168.0.104
+# The interactive console may alse be invoked as follows:
 $ python3 mtda.py -r 192.168.0.104 console interactive
 
 # Power off the target
@@ -83,5 +85,6 @@ The following key sequences may be used to control MTDA:
 
    * Ctrl + a + p: toggle power on/off
    * Ctrl + a + q: quit
+   * Ctrl + a + t: toggle display of timestamps
    * Ctrl + a + u: toggle the 1st USB port on/off
 

@@ -6,6 +6,7 @@ from   collections import deque
 import os
 import sys
 import threading
+import time
 
 class ConsoleLogger:
 
@@ -17,6 +18,8 @@ class ConsoleLogger:
         self.rx_buffer = deque(maxlen=1000)
         self.rx_lock = threading.Lock()
         self.socket = socket
+        self.basetime = 0
+        self.timestamps = False
 
     def start(self):
         self.rx_alive = True
@@ -40,7 +43,33 @@ class ConsoleLogger:
         except Exception as e:
             print("write error on the console (%s)!" % e.strerror, file=sys.stderr)
 
+    def reset_timer(self):
+        self.basetime = 0
+
+    def toggle_timestamps(self):
+        self.timestamps = not self.timestamps
+
     def process_rx(self, data):
+        # Initialize basetime on the 1st byte we receive
+        if not self.basetime:
+            self.basetime = time.time()
+
+        # Add timestamps
+        if self.timestamps == True:
+            newdata = bytearray()
+            linefeeds = 0
+            for x in data:
+                newdata.append(x)
+                if x == 0xa:
+                    linetime = time.time()
+                    elapsed = linetime - self.basetime
+                    timestr = "[%4.6f] " % elapsed
+                    newdata.extend(timestr.encode("utf-8"))
+                    linefeeds = linefeeds + 1
+            data = newdata
+        else:
+            linefeeds = 1
+
         # Publish received data
         if self.socket is not None:
             self.socket.send(data)
@@ -53,7 +82,7 @@ class ConsoleLogger:
         self.rx_queue.extend(data)
 
         # Find lines we have in the queue
-        while True:
+        while linefeeds > 0:
             off = self.rx_queue.find(b'\n', 0)
             if off >= 0:
                 # Extract line from the RX queue
@@ -68,7 +97,7 @@ class ConsoleLogger:
                 # Remove consumed bytes from the queue
                 self.rx_queue = self.rx_queue[off+1:]
             else:
-                break
+                linefeeds = 0
 
     def reader(self):
         try:

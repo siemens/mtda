@@ -77,6 +77,8 @@ class Application:
             server.target_toggle()
         elif c == 'q':
             self.exiting = True
+        elif c == 't':
+            server.toggle_timestamps()
         elif c == 'u':
             server.usb_toggle(1)
 
