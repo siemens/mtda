@@ -47,6 +47,13 @@ class MentorTestDeviceAgent:
             print("no console configured/found!", file=sys.stderr)
             return None
 
+    def toggle_timestamps(self):
+        if self.console_logger is not None:
+            return self.console_logger.toggle_timestamps()
+        else:
+            print("no console configured/found!", file=sys.stderr)
+            return None
+
     def target_on(self):
         if self.power_controller is not None:
             self.power_controller.on()
@@ -56,12 +63,16 @@ class MentorTestDeviceAgent:
     def target_off(self):
         if self.power_controller is not None:
             self.power_controller.off()
+            if self.console_logger is not None:
+                return self.console_logger.reset_timer()
         else:
             print("no power controller found!", file=sys.stderr)
 
     def target_toggle(self):
         if self.power_controller is not None:
-            self.power_controller.toggle()
+            status = self.power_controller.toggle()
+            if status == self.power_controller.POWERED_OFF and self.console_logger is not None:
+                return self.console_logger.reset_timer()
         else:
             print("no power controller found!", file=sys.stderr)
 
