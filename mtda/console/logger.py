@@ -59,6 +59,8 @@ class ConsoleLogger:
             newdata = bytearray()
             linefeeds = 0
             for x in data:
+                if x == 0xd:
+                    continue
                 newdata.append(x)
                 if x == 0xa:
                     linetime = time.time()
