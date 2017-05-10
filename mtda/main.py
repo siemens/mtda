@@ -41,6 +41,16 @@ class MentorTestDeviceAgent:
             print("no console configured/found!", file=sys.stderr)
             return None
 
+    def console_lines(self):
+        if self.console_logger is not None:
+            return self.console_logger.lines()
+        else:
+            print("no console configured/found!", file=sys.stderr)
+            return None
+
+    def console_send(self, data):
+        if self.console_logger is not None:
+            return self.console_logger.write(data)
     def console_send(self, data):
         if self.console_logger is not None:
             return self.console_logger.write(data)

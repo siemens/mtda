@@ -63,6 +63,11 @@ class Application:
         if line is not None:
             sys.stdout.write(line)
             sys.stdout.flush()
+    
+    def console_lines(self, args):
+        lines = self.client().console_lines()
+        sys.stdout.write("%d\n" % (lines))
+        sys.stdout.flush()
 
     def console_interactive(self, args=None):
         client = self.agent
@@ -93,6 +98,7 @@ class Application:
        print("The 'console' command accepts the following sub-commands:")
        print("   head          Fetch and print the first line from the console buffer")
        print("   interactive   Open the device console for interactive use")
+       print("   lines         Print number of lines present in the console buffer")
        print("   send          Send characters to the device console")
 
     def console_cmd(self, args):
@@ -103,6 +109,7 @@ class Application:
             cmds = {
                'head'        : self.console_head,
                'interactive' : self.console_interactive,
+               'lines'       : self.console_lines,
                'send'        : self.console_send
             }
 
