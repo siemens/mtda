@@ -77,7 +77,7 @@ class ConsoleLogger:
             self.socket.send(data)
         else:
             # Write to stdout if received are not pushed to the network
-            sys.stdout.buffer.write(line)
+            sys.stdout.buffer.write(data)
             sys.stdout.buffer.flush()
 
         # Add received data to the RX queue

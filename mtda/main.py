@@ -26,6 +26,7 @@ class MentorTestDeviceAgent:
         self.ctrlport = 5556
         self.conport = 5557
         self.is_remote = False
+        self.is_server = False
 
     def console_getkey(self):
         if self.console_input is None:
@@ -100,8 +101,9 @@ class MentorTestDeviceAgent:
         except IndexError:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
-    def load_config(self, is_remote):
+    def load_config(self, is_remote=False, is_server=False):
         self.is_remote = is_remote
+        self.is_server = is_server
         parser = configparser.ConfigParser()
         configs_found = parser.read(self.config_files)
         if is_remote == False:
@@ -181,9 +183,12 @@ class MentorTestDeviceAgent:
 
         if self.console is not None:
             # Create a publisher
-            context = zmq.Context()
-            socket = context.socket(zmq.PUB)
-            socket.bind("tcp://*:%s" % self.conport)
+            if self.is_server == True:
+                context = zmq.Context()
+                socket = context.socket(zmq.PUB)
+                socket.bind("tcp://*:%s" % self.conport)
+            else:
+                socket = None
 
             # Create and start console logger
             self.console.probe()
