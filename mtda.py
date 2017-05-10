@@ -108,7 +108,7 @@ class Application:
                 print("unknown console command '%s'!" %(cmd), file=sys.stderr)
 
     def help_cmd(self, args=None):
-        if len(args) > 0:
+        if args is not None and len(args) > 0:
             cmd = args[0]
             args.pop(0)
 
