@@ -13,6 +13,7 @@ class ConsoleLogger:
     def __init__(self, console, socket=None):
         self.console = console
         self.rx_alive = False
+        self.rx_lines = 0
         self.rx_thread = None
         self.rx_queue = bytearray()
         self.rx_buffer = deque(maxlen=1000)
@@ -29,12 +30,19 @@ class ConsoleLogger:
 
     def head(self):
         self.rx_lock.acquire()
-        if len(self.rx_buffer) > 0:
+        if self.rx_lines > 0:
             line = self.rx_buffer.popleft().decode("utf-8")
+            self.rx_lines -= 1
         else:
             line = None
         self.rx_lock.release()
         return line
+
+    def lines(self):
+        self.rx_lock.acquire()
+        lines = self.rx_lines
+        self.rx_lock.release()
+        return lines
 
     def write(self, data):
         try:
@@ -94,6 +102,7 @@ class ConsoleLogger:
                 # Add this line to the circular buffer
                 self.rx_lock.acquire()
                 self.rx_buffer.append(line)
+                self.rx_lines += 1
                 self.rx_lock.release()
 
                 # Remove consumed bytes from the queue

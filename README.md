@@ -69,6 +69,10 @@ $ python3 mtda.py -r 192.168.0.104 console send "run boot_usb\n"
 # Get the first line from the console buffer
 $ python3 mtda.py -r 192.168.0.104 console head
 
+# Return number of lines available from the console buffer
+$ python3 mtda.py -r 192.168.0.104 console lines
+14
+
 # Interact with the console
 $ python3 mtda.py -r 192.168.0.104
 # The interactive console may alse be invoked as follows:
