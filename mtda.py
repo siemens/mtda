@@ -40,6 +40,10 @@ class Application:
             self.server()
 
     def server(self):
+        # Start our agent
+        self.agent.start()
+
+        # Start our RPC server
         uri = "tcp://*:%d" % (self.agent.ctrlport)
         s = zerorpc.Server(self.agent)
         s.bind(uri)
@@ -180,15 +184,15 @@ class Application:
         # Load default/specified configuration
         self.agent.load_config(self.remote is not None)
 
-        # Start our agent
-        self.agent.start(self.remote)
-
         # Start our server
         if daemonize == True:
             if detach == True:
                 self.daemonize()
             else:
                 self.server()
+        else:
+            # Start our agent
+            self.agent.start(self.remote)
 
         # Check for non-option arguments
         if len(stuff) > 0:

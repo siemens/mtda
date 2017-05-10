@@ -120,9 +120,8 @@ class MultiTenantDeviceAccess:
             mod = importlib.import_module("mtda.console." + variant)
             factory = getattr(mod, 'instantiate')
             self.console = factory()
-            # Configure and probe the console
+            # Configure the console
             self.console.configure(dict(parser.items('console')))
-            self.console.probe()
         except configparser.NoOptionError:
             print('console variant not defined!', file=sys.stderr)
         except ImportError:
@@ -187,6 +186,7 @@ class MultiTenantDeviceAccess:
             socket.bind("tcp://*:%s" % self.conport)
 
             # Create and start console logger
+            self.console.probe()
             self.console_logger = ConsoleLogger(self.console, socket)
             self.console_logger.start()
 
