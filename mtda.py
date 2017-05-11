@@ -61,6 +61,12 @@ class Application:
     def console_clear(self, args):
         self.client().console_clear()
 
+    def console_flush(self, args):
+        data = self.client().console_flush()
+        if data is not None:
+            sys.stdout.write(data)
+            sys.stdout.flush()
+
     def console_head(self, args):
         line = self.client().console_head()
         if line is not None:
@@ -101,6 +107,7 @@ class Application:
     def console_help(self, args=None):
        print("The 'console' command accepts the following sub-commands:")
        print("   clear         Clear any data present in the console buffer")
+       print("   flush         Flush content of the console buffer")
        print("   head          Fetch and print the first line from the console buffer")
        print("   interactive   Open the device console for interactive use")
        print("   lines         Print number of lines present in the console buffer")
@@ -113,6 +120,7 @@ class Application:
 
             cmds = {
                'clear'       : self.console_clear,
+               'flush'       : self.console_flush,
                'head'        : self.console_head,
                'interactive' : self.console_interactive,
                'lines'       : self.console_lines,

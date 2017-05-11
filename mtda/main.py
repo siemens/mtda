@@ -40,6 +40,13 @@ class MentorTestDeviceAgent:
         else:
             print("no console configured/found!", file=sys.stderr)
 
+    def console_flush(self):
+        if self.console_logger is not None:
+            return self.console_logger.flush()
+        else:
+            print("no console configured/found!", file=sys.stderr)
+            return None
+
     def console_head(self):
         if self.console_logger is not None:
             return self.console_logger.head()
