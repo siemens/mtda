@@ -35,6 +35,19 @@ class ConsoleLogger:
         self.rx_lines = 0
         self.rx_lock.release()
 
+    def flush(self):
+        data = ""
+        self.rx_lock.acquire()
+        while self.rx_lines > 0:
+            line = self.rx_buffer.popleft().decode("utf-8")
+            data += line
+            self.rx_lines -= 1
+        line = self.rx_queue.decode("utf-8")
+        data += line
+        self.rx_queue = bytearray()
+        self.rx_lock.release()
+        return data
+
     def head(self):
         self.rx_lock.acquire()
         if self.rx_lines > 0:
