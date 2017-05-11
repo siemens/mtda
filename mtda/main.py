@@ -48,9 +48,12 @@ class MultiTenantDeviceAccess:
             print("no console configured/found!", file=sys.stderr)
             return None
 
-    def console_send(self, data):
-        if self.console_logger is not None:
-            return self.console_logger.write(data)
+    def console_remote(self, host):
+        if self.is_remote == True:
+            # Create and start our remote console
+            self.console_output = RemoteConsoleOutput(host, self.conport)
+            self.console_output.start()
+
     def console_send(self, data):
         if self.console_logger is not None:
             return self.console_logger.write(data)
@@ -184,11 +187,8 @@ class MultiTenantDeviceAccess:
         except ImportError:
             print('usb switch "%s" could not be found/loaded!' % (variant), file=sys.stderr)
 
-    def start(self, host=None):
+    def start(self):
         if self.is_remote == True:
-            # Create and start our remote console
-            self.console_output = RemoteConsoleOutput(host, self.conport)
-            self.console_output.start()
             return None
 
         if self.console is not None:
