@@ -73,6 +73,13 @@ $ python3 mtda.py -r 192.168.0.104 console head
 $ python3 mtda.py -r 192.168.0.104 console lines
 14
 
+# Clear the console buffer
+$ python3 mtda.py -r 192.168.0.104 console clear
+U-Boot 2015.07 (Jan 08 2017 - 16:25:06 +0100)
+
+# Flush the console buffer
+$ python3 mtda.py -r 192.168.0.104 console clear
+
 # Interact with the console
 $ python3 mtda.py -r 192.168.0.104
 # The interactive console may alse be invoked as follows:
