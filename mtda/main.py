@@ -34,6 +34,12 @@ class MultiTenantDeviceAccess:
             self.console_input.start()
         return self.console_input.getkey()
 
+    def console_clear(self):
+        if self.console_logger is not None:
+            self.console_logger.clear()
+        else:
+            print("no console configured/found!", file=sys.stderr)
+
     def console_head(self):
         if self.console_logger is not None:
             return self.console_logger.head()

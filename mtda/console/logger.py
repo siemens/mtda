@@ -28,6 +28,13 @@ class ConsoleLogger:
         self.rx_thread.daemon = True
         self.rx_thread.start()
 
+    def clear(self):
+        self.rx_lock.acquire()
+        self.rx_buffer.clear()
+        self.rx_queue = bytearray()
+        self.rx_lines = 0
+        self.rx_lock.release()
+
     def head(self):
         self.rx_lock.acquire()
         if self.rx_lines > 0:
