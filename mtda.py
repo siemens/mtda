@@ -72,6 +72,7 @@ class Application:
     def console_interactive(self, args=None):
         client = self.agent
         server = self.client()
+        client.console_remote(self.remote)
         while self.exiting == False:
             c = client.console_getkey()
             if c == '\x01':
@@ -199,7 +200,7 @@ class Application:
                 self.server()
         else:
             # Start our agent
-            self.agent.start(self.remote)
+            self.agent.start()
 
         # Check for non-option arguments
         if len(stuff) > 0:
