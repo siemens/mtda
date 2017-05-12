@@ -108,27 +108,36 @@ class ConsoleLogger:
             sys.stdout.buffer.write(data)
             sys.stdout.buffer.flush()
 
-        # Add received data to the RX queue
+        # Prevent concurrent access to the RX buffers
+        self.rx_lock.acquire()
+
+        # Add received data
         self.rx_queue.extend(data)
 
         # Find lines we have in the queue
         while linefeeds > 0:
+            sz = len(self.rx_queue)
             off = self.rx_queue.find(b'\n', 0)
             if off >= 0:
                 # Extract line from the RX queue
-                off = off + 1
+                off  = off + 1
                 line = self.rx_queue[:off]
 
                 # Add this line to the circular buffer
-                self.rx_lock.acquire()
                 self.rx_buffer.append(line)
                 self.rx_lines += 1
-                self.rx_lock.release()
 
                 # Remove consumed bytes from the queue
-                self.rx_queue = self.rx_queue[off+1:]
+                rem = sz - off
+                if rem > 0:
+                    self.rx_queue = self.rx_queue[-rem:]
+                else:
+                    self.rx_queue = bytearray()
             else:
                 linefeeds = 0
+
+        # Release access to the RX buffers
+        self.rx_lock.release()
 
     def reader(self):
         try:
