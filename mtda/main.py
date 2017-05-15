@@ -67,6 +67,20 @@ class MultiTenantDeviceAccess:
             self.console_output = RemoteConsoleOutput(host, self.conport)
             self.console_output.start()
 
+    def console_run(self, cmd):
+        if self.console_logger is not None:
+            return self.console_logger.run(cmd)
+        else:
+            print("no console configured/found!", file=sys.stderr)
+            return None
+
+    def console_tail(self):
+        if self.console_logger is not None:
+            return self.console_logger.tail()
+        else:
+            print("no console configured/found!", file=sys.stderr)
+            return None
+
     def console_send(self, data):
         if self.console_logger is not None:
             return self.console_logger.write(data)

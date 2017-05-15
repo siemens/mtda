@@ -101,8 +101,20 @@ class Application:
         elif c == 'u':
             server.usb_toggle(1)
 
+    def console_run(self, args):
+        data = self.client().console_run(args[0])
+        if data is not None:
+            sys.stdout.write(data)
+            sys.stdout.flush()
+
     def console_send(self, args):
         self.client().console_send(args[0])
+
+    def console_tail(self, args):
+        line = self.client().console_tail()
+        if line is not None:
+            sys.stdout.write(line)
+            sys.stdout.flush()
 
     def console_help(self, args=None):
        print("The 'console' command accepts the following sub-commands:")
@@ -111,7 +123,9 @@ class Application:
        print("   head          Fetch and print the first line from the console buffer")
        print("   interactive   Open the device console for interactive use")
        print("   lines         Print number of lines present in the console buffer")
+       print("   run           Run the specified command via the device console")
        print("   send          Send characters to the device console")
+       print("   tail          Fetch and print the last line from the console buffer")
 
     def console_cmd(self, args):
         if len(args) > 0:
@@ -124,7 +138,9 @@ class Application:
                'head'        : self.console_head,
                'interactive' : self.console_interactive,
                'lines'       : self.console_lines,
-               'send'        : self.console_send
+               'run'         : self.console_run,
+               'send'        : self.console_send,
+               'tail'        : self.console_tail
             }
 
             if cmd in cmds:
