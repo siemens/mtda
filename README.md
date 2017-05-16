@@ -55,6 +55,9 @@ The MTDA daemon may be started as follows:
 $ sudo python3 mtda.py -d
 ```
 
+A daemon/server process will be needed to collect console output in the background and
+dispatch it to connected MTDA clients.
+
 # Client commands
 
 Here are a few commands supported by mtda:
@@ -79,6 +82,9 @@ U-Boot 2015.07 (Jan 08 2017 - 16:25:06 +0100)
 
 # Flush the console buffer
 $ python3 mtda.py -r 192.168.0.104 console clear
+
+# Run a command via the console
+$ python3 mtda.py -r 192.168.0.104 console run "ls /"
 
 # Interact with the console
 $ python3 mtda.py -r 192.168.0.104
