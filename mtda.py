@@ -37,17 +37,21 @@ class Application:
         }
 
         with context:
-            self.server()
+            status = self.server()
+            return status
 
     def server(self):
         # Start our agent
-        self.agent.start()
+        status = self.agent.start()
+        if status == False:
+            return False
 
         # Start our RPC server
         uri = "tcp://*:%d" % (self.agent.ctrlport)
         s = zerorpc.Server(self.agent)
         s.bind(uri)
         s.run()
+        return True
 
     def client(self):
         if self.remote is not None:
@@ -224,12 +228,18 @@ class Application:
         # Start our server
         if daemonize == True:
             if detach == True:
-                self.daemonize()
+                status = self.daemonize()
             else:
-                self.server()
+                status = self.server()
+            if status == False:
+                print('Failed to start the MTDA server!', file=sys.stderr)
+                return False
         else:
             # Start our agent
-            self.agent.start()
+            status = self.agent.start()
+            if status == False:
+                print('Failed to start the MTDA agent!', file=sys.stderr)
+                return False
 
         # Check for non-option arguments
         if len(stuff) > 0:
@@ -251,6 +261,7 @@ class Application:
         else:
             # Assume we want an interactive console if called without a command
             self.console_interactive()
+        return True
 
 if __name__ == '__main__':
     app = Application()
