@@ -177,9 +177,8 @@ class MentorTestDeviceAgent:
             mod = importlib.import_module("mtda.power." + variant)
             factory = getattr(mod, 'instantiate')
             self.power_controller = factory()
-            # Configure and probe the power controller
+            # Configure the power controller
             self.power_controller.configure(dict(parser.items('power')))
-            self.power_controller.probe()
         except configparser.NoOptionError:
             print('power controller variant not defined!', file=sys.stderr)
         except ImportError:
@@ -216,7 +215,14 @@ class MentorTestDeviceAgent:
 
     def start(self):
         if self.is_remote == True:
-            return None
+            return True
+
+        # Probe the specified power controller
+        if self.power_controller is not None:
+            status = self.power_controller.probe()
+            if status == False:
+                print('Probe of the Power Controller failed!', file=sys.stderr)
+                return False
 
         if self.console is not None:
             # Create a publisher
@@ -231,4 +237,6 @@ class MentorTestDeviceAgent:
             self.console.probe()
             self.console_logger = ConsoleLogger(self.console, socket)
             self.console_logger.start()
+
+        return True
 
