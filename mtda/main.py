@@ -146,7 +146,9 @@ class MultiTenantDeviceAccess:
         self.is_server = is_server
         parser = configparser.ConfigParser()
         configs_found = parser.read(self.config_files)
-        if is_remote == False:
+        if parser.has_section('remote'):
+            self.load_remote_config(parser)
+        if self.is_remote == False:
             if parser.has_section('console'):
                 self.load_console_config(parser)
             if parser.has_section('power'):
@@ -183,7 +185,11 @@ class MultiTenantDeviceAccess:
             print('power controller variant not defined!', file=sys.stderr)
         except ImportError:
             print('power controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
-    
+
+    def load_remote_config(self, parser):
+        self.conport = int(parser.get('remote', 'console', fallback=self.conport))
+        self.ctrlport = int(parser.get('remote', 'control', fallback=self.ctrlport))
+
     def load_usb_config(self, parser):
         try:
             # Get number of ports
