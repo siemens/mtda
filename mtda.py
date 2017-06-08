@@ -90,6 +90,12 @@ class Application:
         status = server.target_status()
         print("Target power is %s" %(status))
 
+        # Print status of the USB ports
+        ports = server.usb_ports()
+        for ndx in range(0, ports):
+            status = server.usb_status(ndx+1)
+            print("USB #%d is %s" %(ndx+1, status))
+
         # Connect to the console
         if self.remote is None:
             print("Starting local console")
