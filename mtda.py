@@ -110,6 +110,8 @@ class Application:
         server = self.client()
         if c == 'p':
             server.target_toggle()
+            status = server.target_status()
+            server.console_print("\n*** Target is now %s ***\n\n" % (status))
         elif c == 'q':
             self.exiting = True
         elif c == 't':
