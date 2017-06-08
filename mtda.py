@@ -92,7 +92,7 @@ class Application:
                 c = client.console_getkey()
                 self.console_menukey(c)
             else:
-                server.console_send(c)
+                server.console_send(c, True)
 
     def console_menukey(self, c):
         server = self.client()

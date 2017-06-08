@@ -81,9 +81,9 @@ class MultiTenantDeviceAccess:
             print("no console configured/found!", file=sys.stderr)
             return None
 
-    def console_send(self, data):
+    def console_send(self, data, raw=False):
         if self.console_logger is not None:
-            return self.console_logger.write(data)
+            return self.console_logger.write(data, raw)
         else:
             print("no console configured/found!", file=sys.stderr)
             return None
