@@ -3,8 +3,9 @@ import abc
 class PowerController(object):
     __metaclass__ = abc.ABCMeta
 
-    POWERED_OFF = 0
-    POWERED_ON  = 1
+    POWERED_OFF    = 0
+    POWERED_ON     = 1
+    POWERED_UNSURE = 2
 
     @abc.abstractmethod
     def configure(self, conf):
@@ -34,5 +35,5 @@ class PowerController(object):
     @abc.abstractmethod
     def toggle(self):
         """ Toggle power for the attached device"""
-        return self.POWERED_OFF
+        return self.POWERED_UNSURE
 
