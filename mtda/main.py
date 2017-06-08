@@ -27,6 +27,7 @@ class MentorTestDeviceAgent:
         self.conport = 5557
         self.is_remote = False
         self.is_server = False
+        self.remote = None
 
     def console_getkey(self):
         if self.console_input is None:
@@ -141,8 +142,9 @@ class MentorTestDeviceAgent:
         except IndexError:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
-    def load_config(self, is_remote=False, is_server=False):
-        self.is_remote = is_remote
+    def load_config(self, remote=None, is_server=False):
+        self.remote = remote
+        self.is_remote = remote is not None
         self.is_server = is_server
         parser = configparser.ConfigParser()
         configs_found = parser.read(self.config_files)
@@ -189,6 +191,11 @@ class MentorTestDeviceAgent:
     def load_remote_config(self, parser):
         self.conport = int(parser.get('remote', 'console', fallback=self.conport))
         self.ctrlport = int(parser.get('remote', 'control', fallback=self.ctrlport))
+        if self.is_server == False:
+            self.remote = parser.get('remote', 'host', fallback=self.remote)
+        else:
+            self.remote = None
+        self.is_remote = self.remote is not None
 
     def load_usb_config(self, parser):
         try:
