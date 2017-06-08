@@ -153,6 +153,25 @@ class MultiTenantDeviceAccess:
         except IndexError:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
+    def usb_ports(self):
+        return len(self.usb_switches)
+
+    def usb_status(self, ndx):
+        try:
+            if ndx > 0:
+                usb_switch = self.usb_switches[ndx-1]
+                status = usb_switch.status()
+                if status == usb_switch.POWERED_OFF:
+                    return "OFF"
+                elif status == usb_switch.POWERED_ON:
+                    return "ON"
+                else:
+                    return "???"
+        except IndexError:
+            print("invalid USB switch #" + str(ndx), file=sys.stderr)
+            return "ERR"
+        return "???"
+
     def usb_toggle(self, ndx):
         try:
             if ndx > 0:
