@@ -223,7 +223,8 @@ class Application:
         self.agent = MultiTenantDeviceAccess() 
 
         # Load default/specified configuration
-        self.agent.load_config(self.remote is not None, daemonize)
+        self.agent.load_config(self.remote, daemonize)
+        self.remote = self.agent.remote
 
         # Start our server
         if daemonize == True:
