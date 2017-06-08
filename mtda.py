@@ -85,7 +85,19 @@ class Application:
     def console_interactive(self, args=None):
         client = self.agent
         server = self.client()
+
+        # Print power status
+        status = server.target_status()
+        print("Target power is %s" %(status))
+
+        # Connect to the console
+        if self.remote is None:
+            print("Starting local console")
+        else:
+            print("Starting remote console (%s)" % (self.remote))
         client.console_remote(self.remote)
+
+        # Input loop
         while self.exiting == False:
             c = client.console_getkey()
             if c == '\x01':
