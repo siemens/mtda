@@ -110,6 +110,18 @@ class MentorTestDeviceAgent:
         else:
             print("no power controller found!", file=sys.stderr)
 
+    def target_status(self):
+        if self.power_controller is not None:
+            status = self.power_controller.status()
+        else:
+            status = self.power_controller.POWERED_UNSURE
+        if status == self.power_controller.POWERED_OFF:
+            return "OFF"
+        elif status == self.power_controller.POWERED_ON:
+            return "ON"
+        else:
+            return "???"
+
     def target_toggle(self):
         if self.power_controller is not None:
             status = self.power_controller.toggle()
@@ -192,10 +204,13 @@ class MentorTestDeviceAgent:
         self.conport = int(parser.get('remote', 'console', fallback=self.conport))
         self.ctrlport = int(parser.get('remote', 'control', fallback=self.ctrlport))
         if self.is_server == False:
-            self.remote = parser.get('remote', 'host', fallback=self.remote)
+            if self.remote is None:
+                self.remote = parser.get('remote', 'host', fallback=self.remote)
         else:
             self.remote = None
         self.is_remote = self.remote is not None
+        if self.is_remote:
+            print("Will connect to remote agent (%s)" % (self.remote))
 
     def load_usb_config(self, parser):
         try:
