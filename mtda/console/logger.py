@@ -144,6 +144,20 @@ class ConsoleLogger:
     def toggle_timestamps(self):
         self.timestamps = not self.timestamps
 
+    # Print bytes to the console (local or remote)
+    def _print(self, data):
+        if self.socket is not None:
+            self.socket.send(data)
+        else:
+            # Write to stdout if received are not pushed to the network
+            sys.stdout.buffer.write(data)
+            sys.stdout.buffer.flush()
+
+    # Print a string to the console (local or remote)
+    def print(self, data):
+        data = codecs.escape_decode(bytes(data, "utf-8"))[0]
+        self._print(data)
+
     def process_rx(self, data):
         # Initialize basetime on the 1st byte we receive
         if not self.basetime:
@@ -168,12 +182,7 @@ class ConsoleLogger:
             linefeeds = 1
 
         # Publish received data
-        if self.socket is not None:
-            self.socket.send(data)
-        else:
-            # Write to stdout if received are not pushed to the network
-            sys.stdout.buffer.write(data)
-            sys.stdout.buffer.flush()
+        self._print(data)
 
         # Prevent concurrent access to the RX buffers
         self.rx_lock.acquire()
