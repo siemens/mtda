@@ -128,9 +128,12 @@ class ConsoleLogger:
         self.rx_lock.release()
         return line
 
-    def write(self, data):
+    def write(self, data, raw=False):
         try:
-            data = codecs.escape_decode(bytes(data, "utf-8"))[0]
+            if raw == False:
+                data = codecs.escape_decode(bytes(data, "utf-8"))[0]
+            else:
+                data = bytes(data, "utf-8")
             self.console.write(data)
         except Exception as e:
             print("write error on the console (%s)!" % e.strerror, file=sys.stderr)
