@@ -86,21 +86,10 @@ class Application:
         client = self.agent
         server = self.client()
 
-        # Print power status
-        status = server.target_status()
-        print("Target power is %s" %(status))
-
-        # Print status of the USB ports
-        ports = server.usb_ports()
-        for ndx in range(0, ports):
-            status = server.usb_status(ndx+1)
-            print("USB #%d is %s" %(ndx+1, status))
+        # Print target information
+        self.target_info()
 
         # Connect to the console
-        if self.remote is None:
-            print("Starting local console")
-        else:
-            print("Starting remote console (%s)" % (self.remote))
         client.console_remote(self.remote)
 
         # Input loop
@@ -114,7 +103,9 @@ class Application:
 
     def console_menukey(self, c):
         server = self.client()
-        if c == 'p':
+        if c == 'i':
+            self.target_info()
+        elif c == 'p':
             server.target_toggle()
             status = server.target_status()
             server.console_print("\n*** Target is now %s ***\n\n" % (status))
@@ -199,6 +190,25 @@ class Application:
        print("The 'target' command accepts the following sub-commands:")
        print("   on   Power on the device")
        print("   off  Power off the device")
+
+    def target_info(self, args=None):
+        client = self.client()
+
+        # Print power status
+        status = client.target_status()
+        print("Target power is %s" %(status))
+
+        # Print status of the USB ports
+        ports = client.usb_ports()
+        for ndx in range(0, ports):
+            status = client.usb_status(ndx+1)
+            print("USB #%d is %s" %(ndx+1, status))
+
+        # Connect to the console
+        if self.remote is None:
+            print("Local console")
+        else:
+            print("Remote console (agent running on %s)" % (self.remote))
 
     def target_off(self, args=None):
         self.client().target_off()
