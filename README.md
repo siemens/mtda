@@ -100,6 +100,7 @@ $ python3 mtda.py -r 192.168.0.104 target off
 The 'console interactive' command allows remote interaction with the device console.
 The following key sequences may be used to control MTDA:
 
+   * Ctrl + a + i: print target information (power status, USB ports, etc.)
    * Ctrl + a + p: toggle power on/off
    * Ctrl + a + q: quit
    * Ctrl + a + t: toggle display of timestamps
