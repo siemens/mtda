@@ -11,7 +11,6 @@ import zerorpc
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
-import mtda.power.controller
 
 class Application:
 
