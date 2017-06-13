@@ -118,10 +118,10 @@ class MentorTestDeviceAgent:
             print("no power controller found!", file=sys.stderr)
 
     def target_status(self):
-        if self.power_controller is not None:
-            status = self.power_controller.status()
+        if self.power_controller is None:
+            return "???"
         else:
-            status = self.power_controller.POWERED_UNSURE
+            status = self.power_controller.status()
         if status == self.power_controller.POWERED_OFF:
             return "OFF"
         elif status == self.power_controller.POWERED_ON:

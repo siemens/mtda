@@ -4,12 +4,12 @@
 import os
 from setuptools import setup, find_packages
 
-VERSION = '0.1'
+VERSION = '0.2'
 
 setup(
     name='mtda',
     version=VERSION,
-    scripts=['mtda.py'],
+    scripts=['mtda-cli'],
     packages=find_packages(),
     author='Cedric Hombourger',
     author_email='Cedric_Hombourger@mentor.com',
