@@ -42,6 +42,12 @@ sudo apt-get install \
    python3-setuptools python3-usb python3-zmq
 ```
 
+The setup script should then be used to install command-line scripts and packages:
+
+```
+sudo python3 setup.py install
+```
+
 # Configuring MTDA
 
 The agent reads its configuration from mtda.ini.
@@ -52,7 +58,7 @@ Check the sample configuration file included with this distribution for supporte
 The MTDA daemon may be started as follows:
 
 ```
-$ sudo python3 mtda.py -d
+$ sudo mtda-cli -d
 ```
 
 A daemon/server process will be needed to collect console output in the background and
@@ -64,35 +70,35 @@ Here are a few commands supported by mtda:
 
 ```
 # Turn the target on
-$ python3 mtda.py -r 192.168.0.104 target on
+$ mtda-cli -r 192.168.0.104 target on
 
 # Send the "run boot_usb" command to the boot-loader
-$ python3 mtda.py -r 192.168.0.104 console send "run boot_usb\n"
+$ mtda-cli -r 192.168.0.104 console send "run boot_usb\n"
 
 # Get the first line from the console buffer
-$ python3 mtda.py -r 192.168.0.104 console head
+$ mtda-cli -r 192.168.0.104 console head
 
 # Return number of lines available from the console buffer
-$ python3 mtda.py -r 192.168.0.104 console lines
+$ mtda-cli -r 192.168.0.104 console lines
 14
 
 # Clear the console buffer
-$ python3 mtda.py -r 192.168.0.104 console clear
+$ mtda-cli -r 192.168.0.104 console clear
 U-Boot 2015.07 (Jan 08 2017 - 16:25:06 +0100)
 
 # Flush the console buffer
-$ python3 mtda.py -r 192.168.0.104 console clear
+$ mtda-cli -r 192.168.0.104 console clear
 
 # Run a command via the console
-$ python3 mtda.py -r 192.168.0.104 console run "ls /"
+$ mtda-cli -r 192.168.0.104 console run "ls /"
 
 # Interact with the console
-$ python3 mtda.py -r 192.168.0.104
+$ mtda-cli -r 192.168.0.104
 # The interactive console may alse be invoked as follows:
-$ python3 mtda.py -r 192.168.0.104 console interactive
+$ mtda-cli -r 192.168.0.104 console interactive
 
 # Power off the target
-$ python3 mtda.py -r 192.168.0.104 target off
+$ mtda-cli -r 192.168.0.104 target off
 ```
 
 # Interactive console
