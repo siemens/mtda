@@ -83,15 +83,22 @@ class ConsoleLogger:
             return False
         if prompt.startswith("\r"):
             prompt = prompt[1:]
-        return prompt.startswith(self._prompt)
-       
+        return prompt.endswith(self._prompt)
+
+    def prompt(self, newPrompt=None):
+        self.rx_lock.acquire()
+        if newPrompt is not None:
+            self._prompt = newPrompt
+        p = self._prompt
+        self.rx_lock.release()
+        return p
+
     def run(self, cmd):
         self.rx_lock.acquire()
         self._clear()
 
         # Send a break to get a prompt
         self.write("\3")
-        #time.sleep(0.5)
 
         # Wait for a prompt
         self.rx_cond.wait_for(self._matchprompt)

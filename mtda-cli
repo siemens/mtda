@@ -115,6 +115,15 @@ class Application:
         elif c == 'u':
             server.usb_toggle(1)
 
+    def console_prompt(self, args):
+        prompt = None
+        if len(args) > 0:
+            prompt = args[0]
+        data = self.client().console_prompt(prompt)
+        if data is not None:
+            sys.stdout.write(data)
+            sys.stdout.flush()
+
     def console_run(self, args):
         data = self.client().console_run(args[0])
         if data is not None:
@@ -137,6 +146,7 @@ class Application:
        print("   head          Fetch and print the first line from the console buffer")
        print("   interactive   Open the device console for interactive use")
        print("   lines         Print number of lines present in the console buffer")
+       print("   prompt        Configure or print the target shell prompt")
        print("   run           Run the specified command via the device console")
        print("   send          Send characters to the device console")
        print("   tail          Fetch and print the last line from the console buffer")
@@ -152,6 +162,7 @@ class Application:
                'head'        : self.console_head,
                'interactive' : self.console_interactive,
                'lines'       : self.console_lines,
+               'prompt'      : self.console_prompt,
                'run'         : self.console_run,
                'send'        : self.console_send,
                'tail'        : self.console_tail
