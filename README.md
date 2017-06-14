@@ -31,8 +31,6 @@ A relatively cheap configuration may look like this:
 
 In this configuration, the target device may be used from computers running mtda as
 a client and connecting to the remote agent.
- 
-# Installation
 
 For hosts running Ubuntu 16.04 (or later), the following packages need to be installed:
 
@@ -88,6 +86,9 @@ U-Boot 2015.07 (Jan 08 2017 - 16:25:06 +0100)
 
 # Flush the console buffer
 $ mtda-cli -r 192.168.0.104 console clear
+
+# Configure the target prompt
+$ mtda-cli -r 192.168.0.104 console prompt "# "
 
 # Run a command via the console
 $ mtda-cli -r 192.168.0.104 console run "ls /"
