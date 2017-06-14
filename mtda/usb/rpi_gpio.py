@@ -26,11 +26,13 @@ class RPiGpioUsbSwitch(UsbSwitch):
 
     def on(self):
         """ Power on the target USB port"""
-        return GPIO.output(self.pin, GPIO.LOW)
+        GPIO.output(self.pin, GPIO.LOW)
+        return self.status() == self.POWERED_ON
 
     def off(self):
         """ Power off the target USB port"""
-        return GPIO.output(self.pin, GPIO.HIGH)
+        GPIO.output(self.pin, GPIO.HIGH)
+        return self.status() == self.POWERED_OFF
 
     def status(self):
         """ Determine the current power state of the USB port"""
