@@ -69,6 +69,12 @@ class MultiTenantDeviceAccess:
             print("no console configured/found!", file=sys.stderr)
             return None
 
+    def console_prompt(self, newPrompt=None):
+        if self.console_logger is not None:
+            return self.console_logger.prompt(newPrompt)
+        else:
+            return None
+
     def console_remote(self, host):
         if self.is_remote == True:
             # Create and start our remote console
