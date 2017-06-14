@@ -39,24 +39,32 @@ def usb_device_detached(step, className):
     client = step.context.client
     step.context.usb_device_class = className
 
-    # Detach the specified device
-    offline = client.usb_off_by_class(className)
-    assert offline == True
+    available = client.usb_has_class(className)
+    if available == False:
+        step.pending()
+    else:
+        # Detach the specified device
+        offline = client.usb_off_by_class(className)
+        assert offline == True
 
-    # Give the runtime plenty of time to detect removal of the USB device
-    time.sleep(1)
+        # Give the runtime plenty of time to detect removal of the USB device
+        time.sleep(1)
 
 @when("I attach my USB {className:w} device")
 def attach_usb_device(step, className):
     client = step.context.client
     step.context.usb_device_class = className
 
-    # Detach the specified device
-    online = client.usb_on_by_class(className)
-    assert online == True
+    available = client.usb_has_class(className)
+    if available == False:
+        step.pending()
+    else:
+        # Detach the specified device
+        online = client.usb_on_by_class(className)
+        assert online == True
 
-    # Give the runtime plenty of time to detect the USB device
-    time.sleep(5)
+        # Give the runtime plenty of time to detect the USB device
+        time.sleep(5)
 
 @given("I have noted available disks")
 def note_available_disks(step):
