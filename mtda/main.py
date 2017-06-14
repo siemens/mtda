@@ -153,6 +153,10 @@ class MentorTestDeviceAgent:
             ndx = ndx + 1
         return None
 
+    def usb_has_class(self, className):
+        usb_switch = self.usb_find_by_class(className)
+        return usb_switch is not None
+
     def usb_off(self, ndx):
         try:
             if ndx > 0:
