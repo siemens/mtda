@@ -16,7 +16,7 @@ def kernel_version_specified(step):
     if version is None:
         step.pending()
 
-@then("I expect my running kernel to comply")
+@then("the running kernel version shall match")
 def kernel_version_compliance(step):
     client  = step.context.client
     version = step.context.version
@@ -24,7 +24,7 @@ def kernel_version_compliance(step):
         step.pending()
     else:
         lines = client.console_run("uname -r").split('\n')
-        result = lines[0].rstrip()
+        result = lines[0]
         assert re.match(version, result)
 
 @given("my target is on")

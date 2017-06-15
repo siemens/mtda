@@ -6,4 +6,4 @@ Feature: Linux kernel version compliance
 
     Scenario: Test Linux kernel version
         When a kernel version is specified
-        Then I expect my running kernel to comply
+        Then the running kernel version shall match
