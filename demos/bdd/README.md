@@ -13,6 +13,8 @@ as:
 Review the MTDA configuration in mtda.ini; you will most likely need to update the
 hostname or IP address of the remote MTDA instance.
 
+You may also want to review the test suite settings specified in "settings.json".
+
 Tests may be started as follows:
 
 ```

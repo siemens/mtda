@@ -7,13 +7,15 @@ import time
 @given("my target is on")
 def target_is_on(step):
     client = step.context.client
+    settings = step.context.settings
     runtime = "???"
     status = client.target_status()
     if status == "OFF":
+        # Give target some time to start and check its power status again
         client.target_on()
-        # Give target plenty of time to start...
-        time.sleep(90)
+        time.sleep(settings["boot"]["delay"])
         status = client.target_status()
+    assert status == "ON"
 
 @step("Linux is running")
 def linux_is_running(step):
@@ -31,7 +33,6 @@ def linux_is_running(step):
     line = client.console_head() # Command output (1st line)
     if line is not None and line.startswith("Linux "):
         step.context.runtime = "Linux"
-
     assert step.context.runtime == "Linux"
 
 @given("my USB {className:w} device is detached")
@@ -75,7 +76,7 @@ def note_available_disks(step):
     assert online == True
 
     # Get available disks
-    results = client.console_run("cat diskstats|awk '{ print $3; }'")
+    results = client.console_run("cat /proc/diskstats|awk '{ print $3; }'")
     step.context.disks = results.split('\n')[1:-1]
 
 @then("I expect new disk(s)")
@@ -87,7 +88,7 @@ def expect_new_disks(step):
     assert online == True
 
     # Get available disks
-    results = client.console_run("cat diskstats|awk '{ print $3; }'")
+    results = client.console_run("cat /proc/diskstats|awk '{ print $3; }'")
     disks = results.split('\n')[1:-1]
 
     assert step.context.disks is not None
