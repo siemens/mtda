@@ -1,6 +1,9 @@
 {
     "boot" : {
         "delay": 90
+    },
+    "kernel" : {
+        "version": "4\\.4\\.60.*"
     }
 }
 
