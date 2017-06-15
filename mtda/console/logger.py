@@ -206,13 +206,13 @@ class ConsoleLogger:
                 off  = off + 1
                 rem  = sz - off
 
-                # Check for trailing CR
-                if rem > 0 and self.rx_queue[off] == 0xd:
-                    off = off + 1
-                    rem = rem - 1
-
                 # Extract line from the RX queue
                 line = self.rx_queue[:off]
+
+                # Strip trailing \r
+                if len(line) > 1 and line[-2] == 0xd and line[-1] == 0xa:
+                    del line[-1:]
+                    line[-1] = 0xa
 
                 # Add this line to the circular buffer
                 self.rx_buffer.append(line)
