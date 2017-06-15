@@ -2,7 +2,30 @@
 
 from radish import step, given, when, then
 
+import re
 import time
+
+@when("a kernel version is specified")
+def kernel_version_specified(step):
+    settings = step.context.settings
+    version = None
+    if 'kernel' in settings:
+        if 'version' in settings["kernel"]:
+            version = settings["kernel"]["version"]
+    step.context.version = version
+    if version is None:
+        step.pending()
+
+@then("I expect my running kernel to comply")
+def kernel_version_compliance(step):
+    client  = step.context.client
+    version = step.context.version
+    if version is None:
+        step.pending()
+    else:
+        lines = client.console_run("uname -r").split('\n')
+        result = lines[0].rstrip()
+        assert re.match(version, result)
 
 @given("my target is on")
 def target_is_on(step):
