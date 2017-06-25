@@ -28,6 +28,7 @@ A relatively cheap configuration may look like this:
    * a serial connection between the two
    * an Aviosys 8800 power switch (connected via USB to the Pi3)
    * a home-made USB switch (connected via GPIO to the Pi3)
+   * Samsung's SD-Mux (connected via USB)
 
 In this configuration, the target device may be used from computers running mtda as
 a client and connecting to the remote agent.
@@ -110,6 +111,7 @@ The following key sequences may be used to control MTDA:
    * Ctrl + a + i: print target information (power status, USB ports, etc.)
    * Ctrl + a + p: toggle power on/off
    * Ctrl + a + q: quit
+   * Ctrl + a + s: switch SD card between the host and target (power shall be OFF)
    * Ctrl + a + t: toggle display of timestamps
    * Ctrl + a + u: toggle the 1st USB port on/off
 

@@ -22,6 +22,7 @@ class MentorTestDeviceAgent:
         self.console_input = None
         self.console_output = None
         self.power_controller = None
+        self.sdmux_controller = None
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
@@ -101,6 +102,44 @@ class MentorTestDeviceAgent:
         else:
             print("no console configured/found!", file=sys.stderr)
             return None
+
+    def sd_status(self):
+        if self.sdmux_controller is None:
+            return "???"
+        else:
+            status = self.sdmux_controller.status()
+        if status == self.sdmux_controller.SD_ON_HOST:
+            return "HOST"
+        elif status == self.sdmux_controller.SD_ON_TARGET:
+            return "TARGET"
+        else:
+            return "???"
+
+    def sd_to_host(self):
+        if self.sdmux_controller is not None:
+            status = self.target_status()
+            if status == "OFF":
+                return self.sdmux_controller.to_host()
+        return False
+
+    def sd_to_target(self):
+        if self.sdmux_controller is not None:
+            status = self.target_status()
+            if status == "OFF":
+                return self.sdmux_controller.to_target()
+        return False
+
+    def sd_toggle(self):
+        if self.sdmux_controller is not None:
+            status = self.target_status()
+            if status == "OFF":
+                status = self.sd_status()
+                if status == "HOST":
+                    self.sdmux_controller.to_target()
+                elif status == "TARGET":
+                    self.sdmux_controller.to_host()
+                return self.sd_status()
+        return "???"
 
     def toggle_timestamps(self):
         if self.console_logger is not None:
@@ -225,6 +264,8 @@ class MentorTestDeviceAgent:
                 self.load_console_config(parser)
             if parser.has_section('power'):
                 self.load_power_config(parser)
+            if parser.has_section('sdmux'):
+                self.load_sdmux_config(parser)
             if parser.has_section('usb'):
                 self.load_usb_config(parser)
 
@@ -255,6 +296,21 @@ class MentorTestDeviceAgent:
             self.power_controller.configure(dict(parser.items('power')))
         except configparser.NoOptionError:
             print('power controller variant not defined!', file=sys.stderr)
+        except ImportError:
+            print('power controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
+    
+    def load_sdmux_config(self, parser):
+        try:
+            # Get variant
+            variant = parser.get('sdmux', 'variant')
+            # Try loading its support class
+            mod = importlib.import_module("mtda.sdmux." + variant)
+            factory = getattr(mod, 'instantiate')
+            self.sdmux_controller = factory()
+            # Configure the sdmux controller
+            self.sdmux_controller.configure(dict(parser.items('sdmux')))
+        except configparser.NoOptionError:
+            print('sdmux controller variant not defined!', file=sys.stderr)
         except ImportError:
             print('power controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
 
@@ -314,6 +370,13 @@ class MentorTestDeviceAgent:
             status = self.power_controller.probe()
             if status == False:
                 print('Probe of the Power Controller failed!', file=sys.stderr)
+                return False
+
+        # Probe the specified sdmux controller
+        if self.sdmux_controller is not None:
+            status = self.sdmux_controller.probe()
+            if status == False:
+                print('Probe of the SDMUX Controller failed!', file=sys.stderr)
                 return False
 
         if self.console is not None:
