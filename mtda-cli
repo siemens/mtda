@@ -110,6 +110,9 @@ class Application:
             server.console_print("\n*** Target is now %s ***\n\n" % (status))
         elif c == 'q':
             self.exiting = True
+        elif c == 's':
+            status = server.sd_toggle()
+            server.console_print("\n*** SD now connected to %s ***\n\n" % (status))
         elif c == 't':
             server.toggle_timestamps()
         elif c == 'u':
@@ -207,6 +210,10 @@ class Application:
         # Print power status
         status = client.target_status()
         print("Target power is %s" %(status))
+
+        # Print SD status
+        status = client.sd_status()
+        print("SD connected to %s" %(status))
 
         # Print status of the USB ports
         ports = client.usb_ports()
