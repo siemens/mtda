@@ -8,13 +8,38 @@ from mtda.sdmux.controller import SdMuxController
 class SamsungSdMuxController(SdMuxController):
 
     def __init__(self):
+        self.device = "/dev/sda"
+        self.handle = None
         self.serial = "sdmux"
+
+    def close(self):
+        if self.handle is not None:
+            self.handle.close()
+            self.handle = None
+            try:
+                subprocess.check_output(["sync"])
+            except subprocess.CalledProcessError:
+                return False
+        return True
 
     def configure(self, conf):
         """ Configure this sdmux controller from the provided configuration"""
+        if 'device' in conf:
+           self.device = conf['device']
         if 'serial' in conf:
            self.serial = conf['serial']
         return
+
+    def open(self):
+        if self.status() != self.SD_ON_HOST:
+            return False
+
+        if self.handle is None:
+            try:
+                self.handle = open(self.device, "r+b")
+            except FileNotFoundError:
+                return False
+        return True
 
     def probe(self):
         """ Check presence of the sdmux controller"""
@@ -39,6 +64,7 @@ class SamsungSdMuxController(SdMuxController):
     def to_target(self):
         """ Attach the SD card to the target"""
         try:
+            self.close()
             subprocess.check_output([
                 "sd-mux-ctrl", "-e", self.serial, "--dut"
             ])
@@ -60,6 +86,12 @@ class SamsungSdMuxController(SdMuxController):
             return self.SD_ON_UNSURE
         except subprocess.CalledProcessError:
             return self.SD_ON_UNSURE
+
+    def write(self, data):
+        if self.handle is None:
+            return False
+        self.handle.write(data)
+        return True
 
 def instantiate():
    return SamsungSdMuxController()

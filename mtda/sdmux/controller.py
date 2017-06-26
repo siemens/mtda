@@ -8,9 +8,19 @@ class SdMuxController(object):
     SD_ON_TARGET = 2
 
     @abc.abstractmethod
+    def close(self):
+        """ Close the SD card device"""
+        return False
+
+    @abc.abstractmethod
     def configure(self, conf):
         """ Configure this sdmux controller from the provided configuration"""
-        return
+        return True
+
+    @abc.abstractmethod
+    def open(self):
+        """ Open the SD card device for I/O operations"""
+        return False
 
     @abc.abstractmethod
     def probe(self):
@@ -20,14 +30,19 @@ class SdMuxController(object):
     @abc.abstractmethod
     def to_host(self):
         """ Attach the SD card to the host"""
-        return
+        return False
 
     @abc.abstractmethod
     def to_target(self):
         """ Attach the SD card to the target"""
-        return
+        return False
 
     @abc.abstractmethod
     def status(self):
         """ Determine where is the SD card attached"""
         return self.SD_ON_UNSURE
+
+    @abc.abstractmethod
+    def write(self, data):
+        """ Write data to the device SD card"""
+        return False
