@@ -103,17 +103,31 @@ class MentorTestDeviceAgent:
             print("no console configured/found!", file=sys.stderr)
             return None
 
+    def sd_close(self):
+        if self.sdmux_controller is None:
+            return False
+        return self.sdmux_controller.close()
+
+    def sd_open(self):
+        if self.sdmux_controller is None:
+            return False
+        return self.sdmux_controller.open()
+
     def sd_status(self):
         if self.sdmux_controller is None:
             return "???"
-        else:
-            status = self.sdmux_controller.status()
+        status = self.sdmux_controller.status()
         if status == self.sdmux_controller.SD_ON_HOST:
             return "HOST"
         elif status == self.sdmux_controller.SD_ON_TARGET:
             return "TARGET"
         else:
             return "???"
+
+    def sd_write(self, data):
+        if self.sdmux_controller is None:
+            return False
+        return self.sdmux_controller.write(data)
 
     def sd_to_host(self):
         if self.sdmux_controller is not None:
