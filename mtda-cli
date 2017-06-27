@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # System imports
-import bz2
 import daemon
 import getopt
 import lockfile
@@ -229,12 +228,9 @@ class Application:
         imgsize = st.st_size
 
         # Open the specified image
+        isBZ2 = path.endswith(".bz2")
         try:
             image = open(path, "rb")
-            if path.endswith(".bz2"):
-                input = bz2.BZ2File(image, "r")
-            else:
-                input = image
         except FileNotFoundError:
             print("'sd write' failed to open '%s'!" %(path), file=sys.stderr)
             return 1
@@ -249,35 +245,42 @@ class Application:
 
         # Copy loop
         blksize = 8192
-        data = input.read(blksize)
+        data = image.read(blksize)
         dataread = len(data)
         totalread = 0
-        written = 0
-        while dataread > 0:
-            totalread = image.tell()
-
-            # Write block to SD card
-            status = client.sd_write(data)
-            if status == False:
-                print("\rwrite failure on target SD card!", file=sys.stderr)
-                image.close()
-                input = None
-                client.sd_close()
-                return 1
+        while totalread < imgsize:
+            totalread += dataread
 
             # Print progress
-            written += len(data)
             progress = int((float(totalread) / float(imgsize)) * float(100))
             blocks = int(round((20 * progress) / 100))
             spaces = ' ' * (20 - blocks)
             blocks = '#' * blocks
             sys.stdout.write("\r{0}: [{1}] {2}% ({3} MB) "
-                .format(imgname, str(blocks + spaces), progress, int(written / 1024 / 1024)))
+                .format(imgname, str(blocks + spaces), progress, int(totalread / 1024 / 1024)))
             sys.stdout.flush()
 
-            # Read next block
-            data = input.read(blksize)
-            dataread = len(data)
+            # Write block to SD card
+            if isBZ2 == True:
+                bytes_wanted = client.sd_write_bz2(data)
+            else:
+                bytes_wanted = client.sd_write_raw(data)
+
+            # Check what to do next
+            if bytes_wanted < 0:
+                # Handle read/write error
+                print("\rwrite failure on target SD card!", file=sys.stderr)
+                image.close()
+                client.sd_close()
+                return 1
+            elif bytes_wanted > 0:
+                # Read next block
+                data = image.read(bytes_wanted)
+                dataread = len(data)
+            else:
+                # Agent may continue without further data
+                data = b''
+                dataread = 0
 
         # Line feed
         sys.stdout.write("\n")
@@ -285,7 +288,6 @@ class Application:
 
         # Close the local image and SD card
         image.close()
-        input = None
         status = client.sd_close()
         if status == False:
             print("failed to close the target SD card device!", file=sys.stderr)
