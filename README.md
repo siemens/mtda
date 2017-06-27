@@ -19,7 +19,7 @@ In its most basic configuration, MTDA may be used with:
 
 In this configuration, power and USB control functions will not be available.
 
-## Pi3 + Power/USB switches
+## Pi3 + Power/SD/USB switches
 
 A relatively cheap configuration may look like this:
 
@@ -30,8 +30,12 @@ A relatively cheap configuration may look like this:
    * a home-made USB switch (connected via GPIO to the Pi3)
    * Samsung's SD-Mux (connected via USB)
 
+![Pi3 setup](Documentation/Pi3+Aviosys8800+SDMux+USB+MX6Q.jpg)
+
 In this configuration, the target device may be used from computers running mtda as
 a client and connecting to the remote agent.
+
+# Setup
 
 For hosts running Ubuntu 16.04 (or later), the following packages need to be installed:
 
