@@ -123,6 +123,20 @@ class MultiTenantDeviceAccess:
             return False
         return self.sdmux_controller.close()
 
+    def sd_locked(self):
+        # Cannot swap the SD card between the host and target
+        # without a SDMux
+        if self.sdmux_controller is None:
+            return True
+        # We also need a power controller to be safe
+        if self.power_controller is None:
+            return True
+        # Lastly, the target shall be OFF
+        if self.target_status() != "OFF":
+            return True
+        # We may otherwise swap our SD card
+        return False
+
     def sd_open(self):
         if self.sdmux_controller is None:
             return False
@@ -133,12 +147,7 @@ class MultiTenantDeviceAccess:
         if self.sdmux_controller is None:
             return "???"
         status = self.sdmux_controller.status()
-        if status == self.sdmux_controller.SD_ON_HOST:
-            return "HOST"
-        elif status == self.sdmux_controller.SD_ON_TARGET:
-            return "TARGET"
-        else:
-            return "???"
+        return status
 
     def sd_write_image(self, path, callback=None, agent=None):
         if agent is None:
@@ -263,31 +272,25 @@ class MultiTenantDeviceAccess:
         return self.blksz
 
     def sd_to_host(self):
-        if self.sdmux_controller is not None:
-            status = self.target_status()
-            if status == "OFF":
-                return self.sdmux_controller.to_host()
+        if self.sd_locked() == False:
+            return self.sdmux_controller.to_host()
         return False
 
     def sd_to_target(self):
-        self.bz2dec = None
-        if self.sdmux_controller is not None:
-            status = self.target_status()
-            if status == "OFF":
-                return self.sdmux_controller.to_target()
+        if self.sd_locked() == False:
+            self.sd_close()
+            return self.sdmux_controller.to_target()
         return False
 
     def sd_toggle(self):
-        if self.sdmux_controller is not None:
-            status = self.target_status()
-            if status == "OFF":
-                status = self.sd_status()
-                if status == "HOST":
-                    self.sdmux_controller.to_target()
-                elif status == "TARGET":
-                    self.sdmux_controller.to_host()
-                return self.sd_status()
-        return "???"
+        if self.sd_locked() == False:
+            status = self.sd_status()
+            if status == "HOST":
+                self.sdmux_controller.to_target()
+            elif status == "TARGET":
+                self.sdmux_controller.to_host()
+        status = self.sd_status()
+        return status
 
     def toggle_timestamps(self):
         if self.console_logger is not None:
