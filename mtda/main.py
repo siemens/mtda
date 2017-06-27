@@ -52,40 +52,45 @@ class MultiTenantDeviceAccess:
         return self.console_input.getkey()
 
     def console_clear(self):
+        if self.console_locked():
+            return None
         if self.console_logger is not None:
-            self.console_logger.clear()
+            return self.console_logger.clear()
         else:
-            print("no console configured/found!", file=sys.stderr)
+            return None
 
     def console_flush(self):
+        if self.console_locked():
+            return None
         if self.console_logger is not None:
             return self.console_logger.flush()
         else:
-            print("no console configured/found!", file=sys.stderr)
             return None
 
     def console_head(self):
         if self.console_logger is not None:
             return self.console_logger.head()
         else:
-            print("no console configured/found!", file=sys.stderr)
             return None
 
     def console_lines(self):
         if self.console_logger is not None:
             return self.console_logger.lines()
         else:
-            print("no console configured/found!", file=sys.stderr)
             return None
+
+    def console_locked(self):
+        return False
 
     def console_print(self, data):
         if self.console_logger is not None:
             return self.console_logger.print(data)
         else:
-            print("no console configured/found!", file=sys.stderr)
             return None
 
     def console_prompt(self, newPrompt=None):
+        if self.console_locked():
+            return None
         if self.console_logger is not None:
             return self.console_logger.prompt(newPrompt)
         else:
@@ -98,24 +103,27 @@ class MultiTenantDeviceAccess:
             self.console_output.start()
 
     def console_run(self, cmd):
+        if self.console_locked():
+            return None
         if self.console_logger is not None:
             return self.console_logger.run(cmd)
         else:
-            print("no console configured/found!", file=sys.stderr)
-            return None
-
-    def console_tail(self):
-        if self.console_logger is not None:
-            return self.console_logger.tail()
-        else:
-            print("no console configured/found!", file=sys.stderr)
             return None
 
     def console_send(self, data, raw=False):
+        if self.console_locked():
+            return None
         if self.console_logger is not None:
             return self.console_logger.write(data, raw)
         else:
-            print("no console configured/found!", file=sys.stderr)
+            return None
+
+    def console_tail(self):
+        if self.console_locked():
+            return None
+        if self.console_logger is not None:
+            return self.console_logger.tail()
+        else:
             return None
 
     def sd_close(self):
