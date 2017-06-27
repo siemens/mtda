@@ -101,6 +101,18 @@ $ mtda-cli -r 192.168.0.104 console interactive
 
 # Power off the target
 $ mtda-cli -r 192.168.0.104 target off
+
+# Attach the SD card to the host
+$ mtda-cli -r 192.168.0.104 sd host
+
+# Write a compressed image to the SD card
+$ mtda-cli -r 192.168.0.104 sd console-image.wic.bz2
+
+# Attach the SD card to the target
+$ mtda-cli -r 192.168.0.104 sd host
+
+# Power on the target
+$ mtda-cli -r 192.168.0.104 target on
 ```
 
 # Interactive console
@@ -108,10 +120,10 @@ $ mtda-cli -r 192.168.0.104 target off
 The 'console interactive' command allows remote interaction with the device console.
 The following key sequences may be used to control MTDA:
 
-   * Ctrl + a + i: print target information (power status, USB ports, etc.)
+   * Ctrl + a + i: print target information (power status, SD card, USB ports, etc.)
    * Ctrl + a + p: toggle power on/off
    * Ctrl + a + q: quit
-   * Ctrl + a + s: switch SD card between the host and target (power shall be OFF)
+   * Ctrl + a + s: switch SD card between the host and target (target shall be OFF)
    * Ctrl + a + t: toggle display of timestamps
    * Ctrl + a + u: toggle the 1st USB port on/off
 
