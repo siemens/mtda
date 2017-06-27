@@ -1,10 +1,13 @@
 # System imports
+import bz2
 import configparser
 import daemon
+import gevent
 import importlib
 import os
 import signal
 import sys
+import time
 import zmq
 
 # Local imports
@@ -23,6 +26,9 @@ class MultiTenantDeviceAccess:
         self.console_output = None
         self.power_controller = None
         self.sdmux_controller = None
+        self.blksz = 8192
+        self.bz2dec = None
+        self.fbintvl = 5 # Feedback interval
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
@@ -124,10 +130,68 @@ class MultiTenantDeviceAccess:
         else:
             return "???"
 
-    def sd_write(self, data):
+    def _sd_write_bz2(self, data):
+
+        # Decompress and write the newly received data
+        uncompressed = self.bz2dec.decompress(data, self.blksz)
+        status = self.sdmux_controller.write(uncompressed)
+        if status == False:
+            return -1
+
+        # Check if we can write more data without further input
+        if self.bz2dec.needs_input == False:
+            return 0
+
+        # Data successfully uncompressed and written to SD
+        return self.blksz
+
+    def sd_write_bz2(self, data):
         if self.sdmux_controller is None:
-            return False
-        return self.sdmux_controller.write(data)
+            return -1
+
+        # Create a bz2 decompressor when called for the first time
+        if self.bz2dec is None:
+            self.bz2dec = bz2.BZ2Decompressor()
+
+        cont = True
+        start = time.monotonic()
+        status = -1
+
+        while cont == True:
+            # Decompress and write newly received data
+            try:
+                # Uncompress and write data
+                status = self._sd_write_bz2(data)
+                if status != 0:
+                    # Either got an error or needing more data; escape from
+                    # this loop to provide feedback
+                    cont = False
+                else:
+                    # Check if this loop has been running for quite some time,
+                    # in which case we would to give our client an update
+                    now = time.monotonic()
+                    if (now - start) >= self.fbintvl:
+                        cont = False
+                    # If we should continue and do not need more data at this time,
+                    # use an empty buffer for the next iteration
+                    elif status == 0:
+                        data = b''
+            except EOFError:
+                # Handle multi-streams: create a new decompressor and we will start
+                # with data unused from the previous decompressor
+                data = self.bz2dec.unused_data
+                self.bz2dec = bz2.BZ2Decompressor()
+                cont = (len(data) > 0) # loop only if we have unused data
+                status = 0             # we do not need more input data
+        return status
+
+    def sd_write_raw(self, data):
+        if self.sdmux_controller is None:
+            return -1
+        status = self.sdmux_controller.write(data)
+        if status == False:
+            return -1
+        return self.blksz
 
     def sd_to_host(self):
         if self.sdmux_controller is not None:
@@ -137,6 +201,7 @@ class MultiTenantDeviceAccess:
         return False
 
     def sd_to_target(self):
+        self.bz2dec = None
         if self.sdmux_controller is not None:
             status = self.target_status()
             if status == "OFF":
