@@ -3,9 +3,9 @@ import abc
 class SdMuxController(object):
     __metaclass__ = abc.ABCMeta
 
-    SD_ON_UNSURE = 0
-    SD_ON_HOST   = 1
-    SD_ON_TARGET = 2
+    SD_ON_UNSURE = "???"
+    SD_ON_HOST   = "HOST"
+    SD_ON_TARGET = "TARGET"
 
     @abc.abstractmethod
     def close(self):
