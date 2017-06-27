@@ -36,6 +36,15 @@ class MentorTestDeviceAgent:
         self.is_server = False
         self.remote = None
 
+        # Config file in $HOME/mtda/config
+        home = os.getenv('HOME', '')
+        if home != '':
+            self.config_files.append(os.path.join(home, 'mtda', 'config'))
+
+        # Config file in /etc/mtda/config
+        if os.path.exists('/etc'):
+            self.config_files.append(os.path.join('/etc', 'mtda', 'config'))
+
     def console_getkey(self):
         if self.console_input is None:
             self.console_input = ConsoleInput()
@@ -117,6 +126,7 @@ class MentorTestDeviceAgent:
     def sd_open(self):
         if self.sdmux_controller is None:
             return False
+        self.sd_close()
         return self.sdmux_controller.open()
 
     def sd_status(self):
@@ -129,6 +139,65 @@ class MentorTestDeviceAgent:
             return "TARGET"
         else:
             return "???"
+
+    def sd_write_image(self, path, callback=None, agent=None):
+        if agent is None:
+            agent = self
+
+        # Get size of the (compressed) image
+        imgname = os.path.basename(path)
+
+        # Open the specified image
+        try:
+            st = os.stat(path)
+            imgsize = st.st_size
+            isBZ2 = path.endswith(".bz2")
+            image = open(path, "rb")
+        except FileNotFoundError:
+            return False
+
+        # Open the SD card device
+        status = agent.sd_open()
+        if status == False:
+            image.close()
+            return False
+
+        # Copy loop
+        data = image.read(self.blksz)
+        dataread = len(data)
+        totalread = 0
+        while totalread < imgsize:
+            totalread += dataread
+
+            # Report progress via callback
+            if callback is not None:
+                callback(imgname, totalread, imgsize)
+
+            # Write block to SD card
+            if isBZ2 == True:
+                bytes_wanted = agent.sd_write_bz2(data)
+            else:
+                bytes_wanted = agent.sd_write_raw(data)
+
+            # Check what to do next
+            if bytes_wanted < 0:
+                # Handle read/write error
+                image.close()
+                agent.sd_close()
+                return False
+            elif bytes_wanted > 0:
+                # Read next block
+                data = image.read(bytes_wanted)
+                dataread = len(data)
+            else:
+                # Agent may continue without further data
+                data = b''
+                dataread = 0
+
+        # Close the local image and SD card
+        image.close()
+        status = agent.sd_close()
+        return status
 
     def _sd_write_bz2(self, data):
 

@@ -48,7 +48,7 @@ class Application:
 
         # Start our RPC server
         uri = "tcp://*:%d" % (self.agent.ctrlport)
-        s = zerorpc.Server(self.agent)
+        s = zerorpc.Server(self.agent, heartbeat=20)
         s.bind(uri)
         s.run()
         return True
@@ -56,7 +56,7 @@ class Application:
     def client(self):
         if self.remote is not None:
             uri = "tcp://%s:%d" % (self.remote, self.agent.ctrlport)
-            c = zerorpc.Client()
+            c = zerorpc.Client(heartbeat=20)
             c.connect(uri)
             return c
         else:
@@ -184,6 +184,7 @@ class Application:
 
             cmds = {
                'console' : self.console_help,
+               'sd'      : self.sd_help,
                'target'  : self.target_help
             }
 
@@ -197,7 +198,7 @@ class Application:
             print("The most commonly used mtda commands are:")
             print("   console   Interact with the device console")
             print("   target    Power control the device")
-            print("   sd        Read/write to the device SD card")
+            print("   sd        Interact with the device SD card")
             print("   usb       Control USB devices attached to the device")
             print("")
 
@@ -207,7 +208,9 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'write' : self.sd_write,
+               'host'   : self.sd_host,
+               'target' : self.sd_target,
+               'write'  : self.sd_write
             }
 
             if cmd in cmds:
@@ -216,81 +219,48 @@ class Application:
                 print("unknown sd command '%s'!" %(cmd), file=sys.stderr)
                 return 1
 
+    def sd_help(self, args=None):
+       print("The 'sd' command accepts the following sub-commands:")
+       print("   host      Attach the device SD card to the host")
+       print("   target    Attach the device SD card to the target")
+       print("   write     Write an image to the device SD card")
+
+    def sd_host(self, args):
+        status = self.client().sd_to_host()
+        if status == False:
+            print("failed to connect the device SD card to the host!", file=sys.stderr)
+            return 1
+        return 0
+
+    def sd_target(self, args):
+        status = self.client().sd_to_target()
+        if status == False:
+            print("failed to connect the device SD card to the target!", file=sys.stderr)
+            return 1
+        return 0
+
+    def _sd_write_cb(self, imgname, totalread, imgsize):
+        # Print progress
+        progress = int((float(totalread) / float(imgsize)) * float(100))
+        blocks = int(round((20 * progress) / 100))
+        spaces = ' ' * (20 - blocks)
+        blocks = '#' * blocks
+        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MB) "
+            .format(imgname, str(blocks + spaces), progress, int(totalread / 1024 / 1024)))
+        sys.stdout.flush()
+
     def sd_write(self, args=None):
         if len(args) == 0:
             print("'sd write' expects a file argument!", file=sys.stderr)
             return 1
 
-        # Get size of the (compressed) image
-        path = args[0]
-        imgname = os.path.basename(path)
-        st = os.stat(path)
-        imgsize = st.st_size
-
-        # Open the specified image
-        isBZ2 = path.endswith(".bz2")
-        try:
-            image = open(path, "rb")
-        except FileNotFoundError:
-            print("'sd write' failed to open '%s'!" %(path), file=sys.stderr)
-            return 1
-
-        # Open the SD card device
-        client = self.client()
-        status = client.sd_open()
-        if status == False:
-            print("failed to open the target SD card device!", file=sys.stderr)
-            image.close()
-            return 1
-
-        # Copy loop
-        blksize = 8192
-        data = image.read(blksize)
-        dataread = len(data)
-        totalread = 0
-        while totalread < imgsize:
-            totalread += dataread
-
-            # Print progress
-            progress = int((float(totalread) / float(imgsize)) * float(100))
-            blocks = int(round((20 * progress) / 100))
-            spaces = ' ' * (20 - blocks)
-            blocks = '#' * blocks
-            sys.stdout.write("\r{0}: [{1}] {2}% ({3} MB) "
-                .format(imgname, str(blocks + spaces), progress, int(totalread / 1024 / 1024)))
-            sys.stdout.flush()
-
-            # Write block to SD card
-            if isBZ2 == True:
-                bytes_wanted = client.sd_write_bz2(data)
-            else:
-                bytes_wanted = client.sd_write_raw(data)
-
-            # Check what to do next
-            if bytes_wanted < 0:
-                # Handle read/write error
-                print("\rwrite failure on target SD card!", file=sys.stderr)
-                image.close()
-                client.sd_close()
-                return 1
-            elif bytes_wanted > 0:
-                # Read next block
-                data = image.read(bytes_wanted)
-                dataread = len(data)
-            else:
-                # Agent may continue without further data
-                data = b''
-                dataread = 0
-
-        # Line feed
+        status = self.agent.sd_write_image(args[0], self._sd_write_cb, self.client())
         sys.stdout.write("\n")
         sys.stdout.flush()
 
-        # Close the local image and SD card
-        image.close()
-        status = client.sd_close()
         if status == False:
-            print("failed to close the target SD card device!", file=sys.stderr)
+            print("'sd write' failed!", file=sys.stderr)
+            return 1
         return 0
 
     def target_help(self, args=None):
