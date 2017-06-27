@@ -319,6 +319,11 @@ class Application:
         daemonize = False
         detach = True
 
+        # Check for the MTDA_REMOTE environment variable
+        arg = os.getenv('MTDA_REMOTE', '')
+        if arg != '':
+            self.remote = arg
+
         options, stuff = getopt.getopt(sys.argv[1:], 
             'dnr:',
             ['daemon', 'no-detach', 'remote='])

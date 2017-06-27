@@ -72,51 +72,54 @@ dispatch it to connected MTDA clients.
 Here are a few commands supported by mtda:
 
 ```
+# Tell the client to connect to a remote MTDA agent
+export MTDA_REMOTE=192.168.0.104
+
 # Turn the target on
-$ mtda-cli -r 192.168.0.104 target on
+$ mtda-cli target on
 
 # Send the "run boot_usb" command to the boot-loader
-$ mtda-cli -r 192.168.0.104 console send "run boot_usb\n"
+$ mtda-cli console send "run boot_usb\n"
 
 # Get the first line from the console buffer
-$ mtda-cli -r 192.168.0.104 console head
+$ mtda-cli console head
 
 # Return number of lines available from the console buffer
-$ mtda-cli -r 192.168.0.104 console lines
+$ mtda-cli console lines
 14
 
 # Clear the console buffer
-$ mtda-cli -r 192.168.0.104 console clear
+$ mtda-cli console clear
 U-Boot 2015.07 (Jan 08 2017 - 16:25:06 +0100)
 
 # Flush the console buffer
-$ mtda-cli -r 192.168.0.104 console clear
+$ mtda-cli console clear
 
 # Configure the target prompt
-$ mtda-cli -r 192.168.0.104 console prompt "# "
+$ mtda-cli console prompt "# "
 
 # Run a command via the console
-$ mtda-cli -r 192.168.0.104 console run "ls /"
+$ mtda-cli console run "ls /"
 
 # Interact with the console
-$ mtda-cli -r 192.168.0.104
+$ mtda-cli
 # The interactive console may alse be invoked as follows:
-$ mtda-cli -r 192.168.0.104 console interactive
+$ mtda-cli console interactive
 
 # Power off the target
-$ mtda-cli -r 192.168.0.104 target off
+$ mtda-cli target off
 
 # Attach the SD card to the host
-$ mtda-cli -r 192.168.0.104 sd host
+$ mtda-cli sd host
 
 # Write a compressed image to the SD card
-$ mtda-cli -r 192.168.0.104 sd console-image.wic.bz2
+$ mtda-cli sd console-image.wic.bz2
 
 # Attach the SD card to the target
-$ mtda-cli -r 192.168.0.104 sd host
+$ mtda-cli sd host
 
 # Power on the target
-$ mtda-cli -r 192.168.0.104 target on
+$ mtda-cli target on
 ```
 
 # Interactive console
