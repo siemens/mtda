@@ -1,9 +1,12 @@
 {
+    "builds" : {
+        "default" : "console-image-mx6q.wic.bz2"
+    },
     "boot" : {
-        "delay": 90
+        "delay" : 90
     },
     "kernel" : {
-        "version": "4\\.4\\.60.*"
+        "version" : "4\\.4\\.60.*"
     }
 }
 

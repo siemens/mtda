@@ -1,9 +1,27 @@
 # -*- coding: utf-8 -*-
 
 from radish import step, given, when, then
+from radish import world
 
 import re
 import time
+
+@given("my {name:w} build was flashed")
+def build_was_flashed(step, name):
+    agent    = step.context.agent
+    client   = step.context.client
+    settings = step.context.settings
+    assert 'builds' in settings
+    assert name in settings["builds"]
+
+    image = settings["builds"][name]
+    if image != world.build:
+        assert client.target_off()
+        time.sleep(3)
+        assert client.sd_to_host()
+        time.sleep(5)
+        assert agent.sd_write_image(image, agent=client)
+        world.build = image
 
 @when("a kernel version is specified")
 def kernel_version_specified(step):
@@ -27,15 +45,19 @@ def kernel_version_compliance(step):
         result = lines[0]
         assert re.match(version, result)
 
-@given("my target is on")
+@step("my target is on")
 def target_is_on(step):
     client = step.context.client
     settings = step.context.settings
     runtime = "???"
     status = client.target_status()
     if status == "OFF":
+        # Power on the board
+        assert client.sd_to_target()
+        time.sleep(3)
+        assert client.target_on()
+
         # Give target some time to start and check its power status again
-        client.target_on()
         time.sleep(settings["boot"]["delay"])
         status = client.target_status()
     assert status == "ON"
