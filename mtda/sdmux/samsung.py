@@ -90,8 +90,11 @@ class SamsungSdMuxController(SdMuxController):
     def write(self, data):
         if self.handle is None:
             return False
-        self.handle.write(data)
-        return True
+        try:
+            self.handle.write(data)
+            return True
+        except OSError:
+            return False
 
 def instantiate():
    return SamsungSdMuxController()
