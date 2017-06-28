@@ -114,9 +114,11 @@ class Application:
         elif c == 'q':
             self.exiting = True
         elif c == 's':
-            status = server.sd_toggle()
-            if status == True:
-                server.console_print("\n*** SD now connected to %s ***\n" % (status))
+            previous_status = server.sd_status()
+            server.sd_toggle()
+            new_status = server.sd_status()
+            if new_status != previous_status:
+                server.console_print("\n*** SD now connected to %s ***\n" % (new_status))
         elif c == 't':
             server.toggle_timestamps()
         elif c == 'u':
