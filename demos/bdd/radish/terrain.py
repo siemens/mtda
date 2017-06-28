@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from radish import before, after
+from radish import world
 from mtda.main import MultiTenantDeviceAccess
 
 import json
 import os.path
 import zerorpc
+
+world.build = ''
 
 @before.each_scenario
 def init_agent(scenario):
