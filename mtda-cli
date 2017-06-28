@@ -106,14 +106,17 @@ class Application:
         if c == 'i':
             self.target_info()
         elif c == 'p':
+            previous_status = server.target_status()
             server.target_toggle()
-            status = server.target_status()
-            server.console_print("\n*** Target is now %s ***\n\n" % (status))
+            new_status = server.target_status()
+            if previous_status != new_status:
+                server.console_print("\n*** Target is now %s ***\n" % (new_status))
         elif c == 'q':
             self.exiting = True
         elif c == 's':
             status = server.sd_toggle()
-            server.console_print("\n*** SD now connected to %s ***\n\n" % (status))
+            if status == True:
+                server.console_print("\n*** SD now connected to %s ***\n" % (status))
         elif c == 't':
             server.toggle_timestamps()
         elif c == 'u':
@@ -265,8 +268,9 @@ class Application:
 
     def target_help(self, args=None):
        print("The 'target' command accepts the following sub-commands:")
-       print("   on   Power on the device")
-       print("   off  Power off the device")
+       print("   on      Power on the device")
+       print("   off     Power off the device")
+       print("   toggle  Toggle target power")
 
     def target_info(self, args=None):
         client = self.client()
@@ -292,13 +296,18 @@ class Application:
             print("Remote console (agent running on %s)" % (self.remote))
 
     def target_off(self, args=None):
-        self.client().target_off()
+        status = self.client().target_off()
+        return 0 if (status == True) else 1
 
     def target_on(self, args=None):
-        self.client().target_on()
+        status = self.client().target_on()
+        return 0 if (status == True) else 1
 
     def target_toggle(self, args=None):
+        previous_status = self.client().target_status()
         self.client().target_toggle()
+        new_status = self.client().target_status()
+        return 0 if (new_status != previous_status) else 1
 
     def target_cmd(self, args):
         if len(args) > 0:
@@ -306,14 +315,16 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'off' : self.target_off,
-               'on'  : self.target_on
+               'off'    : self.target_off,
+               'on'     : self.target_on,
+               'toggle' : self.target_toggle
             }
 
             if cmd in cmds:
-                cmds[cmd](args)
+                return cmds[cmd](args)
             else:
                 print("unknown target command '%s'!" %(cmd), file=sys.stderr)
+                return 1
 
     def main(self):
         daemonize = False
