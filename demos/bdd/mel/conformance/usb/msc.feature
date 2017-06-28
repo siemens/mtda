@@ -1,7 +1,8 @@
 Feature: Support for USB Mass Storage Devices
 
     Background: Have Linux running
-        Given my target is on
+        Given my default build was flashed
+        And my target is on
         And Linux is running
 
     Scenario: Test insertion of a mass storage device
