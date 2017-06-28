@@ -2,8 +2,7 @@ Feature: Support for USB Mass Storage Devices
 
     Background: Have Linux running
         Given my default build was flashed
-        And my target is on
-        And Linux is running
+        And Linux was booted
 
     Scenario: Test insertion of a mass storage device
         Given my USB MSC device is detached
