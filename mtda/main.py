@@ -136,8 +136,7 @@ class MultiTenantDeviceAccess:
         if self.sdmux_controller is None:
             return False
         if self._sd_opened == True:
-            status = self.sdmux_controller.close()
-            self._sd_opened = (status == True)
+            self._sd_opened = not self.sdmux_controller.close()
         return (self._sd_opened == False)
 
     def sd_locked(self):
