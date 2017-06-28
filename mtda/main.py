@@ -27,9 +27,9 @@ class MultiTenantDeviceAccess:
         self.power_controller = None
         self.sdmux_controller = None
         self._sd_opened = False
-        self.blksz = 8192
+        self.blksz = 65536
         self.bz2dec = None
-        self.fbintvl = 5 # Feedback interval
+        self.fbintvl = 8 # Feedback interval
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
