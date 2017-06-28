@@ -80,6 +80,11 @@ def linux_is_running(step):
         step.context.runtime = "Linux"
     assert step.context.runtime == "Linux"
 
+@step("Linux was booted")
+def linux_booted(step):
+    step.behave_like("my target is on")
+    step.behave_like("Linux is running")
+
 @given("my USB {className:w} device is detached")
 def usb_device_detached(step, className):
     client = step.context.client
