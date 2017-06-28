@@ -29,28 +29,29 @@ class Aviosys8800PowerController(PowerController):
 
     def on(self):
         """ Power on the attached device"""
-        return self.dev.ctrl_transfer(0x40, 0x01, 0x0001, 0xa0, [])
+        status = self.dev.ctrl_transfer(0x40, 0x01, 0x0001, 0xa0, [])
+        return (status == 0)
 
     def off(self):
         """ Power off the attached device"""
-        return self.dev.ctrl_transfer(0x40, 0x01, 0x0001, 0x20, [])
+        status = self.dev.ctrl_transfer(0x40, 0x01, 0x0001, 0x20, [])
+        return (status == 0)
 
     def status(self):
         """ Determine the current power state of the attached device"""
         ret = self.dev.ctrl_transfer(0xc0, 0x01, 0x0081, 0x0000, 0x0001)
         if ret[0] == 0xa0:
-            return self.POWERED_ON
-        return self.POWERED_OFF
+            return self.POWER_ON
+        return self.POWER_OFF
 
     def toggle(self):
         """ Toggle power for the attached device"""
         s = self.status()
-        if s == self.POWERED_OFF:
+        if s == self.POWER_OFF:
             self.on()
-            return self.POWERED_ON
         else:
             self.off()
-            return self.POWERED_OFF
+        return self.status()
 
 def instantiate():
    return Aviosys8800PowerController()
