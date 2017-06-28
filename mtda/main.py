@@ -132,7 +132,7 @@ class MentorTestDeviceAgent:
             return True
         return False
 
-    def _sd_close(self):
+    def sd_close(self):
         if self.sdmux_controller is None:
             return False
         if self._sd_opened == True:
@@ -157,10 +157,10 @@ class MentorTestDeviceAgent:
         # We may otherwise swap our SD card
         return False
 
-    def _sd_open(self):
+    def sd_open(self):
         if self.sdmux_controller is None:
             return False
-        self._sd_close()
+        self.sd_close()
         status = self.sdmux_controller.open()
         self._sd_opened = (status == True)
         return status
@@ -188,7 +188,7 @@ class MentorTestDeviceAgent:
             return False
 
         # Open the SD card device
-        status = agent._sd_open()
+        status = agent.sd_open()
         if status == False:
             image.close()
             return False
@@ -206,15 +206,15 @@ class MentorTestDeviceAgent:
 
             # Write block to SD card
             if isBZ2 == True:
-                bytes_wanted = agent._sd_write_bz2(data)
+                bytes_wanted = agent.sd_write_bz2(data)
             else:
-                bytes_wanted = agent._sd_write_raw(data)
+                bytes_wanted = agent.sd_write_raw(data)
 
             # Check what to do next
             if bytes_wanted < 0:
                 # Handle read/write error
                 image.close()
-                agent._sd_close()
+                agent.sd_close()
                 return False
             elif bytes_wanted > 0:
                 # Read next block
@@ -227,7 +227,7 @@ class MentorTestDeviceAgent:
 
         # Close the local image and SD card
         image.close()
-        status = agent._sd_close()
+        status = agent.sd_close()
         return status
 
     def _sd_write_bz2(self, data):
@@ -245,7 +245,7 @@ class MentorTestDeviceAgent:
         # Data successfully uncompressed and written to SD
         return self.blksz
 
-    def _sd_write_bz2(self, data):
+    def sd_write_bz2(self, data):
         if self.sdmux_controller is None:
             return -1
 
@@ -285,7 +285,7 @@ class MentorTestDeviceAgent:
                 status = 0             # we do not need more input data
         return status
 
-    def _sd_write_raw(self, data):
+    def sd_write_raw(self, data):
         if self.sdmux_controller is None:
             return -1
         status = self.sdmux_controller.write(data)
@@ -300,7 +300,7 @@ class MentorTestDeviceAgent:
 
     def sd_to_target(self):
         if self.sd_locked() == False:
-            self._sd_close()
+            self.sd_close()
             return self.sdmux_controller.to_target()
         return False
 
