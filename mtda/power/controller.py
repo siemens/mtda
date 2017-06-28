@@ -3,9 +3,10 @@ import abc
 class PowerController(object):
     __metaclass__ = abc.ABCMeta
 
-    POWERED_OFF    = 0
-    POWERED_ON     = 1
-    POWERED_UNSURE = 2
+    POWER_OFF    = "OFF"
+    POWER_ON     = "ON"
+    POWER_UNSURE = "???"
+    POWER_LOCKED = "LOCKED"
 
     @abc.abstractmethod
     def configure(self, conf):

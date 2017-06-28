@@ -127,12 +127,18 @@ class MentorTestDeviceAgent:
         else:
             return None
 
+    def power_locked(self):
+        if self.power_controller is None:
+            return True
+        return False
+
     def _sd_close(self):
         if self.sdmux_controller is None:
             return False
-        status = self.sdmux_controller.close()
-        self._sd_opened = (status == True)
-        return status
+        if self._sd_opened == True:
+            status = self.sdmux_controller.close()
+            self._sd_opened = (status == True)
+        return (self._sd_opened == False)
 
     def sd_locked(self):
         # Cannot swap the SD card between the host and target
@@ -316,38 +322,30 @@ class MentorTestDeviceAgent:
             return None
 
     def target_on(self):
-        if self.power_controller is not None:
-            self.power_controller.on()
-        else:
-            print("no power controller found!", file=sys.stderr)
+        if self.power_locked() == False:
+            return self.power_controller.on()
+        return False
 
     def target_off(self):
-        if self.power_controller is not None:
-            self.power_controller.off()
+        if self.power_locked() == False:
+            status = self.power_controller.off()
             if self.console_logger is not None:
-                return self.console_logger.reset_timer()
-        else:
-            print("no power controller found!", file=sys.stderr)
+                self.console_logger.reset_timer()
+            return status
+        return False
 
     def target_status(self):
         if self.power_controller is None:
             return "???"
-        else:
-            status = self.power_controller.status()
-        if status == self.power_controller.POWERED_OFF:
-            return "OFF"
-        elif status == self.power_controller.POWERED_ON:
-            return "ON"
-        else:
-            return "???"
+        return self.power_controller.status()
 
     def target_toggle(self):
-        if self.power_controller is not None:
+        if self.power_locked() == False:
             status = self.power_controller.toggle()
-            if status == self.power_controller.POWERED_OFF and self.console_logger is not None:
-                return self.console_logger.reset_timer()
-        else:
-            print("no power controller found!", file=sys.stderr)
+            if status == self.power_controller.POWER_OFF and self.console_logger is not None:
+                self.console_logger.reset_timer()
+            return status
+        return self.power_controller.POWER_LOCKED
 
     def usb_find_by_class(self, className):
         ports = len(self.usb_switches)
