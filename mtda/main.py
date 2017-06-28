@@ -26,6 +26,7 @@ class MentorTestDeviceAgent:
         self.console_output = None
         self.power_controller = None
         self.sdmux_controller = None
+        self._sd_opened = False
         self.blksz = 8192
         self.bz2dec = None
         self.fbintvl = 5 # Feedback interval
@@ -126,10 +127,12 @@ class MentorTestDeviceAgent:
         else:
             return None
 
-    def sd_close(self):
+    def _sd_close(self):
         if self.sdmux_controller is None:
             return False
-        return self.sdmux_controller.close()
+        status = self.sdmux_controller.close()
+        self._sd_opened = (status == True)
+        return status
 
     def sd_locked(self):
         # Cannot swap the SD card between the host and target
@@ -139,17 +142,22 @@ class MentorTestDeviceAgent:
         # We also need a power controller to be safe
         if self.power_controller is None:
             return True
-        # Lastly, the target shall be OFF
+        # The target shall be OFF
         if self.target_status() != "OFF":
+            return True
+        # Lastly, the SD shall not be opened
+        if self._sd_opened == True:
             return True
         # We may otherwise swap our SD card
         return False
 
-    def sd_open(self):
+    def _sd_open(self):
         if self.sdmux_controller is None:
             return False
-        self.sd_close()
-        return self.sdmux_controller.open()
+        self._sd_close()
+        status = self.sdmux_controller.open()
+        self._sd_opened = (status == True)
+        return status
 
     def sd_status(self):
         if self.sdmux_controller is None:
@@ -174,7 +182,7 @@ class MentorTestDeviceAgent:
             return False
 
         # Open the SD card device
-        status = agent.sd_open()
+        status = agent._sd_open()
         if status == False:
             image.close()
             return False
@@ -192,15 +200,15 @@ class MentorTestDeviceAgent:
 
             # Write block to SD card
             if isBZ2 == True:
-                bytes_wanted = agent.sd_write_bz2(data)
+                bytes_wanted = agent._sd_write_bz2(data)
             else:
-                bytes_wanted = agent.sd_write_raw(data)
+                bytes_wanted = agent._sd_write_raw(data)
 
             # Check what to do next
             if bytes_wanted < 0:
                 # Handle read/write error
                 image.close()
-                agent.sd_close()
+                agent._sd_close()
                 return False
             elif bytes_wanted > 0:
                 # Read next block
@@ -213,7 +221,7 @@ class MentorTestDeviceAgent:
 
         # Close the local image and SD card
         image.close()
-        status = agent.sd_close()
+        status = agent._sd_close()
         return status
 
     def _sd_write_bz2(self, data):
@@ -231,7 +239,7 @@ class MentorTestDeviceAgent:
         # Data successfully uncompressed and written to SD
         return self.blksz
 
-    def sd_write_bz2(self, data):
+    def _sd_write_bz2(self, data):
         if self.sdmux_controller is None:
             return -1
 
@@ -271,7 +279,7 @@ class MentorTestDeviceAgent:
                 status = 0             # we do not need more input data
         return status
 
-    def sd_write_raw(self, data):
+    def _sd_write_raw(self, data):
         if self.sdmux_controller is None:
             return -1
         status = self.sdmux_controller.write(data)
@@ -286,16 +294,16 @@ class MentorTestDeviceAgent:
 
     def sd_to_target(self):
         if self.sd_locked() == False:
-            self.sd_close()
+            self._sd_close()
             return self.sdmux_controller.to_target()
         return False
 
     def sd_toggle(self):
         if self.sd_locked() == False:
             status = self.sd_status()
-            if status == "HOST":
+            if status == self.sdmux_controller.SD_ON_HOST:
                 self.sdmux_controller.to_target()
-            elif status == "TARGET":
+            elif status == self.sdmux_controller.SD_ON_TARGET:
                 self.sdmux_controller.to_host()
         status = self.sd_status()
         return status
