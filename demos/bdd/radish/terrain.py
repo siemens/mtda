@@ -2,7 +2,7 @@
 
 from radish import before, after
 from radish import world
-from mtda.main import MultiTenantDeviceAccess
+from mtda.client import Client
 
 import json
 import os.path
@@ -11,17 +11,8 @@ import zerorpc
 world.build = ''
 
 @before.each_scenario
-def init_agent(scenario):
-    agent = MultiTenantDeviceAccess()
-    agent.load_config()
-    if agent.remote is not None:
-        uri = "tcp://%s:%d" % (agent.remote, agent.ctrlport)
-        client = zerorpc.Client()
-        client.connect(uri)
-    else:
-        client = agent
-    scenario.context.agent  = agent
-    scenario.context.client = client
+def init_mtda_client(scenario):
+    scenario.context.client = Client()
 
 @before.each_scenario
 def load_settings(scenario):
@@ -38,7 +29,5 @@ def load_settings(scenario):
         scenario.context.settings = new_settings
 
 @after.each_scenario
-def destory_agent(scenario):
-    del scenario.context.agent
+def destroy_mtda_client(scenario):
     del scenario.context.client
-

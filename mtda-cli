@@ -12,6 +12,7 @@ import zerorpc
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
+from mtda.client import Client
 
 class Application:
 
@@ -54,13 +55,7 @@ class Application:
         return True
 
     def client(self):
-        if self.remote is not None:
-            uri = "tcp://%s:%d" % (self.remote, self.agent.ctrlport)
-            c = zerorpc.Client(heartbeat=20)
-            c.connect(uri)
-            return c
-        else:
-            return self.agent
+        return self.agent
 
     def console_clear(self, args):
         self.client().console_clear()
@@ -277,25 +272,18 @@ class Application:
     def target_info(self, args=None):
         client = self.client()
 
-        # Print power status
-        status = client.target_status()
-        print("Target power is %s" %(status))
-
-        # Print SD status
-        status = client.sd_status()
-        print("SD connected to %s" %(status))
+        # Print general information
+        remote = "Local" if self.remote is None else self.remote
+        print("Agent   : %s" % remote)
+        print("Session : %s" % client.session())
+        print("Target  : %s" %(client.target_status()))
+        print("SD on   : %s" %(client.sd_status()))
 
         # Print status of the USB ports
         ports = client.usb_ports()
         for ndx in range(0, ports):
             status = client.usb_status(ndx+1)
-            print("USB #%d is %s" %(ndx+1, status))
-
-        # Connect to the console
-        if self.remote is None:
-            print("Local console")
-        else:
-            print("Remote console (agent running on %s)" % (self.remote))
+            print("USB #%-2d : %s" %(ndx+1, status))
 
     def target_off(self, args=None):
         status = self.client().target_off()
@@ -343,15 +331,11 @@ class Application:
             if opt in ('-r', '--remote'):
                 self.remote = arg
 
-        # Create agent
-        self.agent = MultiTenantDeviceAccess() 
-
-        # Load default/specified configuration
-        self.agent.load_config(self.remote, daemonize)
-        self.remote = self.agent.remote
-
         # Start our server
         if daemonize == True:
+            self.agent = MultiTenantDeviceAccess() 
+            self.agent.load_config(self.remote, daemonize)
+            self.remote = self.agent.remote
             if detach == True:
                 status = self.daemonize()
             else:
@@ -361,10 +345,8 @@ class Application:
                 return False
         else:
             # Start our agent
-            status = self.agent.start()
-            if status == False:
-                print('Failed to start the MTDA agent!', file=sys.stderr)
-                return False
+            self.agent = Client(self.remote)
+            self.remote = self.agent.remote()
 
         # Check for non-option arguments
         if len(stuff) > 0:
@@ -393,4 +375,3 @@ class Application:
 if __name__ == '__main__':
     app = Application()
     app.main()
-
