@@ -1,5 +1,4 @@
  * Concurrent use
-   * Find a way to identify clients
    * Devise a mechanism for read-only sessions
    * Come-up with a session timeout mechanism
 
