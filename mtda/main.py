@@ -483,7 +483,10 @@ class MultiTenantDeviceAccess:
         self.ctrlport = int(parser.get('remote', 'control', fallback=self.ctrlport))
         if self.is_server == False:
             if self.remote is None:
+                # Load remote setting from the configuration
                 self.remote = parser.get('remote', 'host', fallback=self.remote)
+                # Allow override from the environment
+                self.remote = os.getenv('MTDA_REMOTE', self.remote)
         else:
             self.remote = None
         self.is_remote = self.remote is not None
