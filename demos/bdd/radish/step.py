@@ -8,7 +8,6 @@ import time
 
 @given("my {name:w} build was flashed")
 def build_was_flashed(step, name):
-    agent    = step.context.agent
     client   = step.context.client
     settings = step.context.settings
     assert 'builds' in settings
@@ -20,7 +19,7 @@ def build_was_flashed(step, name):
         time.sleep(3)
         assert client.sd_to_host()
         time.sleep(5)
-        assert agent.sd_write_image(image, agent=client)
+        assert client.sd_write_image(image)
         world.build = image
 
 @when("a kernel version is specified")
@@ -192,4 +191,3 @@ def console_login(client):
 
     online = console_prompt(client)
     return online
-
