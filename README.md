@@ -127,9 +127,11 @@ $ mtda-cli target on
 The 'console interactive' command allows remote interaction with the device console.
 The following key sequences may be used to control MTDA:
 
+   * Ctrl + a + a: acquire the target
    * Ctrl + a + i: print target information (power status, SD card, USB ports, etc.)
    * Ctrl + a + p: toggle power on/off
    * Ctrl + a + q: quit
+   * Ctrl + a + r: release the target
    * Ctrl + a + s: switch SD card between the host and target (target shall be OFF)
    * Ctrl + a + t: toggle display of timestamps
    * Ctrl + a + u: toggle the 1st USB port on/off
