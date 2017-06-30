@@ -98,7 +98,11 @@ class Application:
 
     def console_menukey(self, c):
         server = self.client()
-        if c == 'i':
+        if c == 'a':
+            status = server.target_lock()
+            if status == True:
+                server.console_print("\n*** Target was acquired ***\n")
+        elif c == 'i':
             self.target_info()
         elif c == 'p':
             previous_status = server.target_status()
@@ -108,6 +112,10 @@ class Application:
                 server.console_print("\n*** Target is now %s ***\n" % (new_status))
         elif c == 'q':
             self.exiting = True
+        elif c == 'r':
+            status = server.target_unlock()
+            if status == True:
+                server.console_print("\n*** Target was released ***\n")
         elif c == 's':
             previous_status = server.sd_status()
             server.sd_toggle()
@@ -254,7 +262,7 @@ class Application:
             print("'sd write' expects a file argument!", file=sys.stderr)
             return 1
 
-        status = self.agent.sd_write_image(args[0], self._sd_write_cb, self.client())
+        status = self.agent.sd_write_image(args[0], self._sd_write_cb)
         sys.stdout.write("\n")
         sys.stdout.flush()
 
@@ -274,10 +282,11 @@ class Application:
 
         # Print general information
         remote = "Local" if self.remote is None else self.remote
+        locked = " (locked)" if client.target_locked() else ""
         print("Agent   : %s" % remote)
         print("Session : %s" % client.session())
-        print("Target  : %s" %(client.target_status()))
-        print("SD on   : %s" %(client.sd_status()))
+        print("Target  : %-6s%s" %(client.target_status(), locked))
+        print("SD on   : %-6s%s" %(client.sd_status(), locked))
 
         # Print status of the USB ports
         ports = client.usb_ports()

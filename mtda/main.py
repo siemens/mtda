@@ -36,6 +36,9 @@ class MultiTenantDeviceAccess:
         self.is_remote = False
         self.is_server = False
         self.remote = None
+        self._lock_owner = None
+        self._lock_expiry = None
+        self._lock_timeout = 5 # Lock timeout (in minutes)
 
         # Config file in $HOME/mtda/config
         home = os.getenv('HOME', '')
@@ -53,7 +56,8 @@ class MultiTenantDeviceAccess:
         return self.console_input.getkey()
 
     def console_clear(self, session=None):
-        if self.console_locked():
+        self._check_expired(session)
+        if self.console_locked(session):
             return None
         if self.console_logger is not None:
             return self.console_logger.clear()
@@ -61,7 +65,8 @@ class MultiTenantDeviceAccess:
             return None
 
     def console_flush(self, session=None):
-        if self.console_locked():
+        self._check_expired(session)
+        if self.console_locked(session):
             return None
         if self.console_logger is not None:
             return self.console_logger.flush()
@@ -69,28 +74,35 @@ class MultiTenantDeviceAccess:
             return None
 
     def console_head(self, session=None):
+        self._check_expired(session)
         if self.console_logger is not None:
             return self.console_logger.head()
         else:
             return None
 
     def console_lines(self, session=None):
+        self._check_expired(session)
         if self.console_logger is not None:
             return self.console_logger.lines()
         else:
             return None
 
     def console_locked(self, session=None):
+        self._check_expired(session)
+        if self._check_locked(session):
+            return True
         return False
 
     def console_print(self, data, session=None):
+        self._check_expired(session)
         if self.console_logger is not None:
             return self.console_logger.print(data)
         else:
             return None
 
     def console_prompt(self, newPrompt=None, session=None):
-        if self.console_locked():
+        self._check_expired(session)
+        if self.console_locked(session):
             return None
         if self.console_logger is not None:
             return self.console_logger.prompt(newPrompt)
@@ -104,7 +116,8 @@ class MultiTenantDeviceAccess:
             self.console_output.start()
 
     def console_run(self, cmd, session=None):
-        if self.console_locked():
+        self._check_expired(session)
+        if self.console_locked(session):
             return None
         if self.console_logger is not None:
             return self.console_logger.run(cmd)
@@ -112,7 +125,8 @@ class MultiTenantDeviceAccess:
             return None
 
     def console_send(self, data, raw=False, session=None):
-        if self.console_locked():
+        self._check_expired(session)
+        if self.console_locked(session):
             return None
         if self.console_logger is not None:
             return self.console_logger.write(data, raw)
@@ -120,7 +134,8 @@ class MultiTenantDeviceAccess:
             return None
 
     def console_tail(self, session=None):
-        if self.console_locked():
+        self._check_expired(session)
+        if self.console_locked(session):
             return None
         if self.console_logger is not None:
             return self.console_logger.tail()
@@ -128,11 +143,15 @@ class MultiTenantDeviceAccess:
             return None
 
     def power_locked(self, session=None):
+        self._check_expired(session)
+        if self._check_locked(session):
+            return True
         if self.power_controller is None:
             return True
         return False
 
     def sd_close(self, session=None):
+        self._check_expired(session)
         if self.sdmux_controller is None:
             return False
         if self._sd_opened == True:
@@ -140,6 +159,9 @@ class MultiTenantDeviceAccess:
         return (self._sd_opened == False)
 
     def sd_locked(self, session=None):
+        self._check_expired(session)
+        if self._check_locked(session):
+            return True
         # Cannot swap the SD card between the host and target
         # without a SDMux
         if self.sdmux_controller is None:
@@ -157,6 +179,7 @@ class MultiTenantDeviceAccess:
         return False
 
     def sd_open(self, session=None):
+        self._check_expired(session)
         if self.sdmux_controller is None:
             return False
         self.sd_close()
@@ -165,6 +188,7 @@ class MultiTenantDeviceAccess:
         return status
 
     def sd_status(self, session=None):
+        self._check_expired(session)
         if self.sdmux_controller is None:
             return "???"
         status = self.sdmux_controller.status()
@@ -245,6 +269,7 @@ class MultiTenantDeviceAccess:
         return self.blksz
 
     def sd_write_bz2(self, data, session=None):
+        self._check_expired(session)
         if self.sdmux_controller is None:
             return -1
 
@@ -285,6 +310,7 @@ class MultiTenantDeviceAccess:
         return status
 
     def sd_write_raw(self, data, session=None):
+        self._check_expired(session)
         if self.sdmux_controller is None:
             return -1
         status = self.sdmux_controller.write(data)
@@ -293,18 +319,21 @@ class MultiTenantDeviceAccess:
         return self.blksz
 
     def sd_to_host(self, session=None):
-        if self.sd_locked() == False:
+        self._check_expired(session)
+        if self.sd_locked(session) == False:
             return self.sdmux_controller.to_host()
         return False
 
     def sd_to_target(self, session=None):
-        if self.sd_locked() == False:
+        self._check_expired(session)
+        if self.sd_locked(session) == False:
             self.sd_close()
             return self.sdmux_controller.to_target()
         return False
 
     def sd_toggle(self, session=None):
-        if self.sd_locked() == False:
+        self._check_expired(session)
+        if self.sd_locked(session) == False:
             status = self.sd_status(session)
             if status == self.sdmux_controller.SD_ON_HOST:
                 self.sdmux_controller.to_target()
@@ -320,13 +349,29 @@ class MultiTenantDeviceAccess:
             print("no console configured/found!", file=sys.stderr)
             return None
 
+    def target_lock(self, session):
+        self._check_expired(session)
+        if self.target_owner() is None:
+            self._lock_owner = session
+            return True
+        return False
+
+    def target_locked(self, session):
+        self._check_expired(session)
+        return self._check_locked(session)
+
+    def target_owner(self):
+        return self._lock_owner
+
     def target_on(self, session=None):
-        if self.power_locked() == False:
+        self._check_expired(session)
+        if self.power_locked(session) == False:
             return self.power_controller.on()
         return False
 
     def target_off(self, session=None):
-        if self.power_locked() == False:
+        self._check_expired(session)
+        if self.power_locked(session) == False:
             status = self.power_controller.off()
             if self.console_logger is not None:
                 self.console_logger.reset_timer()
@@ -334,19 +379,29 @@ class MultiTenantDeviceAccess:
         return False
 
     def target_status(self, session=None):
+        self._check_expired(session)
         if self.power_controller is None:
             return "???"
         return self.power_controller.status()
 
     def target_toggle(self, session=None):
-        if self.power_locked() == False:
+        self._check_expired(session)
+        if self.power_locked(session) == False:
             status = self.power_controller.toggle()
             if status == self.power_controller.POWER_OFF and self.console_logger is not None:
                 self.console_logger.reset_timer()
             return status
         return self.power_controller.POWER_LOCKED
 
+    def target_unlock(self, session):
+        self._check_expired(session)
+        if self.target_owner() == session:
+            self._lock_owner = None
+            return True
+        return False
+
     def usb_find_by_class(self, className, session=None):
+        self._check_expired(session)
         ports = len(self.usb_switches)
         ndx = 0
         while ndx < ports:
@@ -357,10 +412,12 @@ class MultiTenantDeviceAccess:
         return None
 
     def usb_has_class(self, className, session=None):
+        self._check_expired(session)
         usb_switch = self.usb_find_by_class(className, session)
         return usb_switch is not None
 
     def usb_off(self, ndx, session=None):
+        self._check_expired(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -369,12 +426,14 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     def usb_off_by_class(self, className, session=None):
+        self._check_expired(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
             return usb_switch.off()
         return False
 
     def usb_on(self, ndx, session=None):
+        self._check_expired(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -383,15 +442,18 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     def usb_on_by_class(self, className, session=None):
+        self._check_expired(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
             return usb_switch.on()
         return False
 
     def usb_ports(self, session=None):
+        self._check_expired(session)
         return len(self.usb_switches)
 
     def usb_status(self, ndx, session=None):
+        self._check_expired(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -408,6 +470,7 @@ class MultiTenantDeviceAccess:
         return "???"
 
     def usb_toggle(self, ndx, session=None):
+        self._check_expired(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -561,3 +624,18 @@ class MultiTenantDeviceAccess:
             self.console_logger.start()
 
         return True
+
+    def _check_expired(self, session):
+        if self._lock_owner:
+            now = time.monotonic()
+            if session == self._lock_owner:
+                self._lock_expiry = now + (self._lock_timeout * 60)
+            elif now >= self._lock_expiry:
+                self._lock_owner = None
+
+    def _check_locked(self, session):
+        owner = self.target_owner()
+        if owner is None:
+            return False
+        status = False if session == owner else True
+        return status

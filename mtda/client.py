@@ -1,4 +1,5 @@
 from mtda.main import MultiTenantDeviceAccess
+import os
 import uuid
 import zerorpc
 
@@ -14,7 +15,7 @@ class Client:
         else:
             self._impl = agent
         self._agent = agent
-        self._session = str(uuid.uuid1())
+        self._session = os.getenv('MTDA_SESSION', str(uuid.uuid1()))
 
     def console_clear(self):
         return self._impl.console_clear(self._session)
@@ -79,6 +80,12 @@ class Client:
     def session(self):
         return self._session
 
+    def target_lock(self):
+        return self._impl.target_lock(self._session)
+
+    def target_locked(self):
+        return self._impl.target_locked(self._session)
+
     def target_off(self):
         return self._impl.target_off(self._session)
 
@@ -90,6 +97,9 @@ class Client:
 
     def target_toggle(self):
         return self._impl.target_toggle(self._session)
+
+    def target_unlock(self):
+        return self._impl.target_unlock(self._session)
 
     def usb_find_by_class(self, className):
         return self._impl.usb_find_by_class(className, self._session)
