@@ -1,5 +1,6 @@
 from mtda.main import MentorTestDeviceAgent
 import os
+import time
 import uuid
 import zerorpc
 
@@ -80,8 +81,15 @@ class Client:
     def session(self):
         return self._session
 
-    def target_lock(self):
-        return self._impl.target_lock(self._session)
+    def target_lock(self, retries=0):
+        status = False
+        while status == False:
+            status = self._impl.target_lock(self._session)
+            if retries <= 0 or status == True:
+                break
+            retries = retries - 1
+            time.sleep(60)
+        return status
 
     def target_locked(self):
         return self._impl.target_locked(self._session)

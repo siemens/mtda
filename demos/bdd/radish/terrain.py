@@ -30,4 +30,5 @@ def load_settings(scenario):
 
 @after.each_scenario
 def destroy_mtda_client(scenario):
+    scenario.context.client.target_unlock()
     del scenario.context.client

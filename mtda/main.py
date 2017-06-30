@@ -351,7 +351,8 @@ class MentorTestDeviceAgent:
 
     def target_lock(self, session):
         self._check_expired(session)
-        if self.target_owner() is None:
+        owner = self.target_owner()
+        if owner is None or owner == session:
             self._lock_owner = session
             return True
         return False
