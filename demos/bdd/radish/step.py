@@ -15,10 +15,7 @@ def build_was_flashed(step, name):
 
     image = settings["builds"][name]
     if image != world.build:
-        assert client.target_off()
-        time.sleep(3)
-        assert client.sd_to_host()
-        time.sleep(5)
+        assert target_off(client)
         assert client.sd_write_image(image)
         world.build = image
 
@@ -48,18 +45,14 @@ def kernel_version_compliance(step):
 def target_is_on(step):
     client = step.context.client
     settings = step.context.settings
-    runtime = "???"
-    status = client.target_status()
-    if status == "OFF":
-        # Power on the board
-        assert client.sd_to_target()
-        time.sleep(3)
-        assert client.target_on()
 
-        # Give target some time to start and check its power status again
+    # Power on the board
+    initial_status = client.target_status()
+    assert target_on(client)
+
+    # Give target some time to start and check its power status again
+    if initial_status != "ON":
         time.sleep(settings["boot"]["delay"])
-        status = client.target_status()
-    assert status == "ON"
 
 @step("Linux is running")
 def linux_is_running(step):
@@ -191,3 +184,42 @@ def console_login(client):
 
     online = console_prompt(client)
     return online
+
+def target_on(client):
+    # Acquire the board
+    status = client.target_lock(30)
+    if status == False:
+        return False
+
+    # If the board is currently switched OFF
+    if client.target_status() == "OFF":
+        # Attach the SD card back to the board and power it
+        status = client.sd_to_target()
+        if status == False:
+            return False
+        time.sleep(3)
+        status = client.target_on()
+    return status
+
+def target_off(client):
+    # Acquire the board
+    status = client.target_lock(30)
+    if status == False:
+        return False
+
+    # Switch the board OFF
+    if client.target_status() == "ON":
+        status = client.target_off()
+        if status == False:
+            return False
+
+    # Attach the SD card back to the host
+    time.sleep(3)
+    status = client.sd_to_host()
+    if status == False:
+        return False
+
+    # Give some time for the host to detect the SD card
+    # (typically accessed through an external SD card reader)
+    time.sleep(5)
+    return True
