@@ -75,6 +75,9 @@ class Client:
     def sd_toggle(self):
         return self._impl.sd_toggle(self._session)
 
+    def start(self):
+        return self._agent.start()
+
     def remote(self):
         return self._agent.remote
 

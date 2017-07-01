@@ -356,6 +356,7 @@ class Application:
             # Start our agent
             self.agent = Client(self.remote)
             self.remote = self.agent.remote()
+            self.agent.start()
 
         # Check for non-option arguments
         if len(stuff) > 0:
