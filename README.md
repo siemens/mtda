@@ -113,10 +113,12 @@ $ mtda-cli target off
 $ mtda-cli sd host
 
 # Write a compressed image to the SD card
-$ mtda-cli sd console-image.wic.bz2
+# Compressed images (gzip'ed or bzip'ed) are supported
+$ mtda-cli sd write console-image.wic.bz2
+$ mtda-cli sd write console-image.wic.gz
 
 # Attach the SD card to the target
-$ mtda-cli sd host
+$ mtda-cli sd target
 
 # Power on the target
 $ mtda-cli target on
