@@ -8,6 +8,7 @@ import os
 import signal
 import sys
 import time
+import zlib
 import zmq
 
 # Local imports
@@ -29,6 +30,7 @@ class MultiTenantDeviceAccess:
         self._sd_opened = False
         self.blksz = 65536
         self.bz2dec = None
+        self.zdec = None
         self.fbintvl = 8 # Feedback interval
         self.usb_switches = []
         self.ctrlport = 5556
@@ -206,6 +208,7 @@ class MultiTenantDeviceAccess:
             st = os.stat(path)
             imgsize = st.st_size
             isBZ2 = path.endswith(".bz2")
+            isGZ = path.endswith(".gz")
             image = open(path, "rb")
         except FileNotFoundError:
             return False
@@ -230,6 +233,8 @@ class MultiTenantDeviceAccess:
             # Write block to SD card
             if isBZ2 == True:
                 bytes_wanted = agent.sd_write_bz2(data, session)
+            if isGZ == True:
+                bytes_wanted = agent.sd_write_gz(data, session)
             else:
                 bytes_wanted = agent.sd_write_raw(data, session)
 
@@ -307,6 +312,58 @@ class MultiTenantDeviceAccess:
                 self.bz2dec = bz2.BZ2Decompressor()
                 cont = (len(data) > 0) # loop only if we have unused data
                 status = 0             # we do not need more input data
+        return status
+
+    def _sd_write_gz(self, data):
+
+        # Decompress and write the newly received data
+        uncompressed = self.zdec.decompress(data, self.blksz)
+        status = self.sdmux_controller.write(uncompressed)
+        if status == False:
+            return -1
+
+        # Check if we can write more data without further input
+        if len(self.zdec.unconsumed_tail) > 0:
+            return 0
+
+        # Data successfully uncompressed and written to SD
+        return self.blksz
+
+    def sd_write_gz(self, data, session=None):
+        self._check_expired(session)
+        if self.sdmux_controller is None:
+            return -1
+
+        # Create a zlib decompressor when called for the first time
+        if self.zdec is None:
+            self.zdec = zlib.decompressobj(16+zlib.MAX_WBITS)
+
+        # Check if we should use unconsumed data from the previous call
+        if len(data) == 0:
+            data = self.zdata
+
+        cont = True
+        start = time.monotonic()
+        status = -1
+
+        while cont == True:
+            # Decompress and write newly received data
+            status = self._sd_write_gz(data)
+            self.zdata = None
+            if status != 0:
+                # Either got an error or needing more data; escape from
+                # this loop to provide feedback
+                cont = False
+            else:
+                # If we should continue and do not need more data at this time,
+                # use the unconsumed data for the next iteration
+                data = self.zdec.unconsumed_tail
+                # Check if this loop has been running for quite some time,
+                # in which case we would to give our client an update
+                now = time.monotonic()
+                if (now - start) >= self.fbintvl:
+                    self.zdata = data
+                    cont = False
         return status
 
     def sd_write_raw(self, data, session=None):
