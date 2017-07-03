@@ -212,14 +212,7 @@ def target_off(client):
         status = client.target_off()
         if status == False:
             return False
+        time.sleep(3)
 
     # Attach the SD card back to the host
-    time.sleep(3)
-    status = client.sd_to_host()
-    if status == False:
-        return False
-
-    # Give some time for the host to detect the SD card
-    # (typically accessed through an external SD card reader)
-    time.sleep(5)
-    return True
+    return client.sd_to_host()
