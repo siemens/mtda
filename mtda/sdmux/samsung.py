@@ -37,9 +37,9 @@ class SamsungSdMuxController(SdMuxController):
         if self.handle is None:
             try:
                 self.handle = open(self.device, "r+b")
-            except FileNotFoundError:
+                return True
+            except:
                 return False
-        return True
 
     def probe(self):
         """ Check presence of the sdmux controller"""
