@@ -253,8 +253,10 @@ class Application:
         blocks = int(round((20 * progress) / 100))
         spaces = ' ' * (20 - blocks)
         blocks = '#' * blocks
-        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MB) "
-            .format(imgname, str(blocks + spaces), progress, int(totalread / 1024 / 1024)))
+        totalread = int(totalread / 1024 / 1024)
+        totalwritten = int(self.agent.sd_bytes_written() / 1024 / 1024)
+        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MiB read, {4} MiB written) "
+            .format(imgname, str(blocks + spaces), progress, totalread, totalwritten))
         sys.stdout.flush()
 
     def sd_write(self, args=None):
@@ -283,16 +285,17 @@ class Application:
         # Print general information
         remote = "Local" if self.remote is None else self.remote
         locked = " (locked)" if client.target_locked() else ""
-        print("Agent   : %s" % remote)
-        print("Session : %s" % client.session())
-        print("Target  : %-6s%s" %(client.target_status(), locked))
-        print("SD on   : %-6s%s" %(client.sd_status(), locked))
+        print("Agent     : %s" % remote)
+        print("Session   : %s" % client.session())
+        print("Target    : %-6s%s" %(client.target_status(), locked))
+        print("SD on     : %-6s%s" %(client.sd_status(), locked))
+        print("SD writes : %u MiB" %(client.sd_bytes_written() / 1024 / 1024))
 
         # Print status of the USB ports
         ports = client.usb_ports()
         for ndx in range(0, ports):
             status = client.usb_status(ndx+1)
-            print("USB #%-2d : %s" %(ndx+1, status))
+            print("USB #%-2d   : %s" %(ndx+1, status))
 
     def target_off(self, args=None):
         status = self.client().target_off()
