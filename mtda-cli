@@ -280,16 +280,24 @@ class Application:
        print("   toggle  Toggle target power")
 
     def target_info(self, args=None):
-        client = self.client()
+        sys.stdout.write("\rFetching target information...\r")
+        sys.stdout.flush()
+
+        # Get general information
+        client     = self.client()
+        locked     = " (locked)" if client.target_locked() else ""
+        remote     = "Local" if self.remote is None else self.remote
+        session    = client.session()
+        sd_status  = client.sd_status()
+        sd_written = client.sd_bytes_written() / 1024 / 1024
+        tgt_status = client.target_status()
 
         # Print general information
-        remote = "Local" if self.remote is None else self.remote
-        locked = " (locked)" if client.target_locked() else ""
-        print("Agent     : %s" % remote)
-        print("Session   : %s" % client.session())
-        print("Target    : %-6s%s" %(client.target_status(), locked))
-        print("SD on     : %-6s%s" %(client.sd_status(), locked))
-        print("SD writes : %u MiB" %(client.sd_bytes_written() / 1024 / 1024))
+        print("Agent     : %s%30s" % (remote, ""))
+        print("Session   : %s" % (session))
+        print("Target    : %-6s%s" %(tgt_status, locked))
+        print("SD on     : %-6s%s" %(sd_status, locked))
+        print("SD writes : %u MiB" %(sd_written))
 
         # Print status of the USB ports
         ports = client.usb_ports()
