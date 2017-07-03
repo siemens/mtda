@@ -27,6 +27,7 @@ class MultiTenantDeviceAccess:
         self.console_output = None
         self.power_controller = None
         self.sdmux_controller = None
+        self._sd_bytes_written = 0
         self._sd_opened = False
         self.blksz = 65536
         self.bz2dec = None
@@ -152,10 +153,16 @@ class MultiTenantDeviceAccess:
             return True
         return False
 
+    def sd_bytes_written(self, session=None):
+        self._check_expired(session)
+        return self._sd_bytes_written
+
     def sd_close(self, session=None):
         self._check_expired(session)
         if self.sdmux_controller is None:
             return False
+        self.bz2dec = None
+        self.zdec = None
         if self._sd_opened == True:
             self._sd_opened = not self.sdmux_controller.close()
         return (self._sd_opened == False)
@@ -185,6 +192,7 @@ class MultiTenantDeviceAccess:
         if self.sdmux_controller is None:
             return False
         self.sd_close()
+        self._sd_bytes_written = 0
         status = self.sdmux_controller.open()
         self._sd_opened = (status == True)
         return status
@@ -196,75 +204,13 @@ class MultiTenantDeviceAccess:
         status = self.sdmux_controller.status()
         return status
 
-    def sd_write_image(self, path, callback=None, agent=None, session=None):
-        if agent is None:
-            agent = self
-
-        # Get size of the (compressed) image
-        imgname = os.path.basename(path)
-
-        # Open the specified image
-        try:
-            st = os.stat(path)
-            imgsize = st.st_size
-            isBZ2 = path.endswith(".bz2")
-            isGZ = path.endswith(".gz")
-            image = open(path, "rb")
-        except FileNotFoundError:
-            return False
-
-        # Open the SD card device
-        status = agent.sd_open(session)
-        if status == False:
-            image.close()
-            return False
-
-        # Copy loop
-        data = image.read(self.blksz)
-        dataread = len(data)
-        totalread = 0
-        while totalread < imgsize:
-            totalread += dataread
-
-            # Report progress via callback
-            if callback is not None:
-                callback(imgname, totalread, imgsize)
-
-            # Write block to SD card
-            if isBZ2 == True:
-                bytes_wanted = agent.sd_write_bz2(data, session)
-            if isGZ == True:
-                bytes_wanted = agent.sd_write_gz(data, session)
-            else:
-                bytes_wanted = agent.sd_write_raw(data, session)
-
-            # Check what to do next
-            if bytes_wanted < 0:
-                # Handle read/write error
-                image.close()
-                agent.sd_close(session)
-                return False
-            elif bytes_wanted > 0:
-                # Read next block
-                data = image.read(bytes_wanted)
-                dataread = len(data)
-            else:
-                # Agent may continue without further data
-                data = b''
-                dataread = 0
-
-        # Close the local image and SD card
-        image.close()
-        status = agent.sd_close(session)
-        return status
-
     def _sd_write_bz2(self, data):
-
         # Decompress and write the newly received data
         uncompressed = self.bz2dec.decompress(data, self.blksz)
         status = self.sdmux_controller.write(uncompressed)
         if status == False:
             return -1
+        self._sd_bytes_written += len(uncompressed)
 
         # Check if we can write more data without further input
         if self.bz2dec.needs_input == False:
@@ -315,12 +261,12 @@ class MultiTenantDeviceAccess:
         return status
 
     def _sd_write_gz(self, data):
-
         # Decompress and write the newly received data
         uncompressed = self.zdec.decompress(data, self.blksz)
         status = self.sdmux_controller.write(uncompressed)
         if status == False:
             return -1
+        self._sd_bytes_written += len(uncompressed)
 
         # Check if we can write more data without further input
         if len(self.zdec.unconsumed_tail) > 0:
@@ -373,6 +319,7 @@ class MultiTenantDeviceAccess:
         status = self.sdmux_controller.write(data)
         if status == False:
             return -1
+        self._sd_bytes_written += len(data)
         return self.blksz
 
     def sd_to_host(self, session=None):

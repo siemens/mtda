@@ -57,14 +57,86 @@ class Client:
     def power_locked(self):
         return self._impl.power_locked(self._session)
 
+    def sd_bytes_written(self):
+        return self._impl.sd_bytes_written(self._session)
+
+    def sd_close(self):
+        return self._impl.sd_close(self._session)
+
     def sd_locked(self):
         return self._impl.sd_locked(self._session)
+
+    def sd_open(self):
+        tries = 60
+        while tries > 0:
+            tries = tries - 1
+            status = self._impl.sd_open(self._session)
+            if status == True:
+                return True
+            time.sleep(1)
+        return False
 
     def sd_status(self):
         return self._impl.sd_status(self._session)
 
     def sd_write_image(self, path, callback=None):
-        return self._agent.sd_write_image(path, callback, self._impl, self._session)
+        # Get size of the (compressed) image
+        imgname = os.path.basename(path)
+
+        # Open the specified image
+        try:
+            st = os.stat(path)
+            imgsize = st.st_size
+            isBZ2 = path.endswith(".bz2")
+            isGZ = path.endswith(".gz")
+            image = open(path, "rb")
+        except FileNotFoundError:
+            return False
+
+        # Open the SD card device
+        status = self.sd_open()
+        if status == False:
+            image.close()
+            return False
+
+        # Copy loop
+        data = image.read(self._agent.blksz)
+        dataread = len(data)
+        totalread = 0
+        while totalread < imgsize:
+            totalread += dataread
+
+            # Report progress via callback
+            if callback is not None:
+                callback(imgname, totalread, imgsize)
+
+            # Write block to SD card
+            if isBZ2 == True:
+                bytes_wanted = self._impl.sd_write_bz2(data, self._session)
+            if isGZ == True:
+                bytes_wanted = self._impl.sd_write_gz(data, self._session)
+            else:
+                bytes_wanted = self._impl.sd_write_raw(data, self._session)
+
+            # Check what to do next
+            if bytes_wanted < 0:
+                # Handle read/write error
+                image.close()
+                self.sd_close()
+                return False
+            elif bytes_wanted > 0:
+                # Read next block
+                data = image.read(bytes_wanted)
+                dataread = len(data)
+            else:
+                # Agent may continue without further data
+                data = b''
+                dataread = 0
+
+        # Close the local image and SD card
+        image.close()
+        status = self.sd_close()
+        return status
 
     def sd_to_host(self):
         return self._impl.sd_to_host(self._session)
