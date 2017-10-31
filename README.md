@@ -19,6 +19,15 @@ In its most basic configuration, MTDA may be used with:
 
 In this configuration, power and USB control functions will not be available.
 
+## BBB + Power switch
+
+A basic configuration for targets booting from USB (mass storage) may be comprised of:
+
+   * a BeagleBone Black connected via Ethernet and running mtda as a daemon
+   * a target device
+   * a serial connection between the two
+   * a USB cable connected to the function port of the BBB and to the target
+
 ## Pi3 + Power/SD/USB switches
 
 A relatively cheap configuration may look like this:
@@ -51,9 +60,9 @@ The setup script should then be used to install command-line scripts and package
 sudo python3 setup.py install
 ```
 
-# SD-Mux
+# Samsung SD-Mux
 
-If you have a SD-Mux device, the following packages should be installed as well:
+If you have a Samsung SD-Mux device, the following packages should be installed as well:
 
 ```
 sudo apt-get install \
