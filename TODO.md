@@ -14,5 +14,6 @@
    * Instant Messaging from the interactive console
 
  * Miscellaneous
+   * Provide kas files to build SD images ready to run MTDA for BBB and Pi3
    * Split mtda-cli into mtda-daemon and mtda-client
 
