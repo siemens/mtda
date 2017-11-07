@@ -26,11 +26,12 @@ A basic configuration for targets booting from USB (mass storage) may be compris
    * a BeagleBone Black connected via Ethernet and running mtda as a daemon
    * a target device
    * a serial connection between the two
+   * an Aviosys 8800 power switch (connected via USB to the BBB)
    * a USB cable connected to the function port of the BBB and to the target
 
 ## Pi3 + Power/SD/USB switches
 
-A relatively cheap configuration may look like this:
+A more sophisticated, yet affordable, configuration may look like this:
 
    * a Raspberry Pi3 connected to your Wi-Fi network and running mtda as a daemon
    * a target device
@@ -41,7 +42,7 @@ A relatively cheap configuration may look like this:
 
 ![Pi3 setup](Documentation/Pi3+Aviosys8800+SDMux+USB+MX6Q.jpg)
 
-In this configuration, the target device may be used from computers running mtda as
+In this configuration, the target device may be used from computers running MTDA as
 a client and connecting to the remote agent.
 
 # Setup
