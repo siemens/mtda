@@ -43,10 +43,10 @@ class MultiTenantDeviceAccess:
         self._lock_expiry = None
         self._lock_timeout = 5 # Lock timeout (in minutes)
 
-        # Config file in $HOME/mtda/config
+        # Config file in $HOME/.mtda/config
         home = os.getenv('HOME', '')
         if home != '':
-            self.config_files.append(os.path.join(home, 'mtda', 'config'))
+            self.config_files.append(os.path.join(home, '.mtda', 'config'))
 
         # Config file in /etc/mtda/config
         if os.path.exists('/etc'):
