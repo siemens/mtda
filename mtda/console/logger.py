@@ -14,7 +14,6 @@ class ConsoleLogger:
         self.console = console
         self._prompt = "=> "
         self.rx_alive = False
-        self.rx_lines = 0
         self.rx_thread = None
         self.rx_queue = bytearray()
         self.rx_buffer = deque(maxlen=1000)
@@ -33,7 +32,6 @@ class ConsoleLogger:
     def _clear(self):
         self.rx_buffer.clear()
         self.rx_queue = bytearray()
-        self.rx_lines = 0
 
     def clear(self):
         self.rx_lock.acquire()
@@ -42,10 +40,11 @@ class ConsoleLogger:
 
     def _flush(self):
         data = ""
-        while self.rx_lines > 0:
+        lines = len(self.rx_buffer)
+        while lines > 0:
             line = self.rx_buffer.popleft().decode("utf-8")
             data = data + line
-            self.rx_lines = self.rx_lines - 1
+            lines = lines - 1
         line = self.rx_queue.decode("utf-8")
         data = data + line
         self.rx_queue = bytearray()
@@ -58,9 +57,8 @@ class ConsoleLogger:
         return data
 
     def _head(self):
-        if self.rx_lines > 0:
+        if len(self.rx_buffer) > 0:
             line = self.rx_buffer.popleft().decode("utf-8")
-            self.rx_lines = self.rx_lines - 1
         else:
             line = None
         return line
@@ -73,7 +71,7 @@ class ConsoleLogger:
 
     def lines(self):
         self.rx_lock.acquire()
-        lines = self.rx_lines
+        lines = len(self.rx_buffer)
         self.rx_lock.release()
         return lines
 
@@ -121,7 +119,7 @@ class ConsoleLogger:
     def _tail(self, discard=True):
         if len(self.rx_queue) > 0:
             line = self.rx_queue
-        elif self.rx_lines > 0:
+        elif len(self.rx_buffer) > 0:
             line = self.rx_buffer[-1]
         else:
             return None
@@ -216,7 +214,6 @@ class ConsoleLogger:
 
                 # Add this line to the circular buffer
                 self.rx_buffer.append(line)
-                self.rx_lines = self.rx_lines + 1
 
                 # Remove consumed bytes from the queue
                 if rem > 0:
