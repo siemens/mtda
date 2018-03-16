@@ -193,7 +193,8 @@ class Application:
             cmds = {
                'console' : self.console_help,
                'sd'      : self.sd_help,
-               'target'  : self.target_help
+               'target'  : self.target_help,
+               'usb'     : self.usb_help
             }
 
             if cmd in cmds:
@@ -325,6 +326,7 @@ class Application:
             args.pop(0)
 
             cmds = {
+               'help'   : self.target_help,
                'off'    : self.target_off,
                'on'     : self.target_on,
                'toggle' : self.target_toggle
@@ -335,6 +337,50 @@ class Application:
             else:
                 print("unknown target command '%s'!" %(cmd), file=sys.stderr)
                 return 1
+
+    def usb_cmd(self, args):
+        if len(args) > 0:
+            cmd = args[0]
+            args.pop(0)
+
+            cmds = {
+               'help'   : self.usb_help,
+               'off'    : self.usb_off,
+               'on'     : self.usb_on
+            }
+
+            if cmd in cmds:
+                return cmds[cmd](args)
+            else:
+                print("unknown usb command '%s'!" %(cmd), file=sys.stderr)
+                return 1
+
+    def usb_help(self, args=None):
+       print("The 'usb' command accepts the following sub-commands:")
+       print("   on      Power on the specified USB device")
+       print("   off     Power off the specified USB device")
+
+    def usb_off(self, args):
+        if len(args) > 0:
+            klass = args[0]
+            args.pop(0)
+            client  = self.client()
+            result = client.usb_off_by_class(klass)
+            return 0 if result else 1
+        else:
+            print("missing class argument to 'usb off' command!", file=sys.stderr)
+            return 1
+
+    def usb_on(self, args):
+        if len(args) > 0:
+            klass = args[0]
+            args.pop(0)
+            client  = self.client()
+            result = client.usb_on_by_class(klass)
+            return 0 if result else 1
+        else:
+            print("missing class argument to 'usb on' command!", file=sys.stderr)
+            return 1
 
     def main(self):
         daemonize = False
@@ -378,7 +424,8 @@ class Application:
               'console' : self.console_cmd,
               'help'    : self.help_cmd,
               'sd'      : self.sd_cmd,
-              'target'  : self.target_cmd
+              'target'  : self.target_cmd,
+              'usb'     : self.usb_cmd
            } 
 
            if cmd in cmds:
