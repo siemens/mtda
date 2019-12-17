@@ -28,6 +28,12 @@ class SerialConsole(ConsoleInterface):
         else:
             return False
 
+    def close(self):
+        if self.ser is not None:
+            return self.ser.close()
+        else:
+            return False
+
     def pending(self):
         """ Return number of pending bytes to read"""
         if self.ser is not None:
@@ -51,4 +57,3 @@ class SerialConsole(ConsoleInterface):
 
 def instantiate():
     return SerialConsole()
-
