@@ -184,6 +184,9 @@ class Client:
     def target_unlock(self):
         return self._impl.target_unlock(self._session)
 
+    def toggle_timestamps(self):
+        return self._impl.toggle_timestamps()
+
     def usb_find_by_class(self, className):
         return self._impl.usb_find_by_class(className, self._session)
 
