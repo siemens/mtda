@@ -625,7 +625,7 @@ class MultiTenantDeviceAccess:
 
             # Create and start console logger
             self.console.probe()
-            self.console_logger = ConsoleLogger(self.console, socket)
+            self.console_logger = ConsoleLogger(self.console, socket, self.power_controller)
             self.console_logger.start()
 
         return True
