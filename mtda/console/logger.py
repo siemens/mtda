@@ -10,9 +10,10 @@ import time
 
 class ConsoleLogger:
 
-    def __init__(self, console, socket=None):
+    def __init__(self, console, socket=None, power_controller=None):
         self.console = console
         self._prompt = "=> "
+        self.power_controller = power_controller
         self.rx_alive = False
         self.rx_thread = None
         self.rx_queue = bytearray()
@@ -233,9 +234,10 @@ class ConsoleLogger:
         try:
             con = self.console
             while self.rx_alive == True:
+                if self.power_controller is not None:
+                    self.power_controller.wait()
                 data = con.read(con.pending() or 1)
                 self.process_rx(data)
         except Exception as e:
             self.rx_alive = False
             print("read error on the console (%s)!" % e.strerror, file=sys.stderr)
-
