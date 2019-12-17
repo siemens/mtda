@@ -14,6 +14,11 @@ class ConsoleInterface(object):
         return
 
     @abc.abstractmethod
+    def close(self):
+        """ Close the console interface"""
+        return
+
+    @abc.abstractmethod
     def pending(self):
         """ Return number of pending bytes to read"""
         return 0

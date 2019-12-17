@@ -241,3 +241,9 @@ class ConsoleLogger:
         except Exception as e:
             self.rx_alive = False
             print("read error on the console (%s)!" % e.strerror, file=sys.stderr)
+
+    def pause(self):
+        self.console.close()
+
+    def resume(self):
+        self.console.probe()
