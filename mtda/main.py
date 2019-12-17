@@ -369,6 +369,8 @@ class MultiTenantDeviceAccess:
         return self._lock_owner
 
     def target_on(self, session=None):
+        if self.console_logger is not None:
+           self.console_logger.resume()
         self._check_expired(session)
         if self.power_locked(session) == False:
             return self.power_controller.on()
@@ -380,6 +382,8 @@ class MultiTenantDeviceAccess:
             status = self.power_controller.off()
             if self.console_logger is not None:
                 self.console_logger.reset_timer()
+            if status == True:
+                self.console_logger.pause()
             return status
         return False
 
@@ -393,8 +397,12 @@ class MultiTenantDeviceAccess:
         self._check_expired(session)
         if self.power_locked(session) == False:
             status = self.power_controller.toggle()
-            if status == self.power_controller.POWER_OFF and self.console_logger is not None:
-                self.console_logger.reset_timer()
+            if self.console_logger is not None:
+                if status == self.power_controller.POWER_OFF:
+                    self.console_logger.resume()
+                if status == self.power_controller.POWER_OFF:
+                    self.console_logger.pause()
+                    self.console_logger.reset_timer()
             return status
         return self.power_controller.POWER_LOCKED
 
