@@ -39,6 +39,8 @@ class SamsungSdMuxController(SdMuxController):
         if part:
             path = path + part
         mountpoint = os.path.join("/media", "mtda", os.path.basename(path))
+        if os.path.ismount(mountpoint):
+            return True
         try:
             os.makedirs(mountpoint, exist_ok=True)
             subprocess.check_call(["/bin/mount", path, mountpoint])
