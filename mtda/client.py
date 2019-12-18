@@ -67,6 +67,9 @@ class Client:
     def sd_locked(self):
         return self._impl.sd_locked(self._session)
 
+    def sd_mount(self, part=None):
+        return self._impl.sd_mount(part, self._session)
+
     def sd_open(self):
         tries = 60
         while tries > 0:

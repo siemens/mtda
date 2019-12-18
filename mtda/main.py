@@ -28,6 +28,7 @@ class MentorTestDeviceAgent:
         self.power_controller = None
         self.sdmux_controller = None
         self._sd_bytes_written = 0
+        self._sd_mounted = False
         self._sd_opened = False
         self.blksz = 65536
         self.bz2dec = None
@@ -186,6 +187,16 @@ class MentorTestDeviceAgent:
             return True
         # We may otherwise swap our SD card
         return False
+
+    def sd_mount(self, part=None, session=None):
+        self._check_expired(session)
+        if self._sd_mounted == True:
+            return True
+        if self.sdmux_controller is None:
+            return False
+        status = self.sdmux_controller.mount(part)
+        self._sd_mounted = (status == True)
+        return status
 
     def sd_open(self, session=None):
         self._check_expired(session)

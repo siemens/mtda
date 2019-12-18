@@ -148,7 +148,11 @@ $ mtda-cli sd host
 $ mtda-cli sd write console-image.wic.bz2
 $ mtda-cli sd write console-image.wic.gz
 
+# The SD card may be mounted (if initialized)
+$ mtda-cli sd mount 1 # mount 1st partition
+
 # Attach the SD card to the target
+# Partitions will be un-mounted from the host (if any were mounted)
 $ mtda-cli sd target
 
 # Power on the target
