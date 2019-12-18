@@ -108,6 +108,30 @@ class SamsungSdMuxController(SdMuxController):
         except subprocess.CalledProcessError:
             return self.SD_ON_UNSURE
 
+    def _locate(self, dst):
+        mountpoint = os.path.join("/media", "mtda", os.path.basename(self.device))
+        partitions = psutil.disk_partitions()
+        for p in partitions:
+            if p.mountpoint.startswith(mountpoint):
+                path = os.path.join(p.mountpoint, dst)
+                if os.path.exists(path):
+                    return path
+        return None
+
+    def update(self, dst, offset, data):
+        path = self._locate(dst)
+        result = -1
+        if path is not None:
+            try:
+                mode = "ab" if offset > 0 else "wb"
+                f = open(path, mode)
+                f.seek(offset)
+                result = f.write(data)
+            finally:
+                if f is not None:
+                    f.close()
+        return result
+
     def write(self, data):
         if self.handle is None:
             return False

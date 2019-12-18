@@ -83,6 +83,46 @@ class Client:
     def sd_status(self):
         return self._impl.sd_status(self._session)
 
+    def sd_update(self, dest, src=None, callback=None):
+        path = dest if src is None else src
+        imgname = os.path.basename(path)
+        try:
+            st = os.stat(path)
+            imgsize = st.st_size
+            image = open(path, "rb")
+        except FileNotFoundError:
+            return False
+
+        # Copy loop
+        data = image.read(self._agent.blksz)
+        dataread = len(data)
+        totalread = 0
+        offset = 0
+        while totalread < imgsize:
+            totalread += dataread
+
+            # Report progress via callback
+            if callback is not None:
+                callback(imgname, totalread, imgsize)
+
+            # Write block to SD card
+            datawritten = self._impl.sd_update(dest, offset, data, self._session)
+            offset = offset + datawritten
+
+            # Check what to do next
+            if datawritten < 0:
+                # Handle read/write error
+                image.close()
+                return False
+            else:
+                # Read next block
+                data = image.read(self._agent.blksz)
+                dataread = len(data)
+
+        # Close the local image and SD card
+        image.close()
+        return True
+
     def sd_write_image(self, path, callback=None):
         # Get size of the (compressed) image
         imgname = os.path.basename(path)

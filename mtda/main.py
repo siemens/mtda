@@ -198,6 +198,17 @@ class MultiTenantDeviceAccess:
         self._sd_mounted = (status == True)
         return status
 
+    def sd_update(self, dst, offset, data, session=None):
+        self._check_expired(session)
+        if self.sdmux_controller is None:
+            return -1
+        if offset == 0:
+            self._sd_bytes_written = 0
+        result = self.sdmux_controller.update(dst, offset, data)
+        if result > 0:
+            self._sd_bytes_written = self._sd_bytes_written + result
+        return result
+
     def sd_open(self, session=None):
         self._check_expired(session)
         if self.sdmux_controller is None:
