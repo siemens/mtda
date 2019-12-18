@@ -1,5 +1,7 @@
 # System imports
 import abc
+import os
+import psutil
 import subprocess
 
 # Local imports
@@ -29,6 +31,20 @@ class SamsungSdMuxController(SdMuxController):
         if 'serial' in conf:
            self.serial = conf['serial']
         return
+
+    def mount(self, part=None):
+        if self.status() != self.SD_ON_HOST:
+            return False
+        path = self.device
+        if part:
+            path = path + part
+        mountpoint = os.path.join("/media", "mtda", os.path.basename(path))
+        try:
+            os.makedirs(mountpoint, exist_ok=True)
+            subprocess.check_call(["/bin/mount", path, mountpoint])
+            return True
+        except subprocess.CalledProcessError:
+            return False
 
     def open(self):
         if self.status() != self.SD_ON_HOST:
@@ -64,6 +80,11 @@ class SamsungSdMuxController(SdMuxController):
     def to_target(self):
         """ Attach the SD card to the target"""
         try:
+            mountpoint = os.path.join("/media", "mtda", os.path.basename(self.device))
+            partitions = psutil.disk_partitions()
+            for p in partitions:
+                if p.mountpoint.startswith(mountpoint):
+                    subprocess.check_call(["/bin/umount", p.mountpoint])
             self.close()
             subprocess.check_output([
                 "sd-mux-ctrl", "-e", self.serial, "--dut"

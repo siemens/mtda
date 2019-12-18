@@ -218,6 +218,7 @@ class Application:
 
             cmds = {
                'host'   : self.sd_host,
+               'mount'  : self.sd_mount,
                'target' : self.sd_target,
                'write'  : self.sd_write
             }
@@ -231,13 +232,25 @@ class Application:
     def sd_help(self, args=None):
        print("The 'sd' command accepts the following sub-commands:")
        print("   host      Attach the device SD card to the host")
+       print("   mount     Mount the device SD card on the host")
        print("   target    Attach the device SD card to the target")
        print("   write     Write an image to the device SD card")
 
-    def sd_host(self, args):
+    def sd_host(self, args=None):
         status = self.client().sd_to_host()
         if status == False:
             print("failed to connect the device SD card to the host!", file=sys.stderr)
+            return 1
+        return 0
+
+    def sd_mount(self, args=None):
+        status = self.sd_host()
+        if status != 0:
+            return 1
+        part = args[0] if len(args) > 0 else None
+        status = self.agent.sd_mount(part)
+        if status == False:
+            print("'sd mount' failed!", file=sys.stderr)
             return 1
         return 0
 
