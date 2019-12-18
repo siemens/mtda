@@ -151,6 +151,10 @@ $ mtda-cli sd write console-image.wic.gz
 # The SD card may be mounted (if initialized)
 $ mtda-cli sd mount 1 # mount 1st partition
 
+# Update the kernel image
+# (here boot/kernel on the mounted partition, vmlinuz on the client)
+$ mtda-cli sd update boot/kernel vmlinuz
+
 # Attach the SD card to the target
 # Partitions will be un-mounted from the host (if any were mounted)
 $ mtda-cli sd target
