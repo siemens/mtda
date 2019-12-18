@@ -1,0 +1,24 @@
+Source: mtda
+Section: devel
+Priority: extra
+Maintainer: Cedric Hombourger <Cedric_Hombourger@mentor.com>
+Build-Depends: debhelper (>=9),
+               dh-python,
+               python3-setuptools,
+               python3-all
+Standards-Version: 3.9.8
+Homepage: https://github.com/MentorEmbedded/mtda
+X-Python-Version: >= 2.6
+X-Python3-Version: >= 3.2
+
+Package: mtda
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${python3:Depends}
+Description: Multi-Tenant Device Access
+ Multi-Tenant Device Access (or MTDA for short) is a relatively
+ small Python application and library acting as an interface
+ to a test device. It provides mechanisms to remotely turn the
+ device on or off (assuming an IP/USB power switch is available),
+ plug USB devices in or out (also requiring special hardware) or
+ simply access its console (in most cases serial).
