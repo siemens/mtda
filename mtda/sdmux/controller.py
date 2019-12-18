@@ -18,6 +18,11 @@ class SdMuxController(object):
         return True
 
     @abc.abstractmethod
+    def mount(self, part):
+        """ Mount the SD card device/partition on the host"""
+        return False
+
+    @abc.abstractmethod
     def open(self):
         """ Open the SD card device for I/O operations"""
         return False
