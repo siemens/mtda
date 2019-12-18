@@ -1,7 +1,8 @@
 from mtda.main import MentorTestDeviceAgent
+from random_word import RandomWords
+
 import os
 import time
-import uuid
 import zerorpc
 
 class Client:
@@ -16,7 +17,7 @@ class Client:
         else:
             self._impl = agent
         self._agent = agent
-        self._session = os.getenv('MTDA_SESSION', str(uuid.uuid1()))
+        self._session = os.getenv('MTDA_SESSION', RandomWords().get_random_word())
 
     def console_clear(self):
         return self._impl.console_clear(self._session)
