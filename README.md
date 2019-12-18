@@ -47,7 +47,7 @@ a client and connecting to the remote agent.
 
 # Setup
 
-For hosts running Ubuntu 16.04 (or later), the following packages need to be installed:
+For hosts running Ubuntu 18.04 (or later), the following packages need to be installed:
 
 ```
 sudo apt-get install \
@@ -67,21 +67,7 @@ If you have a Samsung SD-Mux device, the following packages should be installed 
 
 ```
 sudo apt-get install \
-   cmake libpopt-dev
-```
-
-You will then need to build libftdi1 (many distributions still ship v1.3 while the
-sd-mux-ctrl tool requires v1.4):
-
-```
-wget https://www.intra2net.com/en/developer/libftdi/download/libftdi1-1-4.tar.bz2
-tar jxvf libftdi1-1-4.tar.bz2
-cd libftdi1-1-4
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
+   cmake libfdt-dev libpopt-dev
 ```
 
 You may then get the sd-mux-ctrl code and build it:
