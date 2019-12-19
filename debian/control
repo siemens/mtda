@@ -14,7 +14,7 @@ X-Python3-Version: >= 3.2
 Package: mtda
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends}, ${python3:Depends}
+Depends: wamerican, ${misc:Depends}, ${python3:Depends}
 Description: Mentor Test Device Agent
  Mentor Test Device Agent (or MTDA for short) is a relatively
  small Python application and library acting as an interface

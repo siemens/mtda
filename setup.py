@@ -42,7 +42,6 @@ and testers to remotely access and control hardware devices.
         "pyusb>=1.0",
         "pyzmq>=15.0",
         "radish-bdd>=0.6.0",
-        "random-word",
         "zerorpc>=0.6.0"
     ],
 )
