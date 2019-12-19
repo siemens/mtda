@@ -10,7 +10,7 @@ setup(
     name='mtda',
     version=VERSION,
     scripts=['mtda-cli'],
-    packages=find_packages(),
+    packages=find_packages(exclude=["demos"]),
     author='Cedric Hombourger',
     author_email='Cedric_Hombourger@mentor.com',
 
@@ -41,7 +41,6 @@ and testers to remotely access and control hardware devices.
         "python-daemon>=2.0",
         "pyusb>=1.0",
         "pyzmq>=15.0",
-        "radish-bdd>=0.6.0",
         "zerorpc>=0.6.0"
     ],
 )
