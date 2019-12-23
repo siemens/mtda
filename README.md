@@ -169,6 +169,7 @@ The 'console interactive' command allows remote interaction with the device cons
 The following key sequences may be used to control MTDA:
 
    * Ctrl + a + a: acquire the target
+   * Ctrl + a + b: paste console buffer to pastebin.com
    * Ctrl + a + i: print target information (power status, SD card, USB ports, etc.)
    * Ctrl + a + p: toggle power on/off
    * Ctrl + a + q: quit
