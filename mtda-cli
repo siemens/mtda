@@ -6,6 +6,7 @@ import getopt
 import lockfile
 import os
 import os.path
+import requests
 import signal
 import sys
 import zerorpc
@@ -13,6 +14,9 @@ import zerorpc
 # Local imports
 from mtda.main import MentorTestDeviceAgent
 from mtda.client import Client
+
+PASTEBIN_API_KEY  = "1a265f6e04cf3c1df5e153018390eb29"
+PASTEBIN_ENDPOINT = "http://pastebin.com/api/api_post.php"
 
 class Application:
 
@@ -102,6 +106,8 @@ class Application:
             status = server.target_lock()
             if status == True:
                 server.console_print("\n*** Target was acquired ***\n")
+        elif c == 'b':
+            self.console_pastebin()
         elif c == 'i':
             self.target_info()
         elif c == 'p':
@@ -126,6 +132,17 @@ class Application:
             server.toggle_timestamps()
         elif c == 'u':
             server.usb_toggle(1)
+
+    def console_pastebin(self):
+        data = {
+                'api_dev_key'      : PASTEBIN_API_KEY,
+                'api_option'       : 'paste',
+                'api_paste_code'   : self.client().console_flush(),
+                'api_paste_format' : 'python'
+               }
+        r = requests.post(url = PASTEBIN_ENDPOINT, data = data)
+        server = self.client()
+        server.console_print("\n*** console buffer posted to %s ***\n" % (r.text))
 
     def console_prompt(self, args):
         prompt = None
