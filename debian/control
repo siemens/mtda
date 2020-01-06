@@ -4,6 +4,7 @@ Priority: extra
 Maintainer: Cedric Hombourger <Cedric_Hombourger@mentor.com>
 Build-Depends: debhelper (>=9),
                dh-python,
+               dh-systemd,
                python3-setuptools,
                python3-all
 Standards-Version: 3.9.8
