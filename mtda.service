@@ -1,0 +1,8 @@
+[Unit]
+Description=Mentor Test Device Agent
+
+[Service]
+ExecStart=/usr/bin/mtda-cli -d
+
+[Install]
+WantedBy=multi-user.target
