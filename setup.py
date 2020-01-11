@@ -42,6 +42,7 @@ and testers to remotely access and control hardware devices.
         "pyusb>=1.0",
         "pyzmq>=15.0",
         "requests",
+        "RPi.GPIO",
         "zerorpc>=0.6.0"
     ],
 )

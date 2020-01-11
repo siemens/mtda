@@ -1,2 +1,3 @@
+RPi.GPIO python3-rpi-gpio
 requests python3-requests
 zerorpc python3-zerorpc
