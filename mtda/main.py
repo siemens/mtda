@@ -390,13 +390,24 @@ class MentorTestDeviceAgent:
     def target_owner(self):
         return self._lock_owner
 
+    def exec_power_on_script(self):
+        if self.power_on_script:
+            exec(self.power_on_script, { "mtda" : self })
+
     def target_on(self, session=None):
         if self.console_logger is not None:
            self.console_logger.resume()
         self._check_expired(session)
+        result = False
         if self.power_locked(session) == False:
-            return self.power_controller.on()
-        return False
+            result = self.power_controller.on()
+            if result == True:
+                self.exec_power_on_script()
+        return result
+
+    def exec_power_off_script(self):
+        if self.power_off_script:
+            exec(self.power_off_script, { "mtda" : self })
 
     def target_off(self, session=None):
         self._check_expired(session)
@@ -406,6 +417,7 @@ class MentorTestDeviceAgent:
                 self.console_logger.reset_timer()
                 if status == True:
                     self.console_logger.pause()
+                    self.exec_power_off_script()
             return status
         return False
 
@@ -422,7 +434,9 @@ class MentorTestDeviceAgent:
             if self.console_logger is not None:
                 if status == self.power_controller.POWER_OFF:
                     self.console_logger.resume()
+                    self.exec_power_on_script()
                 if status == self.power_controller.POWER_OFF:
+                    self.exec_power_off_script()
                     self.console_logger.pause()
                     self.console_logger.reset_timer()
             return status
@@ -530,6 +544,10 @@ class MentorTestDeviceAgent:
                 self.load_sdmux_config(parser)
             if parser.has_section('usb'):
                 self.load_usb_config(parser)
+            if parser.has_section('scripts'):
+                scripts = parser['scripts']
+                self.power_on_script  = scripts.get('power on', None)
+                self.power_off_script = scripts.get('power off', None)
 
     def load_console_config(self, parser):
         try:
