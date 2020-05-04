@@ -404,8 +404,8 @@ class MentorTestDeviceAgent:
             status = self.power_controller.off()
             if self.console_logger is not None:
                 self.console_logger.reset_timer()
-            if status == True:
-                self.console_logger.pause()
+                if status == True:
+                    self.console_logger.pause()
             return status
         return False
 
