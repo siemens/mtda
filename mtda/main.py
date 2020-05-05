@@ -441,7 +441,7 @@ class MultiTenantDeviceAccess:
         if self.power_locked(session) == False:
             status = self.power_controller.toggle()
             if self.console_logger is not None:
-                if status == self.power_controller.POWER_OFF:
+                if status == self.power_controller.POWER_ON:
                     self.console_logger.resume()
                     self.exec_power_on_script()
                 if status == self.power_controller.POWER_OFF:
