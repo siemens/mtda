@@ -56,6 +56,9 @@ class Client:
     def console_tail(self):
         return self._impl.console_tail(self._session)
 
+    def keyboard_write(self, data):
+        return self._impl.keyboard_write(data, self._session)
+
     def power_locked(self):
         return self._impl.power_locked(self._session)
 
