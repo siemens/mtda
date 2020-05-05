@@ -15,6 +15,7 @@ import zmq
 from   mtda.console.input import ConsoleInput
 from   mtda.console.logger import ConsoleLogger
 from   mtda.console.remote_output import RemoteConsoleOutput
+import mtda.keyboard.controller
 import mtda.power.controller
 
 class MentorTestDeviceAgent:
@@ -25,6 +26,7 @@ class MentorTestDeviceAgent:
         self.console_logger = None
         self.console_input = None
         self.console_output = None
+        self.keyboard = None
         self.power_controller = None
         self.sdmux_controller = None
         self._sd_bytes_written = 0
@@ -143,6 +145,13 @@ class MentorTestDeviceAgent:
             return None
         if self.console_logger is not None:
             return self.console_logger.tail()
+        else:
+            return None
+
+    def keyboard_write(self, str, session=None):
+        self._check_expired(session)
+        if self.keyboard is not None:
+            return self.keyboard.write(str)
         else:
             return None
 
@@ -538,6 +547,8 @@ class MentorTestDeviceAgent:
         if self.is_remote == False:
             if parser.has_section('console'):
                 self.load_console_config(parser)
+            if parser.has_section('keyboard'):
+                self.load_keyboard_config(parser)
             if parser.has_section('power'):
                 self.load_power_config(parser)
             if parser.has_section('sdmux'):
@@ -563,7 +574,23 @@ class MentorTestDeviceAgent:
             print('console variant not defined!', file=sys.stderr)
         except ImportError:
             print('console "%s" could not be found/loaded!' % (variant), file=sys.stderr)
-    
+
+    def load_keyboard_config(self, parser):
+        try:
+            # Get variant
+            variant = parser.get('keyboard', 'variant')
+            # Try loading its support class
+            mod = importlib.import_module("mtda.keyboard." + variant)
+            factory = getattr(mod, 'instantiate')
+            self.keyboard = factory()
+            # Configure the keyboard controller
+            self.keyboard.configure(dict(parser.items('keyboard')))
+            self.keyboard.probe()
+        except configparser.NoOptionError:
+            print('keyboard controller variant not defined!', file=sys.stderr)
+        except ImportError:
+            print('keyboard controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
+
     def load_power_config(self, parser):
         try:
             # Get variant
