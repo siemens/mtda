@@ -11,6 +11,7 @@ class SerialConsole(ConsoleInterface):
         self.ser  = None
         self.port = "/dev/ttyUSB0"
         self.rate = 115200
+        self.opened = False
 
     def configure(self, conf):
         """ Configure this console from the provided configuration"""
@@ -24,15 +25,18 @@ class SerialConsole(ConsoleInterface):
 
     def probe(self):
         if self.ser is not None:
-            return self.ser.open()
+            if self.opened == False:
+                self.ser.open()
+                self.opened = True
+            return self.opened
         else:
             return False
 
     def close(self):
         if self.ser is not None:
-            return self.ser.close()
-        else:
-            return False
+            if self.opened == False:
+                self.ser.close()
+                self.opened = False
 
     def pending(self):
         """ Return number of pending bytes to read"""
