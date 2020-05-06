@@ -28,15 +28,14 @@ class SerialConsole(ConsoleInterface):
             if self.opened == False:
                 self.ser.open()
                 self.opened = True
-            return self.opened
-        else:
-            return False
+        return self.opened
 
     def close(self):
         if self.ser is not None:
-            if self.opened == False:
+            if self.opened == True:
                 self.ser.close()
                 self.opened = False
+        return self.opened == False
 
     def pending(self):
         """ Return number of pending bytes to read"""
