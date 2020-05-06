@@ -231,16 +231,31 @@ class ConsoleLogger:
         self.rx_lock.release()
 
     def reader(self):
-        try:
-            con = self.console
-            while self.rx_alive == True:
-                if self.power_controller is not None:
-                    self.power_controller.wait()
+        con = self.console
+        error = None
+        retries = 3
+        while self.rx_alive == True:
+            if self.power_controller is not None:
+                self.power_controller.wait()
+
+            try:
                 data = con.read(con.pending() or 1)
                 self.process_rx(data)
-        except Exception as e:
-            self.rx_alive = False
-            print("read error on the console (%s)!" % e.strerror, file=sys.stderr)
+                continue
+            except Exception as e:
+                error = e.strerror
+
+            try:
+                if retries > 0:
+                    print("resetting console to recover from read error (%s)..." % error, file=sys.stderr)
+                    con.close()
+                    con.probe()
+                    error = None
+                else:
+                    print("failed to reset the console, aborting!", file=sys.stderr)
+                    self.rx_alive = False
+            except:
+                retries = retries - 1
 
     def pause(self):
         self.console.close()
