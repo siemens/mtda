@@ -8,10 +8,11 @@ from mtda.sdmux.controller import SdMuxController
 class UsbFunctionController(SdMuxController):
 
     def __init__(self):
-        self.driver = "g_multi"
-        self.file   = None
-        self.handle = None
-        self.mode   = self.SD_ON_HOST
+        self.gadget   = "usb_functions_for_mentor_test_device_agent"
+        self.function = "mass_storage.usb0"
+        self.file     = None
+        self.handle   = None
+        self.mode     = self.SD_ON_HOST
 
     def close(self):
         if self.handle is not None:
@@ -25,8 +26,10 @@ class UsbFunctionController(SdMuxController):
 
     def configure(self, conf):
         """ Configure this sdmux controller from the provided configuration"""
-        if 'driver' in conf:
-           self.driver = conf['driver']
+        if 'gadget' in conf:
+           self.gadget = conf['gadget']
+        if 'function' in conf:
+           self.function = conf['function']
         return
 
     def open(self):
@@ -43,7 +46,7 @@ class UsbFunctionController(SdMuxController):
     def probe(self):
         """ Get file used by the USB Function driver"""
         try:
-            with open("/sys/module/%s/parameters/file" % self.driver) as conf:
+            with open("/sys/kernel/config/usb_gadget/%s/functions/%s/lun.0/file" % (self.gadget, self.function)) as conf:
                 self.file = conf.read().rstrip()
                 conf.close()
             return True
