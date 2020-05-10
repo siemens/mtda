@@ -8,6 +8,8 @@ import os
 import os.path
 import requests
 import signal
+import termios
+import tty
 import sys
 import zerorpc
 
@@ -91,6 +93,11 @@ class Application:
         # Connect to the console
         client.console_remote(self.remote)
 
+        # Save current tty settings and set to raw
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        tty.setraw(sys.stdin)
+
         # Input loop
         while self.exiting == False:
             c = client.console_getkey()
@@ -100,12 +107,16 @@ class Application:
             else:
                 server.console_send(c, True)
 
+        # Restore tty settings
+        print("\r\nThank you for using MTDA!\r\n\r\n")
+        termios.tcsetattr(fd, termios.TCSANOW, old_settings)
+
     def console_menukey(self, c):
         server = self.client()
         if c == 'a':
             status = server.target_lock()
             if status == True:
-                server.console_print("\n*** Target was acquired ***\n")
+                server.console_print("\r\n*** Target was acquired ***\r\n")
         elif c == 'b':
             self.console_pastebin()
         elif c == 'i':
@@ -115,19 +126,19 @@ class Application:
             server.target_toggle()
             new_status = server.target_status()
             if previous_status != new_status:
-                server.console_print("\n*** Target is now %s ***\n" % (new_status))
+                server.console_print("\r\n*** Target is now %s ***\r\n" % (new_status))
         elif c == 'q':
             self.exiting = True
         elif c == 'r':
             status = server.target_unlock()
             if status == True:
-                server.console_print("\n*** Target was released ***\n")
+                server.console_print("\r\n*** Target was released ***\r\n")
         elif c == 's':
             previous_status = server.storage_status()
             server.storage_swap()
             new_status = server.storage_status()
             if new_status != previous_status:
-                server.console_print("\n*** Storage now connected to %s ***\n" % (new_status))
+                server.console_print("\r\n*** Storage now connected to %s ***\r\n" % (new_status))
         elif c == 't':
             server.toggle_timestamps()
         elif c == 'u':
@@ -142,7 +153,7 @@ class Application:
                }
         r = requests.post(url = PASTEBIN_ENDPOINT, data = data)
         server = self.client()
-        server.console_print("\n*** console buffer posted to %s ***\n" % (r.text))
+        server.console_print("\r\n*** console buffer posted to %s ***\r\n" % (r.text))
 
     def console_prompt(self, args):
         prompt = None
@@ -388,17 +399,17 @@ class Application:
         tgt_status      = client.target_status()
 
         # Print general information
-        print("Agent          : %s%30s" % (remote, ""))
-        print("Session        : %s" % (session))
-        print("Target         : %-6s%s" %(tgt_status, locked))
-        print("Storage on     : %-6s%s" %(storage_status, locked))
-        print("Storage writes : %u MiB" %(storage_written))
+        print("Agent          : %s%30s\r" % (remote, ""))
+        print("Session        : %s\r" % (session))
+        print("Target         : %-6s%s\r" %(tgt_status, locked))
+        print("Storage on     : %-6s%s\r" %(storage_status, locked))
+        print("Storage writes : %u MiB\r" %(storage_written))
 
         # Print status of the USB ports
         ports = client.usb_ports()
         for ndx in range(0, ports):
             status = client.usb_status(ndx+1)
-            print("USB #%-2d   : %s" %(ndx+1, status))
+            print("USB #%-2d   : %s\r" %(ndx+1, status))
 
     def target_off(self, args=None):
         status = self.client().target_off()
