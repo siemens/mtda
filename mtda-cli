@@ -202,6 +202,17 @@ class Application:
             else:
                 print("unknown console command '%s'!" %(cmd), file=sys.stderr)
 
+    def getenv_cmd(self, args=None):
+        if len(args) == 0:
+            print("'getenv' expects a key argument!", file=sys.stderr)
+            return 1
+
+        name  = args[0]
+        value = self.agent.env_get(name)
+        if value is not None:
+            print(str(value))
+        return 0
+
     def help_cmd(self, args=None):
         if args is not None and len(args) > 0:
             cmd = args[0]
@@ -223,7 +234,9 @@ class Application:
             print("")
             print("The most commonly used mtda commands are:")
             print("   console   Interact with the device console")
+            print("   getenv    Get named variable from the environment")
             print("   target    Power control the device")
+            print("   setenv    Set named variable to specified value in the environment")
             print("   storage   Interact with the shared storage device")
             print("   usb       Control USB devices attached to the device")
             print("")
@@ -248,6 +261,17 @@ class Application:
                 cmds[cmd](args)
             else:
                 print("unknown keyboard command '%s'!" %(cmd), file=sys.stderr)
+
+    def setenv_cmd(self, args=None):
+        if len(args) == 0:
+            print("'setenv' expects a key argument!", file=sys.stderr)
+            return 1
+
+        name  = args[0]
+        value = args[1] if len(args) > 1 else None
+
+        self.agent.env_set(name, value)
+        return 0
 
     def storage_cmd(self, args):
         if len(args) > 0:
@@ -492,8 +516,10 @@ class Application:
 
            cmds = {
               'console'  : self.console_cmd,
+              'getenv'   : self.getenv_cmd,
               'help'     : self.help_cmd,
               'keyboard' : self.keyboard_cmd,
+              'setenv'   : self.setenv_cmd,
               'storage'  : self.storage_cmd,
               'target'   : self.target_cmd,
               'usb'      : self.usb_cmd
