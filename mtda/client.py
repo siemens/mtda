@@ -62,32 +62,32 @@ class Client:
     def power_locked(self):
         return self._impl.power_locked(self._session)
 
-    def sd_bytes_written(self):
-        return self._impl.sd_bytes_written(self._session)
+    def storage_bytes_written(self):
+        return self._impl.storage_bytes_written(self._session)
 
-    def sd_close(self):
-        return self._impl.sd_close(self._session)
+    def storage_close(self):
+        return self._impl.storage_close(self._session)
 
-    def sd_locked(self):
-        return self._impl.sd_locked(self._session)
+    def storage_locked(self):
+        return self._impl.storage_locked(self._session)
 
-    def sd_mount(self, part=None):
-        return self._impl.sd_mount(part, self._session)
+    def storage_mount(self, part=None):
+        return self._impl.storage_mount(part, self._session)
 
-    def sd_open(self):
+    def storage_open(self):
         tries = 60
         while tries > 0:
             tries = tries - 1
-            status = self._impl.sd_open(self._session)
+            status = self._impl.storage_open(self._session)
             if status == True:
                 return True
             time.sleep(1)
         return False
 
-    def sd_status(self):
-        return self._impl.sd_status(self._session)
+    def storage_status(self):
+        return self._impl.storage_status(self._session)
 
-    def sd_update(self, dest, src=None, callback=None):
+    def storage_update(self, dest, src=None, callback=None):
         path = dest if src is None else src
         imgname = os.path.basename(path)
         try:
@@ -109,8 +109,8 @@ class Client:
             if callback is not None:
                 callback(imgname, totalread, imgsize)
 
-            # Write block to SD card
-            datawritten = self._impl.sd_update(dest, offset, data, self._session)
+            # Write block to the shared storage device
+            datawritten = self._impl.storage_update(dest, offset, data, self._session)
             offset = offset + datawritten
 
             # Check what to do next
@@ -123,11 +123,11 @@ class Client:
                 data = image.read(self._agent.blksz)
                 dataread = len(data)
 
-        # Close the local image and SD card
+        # Close the local image and shared storage device
         image.close()
         return True
 
-    def sd_write_image(self, path, callback=None):
+    def storage_write_image(self, path, callback=None):
         # Get size of the (compressed) image
         imgname = os.path.basename(path)
 
@@ -141,8 +141,8 @@ class Client:
         except FileNotFoundError:
             return False
 
-        # Open the SD card device
-        status = self.sd_open()
+        # Open the shared storage device
+        status = self.storage_open()
         if status == False:
             image.close()
             return False
@@ -158,19 +158,19 @@ class Client:
             if callback is not None:
                 callback(imgname, totalread, imgsize)
 
-            # Write block to SD card
+            # Write block to shared storage device
             if isBZ2 == True:
-                bytes_wanted = self._impl.sd_write_bz2(data, self._session)
+                bytes_wanted = self._impl.storage_write_bz2(data, self._session)
             if isGZ == True:
-                bytes_wanted = self._impl.sd_write_gz(data, self._session)
+                bytes_wanted = self._impl.storage_write_gz(data, self._session)
             else:
-                bytes_wanted = self._impl.sd_write_raw(data, self._session)
+                bytes_wanted = self._impl.storage_write_raw(data, self._session)
 
             # Check what to do next
             if bytes_wanted < 0:
                 # Handle read/write error
                 image.close()
-                self.sd_close()
+                self.storage_close()
                 return False
             elif bytes_wanted > 0:
                 # Read next block
@@ -181,19 +181,19 @@ class Client:
                 data = b''
                 dataread = 0
 
-        # Close the local image and SD card
+        # Close the local image and shared storage device
         image.close()
-        status = self.sd_close()
+        status = self.storage_close()
         return status
 
-    def sd_to_host(self):
-        return self._impl.sd_to_host(self._session)
+    def storage_to_host(self):
+        return self._impl.storage_to_host(self._session)
 
-    def sd_to_target(self):
-        return self._impl.sd_to_target(self._session)
+    def storage_to_target(self):
+        return self._impl.storage_to_target(self._session)
 
-    def sd_toggle(self):
-        return self._impl.sd_toggle(self._session)
+    def storage_swap(self):
+        return self._impl.storage_swap(self._session)
 
     def start(self):
         return self._agent.start()

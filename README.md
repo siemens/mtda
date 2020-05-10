@@ -140,24 +140,24 @@ $ mtda-cli console interactive
 # Power off the target
 $ mtda-cli target off
 
-# Attach the SD card to the host
-$ mtda-cli sd host
+# Attach the shared storage to the host
+$ mtda-cli storage host
 
-# Write a compressed image to the SD card
+# Write a compressed image to the shared storage 
 # Compressed images (gzip'ed or bzip'ed) are supported
-$ mtda-cli sd write console-image.wic.bz2
-$ mtda-cli sd write console-image.wic.gz
+$ mtda-cli storage write console-image.wic.bz2
+$ mtda-cli storage write console-image.wic.gz
 
-# The SD card may be mounted (if initialized)
-$ mtda-cli sd mount 1 # mount 1st partition
+# The shared storage device may be mounted (if initialized)
+$ mtda-cli storage mount 1 # mount 1st partition
 
 # Update the kernel image
 # (here boot/kernel on the mounted partition, vmlinuz on the client)
-$ mtda-cli sd update boot/kernel vmlinuz
+$ mtda-cli storage update boot/kernel vmlinuz
 
-# Attach the SD card to the target
+# Attach the shared storage device to the target
 # Partitions will be un-mounted from the host (if any were mounted)
-$ mtda-cli sd target
+$ mtda-cli storage target
 
 # Power on the target
 $ mtda-cli target on
@@ -174,7 +174,7 @@ The following key sequences may be used to control MTDA:
    * Ctrl + a + p: toggle power on/off
    * Ctrl + a + q: quit
    * Ctrl + a + r: release the target
-   * Ctrl + a + s: switch SD card between the host and target (target shall be OFF)
+   * Ctrl + a + s: swap the shared storage device between the host and target (target shall be OFF)
    * Ctrl + a + t: toggle display of timestamps
    * Ctrl + a + u: toggle the 1st USB port on/off
 
