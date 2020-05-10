@@ -123,11 +123,11 @@ class Application:
             if status == True:
                 server.console_print("\n*** Target was released ***\n")
         elif c == 's':
-            previous_status = server.sd_status()
-            server.sd_toggle()
-            new_status = server.sd_status()
+            previous_status = server.storage_status()
+            server.storage_swap()
+            new_status = server.storage_status()
             if new_status != previous_status:
-                server.console_print("\n*** SD now connected to %s ***\n" % (new_status))
+                server.console_print("\n*** Storage now connected to %s ***\n" % (new_status))
         elif c == 't':
             server.toggle_timestamps()
         elif c == 'u':
@@ -209,7 +209,7 @@ class Application:
 
             cmds = {
                'console' : self.console_help,
-               'sd'      : self.sd_help,
+               'storage' : self.storage_help,
                'target'  : self.target_help,
                'usb'     : self.usb_help
             }
@@ -224,7 +224,7 @@ class Application:
             print("The most commonly used mtda commands are:")
             print("   console   Interact with the device console")
             print("   target    Power control the device")
-            print("   sd        Interact with the device SD card")
+            print("   storage   Interact with the shared storage device")
             print("   usb       Control USB devices attached to the device")
             print("")
 
@@ -249,98 +249,98 @@ class Application:
             else:
                 print("unknown keyboard command '%s'!" %(cmd), file=sys.stderr)
 
-    def sd_cmd(self, args):
+    def storage_cmd(self, args):
         if len(args) > 0:
             cmd = args[0]
             args.pop(0)
 
             cmds = {
-               'host'   : self.sd_host,
-               'mount'  : self.sd_mount,
-               'target' : self.sd_target,
-               'update' : self.sd_update,
-               'write'  : self.sd_write
+               'host'   : self.storage_host,
+               'mount'  : self.storage_mount,
+               'target' : self.storage_target,
+               'update' : self.storage_update,
+               'write'  : self.storage_write
             }
 
             if cmd in cmds:
                 return cmds[cmd](args)
             else:
-                print("unknown sd command '%s'!" %(cmd), file=sys.stderr)
+                print("unknown 'storage' command '%s'!" %(cmd), file=sys.stderr)
                 return 1
 
-    def sd_help(self, args=None):
-       print("The 'sd' command accepts the following sub-commands:")
-       print("   host      Attach the device SD card to the host")
-       print("   mount     Mount the device SD card on the host")
-       print("   target    Attach the device SD card to the target")
-       print("   update    Update the specified file on the SD card")
-       print("   write     Write an image to the device SD card")
+    def storage_help(self, args=None):
+       print("The 'storage' command accepts the following sub-commands:")
+       print("   host      Attach the shared storage device to the host")
+       print("   mount     Mount the shared storage device on the host")
+       print("   target    Attach the shared storage device to the target")
+       print("   update    Update the specified file on the shared storage device")
+       print("   write     Write an image to the shared storage device")
 
-    def sd_host(self, args=None):
-        status = self.client().sd_to_host()
+    def storage_host(self, args=None):
+        status = self.client().storage_to_host()
         if status == False:
-            print("failed to connect the device SD card to the host!", file=sys.stderr)
+            print("failed to connect the shared storage device to the host!", file=sys.stderr)
             return 1
         return 0
 
-    def sd_mount(self, args=None):
-        status = self.sd_host()
+    def storage_mount(self, args=None):
+        status = self.storage_host()
         if status != 0:
             return 1
         part = args[0] if len(args) > 0 else None
-        status = self.agent.sd_mount(part)
+        status = self.agent.storage_mount(part)
         if status == False:
-            print("'sd mount' failed!", file=sys.stderr)
+            print("'storage mount' failed!", file=sys.stderr)
             return 1
         return 0
 
-    def sd_target(self, args):
-        status = self.client().sd_to_target()
+    def storage_target(self, args):
+        status = self.client().storage_to_target()
         if status == False:
-            print("failed to connect the device SD card to the target!", file=sys.stderr)
+            print("failed to connect the shared storage device to the target!", file=sys.stderr)
             return 1
         return 0
 
-    def _sd_write_cb(self, imgname, totalread, imgsize):
+    def _storage_write_cb(self, imgname, totalread, imgsize):
         # Print progress
         progress = int((float(totalread) / float(imgsize)) * float(100))
         blocks = int(round((20 * progress) / 100))
         spaces = ' ' * (20 - blocks)
         blocks = '#' * blocks
         totalread = int(totalread / 1024 / 1024)
-        totalwritten = int(self.agent.sd_bytes_written() / 1024 / 1024)
+        totalwritten = int(self.agent.storage_bytes_written() / 1024 / 1024)
         sys.stdout.write("\r{0}: [{1}] {2}% ({3} MiB read, {4} MiB written) "
             .format(imgname, str(blocks + spaces), progress, totalread, totalwritten))
         sys.stdout.flush()
 
-    def sd_update(self, args=None):
+    def storage_update(self, args=None):
         if len(args) == 0:
-            print("'sd update' expects a file argument!", file=sys.stderr)
+            print("'storage update' expects a file argument!", file=sys.stderr)
             return 1
 
         dest = args[0]
         src  = args[1] if len(args) > 1 else None
 
-        status = self.agent.sd_update(dest, src, self._sd_write_cb)
+        status = self.agent.storage_update(dest, src, self._storage_write_cb)
         sys.stdout.write("\n")
         sys.stdout.flush()
 
         if status == False:
-            print("'sd update' failed!", file=sys.stderr)
+            print("'storage update' failed!", file=sys.stderr)
             return 1
         return 0
 
-    def sd_write(self, args=None):
+    def storage_write(self, args=None):
         if len(args) == 0:
-            print("'sd write' expects a file argument!", file=sys.stderr)
+            print("'storage write' expects a file argument!", file=sys.stderr)
             return 1
 
-        status = self.agent.sd_write_image(args[0], self._sd_write_cb)
+        status = self.agent.storage_write_image(args[0], self._storage_write_cb)
         sys.stdout.write("\n")
         sys.stdout.flush()
 
         if status == False:
-            print("'sd write' failed!", file=sys.stderr)
+            print("'storage write' failed!", file=sys.stderr)
             return 1
         return 0
 
@@ -355,20 +355,20 @@ class Application:
         sys.stdout.flush()
 
         # Get general information
-        client     = self.client()
-        locked     = " (locked)" if client.target_locked() else ""
-        remote     = "Local" if self.remote is None else self.remote
-        session    = client.session()
-        sd_status  = client.sd_status()
-        sd_written = client.sd_bytes_written() / 1024 / 1024
-        tgt_status = client.target_status()
+        client          = self.client()
+        locked          = " (locked)" if client.target_locked() else ""
+        remote          = "Local" if self.remote is None else self.remote
+        session         = client.session()
+        storage_status  = client.storage_status()
+        storage_written = client.storage_bytes_written() / 1024 / 1024
+        tgt_status      = client.target_status()
 
         # Print general information
-        print("Agent     : %s%30s" % (remote, ""))
-        print("Session   : %s" % (session))
-        print("Target    : %-6s%s" %(tgt_status, locked))
-        print("SD on     : %-6s%s" %(sd_status, locked))
-        print("SD writes : %u MiB" %(sd_written))
+        print("Agent          : %s%30s" % (remote, ""))
+        print("Session        : %s" % (session))
+        print("Target         : %-6s%s" %(tgt_status, locked))
+        print("Storage on     : %-6s%s" %(storage_status, locked))
+        print("Storage writes : %u MiB" %(storage_written))
 
         # Print status of the USB ports
         ports = client.usb_ports()
@@ -494,7 +494,7 @@ class Application:
               'console'  : self.console_cmd,
               'help'     : self.help_cmd,
               'keyboard' : self.keyboard_cmd,
-              'sd'       : self.sd_cmd,
+              'storage'  : self.storage_cmd,
               'target'   : self.target_cmd,
               'usb'      : self.usb_cmd
            } 

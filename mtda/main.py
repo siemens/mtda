@@ -31,9 +31,9 @@ class MultiTenantDeviceAccess:
         self.mtda = self
         self.power_controller = None
         self.sdmux_controller = None
-        self._sd_bytes_written = 0
-        self._sd_mounted = False
-        self._sd_opened = False
+        self._storage_bytes_written = 0
+        self._storage_mounted = False
+        self._storage_opened = False
         self.blksz = 65536
         self.bz2dec = None
         self.zdec = None
@@ -227,17 +227,17 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.power_locked(): %s" % str(result))
         return result
 
-    def sd_bytes_written(self, session=None):
-        self.mtda.debug(3, "main.sd_bytes_written()")
+    def storage_bytes_written(self, session=None):
+        self.mtda.debug(3, "main.storage_bytes_written()")
 
         self._check_expired(session)
-        result = self._sd_bytes_written
+        result = self._storage_bytes_written
 
-        self.mtda.debug(3, "main.sd_bytes_written(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_bytes_written(): %s" % str(result))
         return result
 
-    def sd_close(self, session=None):
-        self.mtda.debug(3, "main.sd_close()")
+    def storage_close(self, session=None):
+        self.mtda.debug(3, "main.storage_close()")
 
         self._check_expired(session)
         if self.sdmux_controller is None:
@@ -245,107 +245,107 @@ class MultiTenantDeviceAccess:
         else:
             self.bz2dec = None
             self.zdec = None
-            if self._sd_opened == True:
-                self._sd_opened = not self.sdmux_controller.close()
-            result = (self._sd_opened == False)
+            if self._storage_opened == True:
+                self._storage_opened = not self.sdmux_controller.close()
+            result = (self._storage_opened == False)
 
-        self.mtda.debug(3, "main.sd_close(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_close(): %s" % str(result))
         return result
 
-    def sd_locked(self, session=None):
-        self.mtda.debug(3, "main.sd_locked()")
+    def storage_locked(self, session=None):
+        self.mtda.debug(3, "main.storage_locked()")
 
         self._check_expired(session)
         if self._check_locked(session):
             result = True
-        # Cannot swap the SD card between the host and target
-        # without a SDMux
+        # Cannot swap the shared storage device between the host and target
+        # without a driver
         elif self.sdmux_controller is None:
-            self.mtda.debug(4, "sd_locked(): no sdmux controller")
+            self.mtda.debug(4, "storage_locked(): no shared storage device")
             result = True
         # We also need a power controller to be safe
         elif self.power_controller is None:
-            self.mtda.debug(4, "sd_locked(): no power controller")
+            self.mtda.debug(4, "storage_locked(): no power controller")
             result = True
         # The target shall be OFF
         elif self.target_status() != "OFF":
-            self.mtda.debug(4, "sd_locked(): target isn't off")
+            self.mtda.debug(4, "storage_locked(): target isn't off")
             result = True
-        # Lastly, the SD shall not be opened
-        elif self._sd_opened == True:
-            self.mtda.debug(4, "sd_locked(): sd is in used (opened)")
+        # Lastly, the shared storage device shall not be opened
+        elif self._storage_opened == True:
+            self.mtda.debug(4, "storage_locked(): shared storage is in used (opened)")
             result = True
-        # We may otherwise swap our SD card
+        # We may otherwise swap our shared storage device
         else:
             result = False
 
-        self.mtda.debug(3, "main.sd_locked(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_locked(): %s" % str(result))
         return result
 
-    def sd_mount(self, part=None, session=None):
-        self.mtda.debug(3, "main.sd_mount()")
+    def storage_mount(self, part=None, session=None):
+        self.mtda.debug(3, "main.storage_mount()")
 
         self._check_expired(session)
-        if self._sd_mounted == True:
-            self.mtda.debug(4, "sd_mount(): already mounted")
+        if self._storage_mounted == True:
+            self.mtda.debug(4, "storage_mount(): already mounted")
             result = True
         elif self.sdmux_controller is None:
-            self.mtda.debug(4, "sd_mount(): no sdmux controller")
+            self.mtda.debug(4, "storage_mount(): no shared storage device")
             return False
         else:
             result = self.sdmux_controller.mount(part)
-            self._sd_mounted = (result == True)
+            self._storage_mounted = (result == True)
 
-        self.mtda.debug(3, "main.sd_mount(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_mount(): %s" % str(result))
         return result
 
-    def sd_update(self, dst, offset, data, session=None):
-        self.mtda.debug(3, "main.sd_update()")
+    def storage_update(self, dst, offset, data, session=None):
+        self.mtda.debug(3, "main.storage_update()")
 
         self._check_expired(session)
         if self.sdmux_controller is None:
-            self.mtda.debug(4, "sd_update(): no sdmux controller")
+            self.mtda.debug(4, "storage_update(): no shared storage device")
             result = -1
         elif offset == 0:
-            self._sd_bytes_written = 0
+            self._storage_bytes_written = 0
         result = self.sdmux_controller.update(dst, offset, data)
         if result > 0:
-            self._sd_bytes_written = self._sd_bytes_written + result
+            self._storage_bytes_written = self._storage_bytes_written + result
 
-        self.mtda.debug(3, "main.sd_update(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_update(): %s" % str(result))
         return result
 
-    def sd_open(self, session=None):
-        self.mtda.debug(3, "main.sd_open()")
+    def storage_open(self, session=None):
+        self.mtda.debug(3, "main.storage_open()")
 
         self._check_expired(session)
         if self.sdmux_controller is None:
-            self.mtda.debug(4, "sd_open(): no sdmux controller")
+            self.mtda.debug(4, "storage_open(): no shared storage device")
             result = False
         else:
-            self.sd_close()
-            self._sd_bytes_written = 0
+            self.storage_close()
+            self._storage_bytes_written = 0
             result = self.sdmux_controller.open()
-            self._sd_opened = (result == True)
+            self._storage_opened = (result == True)
 
-        self.mtda.debug(3, "main.sd_open(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_open(): %s" % str(result))
         return result
 
-    def sd_status(self, session=None):
-        self.mtda.debug(3, "main.sd_status()")
+    def storage_status(self, session=None):
+        self.mtda.debug(3, "main.storage_status()")
 
         self._check_expired(session)
         if self.sdmux_controller is None:
-            self.mtda.debug(4, "sd_status(): no sdmux controller")
+            self.mtda.debug(4, "storage_status(): no shared storage device")
             result = "???"
         else:
             result = self.sdmux_controller.status()
 
-        self.mtda.debug(3, "main.sd_status(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_status(): %s" % str(result))
         return result
 
-    def _sd_write_bz2(self, data):
-        self.mtda.debug(3, "main._sd_write_bz2()")
+    def _storage_write_bz2(self, data):
+        self.mtda.debug(3, "main._storage_write_bz2()")
 
         # Decompress and write the newly received data
         uncompressed = self.bz2dec.decompress(data, self.blksz)
@@ -353,20 +353,20 @@ class MultiTenantDeviceAccess:
         if result == False:
             result = -1
         else:
-            self._sd_bytes_written += len(uncompressed)
+            self._storage_bytes_written += len(uncompressed)
 
             # Check if we can write more data without further input
             if self.bz2dec.needs_input == False:
                 result = 0
             else:
-                # Data successfully uncompressed and written to SD
+                # Data successfully uncompressed and written to the shared storage device
                 result = self.blksz
 
-        self.mtda.debug(3, "main._sd_write_bz2(): %s" % str(result))
+        self.mtda.debug(3, "main._storage_write_bz2(): %s" % str(result))
         return result
 
-    def sd_write_bz2(self, data, session=None):
-        self.mtda.debug(3, "main.sd_write_bz2()")
+    def storage_write_bz2(self, data, session=None):
+        self.mtda.debug(3, "main.storage_write_bz2()")
 
         self._check_expired(session)
         if self.sdmux_controller is None:
@@ -384,7 +384,7 @@ class MultiTenantDeviceAccess:
                 # Decompress and write newly received data
                 try:
                     # Uncompress and write data
-                    result = self._sd_write_bz2(data)
+                    result = self._storage_write_bz2(data)
                     if result != 0:
                         # Either got an error or needing more data; escape from
                         # this loop to provide feedback
@@ -407,11 +407,11 @@ class MultiTenantDeviceAccess:
                     cont = (len(data) > 0) # loop only if we have unused data
                     result = 0             # we do not need more input data
 
-        self.mtda.debug(3, "main.sd_write_bz2(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_write_bz2(): %s" % str(result))
         return result
 
-    def _sd_write_gz(self, data):
-        self.mtda.debug(3, "main._sd_write_gz()")
+    def _storage_write_gz(self, data):
+        self.mtda.debug(3, "main._storage_write_gz()")
 
         # Decompress and write the newly received data
         uncompressed = self.zdec.decompress(data, self.blksz)
@@ -419,20 +419,20 @@ class MultiTenantDeviceAccess:
         if status == False:
             result = -1
         else:
-            self._sd_bytes_written += len(uncompressed)
+            self._storage_bytes_written += len(uncompressed)
 
             # Check if we can write more data without further input
             if len(self.zdec.unconsumed_tail) > 0:
                 result = 0
             else:
-               # Data successfully uncompressed and written to SD
+               # Data successfully uncompressed and written to the shared storage device
                 result = self.blksz
 
-        self.mtda.debug(3, "main._sd_write_gz(): %s" % str(result))
+        self.mtda.debug(3, "main._storage_write_gz(): %s" % str(result))
         return result
 
-    def sd_write_gz(self, data, session=None):
-        self.mtda.debug(3, "main.sd_write_gz()")
+    def storage_write_gz(self, data, session=None):
+        self.mtda.debug(3, "main.storage_write_gz()")
 
         self._check_expired(session)
         if self.sdmux_controller is None:
@@ -452,7 +452,7 @@ class MultiTenantDeviceAccess:
 
             while cont == True:
                 # Decompress and write newly received data
-                result = self._sd_write_gz(data)
+                result = self._storage_write_gz(data)
                 self.zdata = None
                 if result != 0:
                     # Either got an error or needing more data; escape from
@@ -469,11 +469,11 @@ class MultiTenantDeviceAccess:
                         self.zdata = data
                         cont = False
 
-        self.mtda.debug(3, "main.sd_write_gz(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_write_gz(): %s" % str(result))
         return result
 
-    def sd_write_raw(self, data, session=None):
-        self.mtda.debug(3, "main.sd_write_raw()")
+    def storage_write_raw(self, data, session=None):
+        self.mtda.debug(3, "main.storage_write_raw()")
 
         self._check_expired(session)
         if self.sdmux_controller is None:
@@ -483,53 +483,53 @@ class MultiTenantDeviceAccess:
             if result == False:
                 resukt = -1
             else:
-                self._sd_bytes_written += len(data)
+                self._storage_bytes_written += len(data)
                 result = self.blksz
 
-        self.mtda.debug(3, "main.sd_write_raw(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_write_raw(): %s" % str(result))
         return result
 
-    def sd_to_host(self, session=None):
-        self.mtda.debug(3, "main.sd_to_host()")
+    def storage_to_host(self, session=None):
+        self.mtda.debug(3, "main.storage_to_host()")
 
         self._check_expired(session)
-        if self.sd_locked(session) == False:
+        if self.storage_locked(session) == False:
             result = self.sdmux_controller.to_host()
         else:
-            self.mtda.debug(1, "sd_to_host(): sd is locked")
+            self.mtda.debug(1, "storage_to_host(): shared storage is locked")
             result = False
 
-        self.mtda.debug(3, "main.sd_to_host(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_to_host(): %s" % str(result))
         return result
 
-    def sd_to_target(self, session=None):
-        self.mtda.debug(3, "main.sd_to_target()")
+    def storage_to_target(self, session=None):
+        self.mtda.debug(3, "main.storage_to_target()")
 
         self._check_expired(session)
-        if self.sd_locked(session) == False:
-            self.sd_close()
+        if self.storage_locked(session) == False:
+            self.storage_close()
             result = self.sdmux_controller.to_target()
         else:
-            self.mtda.debug(1, "sd_to_target(): sd is locked")
+            self.mtda.debug(1, "storage_to_target(): shared storage is locked")
             result = False
 
-        self.mtda.debug(3, "main.sd_to_target(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_to_target(): %s" % str(result))
         return result
 
-    def sd_toggle(self, session=None):
-        self.mtda.debug(3, "main.sd_toggle()")
+    def storage_swap(self, session=None):
+        self.mtda.debug(3, "main.storage_swap()")
 
         self._check_expired(session)
-        if self.sd_locked(session) == False:
-            result = self.sd_status(session)
+        if self.storage_locked(session) == False:
+            result = self.storage_status(session)
             if result == self.sdmux_controller.SD_ON_HOST:
                 self.sdmux_controller.to_target()
             elif result == self.sdmux_controller.SD_ON_TARGET:
                 self.sdmux_controller.to_host()
-        result = self.sd_status(session)
+        result = self.storage_status(session)
         return result
 
-        self.mtda.debug(3, "main.sd_toggle(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_swap(): %s" % str(result))
         return result
 
     def toggle_timestamps(self):
@@ -933,7 +933,7 @@ class MultiTenantDeviceAccess:
         if self.sdmux_controller is not None:
             status = self.sdmux_controller.probe()
             if status == False:
-                print('Probe of the SDMUX Controller failed!', file=sys.stderr)
+                print('Probe of the shared storage device failed!', file=sys.stderr)
                 return False
 
         if self.console is not None:
