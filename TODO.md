@@ -8,6 +8,7 @@
    * Use bmaptool to burn compressed raw images more quickly
    * Report data written as opposed to data read
    * Smoother progress bar - may be achieved with bmaptool
+   * Compress data on the fly
 
  * UI
    * Improve the interactive console UI
