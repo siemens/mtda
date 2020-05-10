@@ -6,12 +6,17 @@ class ConsoleInterface(object):
     @abc.abstractmethod
     def configure(self, conf):
         """ Configure this console from the provided configuration"""
-        return
+        return False
 
     @abc.abstractmethod
     def probe(self):
         """ Check presence of the console"""
-        return
+        return False
+
+    @abc.abstractmethod
+    def open(self):
+        """ Open the console interface"""
+        return False
 
     @abc.abstractmethod
     def close(self):
