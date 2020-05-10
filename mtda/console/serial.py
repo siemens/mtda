@@ -1,5 +1,6 @@
 # System imports
 import abc
+import os
 import serial
 
 # Local imports
@@ -7,14 +8,17 @@ from mtda.console.interface import ConsoleInterface
 
 class SerialConsole(ConsoleInterface):
 
-    def __init__(self):
+    def __init__(self, mtda):
         self.ser  = None
+        self.mtda = mtda
         self.port = "/dev/ttyUSB0"
         self.rate = 115200
         self.opened = False
 
+    """ Configure this console from the provided configuration"""
     def configure(self, conf):
-        """ Configure this console from the provided configuration"""
+        self.mtda.debug(3, "console.serial.configure()")
+
         if 'port' in conf:
             self.port = conf['port']
         if 'rate' in conf:
@@ -24,39 +28,78 @@ class SerialConsole(ConsoleInterface):
         self.ser.baudrate = self.rate
 
     def probe(self):
+        self.mtda.debug(3, "console.serial.probe()")
+
+        result = os.path.exists(self.port)
+
+        self.mtda.debug(3, "console.serial.probe(): %s" % str(result))
+        return result
+
+    def open(self):
+        self.mtda.debug(3, "console.serial.open()")
+
         if self.ser is not None:
             if self.opened == False:
                 self.ser.open()
                 self.opened = True
-        return self.opened
+            else:
+                self.mtda.debug(4, "console.serial.open(): already opened")
+        else:
+            self.mtda.debug(0, "serial console not setup!")
+
+        result = self.opened
+
+        self.mtda.debug(3, "console.serial.open(): %s" % str(result))
+        return result
 
     def close(self):
+        self.mtda.debug(3, "console.serial.close()")
+
         if self.ser is not None:
             if self.opened == True:
                 self.ser.close()
                 self.opened = False
-        return self.opened == False
+            else:
+                self.mtda.debug(4, "console.serial.close(): already closed")
+        else:
+            self.mtda.debug(0, "serial console not setup!")
+        result = self.opened == False
 
+        self.mtda.debug(3, "console.serial.close(): %s" % str(result))
+        return result
+
+    """ Return number of pending bytes to read"""
     def pending(self):
-        """ Return number of pending bytes to read"""
-        if self.ser is not None:
-            return self.ser.inWaiting()
-        else:
-            return 0
+        self.mtda.debug(3, "console.serial.pending()")
 
+        result = 0
+        if self.ser is not None:
+            result = self.ser.inWaiting()
+
+        self.mtda.debug(3, "console.serial.pending(): %s" % str(result))
+        return result
+
+    """ Read bytes from the console"""
     def read(self, n=1):
-        """ Read bytes from the console"""
-        if self.ser is not None:
-            return self.ser.read(n)
-        else:
-            return None
+        self.mtda.debug(3, "console.serial.read()")
 
+        result = None
+        if self.ser is not None:
+            result = self.ser.read(n)
+
+        self.mtda.debug(3, "console.serial.read(): %s" % str(result))
+        return result
+
+    """ Write to the console"""
     def write(self, data):
-        """ Write to the console"""
-        if self.ser is not None:
-            return self.ser.write(data)
-        else:
-            return None
+        self.mtda.debug(3, "console.serial.write()")
 
-def instantiate():
-    return SerialConsole()
+        result = None
+        if self.ser is not None:
+            result = self.ser.write(data)
+
+        self.mtda.debug(3, "console.serial.write(): %s" % str(result))
+        return result
+
+def instantiate(mtda):
+    return SerialConsole(mtda)

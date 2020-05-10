@@ -10,7 +10,8 @@ import time
 
 class ConsoleLogger:
 
-    def __init__(self, console, socket=None, power_controller=None):
+    def __init__(self, mtda, console, socket=None, power_controller=None):
+        self.mtda = mtda
         self.console = console
         self._prompt = "=> "
         self.power_controller = power_controller
@@ -234,6 +235,11 @@ class ConsoleLogger:
         con = self.console
         error = None
         retries = 3
+
+        if self.power_controller is not None:
+            self.power_controller.wait()
+            con.open()
+
         while self.rx_alive == True:
             if self.power_controller is not None:
                 self.power_controller.wait()
@@ -249,7 +255,7 @@ class ConsoleLogger:
                 if retries > 0:
                     print("resetting console to recover from read error (%s)..." % error, file=sys.stderr)
                     con.close()
-                    con.probe()
+                    con.open()
                     error = None
                 else:
                     print("failed to reset the console, aborting!", file=sys.stderr)
@@ -261,4 +267,4 @@ class ConsoleLogger:
         self.console.close()
 
     def resume(self):
-        self.console.probe()
+        self.console.open()
