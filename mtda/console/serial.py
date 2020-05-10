@@ -92,7 +92,7 @@ class SerialConsole(ConsoleInterface):
 
     """ Write to the console"""
     def write(self, data):
-        self.mtda.debug(3, "console.serial.write()")
+        self.mtda.debug(3, "console.serial.write(data=%s)" % str(data))
 
         result = None
         if self.ser is not None:
