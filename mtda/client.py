@@ -56,6 +56,12 @@ class Client:
     def console_tail(self):
         return self._impl.console_tail(self._session)
 
+    def env_get(self, name):
+        return self._impl.env_get(name, self._session)
+
+    def env_set(self, name, value):
+        return self._impl.env_set(name, value, self._session)
+
     def keyboard_write(self, data):
         return self._impl.keyboard_write(data, self._session)
 

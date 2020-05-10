@@ -27,6 +27,7 @@ class MentorTestDeviceAgent:
         self.console_input = None
         self.console_output = None
         self.debug_level = 0
+        self.env = {}
         self.keyboard = None
         self.mtda = self
         self.power_controller = None
@@ -203,6 +204,29 @@ class MentorTestDeviceAgent:
                 prefix = "# debug%d: " % level
             msg = str(msg).replace("\n", "\n%s ... " % prefix)
             print("%s%s" % (prefix, msg), file=sys.stderr)
+
+    def env_get(self, name, session=None):
+        self.mtda.debug(3, "env_get()")
+
+        self._check_expired(session)
+        result = None
+        if name in self.env:
+            result = self.env[name]
+
+        self.mtda.debug(3, "env_get(): %s" % str(result))
+        return result
+
+    def env_set(self, name, value, session=None):
+        self.mtda.debug(3, "env_set()")
+
+        self._check_expired(session)
+        result = None
+        if name in self.env:
+            result = self.env[name]
+        self.env[name] = value
+
+        self.mtda.debug(3, "env_set(): %s" % str(result))
+        return result
 
     def keyboard_write(self, str, session=None):
         self.mtda.debug(3, "main.keyboard_write()")
@@ -569,13 +593,23 @@ class MentorTestDeviceAgent:
 
         return self._lock_owner
 
+    def _parse_script(self, script):
+        self.mtda.debug(3, "main._parse_script()")
+
+        result = None
+        if script is not None:
+            result = script.replace("... ", "    ")
+
+        self.mtda.debug(3, "main._parse_script(): %s" % str(result))
+        return result
+
     def exec_power_on_script(self):
         self.mtda.debug(3, "main.exec_power_on_script()")
 
         result = None
         if self.power_on_script:
-            self.mtda.debug(4, "exec_power_on_script(): %s" % str(self.power_on_script))
-            result = exec(self.power_on_script, { "mtda" : self })
+            self.mtda.debug(4, "exec_power_on_script(): %s" % self.power_on_script)
+            result = exec(self.power_on_script, { "env" : self.env, "mtda" : self })
 
         self.mtda.debug(3, "main.exec_power_on_script(): %s" % str(result))
         return result
@@ -599,7 +633,7 @@ class MentorTestDeviceAgent:
         self.mtda.debug(3, "main.exec_power_off_script()")
 
         if self.power_off_script:
-            exec(self.power_off_script, { "mtda" : self })
+            exec(self.power_off_script, { "env" : self.env, "mtda" : self })
 
     def target_off(self, session=None):
         self.mtda.debug(3, "main.target_off()")
@@ -783,8 +817,8 @@ class MentorTestDeviceAgent:
                 self.load_usb_config(parser)
             if parser.has_section('scripts'):
                 scripts = parser['scripts']
-                self.power_on_script  = scripts.get('power on', None)
-                self.power_off_script = scripts.get('power off', None)
+                self.power_on_script  = self._parse_script(scripts.get('power on', None))
+                self.power_off_script = self._parse_script(scripts.get('power off', None))
 
     def load_main_config(self, parser):
         self.mtda.debug(3, "main.load_main_config()")
