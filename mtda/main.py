@@ -26,7 +26,9 @@ class MultiTenantDeviceAccess:
         self.console_logger = None
         self.console_input = None
         self.console_output = None
+        self.debug_level = 0
         self.keyboard = None
+        self.mtda = self
         self.power_controller = None
         self.sdmux_controller = None
         self._sd_bytes_written = 0
@@ -56,354 +58,531 @@ class MultiTenantDeviceAccess:
             self.config_files.append(os.path.join('/etc', 'mtda', 'config'))
 
     def console_getkey(self):
+        self.mtda.debug(3, "main.console_getkey()")
+
         if self.console_input is None:
             self.console_input = ConsoleInput()
             self.console_input.start()
-        return self.console_input.getkey()
+        result = self.console_input.getkey()
+
+        self.mtda.debug(3, "main.console_getkey(): %s" % str(result))
+        return result
 
     def console_clear(self, session=None):
+        self.mtda.debug(3, "main.console_clear()")
+
         self._check_expired(session)
         if self.console_locked(session):
+            self.mtda.debug(2, "console_clear(): console is locked")
             return None
         if self.console_logger is not None:
-            return self.console_logger.clear()
+            result = self.console_logger.clear()
         else:
-            return None
+            result = None
+
+        self.mtda.debug(3, "main.console_clear(): %s" % str(result))
+        return result
 
     def console_flush(self, session=None):
+        self.mtda.debug(3, "main.console_flush()")
+
         self._check_expired(session)
         if self.console_locked(session):
+            self.mtda.debug(2, "console_clear(): console is locked")
             return None
+
+        result = None
         if self.console_logger is not None:
-            return self.console_logger.flush()
-        else:
-            return None
+            result = self.console_logger.flush()
+
+        self.mtda.debug(3, "main.console_flush(): %s" % str(result))
+        return result
 
     def console_head(self, session=None):
+        self.mtda.debug(3, "main.console_head()")
+
         self._check_expired(session)
+        result = None
         if self.console_logger is not None:
-            return self.console_logger.head()
-        else:
-            return None
+            result = self.console_logger.head()
+
+        self.mtda.debug(3, "main.console_head(): %s" % str(result))
+        return result
 
     def console_lines(self, session=None):
+        self.mtda.debug(3, "main.console_lines()")
+
         self._check_expired(session)
+        result = None
         if self.console_logger is not None:
-            return self.console_logger.lines()
-        else:
-            return None
+            result = self.console_logger.lines()
+
+        self.mtda.debug(3, "main.console_lines(): %s" % str(result))
+        return result
 
     def console_locked(self, session=None):
+        self.mtda.debug(3, "main.console_locked()")
+
         self._check_expired(session)
-        if self._check_locked(session):
-            return True
-        return False
+        result = self._check_locked(session)
+
+        self.mtda.debug(3, "main.console_locked(): %s" % str(result))
+        return result
 
     def console_print(self, data, session=None):
+        self.mtda.debug(3, "main.console_print()")
+
         self._check_expired(session)
+        result = None
         if self.console_logger is not None:
-            return self.console_logger.print(data)
-        else:
-            return None
+            result = self.console_logger.print(data)
+
+        self.mtda.debug(3, "main.console_print(): %s" % str(result))
+        return result
 
     def console_prompt(self, newPrompt=None, session=None):
+        self.mtda.debug(3, "main.console_prompt()")
+
         self._check_expired(session)
-        if self.console_locked(session):
-            return None
-        if self.console_logger is not None:
-            return self.console_logger.prompt(newPrompt)
-        else:
-            return None
+        result = None
+        if self.console_locked(session) == False and self.console_logger is not None:
+            result = self.console_logger.prompt(newPrompt)
+
+        self.mtda.debug(3, "main.console_prompt(): %s" % str(result))
+        return result
 
     def console_remote(self, host):
+        self.mtda.debug(3, "main.console_remote()")
+
+        result = None
         if self.is_remote == True:
             # Create and start our remote console
             self.console_output = RemoteConsoleOutput(host, self.conport)
             self.console_output.start()
 
+        self.mtda.debug(3, "main.console_remote(): %s" % str(result))
+        return result
+
     def console_run(self, cmd, session=None):
+        self.mtda.debug(3, "main.console_run()")
+
         self._check_expired(session)
-        if self.console_locked(session):
-            return None
-        if self.console_logger is not None:
-            return self.console_logger.run(cmd)
-        else:
-            return None
+        result = None
+        if self.console_locked(session) == False and self.console_logger is not None:
+            result = self.console_logger.run(cmd)
+
+        self.mtda.debug(3, "main.console_run(): %s" % str(result))
+        return result
 
     def console_send(self, data, raw=False, session=None):
+        self.mtda.debug(3, "main.console_send()")
+
         self._check_expired(session)
-        if self.console_locked(session):
-            return None
-        if self.console_logger is not None:
-            return self.console_logger.write(data, raw)
-        else:
-            return None
+        result = None
+        if self.console_locked(session) == False and self.console_logger is not None:
+            result = self.console_logger.write(data, raw)
+
+        self.mtda.debug(3, "main.console_send(): %s" % str(result))
+        return result
 
     def console_tail(self, session=None):
+        self.mtda.debug(3, "main.console_tail()")
+
         self._check_expired(session)
-        if self.console_locked(session):
-            return None
-        if self.console_logger is not None:
-            return self.console_logger.tail()
-        else:
-            return None
+        if self.console_locked(session) == False and self.console_logger is not None:
+            result = self.console_logger.tail()
+
+        self.mtda.debug(3, "main.console_tail(): %s" % str(result))
+        return result
+
+    def debug(self, level, msg):
+        if self.debug_level >= level:
+            if self.debug_level == 0:
+                prefix = "# "
+            else:
+                prefix = "# debug%d: " % level
+            msg = str(msg).replace("\n", "\n%s ... " % prefix)
+            print("%s%s" % (prefix, msg), file=sys.stderr)
 
     def keyboard_write(self, str, session=None):
+        self.mtda.debug(3, "main.keyboard_write()")
+
         self._check_expired(session)
+        result = None
         if self.keyboard is not None:
-            return self.keyboard.write(str)
-        else:
-            return None
+            result = self.keyboard.write(str)
+
+        self.mtda.debug(3, "main.keyboard_write(): %s" % str(result))
+        return result
 
     def power_locked(self, session=None):
+        self.mtda.debug(3, "main.power_locked()")
+
         self._check_expired(session)
-        if self._check_locked(session):
-            return True
         if self.power_controller is None:
-            return True
-        return False
+            result = True
+        else:
+            result = self._check_locked(session)
+
+        self.mtda.debug(3, "main.power_locked(): %s" % str(result))
+        return result
 
     def sd_bytes_written(self, session=None):
+        self.mtda.debug(3, "main.sd_bytes_written()")
+
         self._check_expired(session)
-        return self._sd_bytes_written
+        result = self._sd_bytes_written
+
+        self.mtda.debug(3, "main.sd_bytes_written(): %s" % str(result))
+        return result
 
     def sd_close(self, session=None):
+        self.mtda.debug(3, "main.sd_close()")
+
         self._check_expired(session)
         if self.sdmux_controller is None:
-            return False
-        self.bz2dec = None
-        self.zdec = None
-        if self._sd_opened == True:
-            self._sd_opened = not self.sdmux_controller.close()
-        return (self._sd_opened == False)
+            result = False
+        else:
+            self.bz2dec = None
+            self.zdec = None
+            if self._sd_opened == True:
+                self._sd_opened = not self.sdmux_controller.close()
+            result = (self._sd_opened == False)
+
+        self.mtda.debug(3, "main.sd_close(): %s" % str(result))
+        return result
 
     def sd_locked(self, session=None):
+        self.mtda.debug(3, "main.sd_locked()")
+
         self._check_expired(session)
         if self._check_locked(session):
-            return True
+            result = True
         # Cannot swap the SD card between the host and target
         # without a SDMux
-        if self.sdmux_controller is None:
-            return True
+        elif self.sdmux_controller is None:
+            self.mtda.debug(4, "sd_locked(): no sdmux controller")
+            result = True
         # We also need a power controller to be safe
-        if self.power_controller is None:
-            return True
+        elif self.power_controller is None:
+            self.mtda.debug(4, "sd_locked(): no power controller")
+            result = True
         # The target shall be OFF
-        if self.target_status() != "OFF":
-            return True
+        elif self.target_status() != "OFF":
+            self.mtda.debug(4, "sd_locked(): target isn't off")
+            result = True
         # Lastly, the SD shall not be opened
-        if self._sd_opened == True:
-            return True
+        elif self._sd_opened == True:
+            self.mtda.debug(4, "sd_locked(): sd is in used (opened)")
+            result = True
         # We may otherwise swap our SD card
-        return False
+        else:
+            result = False
+
+        self.mtda.debug(3, "main.sd_locked(): %s" % str(result))
+        return result
 
     def sd_mount(self, part=None, session=None):
+        self.mtda.debug(3, "main.sd_mount()")
+
         self._check_expired(session)
         if self._sd_mounted == True:
-            return True
-        if self.sdmux_controller is None:
+            self.mtda.debug(4, "sd_mount(): already mounted")
+            result = True
+        elif self.sdmux_controller is None:
+            self.mtda.debug(4, "sd_mount(): no sdmux controller")
             return False
-        status = self.sdmux_controller.mount(part)
-        self._sd_mounted = (status == True)
-        return status
+        else:
+            result = self.sdmux_controller.mount(part)
+            self._sd_mounted = (result == True)
+
+        self.mtda.debug(3, "main.sd_mount(): %s" % str(result))
+        return result
 
     def sd_update(self, dst, offset, data, session=None):
+        self.mtda.debug(3, "main.sd_update()")
+
         self._check_expired(session)
         if self.sdmux_controller is None:
-            return -1
-        if offset == 0:
+            self.mtda.debug(4, "sd_update(): no sdmux controller")
+            result = -1
+        elif offset == 0:
             self._sd_bytes_written = 0
         result = self.sdmux_controller.update(dst, offset, data)
         if result > 0:
             self._sd_bytes_written = self._sd_bytes_written + result
+
+        self.mtda.debug(3, "main.sd_update(): %s" % str(result))
         return result
 
     def sd_open(self, session=None):
+        self.mtda.debug(3, "main.sd_open()")
+
         self._check_expired(session)
         if self.sdmux_controller is None:
-            return False
-        self.sd_close()
-        self._sd_bytes_written = 0
-        status = self.sdmux_controller.open()
-        self._sd_opened = (status == True)
-        return status
+            self.mtda.debug(4, "sd_open(): no sdmux controller")
+            result = False
+        else:
+            self.sd_close()
+            self._sd_bytes_written = 0
+            result = self.sdmux_controller.open()
+            self._sd_opened = (result == True)
+
+        self.mtda.debug(3, "main.sd_open(): %s" % str(result))
+        return result
 
     def sd_status(self, session=None):
+        self.mtda.debug(3, "main.sd_status()")
+
         self._check_expired(session)
         if self.sdmux_controller is None:
-            return "???"
-        status = self.sdmux_controller.status()
-        return status
+            self.mtda.debug(4, "sd_status(): no sdmux controller")
+            result = "???"
+        else:
+            result = self.sdmux_controller.status()
+
+        self.mtda.debug(3, "main.sd_status(): %s" % str(result))
+        return result
 
     def _sd_write_bz2(self, data):
+        self.mtda.debug(3, "main._sd_write_bz2()")
+
         # Decompress and write the newly received data
         uncompressed = self.bz2dec.decompress(data, self.blksz)
-        status = self.sdmux_controller.write(uncompressed)
-        if status == False:
-            return -1
-        self._sd_bytes_written += len(uncompressed)
+        result = self.sdmux_controller.write(uncompressed)
+        if result == False:
+            result = -1
+        else:
+            self._sd_bytes_written += len(uncompressed)
 
-        # Check if we can write more data without further input
-        if self.bz2dec.needs_input == False:
-            return 0
+            # Check if we can write more data without further input
+            if self.bz2dec.needs_input == False:
+                result = 0
+            else:
+                # Data successfully uncompressed and written to SD
+                result = self.blksz
 
-        # Data successfully uncompressed and written to SD
-        return self.blksz
+        self.mtda.debug(3, "main._sd_write_bz2(): %s" % str(result))
+        return result
 
     def sd_write_bz2(self, data, session=None):
+        self.mtda.debug(3, "main.sd_write_bz2()")
+
         self._check_expired(session)
         if self.sdmux_controller is None:
-            return -1
-
-        # Create a bz2 decompressor when called for the first time
-        if self.bz2dec is None:
-            self.bz2dec = bz2.BZ2Decompressor()
-
-        cont = True
-        start = time.monotonic()
-        status = -1
-
-        while cont == True:
-            # Decompress and write newly received data
-            try:
-                # Uncompress and write data
-                status = self._sd_write_bz2(data)
-                if status != 0:
-                    # Either got an error or needing more data; escape from
-                    # this loop to provide feedback
-                    cont = False
-                else:
-                    # Check if this loop has been running for quite some time,
-                    # in which case we would to give our client an update
-                    now = time.monotonic()
-                    if (now - start) >= self.fbintvl:
-                        cont = False
-                    # If we should continue and do not need more data at this time,
-                    # use an empty buffer for the next iteration
-                    elif status == 0:
-                        data = b''
-            except EOFError:
-                # Handle multi-streams: create a new decompressor and we will start
-                # with data unused from the previous decompressor
-                data = self.bz2dec.unused_data
+            result = -1
+        else:
+            # Create a bz2 decompressor when called for the first time
+            if self.bz2dec is None:
                 self.bz2dec = bz2.BZ2Decompressor()
-                cont = (len(data) > 0) # loop only if we have unused data
-                status = 0             # we do not need more input data
-        return status
+
+            cont   = True
+            start  = time.monotonic()
+            result = -1
+
+            while cont == True:
+                # Decompress and write newly received data
+                try:
+                    # Uncompress and write data
+                    result = self._sd_write_bz2(data)
+                    if result != 0:
+                        # Either got an error or needing more data; escape from
+                        # this loop to provide feedback
+                        cont = False
+                    else:
+                        # Check if this loop has been running for quite some time,
+                        # in which case we would to give our client an update
+                        now = time.monotonic()
+                        if (now - start) >= self.fbintvl:
+                            cont = False
+                        # If we should continue and do not need more data at this time,
+                        # use an empty buffer for the next iteration
+                        elif result == 0:
+                            data = b''
+                except EOFError:
+                    # Handle multi-streams: create a new decompressor and we will start
+                    # with data unused from the previous decompressor
+                    data = self.bz2dec.unused_data
+                    self.bz2dec = bz2.BZ2Decompressor()
+                    cont = (len(data) > 0) # loop only if we have unused data
+                    result = 0             # we do not need more input data
+
+        self.mtda.debug(3, "main.sd_write_bz2(): %s" % str(result))
+        return result
 
     def _sd_write_gz(self, data):
+        self.mtda.debug(3, "main._sd_write_gz()")
+
         # Decompress and write the newly received data
         uncompressed = self.zdec.decompress(data, self.blksz)
         status = self.sdmux_controller.write(uncompressed)
         if status == False:
-            return -1
-        self._sd_bytes_written += len(uncompressed)
+            result = -1
+        else:
+            self._sd_bytes_written += len(uncompressed)
 
-        # Check if we can write more data without further input
-        if len(self.zdec.unconsumed_tail) > 0:
-            return 0
+            # Check if we can write more data without further input
+            if len(self.zdec.unconsumed_tail) > 0:
+                result = 0
+            else:
+               # Data successfully uncompressed and written to SD
+                result = self.blksz
 
-        # Data successfully uncompressed and written to SD
-        return self.blksz
+        self.mtda.debug(3, "main._sd_write_gz(): %s" % str(result))
+        return result
 
     def sd_write_gz(self, data, session=None):
+        self.mtda.debug(3, "main.sd_write_gz()")
+
         self._check_expired(session)
         if self.sdmux_controller is None:
-            return -1
+            result = -1
+        else:
+            # Create a zlib decompressor when called for the first time
+            if self.zdec is None:
+                self.zdec = zlib.decompressobj(16+zlib.MAX_WBITS)
 
-        # Create a zlib decompressor when called for the first time
-        if self.zdec is None:
-            self.zdec = zlib.decompressobj(16+zlib.MAX_WBITS)
+            # Check if we should use unconsumed data from the previous call
+            if len(data) == 0:
+                data = self.zdata
 
-        # Check if we should use unconsumed data from the previous call
-        if len(data) == 0:
-            data = self.zdata
+            cont   = True
+            start  = time.monotonic()
+            result = -1
 
-        cont = True
-        start = time.monotonic()
-        status = -1
-
-        while cont == True:
-            # Decompress and write newly received data
-            status = self._sd_write_gz(data)
-            self.zdata = None
-            if status != 0:
-                # Either got an error or needing more data; escape from
-                # this loop to provide feedback
-                cont = False
-            else:
-                # If we should continue and do not need more data at this time,
-                # use the unconsumed data for the next iteration
-                data = self.zdec.unconsumed_tail
-                # Check if this loop has been running for quite some time,
-                # in which case we would to give our client an update
-                now = time.monotonic()
-                if (now - start) >= self.fbintvl:
-                    self.zdata = data
+            while cont == True:
+                # Decompress and write newly received data
+                result = self._sd_write_gz(data)
+                self.zdata = None
+                if result != 0:
+                    # Either got an error or needing more data; escape from
+                    # this loop to provide feedback
                     cont = False
-        return status
+                else:
+                    # If we should continue and do not need more data at this time,
+                    # use the unconsumed data for the next iteration
+                    data = self.zdec.unconsumed_tail
+                    # Check if this loop has been running for quite some time,
+                    # in which case we would to give our client an update
+                    now = time.monotonic()
+                    if (now - start) >= self.fbintvl:
+                        self.zdata = data
+                        cont = False
+
+        self.mtda.debug(3, "main.sd_write_gz(): %s" % str(result))
+        return result
 
     def sd_write_raw(self, data, session=None):
+        self.mtda.debug(3, "main.sd_write_raw()")
+
         self._check_expired(session)
         if self.sdmux_controller is None:
-            return -1
-        status = self.sdmux_controller.write(data)
-        if status == False:
-            return -1
-        self._sd_bytes_written += len(data)
-        return self.blksz
+            result = -1
+        else:
+            result = self.sdmux_controller.write(data)
+            if result == False:
+                resukt = -1
+            else:
+                self._sd_bytes_written += len(data)
+                result = self.blksz
+
+        self.mtda.debug(3, "main.sd_write_raw(): %s" % str(result))
+        return result
 
     def sd_to_host(self, session=None):
+        self.mtda.debug(3, "main.sd_to_host()")
+
         self._check_expired(session)
         if self.sd_locked(session) == False:
-            return self.sdmux_controller.to_host()
-        return False
+            result = self.sdmux_controller.to_host()
+        else:
+            self.mtda.debug(1, "sd_to_host(): sd is locked")
+            result = False
+
+        self.mtda.debug(3, "main.sd_to_host(): %s" % str(result))
+        return result
 
     def sd_to_target(self, session=None):
+        self.mtda.debug(3, "main.sd_to_target()")
+
         self._check_expired(session)
         if self.sd_locked(session) == False:
             self.sd_close()
-            return self.sdmux_controller.to_target()
-        return False
+            result = self.sdmux_controller.to_target()
+        else:
+            self.mtda.debug(1, "sd_to_target(): sd is locked")
+            result = False
+
+        self.mtda.debug(3, "main.sd_to_target(): %s" % str(result))
+        return result
 
     def sd_toggle(self, session=None):
+        self.mtda.debug(3, "main.sd_toggle()")
+
         self._check_expired(session)
         if self.sd_locked(session) == False:
-            status = self.sd_status(session)
-            if status == self.sdmux_controller.SD_ON_HOST:
+            result = self.sd_status(session)
+            if result == self.sdmux_controller.SD_ON_HOST:
                 self.sdmux_controller.to_target()
-            elif status == self.sdmux_controller.SD_ON_TARGET:
+            elif result == self.sdmux_controller.SD_ON_TARGET:
                 self.sdmux_controller.to_host()
-        status = self.sd_status(session)
-        return status
+        result = self.sd_status(session)
+        return result
+
+        self.mtda.debug(3, "main.sd_toggle(): %s" % str(result))
+        return result
 
     def toggle_timestamps(self):
+        self.mtda.debug(3, "main.toggle_timestamps()")
+
         if self.console_logger is not None:
-            return self.console_logger.toggle_timestamps()
+            result = self.console_logger.toggle_timestamps()
         else:
             print("no console configured/found!", file=sys.stderr)
-            return None
+            result = None
+
+        self.mtda.debug(3, "main.toggle_timestamps(): %s" % str(result))
+        return result
 
     def target_lock(self, session):
+        self.mtda.debug(3, "main.target_lock()")
+
         self._check_expired(session)
         owner = self.target_owner()
         if owner is None or owner == session:
             self._lock_owner = session
-            return True
-        return False
+            result = True
+        else:
+            result = False
+
+        self.mtda.debug(3, "main.target_lock(): %s" % str(result))
+        return result
 
     def target_locked(self, session):
+        self.mtda.debug(3, "main.target_locked()")
+
         self._check_expired(session)
         return self._check_locked(session)
 
     def target_owner(self):
+        self.mtda.debug(3, "main.target_owner()")
+
         return self._lock_owner
 
     def exec_power_on_script(self):
+        self.mtda.debug(3, "main.exec_power_on_script()")
+
+        result = None
         if self.power_on_script:
-            exec(self.power_on_script, { "mtda" : self })
+            self.mtda.debug(4, "exec_power_on_script(): %s" % str(self.power_on_script))
+            result = exec(self.power_on_script, { "mtda" : self })
+
+        self.mtda.debug(3, "main.exec_power_on_script(): %s" % str(result))
+        return result
 
     def target_on(self, session=None):
+        self.mtda.debug(3, "main.target_on()")
+
         if self.console_logger is not None:
            self.console_logger.resume()
         self._check_expired(session)
@@ -412,53 +591,80 @@ class MultiTenantDeviceAccess:
             result = self.power_controller.on()
             if result == True:
                 self.exec_power_on_script()
+
+        self.mtda.debug(3, "main.target_on(): %s" % str(result))
         return result
 
     def exec_power_off_script(self):
+        self.mtda.debug(3, "main.exec_power_off_script()")
+
         if self.power_off_script:
             exec(self.power_off_script, { "mtda" : self })
 
     def target_off(self, session=None):
+        self.mtda.debug(3, "main.target_off()")
+
+        result = False
         self._check_expired(session)
         if self.power_locked(session) == False:
-            status = self.power_controller.off()
+            result = self.power_controller.off()
             if self.console_logger is not None:
                 self.console_logger.reset_timer()
-                if status == True:
+                if result == True:
                     self.console_logger.pause()
                     self.exec_power_off_script()
-            return status
-        return False
+
+        self.mtda.debug(3, "main.target_off(): %s" % str(result))
+        return result
 
     def target_status(self, session=None):
+        self.mtda.debug(3, "main.target_status()")
+
         self._check_expired(session)
         if self.power_controller is None:
-            return "???"
-        return self.power_controller.status()
+            result = "???"
+        else:
+            result = self.power_controller.status()
+
+        self.mtda.debug(3, "main.target_status(): %s" % str(result))
+        return result
 
     def target_toggle(self, session=None):
+        self.mtda.debug(3, "main.target_toggle()")
+
         self._check_expired(session)
         if self.power_locked(session) == False:
-            status = self.power_controller.toggle()
-            if self.console_logger is not None:
-                if status == self.power_controller.POWER_ON:
+            result = self.power_controller.toggle()
+            if result == self.power_controller.POWER_ON:
+                if self.console_logger is not None:
                     self.console_logger.resume()
-                    self.exec_power_on_script()
-                if status == self.power_controller.POWER_OFF:
-                    self.exec_power_off_script()
+                self.exec_power_on_script()
+            elif result == self.power_controller.POWER_OFF:
+                self.exec_power_off_script()
+                if self.console_logger is not None:
                     self.console_logger.pause()
                     self.console_logger.reset_timer()
-            return status
-        return self.power_controller.POWER_LOCKED
+        else:
+            result = self.power_controller.POWER_LOCKED
+
+        self.mtda.debug(3, "main.target_toggle(): %s" % str(result))
+        return result
 
     def target_unlock(self, session):
+        self.mtda.debug(3, "main.target_unlock()")
+
+        result = False
         self._check_expired(session)
         if self.target_owner() == session:
             self._lock_owner = None
-            return True
-        return False
+            result = True
+
+        self.mtda.debug(3, "main.target_unlock(): %s" % str(result))
+        return result
 
     def usb_find_by_class(self, className, session=None):
+        self.mtda.debug(3, "main.usb_find_by_class()")
+
         self._check_expired(session)
         ports = len(self.usb_switches)
         ndx = 0
@@ -470,11 +676,15 @@ class MultiTenantDeviceAccess:
         return None
 
     def usb_has_class(self, className, session=None):
+        self.mtda.debug(3, "main.usb_has_class()")
+
         self._check_expired(session)
         usb_switch = self.usb_find_by_class(className, session)
         return usb_switch is not None
 
     def usb_off(self, ndx, session=None):
+        self.mtda.debug(3, "main.usb_off()")
+
         self._check_expired(session)
         try:
             if ndx > 0:
@@ -484,6 +694,8 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     def usb_off_by_class(self, className, session=None):
+        self.mtda.debug(3, "main.usb_off_by_class()")
+
         self._check_expired(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
@@ -491,6 +703,8 @@ class MultiTenantDeviceAccess:
         return False
 
     def usb_on(self, ndx, session=None):
+        self.mtda.debug(3, "main.usb_on()")
+
         self._check_expired(session)
         try:
             if ndx > 0:
@@ -500,6 +714,8 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     def usb_on_by_class(self, className, session=None):
+        self.mtda.debug(3, "main.usb_on_by_class()")
+
         self._check_expired(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
@@ -507,10 +723,14 @@ class MultiTenantDeviceAccess:
         return False
 
     def usb_ports(self, session=None):
+        self.mtda.debug(3, "main.usb_ports()")
+
         self._check_expired(session)
         return len(self.usb_switches)
 
     def usb_status(self, ndx, session=None):
+        self.mtda.debug(3, "main.usb_status()")
+
         self._check_expired(session)
         try:
             if ndx > 0:
@@ -528,6 +748,8 @@ class MultiTenantDeviceAccess:
         return "???"
 
     def usb_toggle(self, ndx, session=None):
+        self.mtda.debug(3, "main.usb_toggle()")
+
         self._check_expired(session)
         try:
             if ndx > 0:
@@ -537,11 +759,15 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     def load_config(self, remote=None, is_server=False):
+        self.mtda.debug(3, "main.load_config()")
+
         self.remote = remote
         self.is_remote = remote is not None
         self.is_server = is_server
         parser = configparser.ConfigParser()
         configs_found = parser.read(self.config_files)
+        if parser.has_section('main'):
+            self.load_main_config(parser)
         if parser.has_section('remote'):
             self.load_remote_config(parser)
         if self.is_remote == False:
@@ -560,14 +786,21 @@ class MultiTenantDeviceAccess:
                 self.power_on_script  = scripts.get('power on', None)
                 self.power_off_script = scripts.get('power off', None)
 
+    def load_main_config(self, parser):
+        self.mtda.debug(3, "main.load_main_config()")
+
+        self.mtda.debug_level = int(parser.get('main', 'debug', fallback=self.mtda.debug_level))
+
     def load_console_config(self, parser):
+        self.mtda.debug(3, "main.load_console_config()")
+
         try:
             # Get variant
             variant = parser.get('console', 'variant')
             # Try loading its support class
             mod = importlib.import_module("mtda.console." + variant)
             factory = getattr(mod, 'instantiate')
-            self.console = factory()
+            self.console = factory(self)
             # Configure the console
             self.console.configure(dict(parser.items('console')))
         except configparser.NoOptionError:
@@ -576,13 +809,15 @@ class MultiTenantDeviceAccess:
             print('console "%s" could not be found/loaded!' % (variant), file=sys.stderr)
 
     def load_keyboard_config(self, parser):
+        self.mtda.debug(3, "main.load_keyboard_config()")
+
         try:
             # Get variant
             variant = parser.get('keyboard', 'variant')
             # Try loading its support class
             mod = importlib.import_module("mtda.keyboard." + variant)
             factory = getattr(mod, 'instantiate')
-            self.keyboard = factory()
+            self.keyboard = factory(self)
             # Configure the keyboard controller
             self.keyboard.configure(dict(parser.items('keyboard')))
             self.keyboard.probe()
@@ -592,6 +827,8 @@ class MultiTenantDeviceAccess:
             print('keyboard controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
 
     def load_power_config(self, parser):
+        self.mtda.debug(3, "main.load_power_config()")
+
         try:
             # Get variant
             variant = parser.get('power', 'variant')
@@ -607,6 +844,8 @@ class MultiTenantDeviceAccess:
             print('power controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
     
     def load_sdmux_config(self, parser):
+        self.mtda.debug(3, "main.load_sdmux_config()")
+
         try:
             # Get variant
             variant = parser.get('sdmux', 'variant')
@@ -622,6 +861,8 @@ class MultiTenantDeviceAccess:
             print('power controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
 
     def load_remote_config(self, parser):
+        self.mtda.debug(3, "main.load_remote_config()")
+
         self.conport = int(parser.get('remote', 'console', fallback=self.conport))
         self.ctrlport = int(parser.get('remote', 'control', fallback=self.ctrlport))
         if self.is_server == False:
@@ -635,6 +876,8 @@ class MultiTenantDeviceAccess:
         self.is_remote = self.remote is not None
 
     def load_usb_config(self, parser):
+        self.mtda.debug(3, "main.load_usb_config()")
+
         try:
             # Get number of ports
             usb_ports = int(parser.get('usb', 'ports'))
@@ -647,6 +890,8 @@ class MultiTenantDeviceAccess:
             usb_ports = 0
     
     def load_usb_port_config(self, parser, section):
+        self.mtda.debug(3, "main.load_usb_port_config()")
+
         try:
             # Get attributes
             className = parser.get(section, 'class', fallback="")
@@ -672,6 +917,8 @@ class MultiTenantDeviceAccess:
             print('usb switch "%s" could not be found/loaded!' % (variant), file=sys.stderr)
 
     def start(self):
+        self.mtda.debug(3, "main.start()")
+
         if self.is_remote == True:
             return True
 
@@ -700,12 +947,14 @@ class MultiTenantDeviceAccess:
 
             # Create and start console logger
             self.console.probe()
-            self.console_logger = ConsoleLogger(self.console, socket, self.power_controller)
+            self.console_logger = ConsoleLogger(self, self.console, socket, self.power_controller)
             self.console_logger.start()
 
         return True
 
     def _check_expired(self, session):
+        self.mtda.debug(3, "main._check_expired()")
+
         if self._lock_owner:
             now = time.monotonic()
             if session == self._lock_owner:
@@ -714,6 +963,8 @@ class MultiTenantDeviceAccess:
                 self._lock_owner = None
 
     def _check_locked(self, session):
+        self.mtda.debug(3, "main._check_locked()")
+
         owner = self.target_owner()
         if owner is None:
             return False
