@@ -31,6 +31,8 @@ class MentorTestDeviceAgent:
         self.keyboard = None
         self.mtda = self
         self.power_controller = None
+        self.power_on_script = None
+        self.power_off_script = None
         self.sdmux_controller = None
         self._storage_bytes_written = 0
         self._storage_mounted = False
