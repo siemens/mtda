@@ -9,6 +9,7 @@ import os.path
 import requests
 import signal
 import termios
+import time
 import tty
 import sys
 import zerorpc
@@ -344,8 +345,10 @@ class Application:
         blocks = '#' * blocks
         totalread = int(totalread / 1024 / 1024)
         totalwritten = int(self.agent.storage_bytes_written() / 1024 / 1024)
-        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MiB read, {4} MiB written) "
-            .format(imgname, str(blocks + spaces), progress, totalread, totalwritten))
+        elapsed = time.monotonic() - self.start_time
+        speed = round(totalwritten / elapsed, 2)
+        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MiB read, {4} MiB written, {5} MiB/s) "
+            .format(imgname, str(blocks + spaces), progress, totalread, totalwritten, speed))
         sys.stdout.flush()
 
     def storage_update(self, args=None):
@@ -370,6 +373,7 @@ class Application:
             print("'storage write' expects a file argument!", file=sys.stderr)
             return 1
 
+        self.start_time = time.monotonic()
         status = self.agent.storage_write_image(args[0], self._storage_write_cb)
         sys.stdout.write("\n")
         sys.stdout.flush()
