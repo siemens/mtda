@@ -888,7 +888,7 @@ class MultiTenantDeviceAccess:
             # Try loading its support class
             mod = importlib.import_module("mtda.sdmux." + variant)
             factory = getattr(mod, 'instantiate')
-            self.sdmux_controller = factory()
+            self.sdmux_controller = factory(self)
             # Configure the sdmux controller
             self.sdmux_controller.configure(dict(parser.items('sdmux')))
         except configparser.NoOptionError:

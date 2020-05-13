@@ -9,78 +9,112 @@ from mtda.sdmux.controller import SdMuxController
 
 class SamsungSdMuxController(SdMuxController):
 
-    def __init__(self):
+    def __init__(self, mtda):
+        self.mtda   = mtda
         self.device = "/dev/sda"
         self.handle = None
         self.serial = "sdmux"
 
     def close(self):
+        self.mtda.debug(3, "sdmux.samsung.close()")
+
+        result = True
         if self.handle is not None:
             self.handle.close()
             self.handle = None
             try:
                 subprocess.check_output(["sync"])
             except subprocess.CalledProcessError:
-                return False
-        return True
+                result = False
 
+        self.mtda.debug(3, "sdmux.samsung.close(): %s" % str(result))
+        return result
+
+    """ Configure this sdmux controller from the provided configuration"""
     def configure(self, conf):
-        """ Configure this sdmux controller from the provided configuration"""
+        self.mtda.debug(3, "sdmux.samsung.configure()")
+
+        result = None
         if 'device' in conf:
            self.device = conf['device']
         if 'serial' in conf:
            self.serial = conf['serial']
-        return
+
+        self.mtda.debug(3, "sdmux.samsung.configure(): %s" % str(result))
+        return result
 
     def mount(self, part=None):
-        if self.status() != self.SD_ON_HOST:
-            return False
-        path = self.device
-        if part:
-            path = path + part
-        mountpoint = os.path.join("/media", "mtda", os.path.basename(path))
-        if os.path.ismount(mountpoint):
-            return True
-        try:
-            os.makedirs(mountpoint, exist_ok=True)
-            subprocess.check_call(["/bin/mount", path, mountpoint])
-            return True
-        except subprocess.CalledProcessError:
-            return False
+        self.mtda.debug(3, "sdmux.samsung.mount()")
+
+        result = True
+        if self.status() == self.SD_ON_HOST:
+            path = self.device
+            if part:
+                path = path + part
+            mountpoint = os.path.join("/media", "mtda", os.path.basename(path))
+            if os.path.ismount(mountpoint) == False:
+                try:
+                    os.makedirs(mountpoint, exist_ok=True)
+                    subprocess.check_call(["/bin/mount", path, mountpoint])
+                except subprocess.CalledProcessError:
+                    self.mtda.debug(1, "sdmux.samsung.mount(): mount command failed!")
+                    result = False
+        else:
+            self.mtda.debug(1, "sdmux.samsung.mount(): sdmux attached to target!")
+            result = False
+
+        self.mtda.debug(3, "sdmux.samsung.mount(): %s" % str(result))
+        return result
 
     def open(self):
-        if self.status() != self.SD_ON_HOST:
-            return False
+        self.mtda.debug(3, "sdmux.samsung.open()")
 
-        if self.handle is None:
-            try:
-                self.handle = open(self.device, "r+b")
-                return True
-            except:
-                return False
+        result = True
+        if self.status() == self.SD_ON_HOST:
+            if self.handle is None:
+                try:
+                    self.handle = open(self.device, "r+b")
+                except:
+                    result = False
 
+        self.mtda.debug(3, "sdmux.samsung.open(): %s" % str(result))
+        return result
+
+    """ Check presence of the sdmux controller"""
     def probe(self):
-        """ Check presence of the sdmux controller"""
+        self.mtda.debug(3, "sdmux.samsung.probe()")
+
+        result = True
         try:
             subprocess.check_output([
                 "sd-mux-ctrl", "-e", self.serial, "-t"
             ])
-            return True
         except subprocess.CalledProcessError:
-            return False
+            result = False
 
+        self.mtda.debug(3, "sdmux.samsung.probe(): %s" % str(result))
+        return result
+
+    """ Attach the SD card to the host"""
     def to_host(self):
-        """ Attach the SD card to the host"""
+        self.mtda.debug(3, "sdmux.samsung.to_host()")
+
+        result = True
         try:
             subprocess.check_output([
                 "sd-mux-ctrl", "-e", self.serial, "--ts"
             ])
-            return True
         except subprocess.CalledProcessError:
-            return False
+            result = False
 
+        self.mtda.debug(3, "sdmux.samsung.to_host(): %s" % str(result))
+        return result
+
+    """ Attach the SD card to the target"""
     def to_target(self):
-        """ Attach the SD card to the target"""
+        self.mtda.debug(3, "sdmux.samsung.to_target()")
+
+        result = True
         try:
             mountpoint = os.path.join("/media", "mtda", os.path.basename(self.device))
             partitions = psutil.disk_partitions()
@@ -91,36 +125,54 @@ class SamsungSdMuxController(SdMuxController):
             subprocess.check_output([
                 "sd-mux-ctrl", "-e", self.serial, "--dut"
             ])
-            return True
         except subprocess.CalledProcessError:
-            return False
+            result = False
 
+        self.mtda.debug(3, "sdmux.samsung.to_target(): %s" % str(result))
+        return result
+
+    """ Determine where is the SD card attached"""
     def status(self):
-        """ Determine where is the SD card attached"""
+        self.mtda.debug(3, "sdmux.samsung.status()")
+
         try:
             status = subprocess.check_output([
                 "sd-mux-ctrl", "-e", self.serial, "-u"
             ]).decode("utf-8").splitlines()
+            result = self.SD_ON_UNSURE
             for s in status:
                 if s == "SD connected to: TS":
-                    return self.SD_ON_HOST
-                if s == "SD connected to: DUT":
-                    return self.SD_ON_TARGET
-            return self.SD_ON_UNSURE
+                    result = self.SD_ON_HOST
+                    break
+                elif s == "SD connected to: DUT":
+                    result = self.SD_ON_TARGET
+                    break
         except subprocess.CalledProcessError:
-            return self.SD_ON_UNSURE
+            self.mtda.debug(1, "sdmux.samsung.status(): sd-mux-ctrl failed!")
+            result = self.SD_ON_UNSURE
+
+        self.mtda.debug(3, "sdmux.samsung.status(): %s" % str(result))
+        return result
 
     def _locate(self, dst):
+        self.mtda.debug(3, "sdmux.samsung._locate()")
+
+        result = None
         mountpoint = os.path.join("/media", "mtda", os.path.basename(self.device))
         partitions = psutil.disk_partitions()
         for p in partitions:
             if p.mountpoint.startswith(mountpoint):
                 path = os.path.join(p.mountpoint, dst)
                 if os.path.exists(path):
-                    return path
-        return None
+                    result = path
+                    break
+
+        self.mtda.debug(3, "sdmux.samsung._locate(): %s" % str(result))
+        return result
 
     def update(self, dst, offset, data):
+        self.mtda.debug(3, "sdmux.samsung.update()")
+
         path = self._locate(dst)
         result = -1
         if path is not None:
@@ -132,16 +184,23 @@ class SamsungSdMuxController(SdMuxController):
             finally:
                 if f is not None:
                     f.close()
+
+        self.mtda.debug(3, "sdmux.samsung.update(): %s" % str(result))
         return result
 
     def write(self, data):
-        if self.handle is None:
-            return False
-        try:
-            self.handle.write(data)
-            return True
-        except OSError:
-            return False
+        self.mtda.debug(3, "sdmux.samsung.write()")
 
-def instantiate():
-   return SamsungSdMuxController()
+        result = False
+        if self.handle is not None:
+            try:
+                self.handle.write(data)
+                result = True
+            except OSError:
+                result = False
+
+        self.mtda.debug(3, "sdmux.samsung.write(): %s" % str(result))
+        return result
+
+def instantiate(mtda):
+   return SamsungSdMuxController(mtda)
