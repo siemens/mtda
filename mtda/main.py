@@ -37,7 +37,7 @@ class MentorTestDeviceAgent:
         self._storage_bytes_written = 0
         self._storage_mounted = False
         self._storage_opened = False
-        self.blksz = 65536
+        self.blksz = 1 * 1024 * 1024
         self.bz2dec = None
         self.zdec = None
         self.fbintvl = 8 # Feedback interval
