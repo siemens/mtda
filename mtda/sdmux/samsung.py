@@ -173,6 +173,7 @@ class SamsungSdMuxController(SdMuxController):
     def update(self, dst, offset, data):
         self.mtda.debug(3, "sdmux.samsung.update()")
 
+        f = None
         path = self._locate(dst)
         result = -1
         if path is not None:
