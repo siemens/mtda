@@ -41,6 +41,7 @@ and testers to remotely access and control hardware devices.
         "python-daemon>=2.0",
         "pyusb>=1.0",
         "pyzmq>=15.0",
+        "psutil",
         "requests",
         "zerorpc>=0.6.0"
     ],
