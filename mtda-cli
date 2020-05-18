@@ -359,6 +359,7 @@ class Application:
         dest = args[0]
         src  = args[1] if len(args) > 1 else None
 
+        self.start_time = time.monotonic()
         status = self.agent.storage_update(dest, src, self._storage_write_cb)
         sys.stdout.write("\n")
         sys.stdout.flush()
