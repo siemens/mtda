@@ -16,6 +16,7 @@ class TelnetConsole(ConsoleInterface):
         self.port = 23
         self.opened = False
         self.delay = 5
+        self.timeout = 10
 
     """ Configure this console from the provided configuration"""
     def configure(self, conf):
@@ -27,6 +28,8 @@ class TelnetConsole(ConsoleInterface):
             self.port = conf['port']
         if 'delay' in conf:
             self.delay = conf['delay']
+        if 'timeout' in conf:
+            self.timeout = conf['timeout']
 
     def probe(self):
         self.mtda.debug(3, "console.telnet.probe()")
@@ -37,15 +40,15 @@ class TelnetConsole(ConsoleInterface):
     def open(self):
         self.mtda.debug(3, "console.telnet.open()")
 
-        result = False
+        result = self.opened
         if self.opened == False:
             try:
                 self.telnet = Telnet()
-                self.telnet.open(self.host, self.port)
+                self.telnet.open(self.host, self.port, self.timeout)
                 self.opened = True
                 result = True
-            except OSError:
-                pass
+            except:
+                result = False
 
         self.mtda.debug(3, "console.telnet.open(): %s" % str(result))
         return result
@@ -58,33 +61,50 @@ class TelnetConsole(ConsoleInterface):
             self.telnet.get_socket().shutdown(socket.SHUT_WR)
             self.telnet.close()
             self.telnet = None
+        result = (self.opened == False)
+
+        self.mtda.debug(3, "console.telnet.close(): %s" % str(result))
+        return result
 
     """ Return number of pending bytes to read"""
     def pending(self):
         self.mtda.debug(3, "console.telnet.pending()")
 
         if self.opened == True:
-            return self.telnet.sock_avail()
+            result = self.telnet.sock_avail()
         else:
-            return 0
+            result = False
+
+        self.mtda.debug(3, "console.telnet.pending(): %s" % str(result))
+        return result
 
     """ Read bytes from the console"""
     def read(self, n=1):
-        self.mtda.debug(3, "console.telnet.read()")
+        self.mtda.debug(3, "console.telnet.read(n=%d)" % n)
 
         if self.opened == False:
-            time_before_probe = time.time()
-            self.probe()
-            # make sure we do not return too quickly if we could not connect
-            time_after_probe = time.time()
-            elapsed_time = time_after_probe - time_before_probe
-            if elapsed_time < self.delay:
-                time.sleep(self.delay - elapsed_time)
+            time_before_open = time.time()
+            self.open()
+            if self.opened == False:
+                # make sure we do not return too quickly if we could not connect
+                self.mtda.debug(4, "console.telnet.read(): failed to connnect!")
+                time_after_open = time.time()
+                elapsed_time = time_after_open - time_before_open
+                if elapsed_time < self.delay:
+                    delay = self.delay - elapsed_time
+                    self.mtda.debug(4, "console.telnet.read(): sleeping {0} seconds".format(delay))
+                    time.sleep(delay)
+
         data = bytearray()
-        while n > 0 and self.opened == True:
-            avail = self.telnet.read_some()
-            data = data + avail
-            n = n - len(avail)
+        try:
+            while n > 0 and self.opened == True:
+                avail = self.telnet.read_some()
+                data = data + avail
+                n = n - len(avail)
+        except socket.timeout:
+            self.mtda.debug(2, "console.telnet.read(): timeout!")
+
+        self.mtda.debug(3, "console.telnet.read(): %d bytes" % len(data))
         return data
 
     """ Write to the console"""
@@ -92,10 +112,13 @@ class TelnetConsole(ConsoleInterface):
         self.mtda.debug(3, "console.telnet.write()")
 
         if self.opened == True:
-            return self.telnet.write(data)
+            result = self.telnet.write(data)
         else:
-            return None
+            self.mtda.debug(2, "console.telnet.write(): not connected!")
+            result = None
+
+        self.mtda.debug(3, "console.telnet.write(): %s" % str(result))
+        return result
 
 def instantiate(mtda):
     return TelnetConsole(mtda)
-
