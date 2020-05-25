@@ -2,6 +2,7 @@ from mtda.main import MultiTenantDeviceAccess
 
 import os
 import random
+import socket
 import time
 import zerorpc
 
@@ -17,8 +18,20 @@ class Client:
         else:
             self._impl = agent
         self._agent = agent
-        WORDS = open("/usr/share/dict/words").read().splitlines()
-        self._session = os.getenv('MTDA_SESSION', random.choice(WORDS))
+
+        HOST = socket.gethostname()
+        USER = os.getenv("USER")
+        WORDS = "/usr/share/dict/words"
+        if os.path.exists(WORDS):
+            WORDS = open(WORDS).read().splitlines()
+            name = random.choice(WORDS)
+            if name.endswith("'s"):
+                name = name.replace("'s", "")
+        elif USER is not None and HOST is not None:
+            name = "%s@%s" % (USER, HOST)
+        else:
+            name = "mtda"
+        self._session = os.getenv('MTDA_SESSION', name)
 
     def console_clear(self):
         return self._impl.console_clear(self._session)
