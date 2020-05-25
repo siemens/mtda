@@ -58,7 +58,7 @@ sudo apt-get install \
 The setup script should then be used to install command-line scripts and packages:
 
 ```
-sudo python3 setup.py install
+python3 setup.py install --user
 ```
 
 # Samsung SD-Mux
