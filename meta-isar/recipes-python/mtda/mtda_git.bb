@@ -1,10 +1,10 @@
 # This Isar layer is part of MTDA
-# Copyright (C) 2017-2019 Mentor Graphics, a Siemens business
+# Copyright (C) 2017-2020 Mentor Graphics, a Siemens business
 
 inherit dpkg
 
 SRC_URI += "git://github.com/MentorEmbedded/mtda.git;protocol=https;branch=master"
-SRCREV   = "77811d6e78c03d56e6d0a6864cf274ab9f007de3"
+SRCREV   = "b4a21c28c6376559007c3ac0505d7648c4f9707e"
 S        = "${WORKDIR}/git"
 
 DEPENDS += "zerorpc-python"
