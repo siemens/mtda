@@ -936,7 +936,7 @@ class MultiTenantDeviceAccess:
             # Try loading its support class
             mod = importlib.import_module("mtda.usb." + variant)
             factory = getattr(mod, 'instantiate')
-            usb_switch = factory()
+            usb_switch = factory(self)
 
             # Configure and probe the USB switch
             usb_switch.configure(dict(parser.items(section)))
