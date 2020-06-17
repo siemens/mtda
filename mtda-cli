@@ -414,7 +414,7 @@ class Application:
         ports = client.usb_ports()
         for ndx in range(0, ports):
             status = client.usb_status(ndx+1)
-            print("USB #%-2d   : %s\r" %(ndx+1, status))
+            print("USB #%-2d        : %s\r" %(ndx+1, status))
 
     def target_off(self, args=None):
         status = self.client().target_off()
