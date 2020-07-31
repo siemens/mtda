@@ -809,10 +809,10 @@ class MentorTestDeviceAgent:
         if self.is_remote == False:
             if parser.has_section('console'):
                 self.load_console_config(parser)
-            if parser.has_section('keyboard'):
-                self.load_keyboard_config(parser)
             if parser.has_section('power'):
                 self.load_power_config(parser)
+            if parser.has_section('keyboard'):
+                self.load_keyboard_config(parser)
             if parser.has_section('sdmux'):
                 self.load_sdmux_config(parser)
             if parser.has_section('usb'):
