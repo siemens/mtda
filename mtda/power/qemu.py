@@ -62,7 +62,6 @@ class QemuController(PowerController):
 
         # extra options
         if self.bios is not None:
-            options += " -L /usr/share/qemu-efi"
             options += " -bios %s" % self.bios
         if self.cpu is not None:
             options += " -cpu %s" % self.cpu
@@ -71,7 +70,6 @@ class QemuController(PowerController):
         if self.storage is not None:
             options += " -drive file=%s,media=disk,format=raw" % self.storage
 
-        sys.stderr.write("%s %s\n" % (self.executable, options))
         result = os.system("%s %s" % (self.executable, options))
         if result == 0:
             with open(self.pidfile, "r") as f:
@@ -80,18 +78,20 @@ class QemuController(PowerController):
             return True
         return False
 
-    def monitor_output(self):
+    def monitor_output_non_blocking(self):
         fd = os.open("/tmp/qemu-mtda.out", os.O_RDONLY)
         os.set_blocking(fd, False)
-        tries = 10
-        output = ""
-        while tries > 0:
-            try:
-                output += os.read(fd, 2048).decode('utf-8')
-            except BlockingIOError:
-                tries = tries - 1
-                time.sleep(0.25)
+        try:
+            output = os.read(fd, 2048).decode('utf-8')
+        except BlockingIOError:
+            output = ""
         os.close(fd)
+        return output
+
+    def monitor_command_output(self):
+        output = ""
+        while output.endswith("(qemu) ") == False:
+            output += self.monitor_output_non_blocking()
         return output
 
     def cmd(self, what):
@@ -100,14 +100,14 @@ class QemuController(PowerController):
             return None
 
         # flush monitor output
-        self.monitor_output()
+        self.monitor_output_non_blocking()
 
         # send requested command to "out" pipe
         with open("/tmp/qemu-mtda.in", "w") as f:
             f.write("%s\n" % what)
 
         # provide response from the monitor
-        output = self.monitor_output()
+        output = self.monitor_command_output()
         return output
 
     def on(self):
