@@ -51,13 +51,20 @@ class QemuController(PowerController):
             os.unlink("/tmp/qemu-mtda.in")
         if os.path.exists("/tmp/qemu-mtda.out"):
             os.unlink("/tmp/qemu-mtda.out")
+        if os.path.exists("/tmp/qemu-serial.in"):
+            os.unlink("/tmp/qemu-serial.in")
+        if os.path.exists("/tmp/qemu-serial.out"):
+            os.unlink("/tmp/qemu-serial.out")
         os.mkfifo("/tmp/qemu-mtda.in")
         os.mkfifo("/tmp/qemu-mtda.out")
+        os.mkfifo("/tmp/qemu-serial.in")
+        os.mkfifo("/tmp/qemu-serial.out")
         self.pidfile = tempfile.NamedTemporaryFile(delete=False).name
 
         # base options
         options  = "-daemonize -pidfile %s -S -m %d" % (self.pidfile, self.memory)
         options += " -chardev pipe,id=monitor,path=/tmp/qemu-mtda -monitor chardev:monitor"
+        options += " -chardev pipe,id=serial,path=/tmp/qemu-serial -device usb-serial,chardev=serial"
         options += " -usb"
 
         # extra options
