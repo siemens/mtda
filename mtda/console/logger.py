@@ -248,8 +248,8 @@ class ConsoleLogger:
                 data = con.read(con.pending() or 1)
                 self.process_rx(data)
                 continue
-            except Exception as e:
-                error = e.strerror
+            except:
+                error = sys.exc_info()[0]
 
             try:
                 if retries > 0:
