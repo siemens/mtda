@@ -1,6 +1,8 @@
 # System imports
 import abc
+import atexit
 import os
+import signal
 import sys
 import tempfile
 import threading
@@ -80,10 +82,15 @@ class QemuController(PowerController):
         result = os.system("%s %s" % (self.executable, options))
         if result == 0:
             with open(self.pidfile, "r") as f:
-                self.pid = f.read()
+                self.pid = int(f.read())
             os.unlink(self.pidfile)
+            atexit.register(self.stop)
             return True
         return False
+
+    def stop(self):
+        if self.pid is not None:
+            os.kill(self.pid, signal.SIGTERM)
 
     def monitor_output_non_blocking(self):
         fd = os.open("/tmp/qemu-mtda.out", os.O_RDONLY)
