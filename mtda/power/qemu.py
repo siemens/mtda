@@ -68,6 +68,7 @@ class QemuController(PowerController):
         options += " -chardev pipe,id=monitor,path=/tmp/qemu-mtda -monitor chardev:monitor"
         options += " -chardev pipe,id=serial,path=/tmp/qemu-serial -device usb-serial,chardev=serial"
         options += " -usb"
+        options += " -vnc :0"
 
         # extra options
         if self.bios is not None:
