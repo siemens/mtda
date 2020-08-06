@@ -66,7 +66,7 @@ class QemuController(PowerController):
         # base options
         options  = "-daemonize -pidfile %s -S -m %d" % (self.pidfile, self.memory)
         options += " -chardev pipe,id=monitor,path=/tmp/qemu-mtda -monitor chardev:monitor"
-        options += " -chardev pipe,id=serial,path=/tmp/qemu-serial -device usb-serial,chardev=serial"
+        options += " -serial pipe:/tmp/qemu-serial"
         options += " -usb"
         options += " -vnc :0"
 
