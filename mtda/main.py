@@ -871,7 +871,7 @@ class MultiTenantDeviceAccess:
             # Try loading its support class
             mod = importlib.import_module("mtda.power." + variant)
             factory = getattr(mod, 'instantiate')
-            self.power_controller = factory()
+            self.power_controller = factory(self)
             # Configure the power controller
             self.power_controller.configure(dict(parser.items('power')))
         except configparser.NoOptionError:

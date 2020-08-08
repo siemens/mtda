@@ -8,10 +8,11 @@ from mtda.power.controller import PowerController
 
 class GpioPowerController(PowerController):
 
-    def __init__(self):
-        self.dev = None
-        self.ev  = threading.Event()
-        self.pin = None
+    def __init__(self, mtda):
+        self.dev  = None
+        self.ev   = threading.Event()
+        self.mtda = mtda
+        self.pin  = None
 
     def configure(self, conf):
         """ Configure this power controller from the provided configuration"""
@@ -78,5 +79,5 @@ class GpioPowerController(PowerController):
         while self.status() != self.POWER_ON:
             self.ev.wait()
 
-def instantiate():
-   return GpioPowerController()
+def instantiate(mtda):
+   return GpioPowerController(mtda)
