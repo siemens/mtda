@@ -8,11 +8,12 @@ from mtda.power.controller import PowerController
 
 class PduClientController(PowerController):
 
-    def __init__(self):
+    def __init__(self, mtda):
         self.dev      = None
         self.ev       = threading.Event()
         self.daemon   = None
         self.hostname = None
+        self.mtda     = mtda
         self.port     = None
         self.status   = self.POWER_UNSURE
 
@@ -72,5 +73,5 @@ class PduClientController(PowerController):
         while self.status() != self.POWER_ON:
             self.ev.wait()
 
-def instantiate():
-   return PduClientPowerController()
+def instantiate(mtda):
+   return PduClientPowerController(mtda)

@@ -13,7 +13,7 @@ from mtda.power.controller import PowerController
 
 class QemuController(PowerController):
 
-    def __init__(self):
+    def __init__(self, mtda):
         self.dev        = None
         self.ev         = threading.Event()
         self.bios       = None
@@ -21,11 +21,13 @@ class QemuController(PowerController):
         self.executable = "qemu-system-x86_64"
         self.machine    = None
         self.memory     = 512
+        self.mtda       = mtda
         self.pid        = None
         self.storage    = None
 
     def configure(self, conf):
-        """ Configure this power controller from the provided configuration"""
+        self.mtda.debug(3, "power.qemu.configure()")
+
         if 'bios' in conf:
            self.bios = conf['bios']
         if 'cpu' in conf:
@@ -40,6 +42,8 @@ class QemuController(PowerController):
            self.storage = conf['storage']
 
     def probe(self):
+        self.mtda.debug(3, "power.qemu.probe()")
+
         if self.executable is None:
             raise ValueError("qemu executable not specified!")
         result = os.system("%s --version" % self.executable)
@@ -47,6 +51,8 @@ class QemuController(PowerController):
             raise ValueError("could not execute %s!" % self.executable)
 
     def start(self):
+        self.mtda.debug(3, "power.qemu.start()")
+
         if self.pid is not None:
             return True
         if os.path.exists("/tmp/qemu-mtda.in"):
@@ -90,10 +96,14 @@ class QemuController(PowerController):
         return False
 
     def stop(self):
+        self.mtda.debug(3, "power.qemu.stop()")
+
         if self.pid is not None:
             os.kill(self.pid, signal.SIGTERM)
 
     def monitor_output_non_blocking(self):
+        self.mtda.debug(4, "power.qemu.monitor_output_non_blocking()")
+
         fd = os.open("/tmp/qemu-mtda.out", os.O_RDONLY)
         os.set_blocking(fd, False)
         try:
@@ -104,12 +114,16 @@ class QemuController(PowerController):
         return output
 
     def monitor_command_output(self):
+        self.mtda.debug(3, "power.qemu.monitor_command_output()")
+
         output = ""
         while output.endswith("(qemu) ") == False:
             output += self.monitor_output_non_blocking()
         return output
 
     def cmd(self, what):
+        self.mtda.debug(3, "power.qemu.cmd()")
+
         started = self.start()
         if started == False:
             return None
@@ -126,7 +140,8 @@ class QemuController(PowerController):
         return output
 
     def on(self):
-        """ Power on the attached device"""
+        self.mtda.debug(3, "power.qemu.on()")
+
         s = self.status()
         if s == self.POWER_ON:
             return True
@@ -139,7 +154,8 @@ class QemuController(PowerController):
         return False
 
     def off(self):
-        """ Power off the attached device"""
+        self.mtda.debug(3, "power.qemu.off()")
+
         s = self.status()
         if s == self.POWER_OFF:
             return True
@@ -152,19 +168,27 @@ class QemuController(PowerController):
         return False
 
     def status(self):
-        """ Determine the current power state of the attached device"""
+        self.mtda.debug(3, "power.qemu.status()")
+
         lines = self.cmd('info status').splitlines()
+        result = self.POWER_UNSURE
         for line in lines:
             line = line.strip()
             if line.startswith("VM status:"):
                 if 'running' in line:
-                    return self.POWER_ON
-                if 'paused' in line:
-                    return self.POWER_OFF
-        return self.POWER_UNSURE
+                    result = self.POWER_ON
+                elif 'paused' in line:
+                    result = self.POWER_OFF
+                else:
+                    self.mtda.debug(1, "unknown power status: %s" % line)
+                break
+
+        self.mtda.debug(3, "power.qemu.status(): %s" % str(result))
+        return result
 
     def toggle(self):
-        """ Toggle power for the attached device"""
+        self.mtda.debug(3, "power.qemu.toggle()")
+
         s = self.status()
         if s == self.POWER_OFF:
             self.on()
@@ -173,8 +197,10 @@ class QemuController(PowerController):
         return self.status()
 
     def wait(self):
+        self.mtda.debug(3, "power.qemu.wait()")
+
         while self.status() != self.POWER_ON:
             self.ev.wait()
 
-def instantiate():
-   return QemuController()
+def instantiate(mtda):
+   return QemuController(mtda)
