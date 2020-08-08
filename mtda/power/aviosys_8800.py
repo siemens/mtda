@@ -11,11 +11,12 @@ class Aviosys8800PowerController(PowerController):
     DEFAULT_USB_VID = 0x067b
     DEFAULT_USB_PID = 0x2303
 
-    def __init__(self):
-        self.dev = None
-        self.ev  = threading.Event()
-        self.vid = Aviosys8800PowerController.DEFAULT_USB_VID
-        self.pid = Aviosys8800PowerController.DEFAULT_USB_PID
+    def __init__(self, mtda):
+        self.dev  = None
+        self.ev   = threading.Event()
+        self.mtda = mtda
+        self.vid  = Aviosys8800PowerController.DEFAULT_USB_VID
+        self.pid  = Aviosys8800PowerController.DEFAULT_USB_PID
 
     def configure(self, conf):
         """ Configure this power controller from the provided configuration"""
@@ -63,5 +64,5 @@ class Aviosys8800PowerController(PowerController):
         while self.status() != self.POWER_ON:
             self.ev.wait()
 
-def instantiate():
-   return Aviosys8800PowerController()
+def instantiate(mtda):
+   return Aviosys8800PowerController(mtda)
