@@ -21,9 +21,7 @@ class QemuConsole(ConsoleInterface):
 
     def probe(self):
         self.mtda.debug(3, "console.qemu.probe()")
-
-        result = os.path.exists("/tmp/qemu-serial.out")
-
+        result = self.qemu.variant == "qemu"
         self.mtda.debug(3, "console.qemu.probe(): %s" % str(result))
         return result
 
