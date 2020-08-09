@@ -837,6 +837,7 @@ class MultiTenantDeviceAccess:
             mod = importlib.import_module("mtda.console." + variant)
             factory = getattr(mod, 'instantiate')
             self.console = factory(self)
+            self.console.variant = variant
             # Configure the console
             self.console.configure(dict(parser.items('console')))
         except configparser.NoOptionError:
@@ -872,6 +873,7 @@ class MultiTenantDeviceAccess:
             mod = importlib.import_module("mtda.power." + variant)
             factory = getattr(mod, 'instantiate')
             self.power_controller = factory(self)
+            self.power_controller.variant = variant
             # Configure the power controller
             self.power_controller.configure(dict(parser.items('power')))
         except configparser.NoOptionError:
@@ -982,7 +984,10 @@ class MultiTenantDeviceAccess:
                 socket = None
 
             # Create and start console logger
-            self.console.probe()
+            status = self.console.probe()
+            if status == False:
+                print('Probe of the %s console failed!' % self.console.variant, file=sys.stderr)
+                return False
             self.console_logger = ConsoleLogger(self, self.console, socket, self.power_controller)
             self.console_logger.start()
 
