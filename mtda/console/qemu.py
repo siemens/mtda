@@ -1,8 +1,9 @@
 # System imports
 import abc
+import array
 import fcntl
 import os
-import select
+import termios
 
 # Local imports
 from mtda.console.interface import ConsoleInterface
@@ -58,10 +59,9 @@ class QemuConsole(ConsoleInterface):
 
         result = 0
         if self.opened == True:
-            inputs = [ self.rx ]
-            readable, writable, error = select.select(inputs, [], inputs, 0)
-            if len(readable) > 0:
-                result = 1
+            avail = array.array('l', [0])
+            fcntl.ioctl(self.rx, termios.FIONREAD, avail, 1)
+            result = avail[0]
 
         self.mtda.debug(3, "console.qemu.pending(): %s" % str(result))
         return result
