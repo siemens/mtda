@@ -39,7 +39,7 @@ class QemuController(PowerController):
         if 'memory' in conf:
            self.memory = int(conf['memory'])
         if 'storage' in conf:
-           self.storage = conf['storage']
+           self.storage = os.path.realpath(conf['storage'])
 
     def probe(self):
         self.mtda.debug(3, "power.qemu.probe()")
