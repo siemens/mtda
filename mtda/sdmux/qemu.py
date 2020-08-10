@@ -1,5 +1,6 @@
 # System imports
 import abc
+import os
 import re
 import subprocess
 
@@ -37,7 +38,7 @@ class QemuController(SdMuxController):
 
         result = None
         if 'file' in conf:
-           self.file = conf['file']
+           self.file = os.path.realpath(conf['file'])
 
         self.mtda.debug(3, "sdmux.qemu.configure(): %s" % str(result))
         return result
@@ -49,6 +50,7 @@ class QemuController(SdMuxController):
         if self.status() == self.SD_ON_HOST:
             if self.handle is None:
                 try:
+                    self.mtda.debug(2, "sdmux.qemu.open(): opening '%s' on host" % self.file)
                     self.handle = open(self.file, "r+b")
                 except:
                     result = False
@@ -76,6 +78,7 @@ class QemuController(SdMuxController):
         if self.id is None:
             try:
                 before = self.ids(self.qemu.cmd("info usb"))
+                self.mtda.debug(2, "sdmux.qemu.open(): adding '%s' as usb storage" % self.file)
                 output = self.qemu.cmd("usb_add disk:%s" % self.file)
                 for line in output.splitlines():
                     line = line.strip()
