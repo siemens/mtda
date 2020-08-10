@@ -19,7 +19,9 @@ class QemuController(KeyboardController):
     def probe(self):
         self.mtda.debug(3, "keyboard.qemu.probe()")
 
-        result = True
+        result = self.qemu.variant == "qemu"
+        if result == False:
+            self.mtda.debug(1, "keyboard.qemu.probe(): a qemu power controller is required")
 
         self.mtda.debug(3, "keyboard.qemu.probe(): %s" % str(result))
         return result
