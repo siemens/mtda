@@ -1,5 +1,6 @@
 # System imports
 import abc
+import re
 import subprocess
 
 # Local imports
@@ -11,6 +12,7 @@ class QemuController(SdMuxController):
         self.mtda     = mtda
         self.file     = "usb.img"
         self.handle   = None
+        self.id       = None
         self.mode     = self.SD_ON_HOST
         self.qemu     = mtda.power_controller
 
@@ -57,20 +59,57 @@ class QemuController(SdMuxController):
         self.mtda.debug(3, "sdmux.qemu.open(): %s" % str(result))
         return result
 
+    def ids(self, info):
+        lines = info.splitlines()
+        results = []
+        for line in lines:
+            line = line.strip()
+            if line.startswith("Device "):
+                device = re.findall(r'Device (\d+.\d+),', line)[0]
+                results.append(device)
+        return results
+
+    def add(self):
+        self.mtda.debug(3, "sdmux.qemu.add()")
+
+        result = True
+        if self.id is None:
+            try:
+                before = self.ids(self.qemu.cmd("info usb"))
+                output = self.qemu.cmd("usb_add disk:%s" % self.file)
+                for line in output.splitlines():
+                    line = line.strip()
+                    if "could not add USB device" in line:
+                        result = False
+                        break
+                if result == True:
+                    after = self.ids(self.qemu.cmd("info usb"))
+                    self.id = set(after).difference(before).pop()
+                    self.mtda.debug(3, "sdmux.qemu.add(): id %s" % self.id)
+            except:
+                result = False
+
+        self.mtda.debug(3, "sdmux.qemu.add(): %s" % str(result))
+        return result
+
+    def rm(self):
+        self.mtda.debug(3, "sdmux.qemu.rm()")
+
+        result = True
+        if self.id is not None:
+            self.qemu.cmd("usb_del %s" % self.id)
+            self.id = None
+
+        self.mtda.debug(3, "sdmux.qemu.rm(): %s" % str(result))
+        return result
+
     """ Get file used by the USB Function driver"""
     def probe(self):
         self.mtda.debug(3, "sdmux.qemu.probe()")
 
-        result = True
-        try:
-            output = self.qemu.cmd("usb_add disk:%s" % self.file)
-            for line in output.splitlines():
-                line = line.strip()
-                if "could not add USB device" in line:
-                    result = False
-                    break
-        except:
-            result = False
+        result = self.qemu.variant == "qemu"
+        if result == False:
+            self.mtda.debug(1, "sdmux.qemu.probe(): qemu power controller required!")
 
         self.mtda.debug(3, "sdmux.qemu.probe(): %s" % str(result))
         return result
@@ -79,8 +118,9 @@ class QemuController(SdMuxController):
     def to_host(self):
         self.mtda.debug(3, "sdmux.qemu.to_host()")
 
-        result = True
-        self.mode = self.SD_ON_HOST
+        result = self.rm()
+        if result == True:
+            self.mode = self.SD_ON_HOST
 
         self.mtda.debug(3, "sdmux.qemu.to_host(): %s" % str(result))
         return result
@@ -91,7 +131,9 @@ class QemuController(SdMuxController):
 
         result = self.close()
         if result == True:
-            self.mode = self.SD_ON_TARGET
+            result = self.add()
+            if result == True:
+                self.mode = self.SD_ON_TARGET
 
         self.mtda.debug(3, "sdmux.qemu.to_target(): %s" % str(result))
         return result
