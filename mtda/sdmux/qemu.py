@@ -52,6 +52,7 @@ class QemuController(SdMuxController):
                 try:
                     self.mtda.debug(2, "sdmux.qemu.open(): opening '%s' on host" % self.file)
                     self.handle = open(self.file, "r+b")
+                    self.handle.seek(0, 0)
                 except:
                     result = False
         else:
@@ -79,13 +80,17 @@ class QemuController(SdMuxController):
             try:
                 before = self.ids(self.qemu.cmd("info usb"))
                 self.mtda.debug(2, "sdmux.qemu.open(): adding '%s' as usb storage" % self.file)
-                output = self.qemu.cmd("usb_add disk:%s" % self.file)
+                output = self.qemu.cmd("drive_add 0 if=none,id=usbdisk1,file=%s" % self.file)
+                self.mtda.debug(4, output)
+                result = False
                 for line in output.splitlines():
                     line = line.strip()
-                    if "could not add USB device" in line:
-                        result = False
+                    if line == "OK":
+                        result = True
                         break
                 if result == True:
+                    output = self.qemu.cmd("device_add usb-storage,id=usbdisk1,drive=usbdisk1,removable=on")
+                    self.mtda.debug(4, output)
                     after = self.ids(self.qemu.cmd("info usb"))
                     self.id = set(after).difference(before).pop()
                     self.mtda.debug(3, "sdmux.qemu.add(): id %s" % self.id)
