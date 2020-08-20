@@ -18,7 +18,7 @@ class QemuController(PowerController):
         self.ev         = threading.Event()
         self.bios       = None
         self.cpu        = None
-        self.executable = "qemu-system-x86_64"
+        self.executable = "kvm"
         self.machine    = None
         self.memory     = 512
         self.mtda       = mtda
