@@ -19,6 +19,7 @@ class QemuController(PowerController):
         self.bios       = None
         self.cpu        = None
         self.executable = "kvm"
+        self.lock       = threading.Lock()
         self.machine    = None
         self.memory     = 512
         self.mtda       = mtda
@@ -128,6 +129,9 @@ class QemuController(PowerController):
         if started == False:
             return None
 
+        # serialize commands to the monitor
+        self.lock.acquire()
+
         # flush monitor output
         self.monitor_output_non_blocking()
 
@@ -137,6 +141,8 @@ class QemuController(PowerController):
 
         # provide response from the monitor
         output = self.monitor_command_output()
+
+        self.lock.release()
         return output
 
     def on(self):
@@ -179,9 +185,10 @@ class QemuController(PowerController):
                     result = self.POWER_ON
                 elif 'paused' in line:
                     result = self.POWER_OFF
-                else:
-                    self.mtda.debug(1, "unknown power status: %s" % line)
                 break
+
+        if result == self.POWER_UNSURE:
+            self.mtda.debug(1, "unknown power status: %s" % "\n".join(lines))
 
         self.mtda.debug(3, "power.qemu.status(): %s" % str(result))
         return result
