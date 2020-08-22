@@ -1,6 +1,7 @@
 # System imports
 import abc
 import os
+import pathlib
 import re
 import subprocess
 
@@ -39,6 +40,10 @@ class QemuController(SdMuxController):
         result = None
         if 'file' in conf:
            self.file = os.path.realpath(conf['file'])
+           if os.path.exists(self.file) == False:
+               sparse = pathlib.Path(self.file)
+               sparse.touch()
+               os.truncate(str(sparse), 8*1024*1024*1024)
 
         self.mtda.debug(3, "sdmux.qemu.configure(): %s" % str(result))
         return result
