@@ -2,6 +2,7 @@
 import abc
 import atexit
 import os
+import pathlib
 import signal
 import sys
 import tempfile
@@ -86,6 +87,10 @@ class QemuController(PowerController):
             options += " -machine %s" % self.machine
         if self.storage is not None:
             options += " -drive file=%s,media=disk,format=raw" % self.storage
+            if os.path.exists(self.storage) == False:
+                sparse = pathlib.Path(self.storage)
+                sparse.touch()
+                os.truncate(str(sparse), 16*1024*1024*1024)
 
         result = os.system("%s %s" % (self.executable, options))
         if result == 0:
