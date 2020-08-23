@@ -33,6 +33,12 @@ class SdMuxController(object):
         return False
 
     @abc.abstractmethod
+    def supports_hotplug(self):
+        """ Whether the sdmux may be hotplugged"""
+        return False
+
+
+    @abc.abstractmethod
     def to_host(self):
         """ Attach the SD card to the host"""
         return False

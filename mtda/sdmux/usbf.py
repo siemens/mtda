@@ -75,6 +75,9 @@ class UsbFunctionController(SdMuxController):
         self.mtda.debug(3, "sdmux.usbf.probe(): %s" % str(result))
         return result
 
+    def supports_hotplug(self):
+        return False
+
     """ Attach the SD card to the host"""
     def to_host(self):
         self.mtda.debug(3, "sdmux.usbf.to_host()")
