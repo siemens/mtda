@@ -289,6 +289,9 @@ class MultiTenantDeviceAccess:
         elif self.sdmux_controller is None:
             self.mtda.debug(4, "storage_locked(): no shared storage device")
             result = True
+        # If hotplugging is supported, swap only if the shared storage isn't opened
+        elif self.sdmux_controller.supports_hotplug() == True:
+            result = self._storage_opened
         # We also need a power controller to be safe
         elif self.power_controller is None:
             self.mtda.debug(4, "storage_locked(): no power controller")
