@@ -95,6 +95,9 @@ class SamsungSdMuxController(SdMuxController):
         self.mtda.debug(3, "sdmux.samsung.probe(): %s" % str(result))
         return result
 
+    def supports_hotplug(self):
+        return False
+
     """ Attach the SD card to the host"""
     def to_host(self):
         self.mtda.debug(3, "sdmux.samsung.to_host()")

@@ -4,6 +4,7 @@ import os
 import pathlib
 import re
 import subprocess
+import threading
 
 # Local imports
 from mtda.sdmux.controller import SdMuxController
@@ -15,6 +16,7 @@ class QemuController(SdMuxController):
         self.file     = "usb.img"
         self.handle   = None
         self.id       = None
+        self.lock     = threading.Lock()
         self.mode     = self.SD_ON_HOST
         self.qemu     = mtda.power_controller
 
@@ -22,6 +24,7 @@ class QemuController(SdMuxController):
         self.mtda.debug(3, "sdmux.qemu.close()")
 
         result = True
+        self.lock.acquire()
         if self.handle is not None:
             self.handle.close()
             self.handle = None
@@ -31,6 +34,7 @@ class QemuController(SdMuxController):
                 result = False
 
         self.mtda.debug(3, "sdmux.qemu.close(): %s" % str(result))
+        self.lock.release()
         return result
 
     """ Configure this sdmux controller from the provided configuration"""
@@ -38,6 +42,7 @@ class QemuController(SdMuxController):
         self.mtda.debug(3, "sdmux.qemu.configure()")
 
         result = None
+        self.lock.acquire()
         if 'file' in conf:
            self.file = os.path.realpath(conf['file'])
            if os.path.exists(self.file) == False:
@@ -46,13 +51,15 @@ class QemuController(SdMuxController):
                os.truncate(str(sparse), 8*1024*1024*1024)
 
         self.mtda.debug(3, "sdmux.qemu.configure(): %s" % str(result))
+        self.lock.release()
         return result
 
     def open(self):
         self.mtda.debug(3, "sdmux.qemu.open()")
 
         result = True
-        if self.status() == self.SD_ON_HOST:
+        self.lock.acquire()
+        if self.mode == self.SD_ON_HOST:
             if self.handle is None:
                 try:
                     self.mtda.debug(2, "sdmux.qemu.open(): opening '%s' on host" % self.file)
@@ -65,6 +72,7 @@ class QemuController(SdMuxController):
             result = False
 
         self.mtda.debug(3, "sdmux.qemu.open(): %s" % str(result))
+        self.lock.release()
         return result
 
     def ids(self, info):
@@ -84,7 +92,7 @@ class QemuController(SdMuxController):
         if self.id is None:
             try:
                 before = self.ids(self.qemu.cmd("info usb"))
-                self.mtda.debug(2, "sdmux.qemu.open(): adding '%s' as usb storage" % self.file)
+                self.mtda.debug(2, "sdmux.qemu.add(): adding '%s' as usb storage" % self.file)
                 output = self.qemu.cmd("drive_add 0 if=none,id=usbdisk1,file=%s" % self.file)
                 self.mtda.debug(4, output)
                 result = False
@@ -98,7 +106,9 @@ class QemuController(SdMuxController):
                     self.mtda.debug(4, output)
                     after = self.ids(self.qemu.cmd("info usb"))
                     self.id = set(after).difference(before).pop()
-                    self.mtda.debug(3, "sdmux.qemu.add(): id %s" % self.id)
+                    self.mtda.debug(2, "sdmux.qemu.add(): usb-storage connected with id %s" % self.id)
+                else:
+                    self.mtda.debug(2, "sdmux.qemu.add(): usb storage could not be added:\n%s" % output)
             except:
                 result = False
 
@@ -110,7 +120,8 @@ class QemuController(SdMuxController):
 
         result = True
         if self.id is not None:
-            self.qemu.cmd("usb_del %s" % self.id)
+            output = self.qemu.cmd("device_del usbdisk1")
+            self.mtda.debug(2, "sdmux.qemu.rm(): %s" % output)
             self.id = None
 
         self.mtda.debug(3, "sdmux.qemu.rm(): %s" % str(result))
@@ -127,15 +138,20 @@ class QemuController(SdMuxController):
         self.mtda.debug(3, "sdmux.qemu.probe(): %s" % str(result))
         return result
 
+    def supports_hotplug(self):
+        return True
+
     """ Attach the SD card to the host"""
     def to_host(self):
         self.mtda.debug(3, "sdmux.qemu.to_host()")
 
+        self.lock.acquire()
         result = self.rm()
         if result == True:
             self.mode = self.SD_ON_HOST
 
         self.mtda.debug(3, "sdmux.qemu.to_host(): %s" % str(result))
+        self.lock.release()
         return result
 
     """ Attach the SD card to the target"""
@@ -143,27 +159,32 @@ class QemuController(SdMuxController):
         self.mtda.debug(3, "sdmux.qemu.to_target()")
 
         result = self.close()
+        self.lock.acquire()
         if result == True:
             result = self.add()
             if result == True:
                 self.mode = self.SD_ON_TARGET
 
         self.mtda.debug(3, "sdmux.qemu.to_target(): %s" % str(result))
+        self.lock.release()
         return result
 
     """ Determine where is the SD card attached"""
     def status(self):
         self.mtda.debug(3, "sdmux.qemu.status()")
 
+        self.lock.acquire()
         result = self.mode
 
         self.mtda.debug(3, "sdmux.qemu.status(): %s" % str(result))
+        self.lock.release()
         return result
 
     def write(self, data):
         self.mtda.debug(3, "sdmux.qemu.write()")
 
         result = True
+        self.lock.acquire()
         if self.handle is not None:
             try:
                 self.handle.write(data)
@@ -174,6 +195,7 @@ class QemuController(SdMuxController):
             result = False
 
         self.mtda.debug(3, "sdmux.qemu.write(): %s" % str(result))
+        self.lock.release()
         return result
 
 def instantiate(mtda):
