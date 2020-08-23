@@ -3,6 +3,7 @@ import abc
 import atexit
 import os
 import pathlib
+import psutil
 import signal
 import sys
 import tempfile
@@ -104,8 +105,30 @@ class QemuController(PowerController):
     def stop(self):
         self.mtda.debug(3, "power.qemu.stop()")
 
+        self.lock.acquire()
+        result = True
+
         if self.pid is not None:
-            os.kill(self.pid, signal.SIGTERM)
+
+            with open("/tmp/qemu-mtda.in", "w") as f:
+                f.write("quit\n")
+
+            result = False
+            timeout = 3
+            while timeout > 0 and psutil.pid_exists(self.pid):
+                self.mtda.debug(2, "power.qemu.stop(): waiting %d more seconds for qemu to terminate" % timeout)
+                time.sleep(1)
+                timeout = timeout - 1
+            if psutil.pid_exists(self.pid):
+                self.mtda.debug(2, "power.qemu.stop(): terminating qemu using SIGTERM (%d)" % self.pid)
+                os.kill(self.pid, signal.SIGTERM)
+                time.sleep(1)
+            if psutil.pid_exists(self.pid) == False:
+                result = True
+                self.pid = None
+
+        self.lock.release()
+        return result
 
     def monitor_output_non_blocking(self):
         self.mtda.debug(4, "power.qemu.monitor_output_non_blocking()")
