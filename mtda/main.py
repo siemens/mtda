@@ -18,6 +18,13 @@ from   mtda.console.remote_output import RemoteConsoleOutput
 import mtda.keyboard.controller
 import mtda.power.controller
 
+_NOPRINT_TRANS_TABLE = {
+    i: '.' for i in range(0, sys.maxunicode + 1) if not chr(i).isprintable()
+}
+
+def _make_printable(s):
+    return s.translate(_NOPRINT_TRANS_TABLE)
+
 class MultiTenantDeviceAccess:
 
     def __init__(self):
@@ -205,7 +212,10 @@ class MultiTenantDeviceAccess:
             else:
                 prefix = "# debug%d: " % level
             msg = str(msg).replace("\n", "\n%s ... " % prefix)
-            print("%s%s" % (prefix, msg), file=sys.stderr)
+            lines = msg.splitlines()
+            for line in lines:
+                line = _make_printable(line)
+                print("%s%s" % (prefix, line), file=sys.stderr)
 
     def env_get(self, name, session=None):
         self.mtda.debug(3, "env_get()")
