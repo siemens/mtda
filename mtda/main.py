@@ -233,9 +233,15 @@ class MultiTenantDeviceAccess:
 
         self._check_expired(session)
         result = None
+
         if name in self.env:
-            result = self.env[name]
+            old_value = self.env[name]
+            result = old_value
+        else:
+            old_value = value
+
         self.env[name] = value
+        self.env["_%s" % name] = old_value
 
         self.mtda.debug(3, "env_set(): %s" % str(result))
         return result
