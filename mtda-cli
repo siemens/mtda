@@ -64,6 +64,9 @@ class Application:
     def client(self):
         return self.agent
 
+    def debug(self, level, msg):
+        self.client().debug(level, msg)
+
     def console_clear(self, args):
         self.client().console_clear()
 
