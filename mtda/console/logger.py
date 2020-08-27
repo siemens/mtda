@@ -44,10 +44,10 @@ class ConsoleLogger:
         data = ""
         lines = len(self.rx_buffer)
         while lines > 0:
-            line = self.rx_buffer.popleft().decode("utf-8")
+            line = self.rx_buffer.popleft().decode("utf-8", "ignore")
             data = data + line
             lines = lines - 1
-        line = self.rx_queue.decode("utf-8")
+        line = self.rx_queue.decode("utf-8", "ignore")
         data = data + line
         self.rx_queue = bytearray()
         return data
@@ -60,7 +60,7 @@ class ConsoleLogger:
 
     def _head(self):
         if len(self.rx_buffer) > 0:
-            line = self.rx_buffer.popleft().decode("utf-8")
+            line = self.rx_buffer.popleft().decode("utf-8", "ignore")
         else:
             line = None
         return line
@@ -127,7 +127,7 @@ class ConsoleLogger:
             return None
         if discard == True:
             self._clear()
-        return line.decode("utf-8")
+        return line.decode("utf-8", "ignore")
 
     def tail(self):
         self.rx_lock.acquire()
