@@ -29,6 +29,7 @@ class QemuController(PowerController):
         self.pidOfSwTpm = None
         self.storage    = None
         self.swtpm      = "/usr/bin/swtpm"
+        self.watchdog   = None
 
     def configure(self, conf):
         self.mtda.debug(3, "power.qemu.configure()")
@@ -47,6 +48,8 @@ class QemuController(PowerController):
            self.storage = os.path.realpath(conf['storage'])
         if 'swtpm' in conf:
            self.swtpm = os.path.realpath(conf['swtpm'])
+        if 'watchdog' in conf:
+           self.watchdog = conf['watchdog']
         elif os.path.exists(self.swtpm) == False:
             self.swtpm = None
 
@@ -100,6 +103,8 @@ class QemuController(PowerController):
                 sparse = pathlib.Path(self.storage)
                 sparse.touch()
                 os.truncate(str(sparse), 16*1024*1024*1024)
+        if self.watchdog is not None:
+            options += " -watchdog %s" % self.watchdog
 
         # swtpm options
         if self.swtpm is not None:
