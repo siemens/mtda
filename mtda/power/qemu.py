@@ -241,19 +241,20 @@ class QemuController(PowerController):
     def status(self):
         self.mtda.debug(3, "power.qemu.status()")
 
-        lines = self.cmd('info status').splitlines()
         result = self.POWER_UNSURE
-        for line in lines:
-            line = line.strip()
-            if line.startswith("VM status:"):
-                if 'running' in line:
-                    result = self.POWER_ON
-                elif 'paused' in line:
-                    result = self.POWER_OFF
-                break
+        status = self.cmd('info status')
+        if status is not None:
+            for line in status.splitlines():
+                line = line.strip()
+                if line.startswith("VM status:"):
+                    if 'running' in line:
+                        result = self.POWER_ON
+                    elif 'paused' in line:
+                        result = self.POWER_OFF
+                    break
 
         if result == self.POWER_UNSURE:
-            self.mtda.debug(1, "unknown power status: %s" % "\n".join(lines))
+            self.mtda.debug(1, "unknown power status: %s" % str(status))
 
         self.mtda.debug(3, "power.qemu.status(): %s" % str(result))
         return result
