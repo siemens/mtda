@@ -2,7 +2,6 @@
 import abc
 import os
 import pathlib
-import re
 import subprocess
 import threading
 
@@ -17,6 +16,7 @@ class QemuController(SdMuxController):
         self.handle   = None
         self.id       = None
         self.lock     = threading.Lock()
+        self.name     = "sdmux"
         self.mode     = self.SD_ON_HOST
         self.qemu     = mtda.power_controller
 
@@ -49,6 +49,8 @@ class QemuController(SdMuxController):
                sparse = pathlib.Path(self.file)
                sparse.touch()
                os.truncate(str(sparse), 8*1024*1024*1024)
+        if 'name' in conf:
+            self.name = conf['name']
 
         self.mtda.debug(3, "sdmux.qemu.configure(): %s" % str(result))
         self.lock.release()
@@ -75,41 +77,14 @@ class QemuController(SdMuxController):
         self.lock.release()
         return result
 
-    def ids(self, info):
-        lines = info.splitlines()
-        results = []
-        for line in lines:
-            line = line.strip()
-            if line.startswith("Device "):
-                device = re.findall(r'Device (\d+.\d+),', line)[0]
-                results.append(device)
-        return results
-
     def add(self):
         self.mtda.debug(3, "sdmux.qemu.add()")
 
         result = True
         if self.id is None:
-            try:
-                before = self.ids(self.qemu.cmd("info usb"))
-                self.mtda.debug(2, "sdmux.qemu.add(): adding '%s' as usb storage" % self.file)
-                output = self.qemu.cmd("drive_add 0 if=none,id=usbdisk1,file=%s" % self.file)
-                self.mtda.debug(4, output)
-                result = False
-                for line in output.splitlines():
-                    line = line.strip()
-                    if line == "OK":
-                        result = True
-                        break
-                if result == True:
-                    output = self.qemu.cmd("device_add usb-storage,id=usbdisk1,drive=usbdisk1,removable=on")
-                    self.mtda.debug(4, output)
-                    after = self.ids(self.qemu.cmd("info usb"))
-                    self.id = set(after).difference(before).pop()
-                    self.mtda.debug(2, "sdmux.qemu.add(): usb-storage connected with id %s" % self.id)
-                else:
-                    self.mtda.debug(2, "sdmux.qemu.add(): usb storage could not be added:\n%s" % output)
-            except:
+            self.id = self.qemu.usb_add(self.name, self.file)
+            if self.id is None:
+                self.mtda.debug(1, "sdmux.qemu.add(): usb storage could not be added!")
                 result = False
 
         self.mtda.debug(3, "sdmux.qemu.add(): %s" % str(result))
@@ -120,9 +95,11 @@ class QemuController(SdMuxController):
 
         result = True
         if self.id is not None:
-            output = self.qemu.cmd("device_del usbdisk1")
-            self.mtda.debug(2, "sdmux.qemu.rm(): %s" % output)
-            self.id = None
+            result = self.qemu.usb_rm(self.name)
+            if result == True:
+                self.id = None
+            else:
+                self.mtda.debug(1, "sdmux.qemu.rm(): usb storage could not be removed!")
 
         self.mtda.debug(3, "sdmux.qemu.rm(): %s" % str(result))
         return result
