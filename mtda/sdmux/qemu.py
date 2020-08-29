@@ -12,7 +12,7 @@ class QemuController(SdMuxController):
 
     def __init__(self, mtda):
         self.mtda     = mtda
-        self.file     = "usb.img"
+        self.file     = "usb-sdmux.img"
         self.handle   = None
         self.id       = None
         self.lock     = threading.Lock()
