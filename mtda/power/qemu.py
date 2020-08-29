@@ -4,6 +4,7 @@ import atexit
 import os
 import pathlib
 import psutil
+import re
 import signal
 import sys
 import tempfile
@@ -268,6 +269,56 @@ class QemuController(PowerController):
         else:
             self.off()
         return self.status()
+
+    def usb_ids(self):
+        info = self.cmd("info usb")
+        lines = info.splitlines()
+        results = []
+        for line in lines:
+            line = line.strip()
+            if line.startswith("Device "):
+                device = re.findall(r'Device (\d+.\d+),', line)[0]
+                results.append(device)
+        return results
+
+    def usb_add(self, id, file):
+        self.mtda.debug(3, "power.qemu.usb_add()")
+
+        result = None
+        try:
+            before = self.usb_ids()
+            self.mtda.debug(2, "power.qemu.usb_add(): adding '{0}' as usb storage".format(file))
+            output = self.cmd("drive_add 0 if=none,id={0},file={1}".format(id, file))
+            self.mtda.debug(4, output)
+            added = False
+            for line in output.splitlines():
+                line = line.strip()
+                if line == "OK":
+                    added = True
+                    break
+            if added == True:
+                output = self.cmd("device_add usb-storage,id={0},drive={0},removable=on".format(id))
+                self.mtda.debug(4, output)
+                after = self.usb_ids()
+                result = set(after).difference(before).pop()
+                self.mtda.debug(2, "power.qemu.usb_add(): usb-storage '{0}' connected as {1}".format(id, result))
+            else:
+                self.mtda.debug(2, "power.qemu.usb_add(): usb storage could not be added:\n%s" % output)
+        except:
+            result = None
+
+        self.mtda.debug(3, "power.qemu.usb_add(): %s" % str(result))
+        return result
+
+    def usb_rm(self, id):
+        self.mtda.debug(3, "power.qemu.usb_rm()")
+
+        result = True
+        output = self.cmd("device_del {0}".format(id))
+        self.mtda.debug(2, "power.qemu.usb_rm(): %s" % output)
+
+        self.mtda.debug(3, "power.qemu.usb_rm(): %s" % str(result))
+        return result
 
     def wait(self):
         self.mtda.debug(3, "power.qemu.wait()")
