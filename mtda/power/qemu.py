@@ -26,6 +26,8 @@ class QemuController(PowerController):
         self.machine    = None
         self.memory     = 512
         self.mtda       = mtda
+        self.pflash_ro  = None
+        self.pflash_rw  = None
         self.pidOfQemu  = None
         self.pidOfSwTpm = None
         self.storage    = None
@@ -45,6 +47,10 @@ class QemuController(PowerController):
            self.machine = conf['machine']
         if 'memory' in conf:
            self.memory = int(conf['memory'])
+        if 'pflash_ro' in conf:
+           self.pflash_ro = os.path.realpath(conf['pflash_ro'])
+        if 'pflash_rw' in conf:
+           self.pflash_rw = os.path.realpath(conf['pflash_rw'])
         if 'storage' in conf:
            self.storage = os.path.realpath(conf['storage'])
         if 'swtpm' in conf:
@@ -111,6 +117,10 @@ class QemuController(PowerController):
             options += " -cpu %s" % self.cpu
         if self.machine is not None:
             options += " -machine %s" % self.machine
+        if self.pflash_ro is not None:
+            options += " -drive if=pflash,format=raw,readonly,file=%s" % self.pflash_ro
+        if self.pflash_rw is not None:
+            options += " -drive if=pflash,format=raw,file=%s" % self.pflash_rw
         if self.storage is not None:
             options += " -drive file=%s,media=disk,format=raw" % self.storage
             if os.path.exists(self.storage) == False:
