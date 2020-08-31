@@ -65,6 +65,18 @@ class QemuController(PowerController):
         if self.swtpm is not None and os.path.exists(self.swtpm) == False:
             raise ValueError("swtpm (%s) could not be found!" % self.swtpm)
 
+    def getpid(self, pidfile, timeout=30):
+        result = 0
+        while timeout > 0:
+            with open(pidfile, "r") as f:
+                data = f.read()
+                if data:
+                    result = int(data)
+                    break
+            time.sleep(1)
+            timeout = timeout - 1
+        return result
+
     def start(self):
         self.mtda.debug(3, "power.qemu.start()")
 
@@ -82,10 +94,11 @@ class QemuController(PowerController):
         os.mkfifo("/tmp/qemu-mtda.out")
         os.mkfifo("/tmp/qemu-serial.in")
         os.mkfifo("/tmp/qemu-serial.out")
-        self.pidfile = tempfile.NamedTemporaryFile(delete=False).name
+
+        atexit.register(self.stop)
 
         # base options
-        options  = "-daemonize -pidfile %s -S -m %d" % (self.pidfile, self.memory)
+        options  = "-daemonize -S -m %d" % self.memory
         options += " -chardev pipe,id=monitor,path=/tmp/qemu-mtda -monitor chardev:monitor"
         options += " -serial pipe:/tmp/qemu-serial"
         options += " -usb"
@@ -109,30 +122,52 @@ class QemuController(PowerController):
 
         # swtpm options
         if self.swtpm is not None:
-            os.makedirs("/tmp/qemu-swtpm", exist_ok=True)
-            result = os.system(self.swtpm
+            with tempfile.NamedTemporaryFile() as pidfile:
+                os.makedirs("/tmp/qemu-swtpm", exist_ok=True)
+                result = os.system(self.swtpm
                       + " socket -d"
                       + " --tpmstate dir=/tmp/qemu-swtpm"
                       + " --ctrl type=unixio,path=/tmp/qemu-swtpm/sock"
-                      + " --pid file=%s --tpm2" % self.pidfile)
-            if result == 0:
-                with open(self.pidfile, "r") as f:
-                    self.pidOfSwTpm = int(f.read())
-                self.mtda.debug(2, "power.qemu.start(): swtpm process started [%d]" % self.pidOfSwTpm)
+                      + " --pid file=%s --tpm2" % pidfile.name)
+                if result == 0:
+                    self.pidOfSwTpm = self.getpid(pidfile.name)
+                    self.mtda.debug(2, "power.qemu.start(): swtpm process started [%d]" % self.pidOfSwTpm)
+                else:
+                    self.mtda.debug(1, "power.qemu.start(): swtpm process failed (%d)" % result)
+                    return False
 
                 options += " -chardev socket,id=chrtpm,path=/tmp/qemu-swtpm/sock"
                 options += " -tpmdev emulator,id=tpm0,chardev=chrtpm"
                 options += " -device tpm-tis,tpmdev=tpm0"
 
-        result = os.system("%s %s" % (self.executable, options))
-        if result == 0:
-            with open(self.pidfile, "r") as f:
-                self.pidOfQemu = int(f.read())
-            self.mtda.debug(2, "power.qemu.start(): qemu process started [%d]" % self.pidOfQemu)
-            os.unlink(self.pidfile)
-            atexit.register(self.stop)
-            return True
+        with tempfile.NamedTemporaryFile() as pidfile:
+            options += " -pidfile {0}".format(pidfile.name)
+            result = os.system("%s %s" % (self.executable, options))
+            if result == 0:
+                self.pidOfQemu = self.getpid(pidfile.name)
+                self.mtda.debug(2, "power.qemu.start(): qemu process started [%d]" % self.pidOfQemu)
+                return True
+            else:
+                self.mtda.debug(1, "power.qemu.start(): qemu process failed (%d)" % result)
         return False
+
+    def kill(self, name, pid, wait_before_kill=True, timeout=3):
+        tries = timeout
+        while wait_before_kill and tries > 0 and psutil.pid_exists(pid):
+            self.mtda.debug(2, "waiting %d more seconds for %s [%d] to terminate" % (timeout, name, pid))
+            time.sleep(1)
+            tries = tries - 1
+        if psutil.pid_exists(pid):
+            self.mtda.debug(2, "terminating %s [%d] using SIGTERM" % (name, pid))
+            os.kill(pid, signal.SIGTERM)
+            tries = timeout
+        while tries > 0 and psutil.pid_exists(pid):
+            time.sleep(1)
+            tries = tries - 1
+        if psutil.pid_exists(pid):
+            self.mtda.debug(2, "terminating %s [%d] using SIGKILL" % (name, pid))
+            os.kill(pid, signal.SIGKILL)
+        return psutil.pid_exists(pid)
 
     def stop(self):
         self.mtda.debug(3, "power.qemu.stop()")
@@ -144,26 +179,14 @@ class QemuController(PowerController):
 
             with open("/tmp/qemu-mtda.in", "w") as f:
                 f.write("quit\n")
-
-            result = False
-            timeout = 3
-            while timeout > 0 and psutil.pid_exists(self.pidOfQemu):
-                self.mtda.debug(2, "power.qemu.stop(): waiting %d more seconds for qemu to terminate" % timeout)
-                time.sleep(1)
-                timeout = timeout - 1
-            if psutil.pid_exists(self.pidOfQemu):
-                self.mtda.debug(2, "power.qemu.stop(): terminating qemu using SIGTERM (%d)" % self.pidOfQemu)
-                os.kill(self.pidOfQemu, signal.SIGTERM)
-                time.sleep(1)
-            if psutil.pid_exists(self.pidOfQemu) == False:
-                result = True
+            result = self.kill("qemu", self.pidOfQemu)
+            if result:
                 self.pidOfQemu = None
 
         if self.pidOfSwTpm is not None:
-            if psutil.pid_exists(self.pidOfSwTpm):
-                self.mtda.debug(2, "power.qemu.stop(): terminating swtpm using SIGTERM (%d)" % self.pidOfSwTpm)
-                os.kill(self.pidOfSwTpm, signal.SIGTERM)
-            self.pidOfSwTpm = None
+            result = self.kill("swtpm", self.pidOfSwTpm, False)
+            if result:
+                self.pidOfSwTpm = None
 
         self.lock.release()
         return result
