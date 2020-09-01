@@ -221,15 +221,12 @@ class QemuController(PowerController):
             output += self.monitor_output_non_blocking()
         return output
 
-    def cmd(self, what):
-        self.mtda.debug(3, "power.qemu.cmd()")
+    def _cmd(self, what):
+        self.mtda.debug(3, "power.qemu._cmd()")
 
         started = self.start()
         if started == False:
             return None
-
-        # serialize commands to the monitor
-        self.lock.acquire()
 
         # flush monitor output
         self.monitor_output_non_blocking()
@@ -241,8 +238,18 @@ class QemuController(PowerController):
         # provide response from the monitor
         output = self.monitor_command_output()
 
-        self.lock.release()
+        self.mtda.debug(3, "power.qemu._cmd(): %s" % str(output))
         return output
+
+    def cmd(self, what):
+        self.mtda.debug(3, "power.qemu.cmd()")
+
+        self.lock.acquire()
+        result = self._cmd(what)
+        self.lock.release()
+
+        self.mtda.debug(3, "power.qemu.cmd(): %s" % str(result))
+        return result
 
     def on(self):
         self.mtda.debug(3, "power.qemu.on()")
@@ -304,53 +311,64 @@ class QemuController(PowerController):
         return self.status()
 
     def usb_ids(self):
-        info = self.cmd("info usb")
+        info = self._cmd("info usb")
         lines = info.splitlines()
         results = []
         for line in lines:
             line = line.strip()
             if line.startswith("Device "):
-                device = re.findall(r'Device (\d+.\d+),', line)[0]
-                results.append(device)
+                self.mtda.debug(2, "power.qemu.usb_ids(): {0}".format(line))
+                match = re.findall(r'ID: (\S+)$', line)
+                if match:
+                    results.append(match[0])
         return results
 
     def usb_add(self, id, file):
         self.mtda.debug(3, "power.qemu.usb_add()")
 
         result = None
-        try:
-            before = self.usb_ids()
-            self.mtda.debug(2, "power.qemu.usb_add(): adding '{0}' as usb storage".format(file))
-            output = self.cmd("drive_add 0 if=none,id={0},file={1}".format(id, file))
-            self.mtda.debug(4, output)
+        self.lock.acquire()
+
+        if id not in self.usb_ids():
+            self.mtda.debug(2, "power.qemu.usb_add(): adding '{0}' as '{1}'".format(file, id))
+            output = self._cmd("drive_add 0 if=none,id={0},file={1}".format(id, file))
             added = False
+            reason = "drive_add failed"
             for line in output.splitlines():
                 line = line.strip()
                 if line == "OK":
                     added = True
                     break
             if added == True:
-                output = self.cmd("device_add usb-storage,id={0},drive={0},removable=on".format(id))
-                self.mtda.debug(4, output)
-                after = self.usb_ids()
-                result = set(after).difference(before).pop()
-                self.mtda.debug(2, "power.qemu.usb_add(): usb-storage '{0}' connected as {1}".format(id, result))
+                reason = "device_add failed"
+                self._cmd("device_add usb-storage,id={0},drive={0},removable=on".format(id))
+                added = (id in self.usb_ids())
+            if added == True:
+                result = id
+                self.mtda.debug(2, "power.qemu.usb_add(): usb-storage '{0}' connected".format(id))
             else:
-                self.mtda.debug(2, "power.qemu.usb_add(): usb storage could not be added:\n%s" % output)
-        except:
-            result = None
+                self.mtda.debug(1, "power.qemu.usb_add(): usb-storage '{0}' could not be added ({1})!".format(id, reason))
 
         self.mtda.debug(3, "power.qemu.usb_add(): %s" % str(result))
+        self.lock.release()
         return result
 
     def usb_rm(self, id):
         self.mtda.debug(3, "power.qemu.usb_rm()")
 
         result = True
-        output = self.cmd("device_del {0}".format(id))
-        self.mtda.debug(2, "power.qemu.usb_rm(): %s" % output)
+        self.lock.acquire()
+
+        if id in self.usb_ids():
+            self._cmd("device_del {0}".format(id))
+            result = (id in self.usb_ids())
+            if result:
+                self.mtda.debug(2, "power.qemu.usb_rm(): usb-storage '{0}' removed".format(id))
+            else:
+                self.mtda.debug(1, "power.qemu.usb_rm(): usb-storage '{0}' could not be removed!".format(id))
 
         self.mtda.debug(3, "power.qemu.usb_rm(): %s" % str(result))
+        self.lock.release()
         return result
 
     def wait(self):
