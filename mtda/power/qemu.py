@@ -361,7 +361,7 @@ class QemuController(PowerController):
 
         if id in self.usb_ids():
             self._cmd("device_del {0}".format(id))
-            result = (id in self.usb_ids())
+            result = (id not in self.usb_ids())
             if result:
                 self.mtda.debug(2, "power.qemu.usb_rm(): usb-storage '{0}' removed".format(id))
             else:
