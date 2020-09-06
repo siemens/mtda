@@ -22,6 +22,7 @@ class QemuController(PowerController):
         self.bios       = None
         self.cpu        = None
         self.executable = "kvm"
+        self.hostname   = "mtda-kvm"
         self.lock       = threading.Lock()
         self.machine    = None
         self.memory     = 512
@@ -43,6 +44,8 @@ class QemuController(PowerController):
            self.cpu = conf['cpu']
         if 'executable' in conf:
            self.executable = conf['executable']
+        if 'hostname' in conf:
+           self.hostname = conf['hostname']
         if 'machine' in conf:
            self.machine = conf['machine']
         if 'memory' in conf:
@@ -107,6 +110,8 @@ class QemuController(PowerController):
         options  = "-daemonize -S -m %d" % self.memory
         options += " -chardev pipe,id=monitor,path=/tmp/qemu-mtda -monitor chardev:monitor"
         options += " -serial pipe:/tmp/qemu-serial"
+        options += " -device e1000,netdev=net0"
+        options += " -netdev user,id=net0,hostfwd=tcp::2222-:22,hostname={0}".format(self.hostname)
         options += " -usb"
         options += " -vnc :0"
 
