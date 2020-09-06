@@ -4,7 +4,7 @@
 import os
 from setuptools import setup, find_packages
 
-VERSION = '0.3'
+VERSION = '0.4'
 
 setup(
     name='mtda',
