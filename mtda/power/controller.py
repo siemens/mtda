@@ -19,6 +19,11 @@ class PowerController(object):
         return
 
     @abc.abstractmethod
+    def command(self, args):
+        """ Send a command to the device"""
+        return False
+
+    @abc.abstractmethod
     def on(self):
         """ Power on the attached device"""
         return

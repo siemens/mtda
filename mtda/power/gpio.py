@@ -35,6 +35,9 @@ class GpioPowerController(PowerController):
         f.write("out")
         f.close()
 
+    def command(self, args):
+        return False
+
     def on(self):
         """ Power on the attached device"""
         f = open("/sys/class/gpio/gpio%d/value" % self.pin, "w")
