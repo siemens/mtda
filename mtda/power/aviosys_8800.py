@@ -30,6 +30,9 @@ class Aviosys8800PowerController(PowerController):
         if self.dev is None:
             raise ValueError("Aviosys 8800 device not found!")
 
+    def command(self, args):
+        return False
+
     def on(self):
         """ Power on the attached device"""
         status = self.dev.ctrl_transfer(0x40, 0x01, 0x0001, 0xa0, [])

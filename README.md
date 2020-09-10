@@ -161,6 +161,10 @@ $ mtda-cli storage target
 
 # Power on the target
 $ mtda-cli target on
+
+# Send a command to the device controller
+# (for kvm, this is a command to the QEMU monitor)
+$ mtda-cli command hostfwd_add tcp::8080-:8080
 ```
 
 # Interactive console

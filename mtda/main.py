@@ -67,6 +67,17 @@ class MultiTenantDeviceAccess:
         if os.path.exists('/etc'):
             self.config_files.append(os.path.join('/etc', 'mtda', 'config'))
 
+    def command(self, args, session=None):
+        self.mtda.debug(3, "main.command()")
+
+        self._check_expired(session)
+        result = False
+        if self.power_locked(session) == False:
+            result = self.power_controller.command(args)
+
+        self.mtda.debug(3, "main.command(): %s" % str(result))
+        return result
+
     def console_getkey(self):
         self.mtda.debug(3, "main.console_getkey()")
 
