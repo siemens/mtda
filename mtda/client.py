@@ -33,6 +33,9 @@ class Client:
             name = "mtda"
         self._session = os.getenv('MTDA_SESSION', name)
 
+    def command(self, args):
+        return self._impl.command(args, self._session)
+
     def console_clear(self):
         return self._impl.console_clear(self._session)
 

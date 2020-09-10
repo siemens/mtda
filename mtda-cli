@@ -67,6 +67,13 @@ class Application:
     def debug(self, level, msg):
         self.client().debug(level, msg)
 
+    def command_cmd(self, args):
+        result = self.client().command(args)
+        if isinstance(result, str):
+            print(result)
+        else:
+            print("Device command '{0}' failed!".format(" ".join(args)), file=sys.stderr)
+
     def console_clear(self, args):
         self.client().console_clear()
 
@@ -113,7 +120,7 @@ class Application:
 
         # Restore tty settings
         print("\r\nThank you for using MTDA!\r\n\r\n")
-        termios.tcsetattr(fd, termios.TCSANOW, old_settings)
+        termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, old_settings)
 
     def console_menukey(self, c):
         server = self.client()
@@ -248,6 +255,7 @@ class Application:
             print("usage: mtda [options] <command> [<args>]")
             print("")
             print("The most commonly used mtda commands are:")
+            print("   command   Send a command (string) to the device")
             print("   console   Interact with the device console")
             print("   getenv    Get named variable from the environment")
             print("   target    Power control the device")
@@ -534,6 +542,7 @@ class Application:
            stuff.pop(0)
 
            cmds = {
+              'command'  : self.command_cmd,
               'console'  : self.console_cmd,
               'getenv'   : self.getenv_cmd,
               'help'     : self.help_cmd,

@@ -224,6 +224,10 @@ class QemuController(PowerController):
         output = ""
         while output.endswith("(qemu) ") == False:
             output += self.monitor_output_non_blocking()
+        if output.endswith("(qemu) "):
+            output = output[:-7]
+
+        self.mtda.debug(3, "power.qemu.monitor_command_output(): %s" % output)
         return output
 
     def _cmd(self, what):
@@ -237,8 +241,9 @@ class QemuController(PowerController):
         self.monitor_output_non_blocking()
 
         # send requested command to "out" pipe
+        what += "\n"
         with open("/tmp/qemu-mtda.in", "w") as f:
-            f.write("%s\n" % what)
+            f.write(what)
 
         # provide response from the monitor
         output = self.monitor_command_output()
@@ -254,6 +259,15 @@ class QemuController(PowerController):
         self.lock.release()
 
         self.mtda.debug(3, "power.qemu.cmd(): %s" % str(result))
+        return result
+
+    def command(self, args):
+        self.mtda.debug(3, "power.qemu.command()")
+
+        result = self.cmd(" ".join(args))
+        result = "\n".join(result.splitlines()[1:])
+
+        self.mtda.debug(3, "power.qemu.command(): %s" % str(result))
         return result
 
     def on(self):

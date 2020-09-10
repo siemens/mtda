@@ -38,6 +38,9 @@ class PduClientController(PowerController):
         client = "/usr/bin/pduclient"
         return os.system("%s --daemon %s --hostname %s --command %s --port %s" % (client, self.daemon, self.hostname, what, self.port))
 
+    def command(self, args):
+        return False
+
     def on(self):
         """ Power on the attached device"""
         status = self.cmd('on')
