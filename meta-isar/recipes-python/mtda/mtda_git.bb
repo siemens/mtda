@@ -4,7 +4,7 @@
 inherit dpkg
 
 SRC_URI += "git://github.com/MentorEmbedded/mtda.git;protocol=https;branch=master"
-SRCREV   = "d90042bee6f0b78a15846eb9c1d5b17c8f1fe8dd"
+SRCREV   = "4e313636d57a38015dfd4772f6de44d7cd691a26@
 S        = "${WORKDIR}/git"
 
 DEPENDS += "zerorpc-python"
