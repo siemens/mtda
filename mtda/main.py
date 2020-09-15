@@ -834,6 +834,8 @@ class MultiTenantDeviceAccess:
         configs_found = parser.read(self.config_files)
         if parser.has_section('main'):
             self.load_main_config(parser)
+        if parser.has_section('environment'):
+            self.load_environment(parser)
         if parser.has_section('remote'):
             self.load_remote_config(parser)
         if self.is_remote == False:
@@ -856,6 +858,14 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.load_main_config()")
 
         self.mtda.debug_level = int(parser.get('main', 'debug', fallback=self.mtda.debug_level))
+
+    def load_environment(self, parser):
+        self.mtda.debug(3, "main.load_environment()")
+
+        for opt in parser.options('environment'):
+            value = parser.get('environment', opt)
+            self.mtda.debug(2, "main.load_environment(): %s => %s" % (opt, value))
+            self.env_set(opt, value)
 
     def load_console_config(self, parser):
         self.mtda.debug(3, "main.load_console_config()")
