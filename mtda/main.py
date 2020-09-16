@@ -376,7 +376,7 @@ class MultiTenantDeviceAccess:
 
         self._check_expired(session)
         if self.sdmux_controller is None:
-            self.mtda.debug(4, "storage_open(): no shared storage device")
+            self.mtda.debug(1, "storage_open(): no shared storage device")
             result = False
         else:
             self.storage_close()
@@ -533,11 +533,13 @@ class MultiTenantDeviceAccess:
 
         self._check_expired(session)
         if self.sdmux_controller is None:
+            self.mtda.debug(1, "main.storage_write_raw(): no sdmux!")
             result = -1
         else:
             result = self.sdmux_controller.write(data)
             if result == False:
-                resukt = -1
+                self.mtda.debug(1, "main.storage_write_raw(): write() failed")
+                result = -1
             else:
                 self._storage_bytes_written += len(data)
                 result = self.blksz
@@ -864,7 +866,7 @@ class MultiTenantDeviceAccess:
 
         for opt in parser.options('environment'):
             value = parser.get('environment', opt)
-            self.mtda.debug(2, "main.load_environment(): %s => %s" % (opt, value))
+            self.mtda.debug(4, "main.load_environment(): %s => %s" % (opt, value))
             self.env_set(opt, value)
 
     def load_console_config(self, parser):
