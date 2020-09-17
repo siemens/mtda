@@ -93,9 +93,9 @@ class Image(SdMuxController):
 
     def mount(self, part=None):
         self.mtda.debug(3, "sdmux.helpers.image.mount()")
+        self.lock.acquire()
 
         result = True
-        self.lock.acquire()
         if self._status() == self.SD_ON_HOST:
             self.device = self.file
             p = pathlib.Path(self.file)
@@ -144,9 +144,9 @@ class Image(SdMuxController):
 
     def open(self):
         self.mtda.debug(3, "sdmux.helpers.image.open()")
+        self.lock.acquire()
 
         result = True
-        self.lock.acquire()
         if self._status() == self.SD_ON_HOST:
             if self.handle is None:
                 try:
@@ -190,8 +190,8 @@ class Image(SdMuxController):
 
     def update(self, dst, offset, data):
         self.mtda.debug(3, "sdmux.helpers.image.update()")
-
         self.lock.acquire()
+
         f = None
         path = self._locate(dst)
         result = -1
@@ -211,9 +211,9 @@ class Image(SdMuxController):
 
     def write(self, data):
         self.mtda.debug(3, "sdmux.helpers.image.write()")
+        self.lock.acquire()
 
         result = False
-        self.lock.acquire()
         if self.handle is not None:
             try:
                 self.handle.write(data)
