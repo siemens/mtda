@@ -1,5 +1,6 @@
 # System imports
 import abc
+import os
 import subprocess
 
 # Local imports
@@ -12,6 +13,7 @@ class UsbFunctionController(Image):
         self.gadget   = "usb_functions_for_mentor_test_device_agent"
         self.function = "mass_storage.usb0"
         self.mode     = self.SD_ON_HOST
+        self.reset    = None
 
     """ Configure this sdmux controller from the provided configuration"""
     def configure(self, conf):
@@ -22,6 +24,10 @@ class UsbFunctionController(Image):
            self.gadget = conf['gadget']
         if 'function' in conf:
            self.function = conf['function']
+        if 'reset' in conf:
+           self.reset = conf['reset']
+
+        self.sysfs = "/sys/kernel/config/usb_gadget/{0}/functions/{1}/lun.0/file".format(self.gadget, self.function)
 
         self.mtda.debug(3, "sdmux.usbf.configure(): %s" % str(result))
         return result
@@ -32,7 +38,7 @@ class UsbFunctionController(Image):
 
         result = True
         try:
-            with open("/sys/kernel/config/usb_gadget/%s/functions/%s/lun.0/file" % (self.gadget, self.function)) as conf:
+            with open(self.sysfs) as conf:
                 self.file = conf.read().rstrip()
                 conf.close()
         except:
@@ -44,11 +50,17 @@ class UsbFunctionController(Image):
     """ Attach the SD card to the host"""
     def to_host(self):
         self.mtda.debug(3, "sdmux.usbf.to_host()")
+        self.lock.acquire()
 
         result = True
-        self.mode = self.SD_ON_HOST
+        if self.reset:
+            os.environ["MASS_STORAGE_FILE"] = ""
+            result = (os.system(self.reset)) == 0
+        if result:
+            self.mode = self.SD_ON_HOST
 
         self.mtda.debug(3, "sdmux.usbf.to_host(): %s" % str(result))
+        self.lock.release()
         return result
 
     """ Attach the SD card to the target"""
@@ -60,7 +72,12 @@ class UsbFunctionController(Image):
         if result == True:
             result = self._umount()
 
-        if result == True:
+        if result:
+            if self.reset:
+                os.environ["MASS_STORAGE_FILE"] = self.file
+                result = (os.system(self.reset)) == 0
+
+        if result:
             self.mode = self.SD_ON_TARGET
 
         self.lock.release()
