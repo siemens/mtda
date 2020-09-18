@@ -676,6 +676,8 @@ class MultiTenantDeviceAccess:
         self._check_expired(session)
         if self.power_locked(session) == False:
             result = self.power_controller.off()
+            if self.keyboard is not None:
+                self.keyboard.idle()
             if self.console_logger is not None:
                 self.console_logger.reset_timer()
                 if result == True:
