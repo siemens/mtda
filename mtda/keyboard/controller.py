@@ -14,6 +14,11 @@ class KeyboardController(object):
         return
 
     @abc.abstractmethod
+    def idle(self):
+        """ Put the keyboard controller in idle state"""
+        return
+
+    @abc.abstractmethod
     def esc(self, repeat=1):
         return False
 
