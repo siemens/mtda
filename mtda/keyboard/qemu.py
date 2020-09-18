@@ -26,11 +26,9 @@ class QemuController(KeyboardController):
         self.mtda.debug(3, "keyboard.qemu.probe(): %s" % str(result))
         return result
 
-    def write_report(self, report):
-        self.mtda.debug(3, "keyboard.qemu.write_report()")
+    def idle(self):
+        return True
 
-        return self.fd.write(report.encode())
- 
     def press(self, key, repeat=1):
         self.mtda.debug(3, "keyboard.qemu.press()")
 

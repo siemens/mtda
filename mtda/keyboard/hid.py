@@ -41,6 +41,17 @@ class HidKeyboardController(KeyboardController):
 
         return self.fd.write(report.encode())
  
+    def idle(self):
+        self.mtda.debug(3, "keyboard.hid.idle()")
+
+        result = True
+        if self.fd is None:
+            self.fd.close()
+            self.fd = None
+
+        self.mtda.debug(3, "keyboard.hid.idle(): %s" % str(result))
+        return result
+
     def press(self, key, mod=0x00, repeat=1):
         self.mtda.debug(3, "keyboard.hid.press()")
 
