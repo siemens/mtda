@@ -35,6 +35,7 @@ class MultiTenantDeviceAccess:
         self.console_output = None
         self.debug_level = 0
         self.env = {}
+        self.fuse = False
         self.keyboard = None
         self.mtda = self
         self.power_controller = None
@@ -862,6 +863,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.load_main_config()")
 
         self.mtda.debug_level = int(parser.get('main', 'debug', fallback=self.mtda.debug_level))
+        self.mtda.fuse = parser.getboolean('main', 'fuse', fallback=self.mtda.fuse)
 
     def load_environment(self, parser):
         self.mtda.debug(3, "main.load_environment()")
