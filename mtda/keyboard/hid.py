@@ -45,7 +45,7 @@ class HidKeyboardController(KeyboardController):
         self.mtda.debug(3, "keyboard.hid.idle()")
 
         result = True
-        if self.fd is None:
+        if self.fd is not None:
             self.fd.close()
             self.fd = None
 
