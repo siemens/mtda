@@ -1,0 +1,11 @@
+[Unit]
+Description=USB functions for MTDA
+Before=mtda.service
+
+[Service]
+EnvironmentFile=-/etc/mtda/usb-functions
+Type=simple
+ExecStart=/usr/libexec/mtda/usb-functions install
+
+[Install]
+WantedBy=multi-user.target
