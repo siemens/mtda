@@ -4,11 +4,11 @@
 import os
 from setuptools import setup, find_packages
 
-VERSION = '0.4'
+from mtda import __version__
 
 setup(
     name='mtda',
-    version=VERSION,
+    version=__version__,
     scripts=['mtda-cli'],
     packages=find_packages(exclude=["demos"]),
     author='Cedric Hombourger',
