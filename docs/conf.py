@@ -18,9 +18,17 @@
 # -- Project information -----------------------------------------------------
 
 project = 'MTDA'
-copyright = '2020, Cedric Hombourger'
+copyright = 'Mentor Embedded, 2017-2020'
 author = 'Cedric Hombourger'
 
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# The short X.Y version.
+version = mtda.__version__
+# The full version, including alpha/beta/rc tags.
+release = mtda.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -38,6 +46,8 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# The master toctree document.
+master_doc = 'index'
 
 # -- Options for HTML output -------------------------------------------------
 
