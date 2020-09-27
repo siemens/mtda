@@ -13,6 +13,7 @@ Welcome to MTDA's documentation!
    intro
    install
    config
+   build
 
 Indices and tables
 ==================
