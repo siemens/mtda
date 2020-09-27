@@ -1,0 +1,28 @@
+header:
+  version: 8
+
+machine: nanopi-neo
+distro: debian-buster
+target: isar-image-base
+
+repos:
+  this:
+    layers:
+      meta-isar:
+  isar:
+    url: https://github.com/ilbers/isar.git
+    refspec: master
+    layers:
+      meta:
+      meta-isar:
+
+bblayers_conf_header:
+  standard: |
+    LCONF_VERSION = "6"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+
+local_conf_header:
+  standard: |
+    CONF_VERSION = "1"
+    MTDA_CONFIG_PN = "mtda-bbb-for-ipc"
