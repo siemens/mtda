@@ -1,13 +1,17 @@
 # This Isar layer is part of MTDA
 # Copyright (C) 2017-2019 Mentor Graphics, a Siemens business
 
+# Default device/file to use for our USB Mass Storage Gadget
+MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
+
 # Here's our list of custom packages
-MTDA_PACKAGES = "      \
-    mtda               \
-    mtda-hostname      \
-    mtda-usb-functions \
-    sd-mux-ctrl        \
-    sshd-regen-keys    \
+MTDA_PACKAGES = "                        \
+    mtda                                 \
+    mtda-hostname                        \
+    mtda-usb-functions                   \
+    sd-mux-ctrl                          \
+    sshd-regen-keys                      \
+    usb-ms-use-${MTDA_MASS_STORAGE_FILE} \
 "
 
 # Add them as build dependencies
@@ -22,6 +26,7 @@ IMAGE_PREINSTALL += "  \
     isc-dhcp-client    \
     network-manager    \
     ssh                \
+    sudo               \
     vim                \
 "
 
@@ -41,6 +46,7 @@ USER_mtda[gid] = "mtda"
 USER_mtda[home] = "/home/mtda"
 USER_mtda[comment] = "Mentor Test Device Agent"
 USER_mtda[flags] = "system create-home"
+USER_mtda[groups] = "mtda sudo"
 USER_mtda[password] ??= "$6$uaP1WXXu/joK8zxJ$LONexagmcWBKkY/HRQe0fVjY7n06FkX1qJUjigQ.4JVYxC9/OfBu3iJrF8hugMo2CaIh1sIOxDdpXvWWIjhfQ1"
 
 # Remove the "isar" accounts
