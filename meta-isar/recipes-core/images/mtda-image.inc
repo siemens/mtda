@@ -2,11 +2,12 @@
 # Copyright (C) 2017-2019 Mentor Graphics, a Siemens business
 
 # Here's our list of custom packages
-MTDA_PACKAGES = "    \
-    mtda             \
-    mtda-hostname    \
-    sd-mux-ctrl      \
-    sshd-regen-keys  \
+MTDA_PACKAGES = "      \
+    mtda               \
+    mtda-hostname      \
+    mtda-usb-functions \
+    sd-mux-ctrl        \
+    sshd-regen-keys    \
 "
 
 # Add them as build dependencies
