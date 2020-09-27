@@ -71,4 +71,61 @@ NEO-LTS:
 .. image:: neo_pinout.jpg
 
 We will use pin #4 (``5V OUT``) to deliver 5V to the relay, pin #6 (``GND``) to
-connect the relay to ground and pin #7 (``PG11``) to drive the relay.
+connect the relay to ground and pin #7 (``PG11``) to drive the relay. It should
+be noted that the signal GPIO pin is seen as GPIO ``203`` in Linux.
+
+Configuring MTDA
+~~~~~~~~~~~~~~~~
+
+A configuration file should be created on the NanoPI NEO-LTS. Use ``ssh`` to
+connect with the ``mtda`` user and then ``sudo`` to get elevated privileges::
+
+    $ ssh mtda@172.17.0.2
+    The authenticity of host '172.17.0.2 (172.17.0.2)' can't be established.
+    ECDSA key fingerprint is SHA256:X4hTqfSmfG1bet2Bg/MfU1fNMgp30T+6SkAwLXZbJTQ.
+    Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+    Warning: Permanently added '172.17.0.2' (ECDSA) to the list of known hosts.
+    mtda@172.17.0.2's password: mtda 
+    Linux mtda 4.19.0-11-armmp #1 SMP Debian 4.19.146-1 (2020-09-17) armv7l
+
+    The programs included with the Debian GNU/Linux system are free software;
+    the exact distribution terms for each program are described in the
+    individual files in /usr/share/doc/*/copyright.
+
+    Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+    permitted by applicable law.
+    Last login: Sun Sep 27 18:40:42 2020 from 172.17.0.100
+    $ sudo -s
+    [sudo] password for mtda: mtda
+    #
+
+Use ``vi`` to create an initial configuration::
+
+    # vi /etc/mtda/config
+
+Hit ``i`` to enter the input mode and type the following configuration::
+
+    [console]
+    variant=serial
+    port=/dev/ttyGS0
+    rate=9600
+
+    [power]
+    variant=gpio
+    pin=203
+
+    [keyboard]
+    variant=hid
+    device=/dev/hidg0
+
+    [sdmux]
+    variant=usbf
+
+Hit ``ESC`` to leave the input mode and type ``:x`` to exit. You should be back
+to the shell and may restart the agent::
+
+    # sync
+    # systemctl restart mtda
+
+Clients may now connect to the MTDA agent, control the power input of the Device
+Under Test and remotely access its console.
