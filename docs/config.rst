@@ -12,7 +12,7 @@ files (Python's `configparser` module is used to parse them).
 It is possible to override some settings using environment variables.
 
 General settings
-~~~~~~~~~~~~~~~~
+----------------
 
 * ``main``: section [optional]
     Usually placed at the top of MTDA configuration files. It contains general
@@ -89,3 +89,32 @@ General settings
   * ``ports``: integer [optional]
       Number of USB ports. Each port should then be configured with its own
       ``[usbN]`` section where ``N`` is the port index (starting from ``1``).
+
+Power settings
+--------------
+
+The ``[power]`` section configures a power controller to power the device on or
+off. The driver is selected with the ``variant`` setting. Driver-specific
+settings are detailed below.
+
+``aviosys_8800`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``aviosys_8800`` driver supports the USB controller power outlet from
+Aviosys. The following settings are supported:
+
+* ``pid``: integer [optional]
+    The USB product ID of the power outlet (defaults to ``2303``).
+
+* ``vid``: integer [optional]
+    The USB vendor ID of the power outlet (defaults to ``067b``).
+
+``gpio`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``gpio`` driver may be used to control a simple electric relay using GPIO
+lines from the system running the MTDA agent. The following settings are
+supported:
+
+* ``pin``: integer [required]
+    Specify the GPIO pin number to be used to control the relay.
