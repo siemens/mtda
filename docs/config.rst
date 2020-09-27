@@ -90,6 +90,55 @@ General settings
       Number of USB ports. Each port should then be configured with its own
       ``[usbN]`` section where ``N`` is the port index (starting from ``1``).
 
+Console settings
+----------------
+
+The ``[console]`` section configures the console for interacting with the
+device to the MTDA agent. The driver is selected with the ``variant``
+setting. Options specific to each driver are documented below.
+
+``qemu`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``qemu`` console driver when the power driver is also set to ``qemu``.
+This driver will interact with the emulated serial device. There are no further
+settings for this driver.
+
+``serial`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``serial`` driver may be used when the device uses a serial console. The
+following may be configured:
+
+* ``port``: string [required]
+    Path to the serial device on the host running the MTDA agent (for
+    example /dev/ttyS0).
+
+* ``rate``: integer [optional]
+    The baud rate used by the device to communicate with the MTDA agent. This
+    setting defaults to ``115200``.
+
+``telnet`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some power distribution racks also include serial interfaces that are exposed
+to remote clients via telnet. Some debug boards may also be attached to custom
+hardware designs. The ``telnet`` driver may be used in such configurations and
+supports the following settings:
+
+* ``host``: string [required]
+    Hostname of the telnet server.
+
+* ``port``: integer [optional]
+    The port on which the telnet server is running (defaults to ``23``).
+
+* ``delay``: integer [optional]
+    Time interval (in seconds) to wait for before trying to reconnect to the
+    telnet server (defaults to 5 seconds).
+
+* ``timeout``: integer [optional]
+    Timeout (in seconds) for each connect.
+
 Power settings
 --------------
 
