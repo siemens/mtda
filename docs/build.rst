@@ -57,3 +57,18 @@ the RJ45 port. Your system should detect a mass storage after the NEO has
 booted. A new serial port and keyboard should also be detected. You may also
 check that your NEO has obtained an IP address. Use ``ssh`` to connect (use
 ``mtda`` as both login and password).
+
+Attaching an electric relay
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We will use a 5V relay such as the JQC3F-05VDC pictured below:
+
+.. image:: jqc3f-05vdc.jpg
+
+It requires a 5V line, ground and signal. Here is the pin-out of our NanoPI
+NEO-LTS:
+
+.. image:: neo_pinout.jpg
+
+We will use pin #4 (``5V OUT``) to deliver 5V to the relay, pin #6 (``GND``) to
+connect the relay to ground and pin #7 (``PG11``) to drive the relay.
