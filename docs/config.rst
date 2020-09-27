@@ -118,3 +118,60 @@ supported:
 
 * ``pin``: integer [required]
     Specify the GPIO pin number to be used to control the relay.
+
+``pduclient`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``pduclient`` driver may be used to let a LAVA instance control the power
+of the device attached to MTDA. The following settings are supported:
+
+* ``daemon``: string [required]
+    Determines the hostname of the hostname which is running ``lavapdu-listen``
+    to which the MTDA agent can connect to and send power commands.
+
+* ``hostname``: string [required]
+    The PDU which will run power commands sent by the MTDA agent.
+
+* ``port``: integer [required]
+    The port on the specified PDU to which the device is connected.
+
+``qemu`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``qemu`` driver may be used to use QEMU/KVM instead of a physical device.
+The following settings are supported:
+
+* ``bios``: string [optional]
+    The BIOS to be loaded by QEMU/KVM.
+
+* ``cpu``: string [optional]
+    The CPU to be emulated by QEMU/KVM.
+
+* ``executable``: string [optional]
+    The QEMU/KVM executable to use as system emulator. This setting defaults
+    to ``kvm``
+
+* ``hostname``: string [optional]
+    Name of emulated machine to be provided by QEMU/KVM internal DHCP server.
+
+* ``machine``: string [optional]
+    The QEMU/KVM machine to emulate.
+
+* ``memory``: integer [optional]
+    The amount of memory (in mega-bytes) for the emulated machime (defaults to
+    512 MiB).
+
+* ``pflash_ro``: string [optional]
+    Path to the read-only firmware flash.
+
+* ``pflash_rw``: string [optional]
+    Path to the read-write firmware flash.
+
+* ``storage``: string [optional]
+    Path to the emulated machine storage.
+
+* ``swtpm``: string [optional]
+    Path to the ``swtpm`` binary to support emulation of a TPM device.
+
+* ``watchdog``: string [optional]
+    Name of the watchdog driver provided by QEMU/KVM for the selected machine.
