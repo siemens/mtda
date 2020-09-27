@@ -1,3 +1,9 @@
+mtda (0.4-1) testing; urgency=low
+
+  * New release: 0.4
+
+ -- Cedric Hombourger <chombourger@gmail.com>  Sun, 27 Sep 2020 22:45:27 +0100
+
 mtda (0.3-1) testing; urgency=low
 
   * Package version 0.3
