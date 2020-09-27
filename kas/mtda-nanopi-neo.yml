@@ -17,12 +17,12 @@ repos:
       meta-isar:
 
 bblayers_conf_header:
-  standard: |
+  mtda: |
     LCONF_VERSION = "6"
     BBPATH = "${TOPDIR}"
     BBFILES ?= ""
 
 local_conf_header:
-  standard: |
+  mtda: |
     CONF_VERSION = "1"
-    MTDA_CONFIG_PN = "mtda-bbb-for-ipc"
+    MTDA_MASS_STORAGE_FILE = "sda"
