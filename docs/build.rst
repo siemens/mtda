@@ -119,7 +119,7 @@ You will then need to install the build dependencies::
 
     $ sudo mk-build-deps -i -r
 
-and build the modified package:
+and build the modified package::
 
     $ dpkg-buildpackage -b -uc -us
 
@@ -251,9 +251,20 @@ NEO-LTS:
 
 .. image:: neo_pinout.jpg
 
-We will use pin #4 (``5V OUT``) to deliver 5V to the relay, pin #6 (``GND``) to
+We will use pin #4 (``5V OUT``) to deliver 5V to the relay, pin #9 (``GND``) to
 connect the relay to ground and pin #7 (``PG11``) to drive the relay. It should
 be noted that the signal GPIO pin is seen as GPIO ``203`` in Linux.
+
+Applying external power
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The NanoPI NEO-LTS usually gets powered over its USB-OTG interface. Since we
+will attach this port to the Device Under Test, we need to apply external
+power instead. Re-purpose a USB cable and connect its red wire to #2 (5V IN)
+and its black wire to #6 (GND).
+
+Apply power and verify that Linux comes up on the NanoPI by logging via ``ssh``
+to the ``mtda`` user account.
 
 Configuring MTDA
 ~~~~~~~~~~~~~~~~
