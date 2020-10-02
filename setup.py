@@ -23,7 +23,7 @@ mtda is a small agent abstracting hardware controls and interfaces for a
 connected test device. The main purpose of this tool is to allow developers
 and testers to remotely access and control hardware devices.
 ''',
-    url='https://stash.alm.mentorg.com/projects/PSP/repos/mtda',
+    url='https://github.com/MentorEmbedded/mtda',
     license='MIT',
     keywords='remote test',
     classifiers=[
