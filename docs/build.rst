@@ -266,6 +266,13 @@ and its black wire to #6 (GND).
 Apply power and verify that Linux comes up on the NanoPI by logging via ``ssh``
 to the ``mtda`` user account.
 
+Stitching It All Together
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows the various connections described above:
+
+.. image:: neo_block_diagram.png
+
 Configuring MTDA
 ~~~~~~~~~~~~~~~~
 
