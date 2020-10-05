@@ -12,9 +12,9 @@ import zlib
 import zmq
 
 # Local imports
-from   mtda.console.input import ConsoleInput
-from   mtda.console.logger import ConsoleLogger
-from   mtda.console.remote_output import RemoteConsoleOutput
+from mtda.console.input import ConsoleInput
+from mtda.console.logger import ConsoleLogger
+from mtda.console.remote_output import RemoteConsoleOutput
 import mtda.keyboard.controller
 import mtda.power.controller
 
@@ -22,13 +22,15 @@ _NOPRINT_TRANS_TABLE = {
     i: '.' for i in range(0, sys.maxunicode + 1) if not chr(i).isprintable()
 }
 
+
 def _make_printable(s):
     return s.translate(_NOPRINT_TRANS_TABLE)
+
 
 class MultiTenantDeviceAccess:
 
     def __init__(self):
-        self.config_files = [ 'mtda.ini' ]
+        self.config_files = ['mtda.ini']
         self.console = None
         self.console_logger = None
         self.console_input = None
@@ -48,7 +50,7 @@ class MultiTenantDeviceAccess:
         self.blksz = 1 * 1024 * 1024
         self.bz2dec = None
         self.zdec = None
-        self.fbintvl = 8 # Feedback interval
+        self.fbintvl = 8  # Feedback interval
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
@@ -57,7 +59,7 @@ class MultiTenantDeviceAccess:
         self.remote = None
         self._lock_owner = None
         self._lock_expiry = None
-        self._lock_timeout = 5 # Lock timeout (in minutes)
+        self._lock_timeout = 5  # Lock timeout (in minutes)
 
         # Config file in $HOME/.mtda/config
         home = os.getenv('HOME', '')
@@ -73,7 +75,7 @@ class MultiTenantDeviceAccess:
 
         self._check_expired(session)
         result = False
-        if self.power_locked(session) == False:
+        if self.power_locked(session) is False:
             result = self.power_controller.command(args)
 
         self.mtda.debug(3, "main.command(): %s" % str(result))
@@ -167,7 +169,8 @@ class MultiTenantDeviceAccess:
 
         self._check_expired(session)
         result = None
-        if self.console_locked(session) == False and self.console_logger is not None:
+        if self.console_locked(session) is False and \
+           self.console_logger is not None:
             result = self.console_logger.prompt(newPrompt)
 
         self.mtda.debug(3, "main.console_prompt(): %s" % str(result))
@@ -177,7 +180,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.console_remote()")
 
         result = None
-        if self.is_remote == True:
+        if self.is_remote is True:
             # Create and start our remote console
             self.console_output = RemoteConsoleOutput(host, self.conport)
             self.console_output.start()
@@ -190,7 +193,8 @@ class MultiTenantDeviceAccess:
 
         self._check_expired(session)
         result = None
-        if self.console_locked(session) == False and self.console_logger is not None:
+        if self.console_locked(session) is False and \
+           self.console_logger is not None:
             result = self.console_logger.run(cmd)
 
         self.mtda.debug(3, "main.console_run(): %s" % str(result))
@@ -201,7 +205,8 @@ class MultiTenantDeviceAccess:
 
         self._check_expired(session)
         result = None
-        if self.console_locked(session) == False and self.console_logger is not None:
+        if self.console_locked(session) is False and \
+           self.console_logger is not None:
             result = self.console_logger.write(data, raw)
 
         self.mtda.debug(3, "main.console_send(): %s" % str(result))
@@ -211,7 +216,8 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.console_tail()")
 
         self._check_expired(session)
-        if self.console_locked(session) == False and self.console_logger is not None:
+        if self.console_locked(session) is False and \
+           self.console_logger is not None:
             result = self.console_logger.tail()
 
         self.mtda.debug(3, "main.console_tail(): %s" % str(result))
@@ -299,9 +305,9 @@ class MultiTenantDeviceAccess:
         else:
             self.bz2dec = None
             self.zdec = None
-            if self._storage_opened == True:
+            if self._storage_opened is True:
                 self._storage_opened = not self.sdmux_controller.close()
-            result = (self._storage_opened == False)
+            result = (self._storage_opened is False)
 
         self.mtda.debug(3, "main.storage_close(): %s" % str(result))
         return result
@@ -317,8 +323,9 @@ class MultiTenantDeviceAccess:
         elif self.sdmux_controller is None:
             self.mtda.debug(4, "storage_locked(): no shared storage device")
             result = True
-        # If hotplugging is supported, swap only if the shared storage isn't opened
-        elif self.sdmux_controller.supports_hotplug() == True:
+        # If hotplugging is supported, swap only if the shared storage
+        # isn't opened
+        elif self.sdmux_controller.supports_hotplug() is True:
             result = self._storage_opened
         # We also need a power controller to be safe
         elif self.power_controller is None:
@@ -329,8 +336,9 @@ class MultiTenantDeviceAccess:
             self.mtda.debug(4, "storage_locked(): target isn't off")
             result = True
         # Lastly, the shared storage device shall not be opened
-        elif self._storage_opened == True:
-            self.mtda.debug(4, "storage_locked(): shared storage is in used (opened)")
+        elif self._storage_opened is True:
+            self.mtda.debug(4, "storage_locked(): "
+                               "shared storage is in used (opened)")
             result = True
         # We may otherwise swap our shared storage device
         else:
@@ -343,7 +351,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_mount()")
 
         self._check_expired(session)
-        if self._storage_mounted == True:
+        if self._storage_mounted is True:
             self.mtda.debug(4, "storage_mount(): already mounted")
             result = True
         elif self.sdmux_controller is None:
@@ -351,7 +359,7 @@ class MultiTenantDeviceAccess:
             return False
         else:
             result = self.sdmux_controller.mount(part)
-            self._storage_mounted = (result == True)
+            self._storage_mounted = (result is True)
 
         self.mtda.debug(3, "main.storage_mount(): %s" % str(result))
         return result
@@ -383,7 +391,7 @@ class MultiTenantDeviceAccess:
             self.storage_close()
             self._storage_bytes_written = 0
             result = self.sdmux_controller.open()
-            self._storage_opened = (result == True)
+            self._storage_opened = (result is True)
 
         self.mtda.debug(3, "main.storage_open(): %s" % str(result))
         return result
@@ -407,16 +415,17 @@ class MultiTenantDeviceAccess:
         # Decompress and write the newly received data
         uncompressed = self.bz2dec.decompress(data, self.blksz)
         result = self.sdmux_controller.write(uncompressed)
-        if result == False:
+        if result is False:
             result = -1
         else:
             self._storage_bytes_written += len(uncompressed)
 
             # Check if we can write more data without further input
-            if self.bz2dec.needs_input == False:
+            if self.bz2dec.needs_input is False:
                 result = 0
             else:
-                # Data successfully uncompressed and written to the shared storage device
+                # Data successfully uncompressed and written to the shared
+                # storage device
                 result = self.blksz
 
         self.mtda.debug(3, "main._storage_write_bz2(): %s" % str(result))
@@ -433,11 +442,11 @@ class MultiTenantDeviceAccess:
             if self.bz2dec is None:
                 self.bz2dec = bz2.BZ2Decompressor()
 
-            cont   = True
-            start  = time.monotonic()
+            cont = True
+            start = time.monotonic()
             result = -1
 
-            while cont == True:
+            while cont is True:
                 # Decompress and write newly received data
                 try:
                     # Uncompress and write data
@@ -447,22 +456,25 @@ class MultiTenantDeviceAccess:
                         # this loop to provide feedback
                         cont = False
                     else:
-                        # Check if this loop has been running for quite some time,
-                        # in which case we would to give our client an update
+                        # Check if this loop has been running for quite
+                        # some time, in which case we would to give our
+                        # client an update
                         now = time.monotonic()
                         if (now - start) >= self.fbintvl:
                             cont = False
-                        # If we should continue and do not need more data at this time,
-                        # use an empty buffer for the next iteration
+                        # If we should continue and do not need more data
+                        # at this time, use an empty buffer for the next
+                        # iteration
                         elif result == 0:
                             data = b''
                 except EOFError:
-                    # Handle multi-streams: create a new decompressor and we will start
-                    # with data unused from the previous decompressor
+                    # Handle multi-streams: create a new decompressor and
+                    # we will start with data unused from the previous
+                    # decompressor
                     data = self.bz2dec.unused_data
                     self.bz2dec = bz2.BZ2Decompressor()
-                    cont = (len(data) > 0) # loop only if we have unused data
-                    result = 0             # we do not need more input data
+                    cont = (len(data) > 0)  # loop only if we have unused data
+                    result = 0              # we do not need more input data
 
         self.mtda.debug(3, "main.storage_write_bz2(): %s" % str(result))
         return result
@@ -473,7 +485,7 @@ class MultiTenantDeviceAccess:
         # Decompress and write the newly received data
         uncompressed = self.zdec.decompress(data, self.blksz)
         status = self.sdmux_controller.write(uncompressed)
-        if status == False:
+        if status is False:
             result = -1
         else:
             self._storage_bytes_written += len(uncompressed)
@@ -482,7 +494,8 @@ class MultiTenantDeviceAccess:
             if len(self.zdec.unconsumed_tail) > 0:
                 result = 0
             else:
-               # Data successfully uncompressed and written to the shared storage device
+                # Data successfully uncompressed and written to the shared
+                # storage device
                 result = self.blksz
 
         self.mtda.debug(3, "main._storage_write_gz(): %s" % str(result))
@@ -503,11 +516,11 @@ class MultiTenantDeviceAccess:
             if len(data) == 0:
                 data = self.zdata
 
-            cont   = True
-            start  = time.monotonic()
+            cont = True
+            start = time.monotonic()
             result = -1
 
-            while cont == True:
+            while cont is True:
                 # Decompress and write newly received data
                 result = self._storage_write_gz(data)
                 self.zdata = None
@@ -516,8 +529,8 @@ class MultiTenantDeviceAccess:
                     # this loop to provide feedback
                     cont = False
                 else:
-                    # If we should continue and do not need more data at this time,
-                    # use the unconsumed data for the next iteration
+                    # If we should continue and do not need more data at this
+                    # time, use the unconsumed data for the next iteration
                     data = self.zdec.unconsumed_tail
                     # Check if this loop has been running for quite some time,
                     # in which case we would to give our client an update
@@ -538,7 +551,7 @@ class MultiTenantDeviceAccess:
             result = -1
         else:
             result = self.sdmux_controller.write(data)
-            if result == False:
+            if result is False:
                 self.mtda.debug(1, "main.storage_write_raw(): write() failed")
                 result = -1
             else:
@@ -552,7 +565,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_to_host()")
 
         self._check_expired(session)
-        if self.storage_locked(session) == False:
+        if self.storage_locked(session) is False:
             result = self.sdmux_controller.to_host()
         else:
             self.mtda.debug(1, "storage_to_host(): shared storage is locked")
@@ -565,7 +578,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_to_target()")
 
         self._check_expired(session)
-        if self.storage_locked(session) == False:
+        if self.storage_locked(session) is False:
             self.storage_close()
             result = self.sdmux_controller.to_target()
         else:
@@ -579,7 +592,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_swap()")
 
         self._check_expired(session)
-        if self.storage_locked(session) == False:
+        if self.storage_locked(session) is False:
             result = self.storage_status(session)
             if result == self.sdmux_controller.SD_ON_HOST:
                 self.sdmux_controller.to_target()
@@ -643,8 +656,10 @@ class MultiTenantDeviceAccess:
 
         result = None
         if self.power_on_script:
-            self.mtda.debug(4, "exec_power_on_script(): %s" % self.power_on_script)
-            result = exec(self.power_on_script, { "env" : self.env, "mtda" : self })
+            self.mtda.debug(4, "exec_power_on_script(): "
+                               "%s" % self.power_on_script)
+            result = exec(self.power_on_script,
+                          {"env": self.env, "mtda": self})
 
         self.mtda.debug(3, "main.exec_power_on_script(): %s" % str(result))
         return result
@@ -653,12 +668,12 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.target_on()")
 
         if self.console_logger is not None:
-           self.console_logger.resume()
+            self.console_logger.resume()
         self._check_expired(session)
         result = False
-        if self.power_locked(session) == False:
+        if self.power_locked(session) is False:
             result = self.power_controller.on()
-            if result == True:
+            if result is True:
                 self.exec_power_on_script()
 
         self.mtda.debug(3, "main.target_on(): %s" % str(result))
@@ -668,20 +683,20 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.exec_power_off_script()")
 
         if self.power_off_script:
-            exec(self.power_off_script, { "env" : self.env, "mtda" : self })
+            exec(self.power_off_script, {"env": self.env, "mtda": self})
 
     def target_off(self, session=None):
         self.mtda.debug(3, "main.target_off()")
 
         result = False
         self._check_expired(session)
-        if self.power_locked(session) == False:
+        if self.power_locked(session) is False:
             result = self.power_controller.off()
             if self.keyboard is not None:
                 self.keyboard.idle()
             if self.console_logger is not None:
                 self.console_logger.reset_timer()
-                if result == True:
+                if result is True:
                     self.console_logger.pause()
                     self.exec_power_off_script()
 
@@ -704,7 +719,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.target_toggle()")
 
         self._check_expired(session)
-        if self.power_locked(session) == False:
+        if self.power_locked(session) is False:
             result = self.power_controller.toggle()
             if result == self.power_controller.POWER_ON:
                 if self.console_logger is not None:
@@ -843,7 +858,7 @@ class MultiTenantDeviceAccess:
             self.load_environment(parser)
         if parser.has_section('remote'):
             self.load_remote_config(parser)
-        if self.is_remote == False:
+        if self.is_remote is False:
             if parser.has_section('power'):
                 self.load_power_config(parser)
             if parser.has_section('console'):
@@ -856,21 +871,26 @@ class MultiTenantDeviceAccess:
                 self.load_usb_config(parser)
             if parser.has_section('scripts'):
                 scripts = parser['scripts']
-                self.power_on_script  = self._parse_script(scripts.get('power on', None))
-                self.power_off_script = self._parse_script(scripts.get('power off', None))
+                self.power_on_script = self._parse_script(
+                    scripts.get('power on', None))
+                self.power_off_script = self._parse_script(
+                    scripts.get('power off', None))
 
     def load_main_config(self, parser):
         self.mtda.debug(3, "main.load_main_config()")
 
-        self.mtda.debug_level = int(parser.get('main', 'debug', fallback=self.mtda.debug_level))
-        self.mtda.fuse = parser.getboolean('main', 'fuse', fallback=self.mtda.fuse)
+        self.mtda.debug_level = int(
+            parser.get('main', 'debug', fallback=self.mtda.debug_level))
+        self.mtda.fuse = parser.getboolean(
+            'main', 'fuse', fallback=self.mtda.fuse)
 
     def load_environment(self, parser):
         self.mtda.debug(3, "main.load_environment()")
 
         for opt in parser.options('environment'):
             value = parser.get('environment', opt)
-            self.mtda.debug(4, "main.load_environment(): %s => %s" % (opt, value))
+            self.mtda.debug(4, "main.load_environment(): "
+                               "%s => %s" % (opt, value))
             self.env_set(opt, value)
 
     def load_console_config(self, parser):
@@ -889,7 +909,8 @@ class MultiTenantDeviceAccess:
         except configparser.NoOptionError:
             print('console variant not defined!', file=sys.stderr)
         except ImportError:
-            print('console "%s" could not be found/loaded!' % (variant), file=sys.stderr)
+            print('console "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
 
     def load_keyboard_config(self, parser):
         self.mtda.debug(3, "main.load_keyboard_config()")
@@ -907,7 +928,8 @@ class MultiTenantDeviceAccess:
         except configparser.NoOptionError:
             print('keyboard controller variant not defined!', file=sys.stderr)
         except ImportError:
-            print('keyboard controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
+            print('keyboard controller "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
 
     def load_power_config(self, parser):
         self.mtda.debug(3, "main.load_power_config()")
@@ -925,8 +947,9 @@ class MultiTenantDeviceAccess:
         except configparser.NoOptionError:
             print('power controller variant not defined!', file=sys.stderr)
         except ImportError:
-            print('power controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
-    
+            print('power controller "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
+
     def load_sdmux_config(self, parser):
         self.mtda.debug(3, "main.load_sdmux_config()")
 
@@ -942,17 +965,21 @@ class MultiTenantDeviceAccess:
         except configparser.NoOptionError:
             print('sdmux controller variant not defined!', file=sys.stderr)
         except ImportError:
-            print('power controller "%s" could not be found/loaded!' % (variant), file=sys.stderr)
+            print('power controller "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
 
     def load_remote_config(self, parser):
         self.mtda.debug(3, "main.load_remote_config()")
 
-        self.conport = int(parser.get('remote', 'console', fallback=self.conport))
-        self.ctrlport = int(parser.get('remote', 'control', fallback=self.ctrlport))
-        if self.is_server == False:
+        self.conport = int(
+            parser.get('remote', 'console', fallback=self.conport))
+        self.ctrlport = int(
+            parser.get('remote', 'control', fallback=self.ctrlport))
+        if self.is_server is False:
             if self.remote is None:
                 # Load remote setting from the configuration
-                self.remote = parser.get('remote', 'host', fallback=self.remote)
+                self.remote = parser.get(
+                    'remote', 'host', fallback=self.remote)
                 # Allow override from the environment
                 self.remote = os.getenv('MTDA_REMOTE', self.remote)
         else:
@@ -972,7 +999,7 @@ class MultiTenantDeviceAccess:
                     self.load_usb_port_config(parser, section)
         except configparser.NoOptionError:
             usb_ports = 0
-    
+
     def load_usb_port_config(self, parser, section):
         self.mtda.debug(3, "main.load_usb_port_config()")
 
@@ -998,31 +1025,33 @@ class MultiTenantDeviceAccess:
         except configparser.NoOptionError:
             print('usb switch variant not defined!', file=sys.stderr)
         except ImportError:
-            print('usb switch "%s" could not be found/loaded!' % (variant), file=sys.stderr)
+            print('usb switch "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
 
     def start(self):
         self.mtda.debug(3, "main.start()")
 
-        if self.is_remote == True:
+        if self.is_remote is True:
             return True
 
         # Probe the specified power controller
         if self.power_controller is not None:
             status = self.power_controller.probe()
-            if status == False:
+            if status is False:
                 print('Probe of the Power Controller failed!', file=sys.stderr)
                 return False
 
         # Probe the specified sdmux controller
         if self.sdmux_controller is not None:
             status = self.sdmux_controller.probe()
-            if status == False:
-                print('Probe of the shared storage device failed!', file=sys.stderr)
+            if status is False:
+                print('Probe of the shared storage device failed!',
+                      file=sys.stderr)
                 return False
 
         if self.console is not None:
             # Create a publisher
-            if self.is_server == True:
+            if self.is_server is True:
                 context = zmq.Context()
                 socket = context.socket(zmq.PUB)
                 socket.bind("tcp://*:%s" % self.conport)
@@ -1031,10 +1060,12 @@ class MultiTenantDeviceAccess:
 
             # Create and start console logger
             status = self.console.probe()
-            if status == False:
-                print('Probe of the %s console failed!' % self.console.variant, file=sys.stderr)
+            if status is False:
+                print('Probe of the %s console failed!' % (
+                      self.console.variant), file=sys.stderr)
                 return False
-            self.console_logger = ConsoleLogger(self, self.console, socket, self.power_controller)
+            self.console_logger = ConsoleLogger(
+                self, self.console, socket, self.power_controller)
             self.console_logger.start()
 
         return True
