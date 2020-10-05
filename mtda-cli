@@ -18,13 +18,14 @@ import zerorpc
 from mtda.main import MultiTenantDeviceAccess
 from mtda.client import Client
 
-PASTEBIN_API_KEY  = "1a265f6e04cf3c1df5e153018390eb29"
+PASTEBIN_API_KEY = "1a265f6e04cf3c1df5e153018390eb29"
 PASTEBIN_ENDPOINT = "http://pastebin.com/api/api_post.php"
+
 
 class Application:
 
     def __init__(self):
-        self.agent  = None
+        self.agent = None
         self.remote = None
         self.logfile = "/var/log/mtda.log"
         self.pidfile = "/var/run/mtda.pid"
@@ -51,7 +52,7 @@ class Application:
     def server(self):
         # Start our agent
         status = self.agent.start()
-        if status == False:
+        if status is False:
             return False
 
         # Start our RPC server
@@ -72,7 +73,8 @@ class Application:
         if isinstance(result, str):
             print(result)
         else:
-            print("Device command '{0}' failed!".format(" ".join(args)), file=sys.stderr)
+            print("Device command '{0}' failed!".format(
+                " ".join(args)), file=sys.stderr)
 
     def console_clear(self, args):
         self.client().console_clear()
@@ -88,7 +90,7 @@ class Application:
         if line is not None:
             sys.stdout.write(line)
             sys.stdout.flush()
-    
+
     def console_lines(self, args):
         lines = self.client().console_lines()
         sys.stdout.write("%d\n" % (lines))
@@ -110,7 +112,7 @@ class Application:
         tty.setraw(sys.stdin)
 
         # Input loop
-        while self.exiting == False:
+        while self.exiting is False:
             c = client.console_getkey()
             if c == '\x01':
                 c = client.console_getkey()
@@ -126,7 +128,7 @@ class Application:
         server = self.client()
         if c == 'a':
             status = server.target_lock()
-            if status == True:
+            if status is True:
                 server.console_print("\r\n*** Target was acquired ***\r\n")
         elif c == 'b':
             self.console_pastebin()
@@ -137,19 +139,22 @@ class Application:
             server.target_toggle()
             new_status = server.target_status()
             if previous_status != new_status:
-                server.console_print("\r\n*** Target is now %s ***\r\n" % (new_status))
+                server.console_print(
+                    "\r\n*** Target is now %s ***\r\n" % (new_status))
         elif c == 'q':
             self.exiting = True
         elif c == 'r':
             status = server.target_unlock()
-            if status == True:
+            if status is True:
                 server.console_print("\r\n*** Target was released ***\r\n")
         elif c == 's':
             previous_status = server.storage_status()
             server.storage_swap()
             new_status = server.storage_status()
             if new_status != previous_status:
-                server.console_print("\r\n*** Storage now connected to %s ***\r\n" % (new_status))
+                server.console_print(
+                    "\r\n*** Storage now connected to "
+                    "%s ***\r\n" % (new_status))
         elif c == 't':
             server.toggle_timestamps()
         elif c == 'u':
@@ -157,14 +162,15 @@ class Application:
 
     def console_pastebin(self):
         data = {
-                'api_dev_key'      : PASTEBIN_API_KEY,
-                'api_option'       : 'paste',
-                'api_paste_code'   : self.client().console_flush(),
-                'api_paste_format' : 'python'
+                'api_dev_key': PASTEBIN_API_KEY,
+                'api_option': 'paste',
+                'api_paste_code': self.client().console_flush(),
+                'api_paste_format': 'python'
                }
-        r = requests.post(url = PASTEBIN_ENDPOINT, data = data)
+        r = requests.post(url=PASTEBIN_ENDPOINT, data=data)
         server = self.client()
-        server.console_print("\r\n*** console buffer posted to %s ***\r\n" % (r.text))
+        server.console_print(
+            "\r\n*** console buffer posted to %s ***\r\n" % (r.text))
 
     def console_prompt(self, args):
         prompt = None
@@ -191,16 +197,20 @@ class Application:
             sys.stdout.flush()
 
     def console_help(self, args=None):
-       print("The 'console' command accepts the following sub-commands:")
-       print("   clear         Clear any data present in the console buffer")
-       print("   flush         Flush content of the console buffer")
-       print("   head          Fetch and print the first line from the console buffer")
-       print("   interactive   Open the device console for interactive use")
-       print("   lines         Print number of lines present in the console buffer")
-       print("   prompt        Configure or print the target shell prompt")
-       print("   run           Run the specified command via the device console")
-       print("   send          Send characters to the device console")
-       print("   tail          Fetch and print the last line from the console buffer")
+        print("The 'console' command accepts the following sub-commands:")
+        print("   clear         Clear any data present in the console buffer")
+        print("   flush         Flush content of the console buffer")
+        print("   head          Fetch and print the first line from the"
+              " console buffer")
+        print("   interactive   Open the device console for interactive use")
+        print("   lines         Print number of lines present in the console"
+              " buffer")
+        print("   prompt        Configure or print the target shell prompt")
+        print("   run           Run the specified command via the device"
+              " console")
+        print("   send          Send characters to the device console")
+        print("   tail          Fetch and print the last line from the console"
+              " buffer")
 
     def console_cmd(self, args):
         if len(args) > 0:
@@ -208,28 +218,28 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'clear'       : self.console_clear,
-               'flush'       : self.console_flush,
-               'head'        : self.console_head,
-               'interactive' : self.console_interactive,
-               'lines'       : self.console_lines,
-               'prompt'      : self.console_prompt,
-               'run'         : self.console_run,
-               'send'        : self.console_send,
-               'tail'        : self.console_tail
+               'clear': self.console_clear,
+               'flush': self.console_flush,
+               'head': self.console_head,
+               'interactive': self.console_interactive,
+               'lines': self.console_lines,
+               'prompt': self.console_prompt,
+               'run': self.console_run,
+               'send': self.console_send,
+               'tail': self.console_tail
             }
 
             if cmd in cmds:
                 cmds[cmd](args)
             else:
-                print("unknown console command '%s'!" %(cmd), file=sys.stderr)
+                print("unknown console command '%s'!" % (cmd), file=sys.stderr)
 
     def getenv_cmd(self, args=None):
         if len(args) == 0:
             print("'getenv' expects a key argument!", file=sys.stderr)
             return 1
 
-        name  = args[0]
+        name = args[0]
         value = self.agent.env_get(name)
         if value is not None:
             print(str(value))
@@ -241,16 +251,17 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'console' : self.console_help,
-               'storage' : self.storage_help,
-               'target'  : self.target_help,
-               'usb'     : self.usb_help
+               'console': self.console_help,
+               'storage': self.storage_help,
+               'target': self.target_help,
+               'usb': self.usb_help
             }
 
             if cmd in cmds:
                 cmds[cmd](args)
             else:
-                print("no help found for command '%s'!" %(cmd), file=sys.stderr)
+                print("no help found for command '%s'!" % (cmd),
+                      file=sys.stderr)
         else:
             print("usage: mtda [options] <command> [<args>]")
             print("")
@@ -259,14 +270,15 @@ class Application:
             print("   console   Interact with the device console")
             print("   getenv    Get named variable from the environment")
             print("   target    Power control the device")
-            print("   setenv    Set named variable to specified value in the environment")
+            print("   setenv    Set named variable to specified value in the"
+                  " environment")
             print("   storage   Interact with the shared storage device")
             print("   usb       Control USB devices attached to the device")
             print("")
 
     def keyboard_help(self, args=None):
-       print("The 'keyboard' command accepts the following sub-commands:")
-       print("   write         Write a string of characters via the keyboard")
+        print("The 'keyboard' command accepts the following sub-commands:")
+        print("   write         Write a string of characters via the keyboard")
 
     def keyboard_write(self, args):
         self.client().keyboard_write(args[0])
@@ -277,20 +289,21 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'write' : self.keyboard_write
+               'write': self.keyboard_write
             }
 
             if cmd in cmds:
                 cmds[cmd](args)
             else:
-                print("unknown keyboard command '%s'!" %(cmd), file=sys.stderr)
+                print("unknown keyboard command '%s'!" % (cmd),
+                      file=sys.stderr)
 
     def setenv_cmd(self, args=None):
         if len(args) == 0:
             print("'setenv' expects a key argument!", file=sys.stderr)
             return 1
 
-        name  = args[0]
+        name = args[0]
         value = args[1] if len(args) > 1 else None
 
         self.agent.env_set(name, value)
@@ -302,31 +315,34 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'host'   : self.storage_host,
-               'mount'  : self.storage_mount,
-               'target' : self.storage_target,
-               'update' : self.storage_update,
-               'write'  : self.storage_write
+               'host': self.storage_host,
+               'mount': self.storage_mount,
+               'target': self.storage_target,
+               'update': self.storage_update,
+               'write': self.storage_write
             }
 
             if cmd in cmds:
                 return cmds[cmd](args)
             else:
-                print("unknown 'storage' command '%s'!" %(cmd), file=sys.stderr)
+                print("unknown 'storage' command '%s'!" % (cmd),
+                      file=sys.stderr)
                 return 1
 
     def storage_help(self, args=None):
-       print("The 'storage' command accepts the following sub-commands:")
-       print("   host      Attach the shared storage device to the host")
-       print("   mount     Mount the shared storage device on the host")
-       print("   target    Attach the shared storage device to the target")
-       print("   update    Update the specified file on the shared storage device")
-       print("   write     Write an image to the shared storage device")
+        print("The 'storage' command accepts the following sub-commands:")
+        print("   host      Attach the shared storage device to the host")
+        print("   mount     Mount the shared storage device on the host")
+        print("   target    Attach the shared storage device to the target")
+        print("   update    Update the specified file on the shared storage"
+              " device")
+        print("   write     Write an image to the shared storage device")
 
     def storage_host(self, args=None):
         status = self.client().storage_to_host()
-        if status == False:
-            print("failed to connect the shared storage device to the host!", file=sys.stderr)
+        if status is False:
+            print("failed to connect the shared storage device to the host!",
+                  file=sys.stderr)
             return 1
         return 0
 
@@ -336,15 +352,16 @@ class Application:
             return 1
         part = args[0] if len(args) > 0 else None
         status = self.agent.storage_mount(part)
-        if status == False:
+        if status is False:
             print("'storage mount' failed!", file=sys.stderr)
             return 1
         return 0
 
     def storage_target(self, args):
         status = self.client().storage_to_target()
-        if status == False:
-            print("failed to connect the shared storage device to the target!", file=sys.stderr)
+        if status is False:
+            print("failed to connect the shared storage device to the target!",
+                  file=sys.stderr)
             return 1
         return 0
 
@@ -358,8 +375,10 @@ class Application:
         totalwritten = int(self.agent.storage_bytes_written() / 1024 / 1024)
         elapsed = time.monotonic() - self.start_time
         speed = round(totalwritten / elapsed, 2)
-        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MiB read, {4} MiB written, {5} MiB/s) "
-            .format(imgname, str(blocks + spaces), progress, totalread, totalwritten, speed))
+        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MiB read, "
+                         "{4} MiB written, {5} MiB/s) ".format(
+                             imgname, str(blocks + spaces), progress,
+                             totalread, totalwritten, speed))
         sys.stdout.flush()
 
     def storage_update(self, args=None):
@@ -368,14 +387,14 @@ class Application:
             return 1
 
         dest = args[0]
-        src  = args[1] if len(args) > 1 else None
+        src = args[1] if len(args) > 1 else None
 
         self.start_time = time.monotonic()
         status = self.agent.storage_update(dest, src, self._storage_write_cb)
         sys.stdout.write("\n")
         sys.stdout.flush()
 
-        if status == False:
+        if status is False:
             print("'storage update' failed!", file=sys.stderr)
             return 1
         return 0
@@ -386,54 +405,55 @@ class Application:
             return 1
 
         self.start_time = time.monotonic()
-        status = self.agent.storage_write_image(args[0], self._storage_write_cb)
+        status = self.agent.storage_write_image(
+            args[0], self._storage_write_cb)
         sys.stdout.write("\n")
         sys.stdout.flush()
 
-        if status == False:
+        if status is False:
             print("'storage write' failed!", file=sys.stderr)
             return 1
         return 0
 
     def target_help(self, args=None):
-       print("The 'target' command accepts the following sub-commands:")
-       print("   on      Power on the device")
-       print("   off     Power off the device")
-       print("   toggle  Toggle target power")
+        print("The 'target' command accepts the following sub-commands:")
+        print("   on      Power on the device")
+        print("   off     Power off the device")
+        print("   toggle  Toggle target power")
 
     def target_info(self, args=None):
         sys.stdout.write("\rFetching target information...\r")
         sys.stdout.flush()
 
         # Get general information
-        client          = self.client()
-        locked          = " (locked)" if client.target_locked() else ""
-        remote          = "Local" if self.remote is None else self.remote
-        session         = client.session()
-        storage_status  = client.storage_status()
+        client = self.client()
+        locked = " (locked)" if client.target_locked() else ""
+        remote = "Local" if self.remote is None else self.remote
+        session = client.session()
+        storage_status = client.storage_status()
         storage_written = client.storage_bytes_written() / 1024 / 1024
-        tgt_status      = client.target_status()
+        tgt_status = client.target_status()
 
         # Print general information
         print("Agent          : %s%30s\r" % (remote, ""))
         print("Session        : %s\r" % (session))
-        print("Target         : %-6s%s\r" %(tgt_status, locked))
-        print("Storage on     : %-6s%s\r" %(storage_status, locked))
-        print("Storage writes : %u MiB\r" %(storage_written))
+        print("Target         : %-6s%s\r" % (tgt_status, locked))
+        print("Storage on     : %-6s%s\r" % (storage_status, locked))
+        print("Storage writes : %u MiB\r" % (storage_written))
 
         # Print status of the USB ports
         ports = client.usb_ports()
         for ndx in range(0, ports):
             status = client.usb_status(ndx+1)
-            print("USB #%-2d        : %s\r" %(ndx+1, status))
+            print("USB #%-2d        : %s\r" % (ndx+1, status))
 
     def target_off(self, args=None):
         status = self.client().target_off()
-        return 0 if (status == True) else 1
+        return 0 if (status is True) else 1
 
     def target_on(self, args=None):
         status = self.client().target_on()
-        return 0 if (status == True) else 1
+        return 0 if (status is True) else 1
 
     def target_toggle(self, args=None):
         previous_status = self.client().target_status()
@@ -447,16 +467,16 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'help'   : self.target_help,
-               'off'    : self.target_off,
-               'on'     : self.target_on,
-               'toggle' : self.target_toggle
+               'help': self.target_help,
+               'off': self.target_off,
+               'on': self.target_on,
+               'toggle': self.target_toggle
             }
 
             if cmd in cmds:
                 return cmds[cmd](args)
             else:
-                print("unknown target command '%s'!" %(cmd), file=sys.stderr)
+                print("unknown target command '%s'!" % (cmd), file=sys.stderr)
                 return 1
 
     def usb_cmd(self, args):
@@ -465,69 +485,70 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'help'   : self.usb_help,
-               'off'    : self.usb_off,
-               'on'     : self.usb_on
+               'help': self.usb_help,
+               'off': self.usb_off,
+               'on': self.usb_on
             }
 
             if cmd in cmds:
                 return cmds[cmd](args)
             else:
-                print("unknown usb command '%s'!" %(cmd), file=sys.stderr)
+                print("unknown usb command '%s'!" % (cmd), file=sys.stderr)
                 return 1
 
     def usb_help(self, args=None):
-       print("The 'usb' command accepts the following sub-commands:")
-       print("   on      Power on the specified USB device")
-       print("   off     Power off the specified USB device")
+        print("The 'usb' command accepts the following sub-commands:")
+        print("   on      Power on the specified USB device")
+        print("   off     Power off the specified USB device")
 
     def usb_off(self, args):
         if len(args) > 0:
             klass = args[0]
             args.pop(0)
-            client  = self.client()
+            client = self.client()
             result = client.usb_off_by_class(klass)
             return 0 if result else 1
         else:
-            print("missing class argument to 'usb off' command!", file=sys.stderr)
+            print("missing class argument to 'usb off' command!",
+                  file=sys.stderr)
             return 1
 
     def usb_on(self, args):
         if len(args) > 0:
             klass = args[0]
             args.pop(0)
-            client  = self.client()
+            client = self.client()
             result = client.usb_on_by_class(klass)
             return 0 if result else 1
         else:
-            print("missing class argument to 'usb on' command!", file=sys.stderr)
+            print("missing class argument to 'usb on' command!",
+                  file=sys.stderr)
             return 1
 
     def main(self):
         daemonize = False
         detach = True
 
-        options, stuff = getopt.getopt(sys.argv[1:], 
-            'dnr:',
-            ['daemon', 'no-detach', 'remote='])
+        options, stuff = getopt.getopt(
+            sys.argv[1:], 'dnr:', ['daemon', 'no-detach', 'remote='])
         for opt, arg in options:
             if opt in ('-d', '--daemon'):
                 daemonize = True
             if opt in ('-n', '--no-detach'):
-                detach = False 
+                detach = False
             if opt in ('-r', '--remote'):
                 self.remote = arg
 
         # Start our server
-        if daemonize == True:
-            self.agent = MultiTenantDeviceAccess() 
+        if daemonize is True:
+            self.agent = MultiTenantDeviceAccess()
             self.agent.load_config(self.remote, daemonize)
             self.remote = self.agent.remote
-            if detach == True:
+            if detach is True:
                 status = self.daemonize()
             else:
                 status = self.server()
-            if status == False:
+            if status is False:
                 print('Failed to start the MTDA server!', file=sys.stderr)
                 return False
         else:
@@ -538,28 +559,28 @@ class Application:
 
         # Check for non-option arguments
         if len(stuff) > 0:
-           cmd = stuff[0]
-           stuff.pop(0)
+            cmd = stuff[0]
+            stuff.pop(0)
 
-           cmds = {
-              'command'  : self.command_cmd,
-              'console'  : self.console_cmd,
-              'getenv'   : self.getenv_cmd,
-              'help'     : self.help_cmd,
-              'keyboard' : self.keyboard_cmd,
-              'setenv'   : self.setenv_cmd,
-              'storage'  : self.storage_cmd,
-              'target'   : self.target_cmd,
-              'usb'      : self.usb_cmd
-           } 
+            cmds = {
+                'command': self.command_cmd,
+                'console': self.console_cmd,
+                'getenv': self.getenv_cmd,
+                'help': self.help_cmd,
+                'keyboard': self.keyboard_cmd,
+                'setenv': self.setenv_cmd,
+                'storage': self.storage_cmd,
+                'target': self.target_cmd,
+                'usb': self.usb_cmd
+            }
 
-           if cmd in cmds:
-               status = cmds[cmd](stuff)
-               sys.exit(status)
-           else:
-               print("unknown command '%s'!" %(cmd), file=sys.stderr)
-               self.help_cmd()
-               sys.exit(1)
+            if cmd in cmds:
+                status = cmds[cmd](stuff)
+                sys.exit(status)
+            else:
+                print("unknown command '%s'!" % (cmd), file=sys.stderr)
+                self.help_cmd()
+                sys.exit(1)
         else:
             # Assume we want an interactive console if called without a command
             self.console_interactive()
