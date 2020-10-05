@@ -7,6 +7,7 @@ from telnetlib import Telnet
 # Local imports
 from mtda.console.interface import ConsoleInterface
 
+
 class TelnetConsole(ConsoleInterface):
 
     def __init__(self, mtda):
@@ -41,7 +42,7 @@ class TelnetConsole(ConsoleInterface):
         self.mtda.debug(3, "console.telnet.open()")
 
         result = self.opened
-        if self.opened == False:
+        if self.opened is False:
             try:
                 self.telnet = Telnet()
                 self.telnet.open(self.host, self.port, self.timeout)
@@ -56,12 +57,12 @@ class TelnetConsole(ConsoleInterface):
     def close(self):
         self.mtda.debug(3, "console.telnet.close()")
 
-        if self.opened == True:
+        if self.opened is True:
             self.opened = False
             self.telnet.get_socket().shutdown(socket.SHUT_WR)
             self.telnet.close()
             self.telnet = None
-        result = (self.opened == False)
+        result = (self.opened is False)
 
         self.mtda.debug(3, "console.telnet.close(): %s" % str(result))
         return result
@@ -70,7 +71,7 @@ class TelnetConsole(ConsoleInterface):
     def pending(self):
         self.mtda.debug(3, "console.telnet.pending()")
 
-        if self.opened == True:
+        if self.opened is True:
             result = self.telnet.sock_avail()
         else:
             result = False
@@ -82,22 +83,25 @@ class TelnetConsole(ConsoleInterface):
     def read(self, n=1):
         self.mtda.debug(3, "console.telnet.read(n=%d)" % n)
 
-        if self.opened == False:
+        if self.opened is False:
             time_before_open = time.time()
             self.open()
-            if self.opened == False:
-                # make sure we do not return too quickly if we could not connect
-                self.mtda.debug(4, "console.telnet.read(): failed to connnect!")
+            if self.opened is False:
+                # make sure we do not return too quickly
+                # if we could not connect
+                self.mtda.debug(4, "console.telnet.read():"
+                                " failed to connnect!")
                 time_after_open = time.time()
                 elapsed_time = time_after_open - time_before_open
                 if elapsed_time < self.delay:
                     delay = self.delay - elapsed_time
-                    self.mtda.debug(4, "console.telnet.read(): sleeping {0} seconds".format(delay))
+                    self.mtda.debug(4, "console.telnet.read():"
+                                    " sleeping {0} seconds".format(delay))
                     time.sleep(delay)
 
         data = bytearray()
         try:
-            while n > 0 and self.opened == True:
+            while n > 0 and self.opened is True:
                 avail = self.telnet.read_some()
                 data = data + avail
                 n = n - len(avail)
@@ -111,7 +115,7 @@ class TelnetConsole(ConsoleInterface):
     def write(self, data):
         self.mtda.debug(3, "console.telnet.write()")
 
-        if self.opened == True:
+        if self.opened is True:
             result = self.telnet.write(data)
         else:
             self.mtda.debug(2, "console.telnet.write(): not connected!")
@@ -119,6 +123,7 @@ class TelnetConsole(ConsoleInterface):
 
         self.mtda.debug(3, "console.telnet.write(): %s" % str(result))
         return result
+
 
 def instantiate(mtda):
     return TelnetConsole(mtda)
