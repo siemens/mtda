@@ -12,6 +12,7 @@ Welcome to MTDA's documentation!
 
    intro
    install
+   usage
    config
    build
 
