@@ -6,6 +6,7 @@ import socket
 import time
 import zerorpc
 
+
 class Client:
 
     def __init__(self, host=None):
@@ -101,7 +102,7 @@ class Client:
         while tries > 0:
             tries = tries - 1
             status = self._impl.storage_open(self._session)
-            if status == True:
+            if status is True:
                 return True
             time.sleep(1)
         return False
@@ -132,7 +133,8 @@ class Client:
                 callback(imgname, totalread, imgsize)
 
             # Write block to the shared storage device
-            datawritten = self._impl.storage_update(dest, offset, data, self._session)
+            datawritten = self._impl.storage_update(
+                dest, offset, data, self._session)
             offset = offset + datawritten
 
             # Check what to do next
@@ -165,7 +167,7 @@ class Client:
 
         # Open the shared storage device
         status = self.storage_open()
-        if status == False:
+        if status is False:
             image.close()
             return False
 
@@ -181,12 +183,15 @@ class Client:
                 callback(imgname, totalread, imgsize)
 
             # Write block to shared storage device
-            if isBZ2 == True:
-                bytes_wanted = self._impl.storage_write_bz2(data, self._session)
-            if isGZ == True:
-                bytes_wanted = self._impl.storage_write_gz(data, self._session)
+            if isBZ2 is True:
+                bytes_wanted = self._impl.storage_write_bz2(
+                    data, self._session)
+            if isGZ is True:
+                bytes_wanted = self._impl.storage_write_gz(
+                    data, self._session)
             else:
-                bytes_wanted = self._impl.storage_write_raw(data, self._session)
+                bytes_wanted = self._impl.storage_write_raw(
+                    data, self._session)
 
             # Check what to do next
             if bytes_wanted < 0:
@@ -228,9 +233,9 @@ class Client:
 
     def target_lock(self, retries=0):
         status = False
-        while status == False:
+        while status is False:
             status = self._impl.target_lock(self._session)
-            if retries <= 0 or status == True:
+            if retries <= 0 or status is True:
                 break
             retries = retries - 1
             time.sleep(60)
