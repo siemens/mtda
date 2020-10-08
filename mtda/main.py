@@ -17,6 +17,7 @@ from mtda.console.logger import ConsoleLogger
 from mtda.console.remote_output import RemoteConsoleOutput
 import mtda.keyboard.controller
 import mtda.power.controller
+from mtda import __version__
 
 _NOPRINT_TRANS_TABLE = {
     i: '.' for i in range(0, sys.maxunicode + 1) if not chr(i).isprintable()
@@ -60,6 +61,7 @@ class MentorTestDeviceAgent:
         self._lock_owner = None
         self._lock_expiry = None
         self._lock_timeout = 5  # Lock timeout (in minutes)
+        self.version = __version__
 
         # Config file in $HOME/.mtda/config
         home = os.getenv('HOME', '')
@@ -69,6 +71,9 @@ class MentorTestDeviceAgent:
         # Config file in /etc/mtda/config
         if os.path.exists('/etc'):
             self.config_files.append(os.path.join('/etc', 'mtda', 'config'))
+
+    def agent_version(self):
+        return self.version
 
     def command(self, args, session=None):
         self.mtda.debug(3, "main.command()")
