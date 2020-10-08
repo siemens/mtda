@@ -12,6 +12,7 @@ import termios
 import time
 import sys
 import zerorpc
+import socket
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
@@ -427,9 +428,18 @@ class Application:
         storage_status = client.storage_status()
         storage_written = client.storage_bytes_written() / 1024 / 1024
         tgt_status = client.target_status()
+        try:
+            remote_version = client.agent_version()
+        except (zerorpc.RemoteError) as e:
+            if e.name == 'NameError':
+                remote_version = "<=0.5"
+            else:
+                raise e
+        host = MultiTenantDeviceAccess()
 
         # Print general information
-        print("Agent          : %s%30s\r" % (remote, ""))
+        print("Host           : %s (%s)%30s\r" % (socket.gethostname(), host.version, ""))
+        print("Remote         : %s (%s)%30s\r" % (remote, remote_version, ""))
         print("Session        : %s\r" % (session))
         print("Target         : %-6s%s\r" % (tgt_status, locked))
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
@@ -519,12 +529,16 @@ class Application:
                   file=sys.stderr)
             return 1
 
+    def print_version(self):
+        agent = MultiTenantDeviceAccess()
+        print("MTDA version: %s" % agent.version)
+
     def main(self):
         daemonize = False
         detach = True
 
         options, stuff = getopt.getopt(
-            sys.argv[1:], 'dnr:', ['daemon', 'no-detach', 'remote='])
+            sys.argv[1:], 'dnr:v', ['daemon', 'no-detach', 'remote=', 'version'])
         for opt, arg in options:
             if opt in ('-d', '--daemon'):
                 daemonize = True
@@ -532,6 +546,9 @@ class Application:
                 detach = False
             if opt in ('-r', '--remote'):
                 self.remote = arg
+            if opt in ('-v', '--version'):
+                self.print_version()
+                sys.exit(0)
 
         # Start our server
         if daemonize is True:

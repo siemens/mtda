@@ -34,6 +34,9 @@ class Client:
             name = "mtda"
         self._session = os.getenv('MTDA_SESSION', name)
 
+    def agent_version(self):
+        return self._impl.agent_version()
+
     def command(self, args):
         return self._impl.command(args, self._session)
 
