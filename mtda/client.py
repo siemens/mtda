@@ -46,6 +46,9 @@ class Client:
     def console_getkey(self):
         return self._agent.console_getkey()
 
+    def console_init(self):
+        return self._agent.console_init()
+
     def console_head(self):
         return self._impl.console_head(self._session)
 

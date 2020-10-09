@@ -10,7 +10,6 @@ import requests
 import signal
 import termios
 import time
-import tty
 import sys
 import zerorpc
 
@@ -106,10 +105,7 @@ class Application:
         # Connect to the console
         client.console_remote(self.remote)
 
-        # Save current tty settings and set to raw
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        tty.setraw(sys.stdin)
+        client.console_init()
 
         # Input loop
         while self.exiting is False:
@@ -120,9 +116,7 @@ class Application:
             else:
                 server.console_send(c, True)
 
-        # Restore tty settings
         print("\r\nThank you for using MTDA!\r\n\r\n")
-        termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, old_settings)
 
     def console_menukey(self, c):
         server = self.client()

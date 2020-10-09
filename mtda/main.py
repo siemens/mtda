@@ -10,6 +10,7 @@ import sys
 import time
 import zlib
 import zmq
+import tty
 
 # Local imports
 from mtda.console.input import ConsoleInput
@@ -83,14 +84,18 @@ class MultiTenantDeviceAccess:
 
     def console_getkey(self):
         self.mtda.debug(3, "main.console_getkey()")
-
-        if self.console_input is None:
-            self.console_input = ConsoleInput()
-            self.console_input.start()
-        result = self.console_input.getkey()
-
+        result = None
+        try:
+            result = self.console_input.getkey()
+        except AttributeError:
+            print("Initialize the console using console_init first")
         self.mtda.debug(3, "main.console_getkey(): %s" % str(result))
         return result
+
+    def console_init(self):
+        self.console_input = ConsoleInput()
+        self.console_input.start()
+        tty.setraw(sys.stdin)
 
     def console_clear(self, session=None):
         self.mtda.debug(3, "main.console_clear()")
