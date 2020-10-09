@@ -30,5 +30,5 @@ class ConsoleInput:
         fcntl.ioctl(self.fd, termios.TIOCSTI, b'\0')
 
     def cleanup(self):
-        termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
+        termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old)
 
