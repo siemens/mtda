@@ -103,3 +103,36 @@ When using KVM in lieu of an actual target device, arbitrary commands
 may be sent to the QEMU monitor using the ``command`` command::
 
     $ mtda-cli command hostfwd_add tcp::8080-:8080
+
+Interactive
+-----------
+
+The MTDA client may be used as a terminal to interact directly with the
+device under test.
+
+Usage
+~~~~~
+
+Start ``mtda-cli`` without any commands. You may use a custom remote agent
+using the ``-r`` (or `--remote``) option::
+
+    # use default remote (localhost or remote specified in the configuration)
+    $ mtda-cli
+
+    # or with a specific remote
+    $ mtda-cli -r mtda-for-pi3.local
+
+Key bindings
+~~~~~~~~~~~~
+
+The following key bindings may be used to control MTDA from the interactive console:
+
+ * ``Ctrl-a`` + ``a``: acquire the target
+ * ``Ctrl-a`` + ``b``: paste console buffer to pastebin.com
+ * ``Ctrl-a`` + ``i``: print target information (power status, SD card, USB ports, etc.)
+ * ``Ctrl-a`` + ``p``: toggle power on/off
+ * ``Ctrl-a`` + ``q``: quit
+ * ``Ctrl-a`` + ``r``: release the target
+ * ``Ctrl-a`` + ``s``: swap the shared storage device between the host and target
+ * ``Ctrl-a`` + ``t``: toggle display of timestamps
+ * ``Ctrl-a`` + ``u``: toggle the 1st USB port on/off
