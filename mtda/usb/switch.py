@@ -1,10 +1,11 @@
 import abc
 
+
 class UsbSwitch(object):
     __metaclass__ = abc.ABCMeta
 
-    POWERED_OFF    = 0
-    POWERED_ON     = 1
+    POWERED_OFF = 0
+    POWERED_ON = 1
     POWERED_UNSURE = 2
 
     @abc.abstractmethod
@@ -36,4 +37,3 @@ class UsbSwitch(object):
     def toggle(self):
         """ Toggle power state of the USB port"""
         return self.POWERED_OFF
-
