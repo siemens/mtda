@@ -6,24 +6,25 @@ import usb.core
 # Local imports
 from mtda.power.controller import PowerController
 
+
 class Aviosys8800PowerController(PowerController):
 
     DEFAULT_USB_VID = 0x067b
     DEFAULT_USB_PID = 0x2303
 
     def __init__(self, mtda):
-        self.dev  = None
-        self.ev   = threading.Event()
+        self.dev = None
+        self.ev = threading.Event()
         self.mtda = mtda
-        self.vid  = Aviosys8800PowerController.DEFAULT_USB_VID
-        self.pid  = Aviosys8800PowerController.DEFAULT_USB_PID
+        self.vid = Aviosys8800PowerController.DEFAULT_USB_VID
+        self.pid = Aviosys8800PowerController.DEFAULT_USB_PID
 
     def configure(self, conf):
         """ Configure this power controller from the provided configuration"""
         if 'vid' in conf:
-           self.vid = int(conf['vid'], 16)
+            self.vid = int(conf['vid'], 16)
         if 'pid' in conf:
-           self.pid = int(conf['pid'], 16)
+            self.pid = int(conf['pid'], 16)
 
     def probe(self):
         self.dev = usb.core.find(idVendor=self.vid, idProduct=self.pid)
@@ -67,5 +68,6 @@ class Aviosys8800PowerController(PowerController):
         while self.status() != self.POWER_ON:
             self.ev.wait()
 
+
 def instantiate(mtda):
-   return Aviosys8800PowerController(mtda)
+    return Aviosys8800PowerController(mtda)
