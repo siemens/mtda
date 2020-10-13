@@ -1,3 +1,14 @@
+mtda (0.5-1) testing; urgency=low
+
+  * support for the NanoPI NEO LTS
+  * provide mechanism to send arbitrary KVM/QEMU monitor commands
+  * fix check for keyboard/hid being opened in idle()
+  * refactored sdmux code
+  * add optional reset command to sdmux/usbf
+  * more documentation updates
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 02 Oct 2020 13:25:55 +0100
+
 mtda (0.4-1) testing; urgency=low
 
   * New release: 0.4
