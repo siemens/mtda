@@ -1,3 +1,19 @@
+mtda (0.5.1-1) testing; urgency=low
+
+  [Vijai Kumar K]
+  * print local and remote versions
+  * add --version option
+  * fix terminal reset
+
+  [Cedric Hombourger]
+  * kill several pep8 warnings
+  * add install guide
+  * document command line interface
+  * document console key bindings
+  * make meta-isar pull v0.5.1
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 09 Oct 2020 16:27:40 -0400
+
 mtda (0.5-1) testing; urgency=low
 
   * support for the NanoPI NEO LTS
