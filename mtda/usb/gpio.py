@@ -5,14 +5,15 @@ import os
 # Local imports
 from mtda.usb.switch import UsbSwitch
 
+
 class GpioUsbSwitch(UsbSwitch):
 
     def __init__(self, mtda):
-        self.dev     = None
-        self.pin     = 0
-        self.enable  = 1
+        self.dev = None
+        self.pin = 0
+        self.enable = 1
         self.disable = 0
-        self.mtda    = mtda
+        self.mtda = mtda
 
     def configure(self, conf):
         """ Configure this USB switch from the provided configuration"""
@@ -21,10 +22,10 @@ class GpioUsbSwitch(UsbSwitch):
             self.pin = int(conf['pin'], 10)
         if 'enable' in conf:
             if conf['enable'] == 'high':
-                self.enable  = 1
+                self.enable = 1
                 self.disable = 0
             elif conf['enable'] == 'low':
-                self.enable  = 0
+                self.enable = 0
                 self.disable = 1
             else:
                 raise ValueError("'enable' shall be either 'high' or 'low'!")
@@ -38,12 +39,12 @@ class GpioUsbSwitch(UsbSwitch):
         if self.pin is None:
             raise ValueError("GPIO pin not configured!")
 
-        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) == False:
+        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) is False:
             f = open("/sys/class/gpio/export", "w")
             f.write("%d" % self.pin)
             f.close()
 
-        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) == False:
+        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) is False:
             raise ValueError("GPIO %d not found in sysfs!" % self.pin)
 
         f = open("/sys/class/gpio/gpio%d/direction" % self.pin, "w")
@@ -101,5 +102,6 @@ class GpioUsbSwitch(UsbSwitch):
         self.mtda.debug(3, "usb.gpio.toggle(): %s" % str(result))
         return result
 
+
 def instantiate(mtda):
-   return GpioUsbSwitch(mtda)
+    return GpioUsbSwitch(mtda)
