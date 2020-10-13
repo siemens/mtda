@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import subprocess
+import sys
+
+from mtda import __version__
+
+# Extract version from debian/changelog
+cmd = [ "dpkg-parsechangelog", "-S", "Version" ]
+deb_version = subprocess.check_output(cmd, encoding="utf-8").strip()
+deb_version = deb_version.split("-")[0]
+
+# Compare against version specified in the "mtda" module
+if deb_version != __version__:
+    print("version in debian/changelog is '{0}' but was expecting '{1}'".format(deb_version, __version__))
+    sys.exit(1)
+sys.exit(0)
