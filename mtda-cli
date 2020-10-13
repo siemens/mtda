@@ -438,8 +438,10 @@ class Application:
         host = MentorTestDeviceAgent()
 
         # Print general information
-        print("Host           : %s (%s)%30s\r" % (socket.gethostname(), host.version, ""))
-        print("Remote         : %s (%s)%30s\r" % (remote, remote_version, ""))
+        print("Host           : %s (%s)%30s\r" % (
+              socket.gethostname(), host.version, ""))
+        print("Remote         : %s (%s)%30s\r" % (
+              remote, remote_version, ""))
         print("Session        : %s\r" % (session))
         print("Target         : %-6s%s\r" % (tgt_status, locked))
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
@@ -538,7 +540,8 @@ class Application:
         detach = True
 
         options, stuff = getopt.getopt(
-            sys.argv[1:], 'dnr:v', ['daemon', 'no-detach', 'remote=', 'version'])
+            sys.argv[1:], 'dnr:v',
+            ['daemon', 'no-detach', 'remote=', 'version'])
         for opt, arg in options:
             if opt in ('-d', '--daemon'):
                 daemonize = True
@@ -596,6 +599,7 @@ class Application:
             # Assume we want an interactive console if called without a command
             self.console_interactive()
         return True
+
 
 if __name__ == '__main__':
     app = Application()
