@@ -24,6 +24,7 @@ _NOPRINT_TRANS_TABLE = {
     i: '.' for i in range(0, sys.maxunicode + 1) if not chr(i).isprintable()
 }
 
+DEFAULT_PREFIX_KEY = 'ctrl-a'
 
 def _make_printable(s):
     return s.translate(_NOPRINT_TRANS_TABLE)
@@ -56,6 +57,7 @@ class MentorTestDeviceAgent:
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
+        self.prefix_key = None
         self.is_remote = False
         self.is_server = False
         self.remote = None
@@ -86,6 +88,26 @@ class MentorTestDeviceAgent:
 
         self.mtda.debug(3, "main.command(): %s" % str(result))
         return result
+
+    def console_prefix_key(self):
+        self.mtda.debug(3, "main.console_prefix_key()")
+        return self.prefix_key
+
+    def _prefix_key_code(self, prefix_key):
+        prefix_key = prefix_key.lower()
+        key_dict = {'ctrl-a' : '\x01' , 'ctrl-b' : '\x02' , 'ctrl-c' : '\x03' , 'ctrl-d' : '\x04',
+                    'ctrl-e' : '\x05' , 'ctrl-f' : '\x06' , 'ctrl-g' : '\x07' , 'ctrl-h' : '\x08',
+                    'ctrl-i' : '\x09' , 'ctrl-j' : '\x0A' , 'ctrl-k' : '\x0B' , 'ctrl-l' : '\x0C',
+                    'ctrl-n' : '\x0E' , 'ctrl-o' : '\x0F' , 'ctrl-p' : '\x10' , 'ctrl-q' : '\x11',
+                    'ctrl-r' : '\x12' , 'ctrl-s' : '\x13' , 'ctrl-t' : '\x14' , 'ctrl-u' : '\x15',
+                    'ctrl-v' : '\x16' , 'ctrl-w' : '\x17' , 'ctrl-x' : '\x18' , 'ctrl-y' : '\x19',
+                    'ctrl-z' : '\x1A' }
+
+        if prefix_key in key_dict:
+            key_ascii = key_dict[prefix_key]
+            return key_ascii
+        else:
+            raise ValueError("the prefix key specified %s is not supported" %(prefix_key))
 
     def console_getkey(self):
         self.mtda.debug(3, "main.console_getkey()")
@@ -868,6 +890,8 @@ class MentorTestDeviceAgent:
             self.load_environment(parser)
         if parser.has_section('remote'):
             self.load_remote_config(parser)
+        if parser.has_section('ui'):
+            self.load_ui_config(parser)
         if self.is_remote is False:
             if parser.has_section('power'):
                 self.load_power_config(parser)
@@ -995,6 +1019,10 @@ class MentorTestDeviceAgent:
         else:
             self.remote = None
         self.is_remote = self.remote is not None
+
+    def load_ui_config(self, parser):
+        self.mtda.debug(3, "main.load_ui_config()")
+        self.prefix_key = self._prefix_key_code(parser.get('ui', 'prefix', fallback=DEFAULT_PREFIX_KEY))
 
     def load_usb_config(self, parser):
         self.mtda.debug(3, "main.load_usb_config()")
