@@ -108,10 +108,13 @@ class Application:
 
         client.console_init()
 
+        # Get the value of prefix key
+        prefix_key = client.console_prefix_key()
+
         # Input loop
         while self.exiting is False:
             c = client.console_getkey()
-            if c == '\x01':
+            if c == prefix_key:
                 c = client.console_getkey()
                 self.console_menukey(c)
             else:
