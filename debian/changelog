@@ -1,3 +1,9 @@
+mtda (0.6-1) testing; urgency=low
+
+  * support SD Wire with sdmux/samsung
+
+ -- Cedric Hombourger <chombourger@gmail.com>  Sun, 25 Oct 2020 17:28:22 +0100
+
 mtda (0.5.1-1) testing; urgency=low
 
   [Vijai Kumar K]
