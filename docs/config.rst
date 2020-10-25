@@ -224,3 +224,25 @@ The following settings are supported:
 
 * ``watchdog``: string [optional]
     Name of the watchdog driver provided by QEMU/KVM for the selected machine.
+
+Shared device settings
+----------------------
+
+The ``[sdmux]`` section configures a shared storage device that may be used
+either from the device under test or from the host running the MTDA agent. The
+driver is selected with the ``variant`` setting. Driver-specific settings are
+detailed below.
+
+``samsung`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``samsung`` driver supports both SD Mux and SD Wire and may used to share
+a SD card between the DUT and host. The following settings are supported:
+
+* ``device``: string [optional]
+  Block device for the shared SD card as seen on the host (defaults to
+  ``/dev/sda``)
+
+* ``serial``: string [optional]
+  Identifier of the sdmux/sdwire device to use (defaults to ``sdmux``). Use
+  ``sd-mux-ctrl`` to list available devices.
