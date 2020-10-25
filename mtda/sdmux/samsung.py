@@ -34,7 +34,7 @@ class SamsungSdMuxController(Image):
         result = True
         try:
             subprocess.check_output([
-                "sd-mux-ctrl", "-e", self.serial, "-t"
+                "sd-mux-ctrl", "-e", self.serial, "-i"
             ])
         except subprocess.CalledProcessError:
             result = False
