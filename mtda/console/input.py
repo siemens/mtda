@@ -6,6 +6,7 @@ import fcntl
 import termios
 import sys
 
+
 class ConsoleInput:
 
     def __init__(self):
@@ -23,7 +24,7 @@ class ConsoleInput:
     def getkey(self):
         c = sys.stdin.read(1)
         if c == chr(0x7f):
-            c = chr(8) # map the BS key (which yields DEL) to backspace
+            c = chr(8)  # map the BS key (which yields DEL) to backspace
         return c
 
     def cancel(self):
@@ -31,4 +32,3 @@ class ConsoleInput:
 
     def cleanup(self):
         termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old)
-
