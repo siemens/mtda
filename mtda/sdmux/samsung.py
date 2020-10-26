@@ -7,6 +7,7 @@ import subprocess
 # Local imports
 from mtda.sdmux.helpers.image import Image
 
+
 class SamsungSdMuxController(Image):
 
     def __init__(self, mtda):
@@ -20,9 +21,9 @@ class SamsungSdMuxController(Image):
 
         result = None
         if 'device' in conf:
-           self.device = conf['device']
+            self.device = conf['device']
         if 'serial' in conf:
-           self.serial = conf['serial']
+            self.serial = conf['serial']
 
         self.mtda.debug(3, "sdmux.samsung.configure(): %s" % str(result))
         return result
@@ -63,9 +64,9 @@ class SamsungSdMuxController(Image):
         self.lock.acquire()
 
         result = self._close()
-        if result == True:
+        if result is True:
             result = self._umount()
-        if result == True:
+        if result is True:
             try:
                 subprocess.check_output([
                     "sd-mux-ctrl", "-e", self.serial, "--dut"
@@ -100,5 +101,6 @@ class SamsungSdMuxController(Image):
         self.mtda.debug(3, "sdmux.samsung.status(): %s" % str(result))
         return result
 
+
 def instantiate(mtda):
-   return SamsungSdMuxController(mtda)
+    return SamsungSdMuxController(mtda)
