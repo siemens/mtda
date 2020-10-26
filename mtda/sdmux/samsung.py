@@ -12,7 +12,7 @@ class SamsungSdMuxController(Image):
 
     def __init__(self, mtda):
         super().__init__(mtda)
-        self.device = "/dev/sda"
+        self.file = "/dev/sda"
         self.serial = "sdmux"
 
     """ Configure this sdmux controller from the provided configuration"""
@@ -21,7 +21,7 @@ class SamsungSdMuxController(Image):
 
         result = None
         if 'device' in conf:
-            self.device = conf['device']
+            self.file = conf['device']
         if 'serial' in conf:
             self.serial = conf['serial']
 
