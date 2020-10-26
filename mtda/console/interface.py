@@ -1,5 +1,6 @@
 import abc
 
+
 class ConsoleInterface(object):
     __metaclass__ = abc.ABCMeta
 
@@ -37,4 +38,3 @@ class ConsoleInterface(object):
     def write(self, data):
         """ Write to the console"""
         return 0
-
