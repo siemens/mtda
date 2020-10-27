@@ -38,7 +38,7 @@ class Client:
         return self._impl.agent_version()
 
     def console_prefix_key(self):
-        return self._impl.console_prefix_key()
+        return self._agent.console_prefix_key()
 
     def command(self, args):
         return self._impl.command(args, self._session)
