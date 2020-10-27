@@ -57,7 +57,7 @@ class MentorTestDeviceAgent:
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
-        self.prefix_key = None
+        self.prefix_key = self._prefix_key_code(DEFAULT_PREFIX_KEY)
         self.is_remote = False
         self.is_server = False
         self.remote = None
