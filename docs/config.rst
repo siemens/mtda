@@ -27,6 +27,14 @@ General settings
       instead of ``losetup`` and ``mount``. This feature is experimental and
       requires ``partitionfs``, ``fuseext2`` and ``fusefat``.
 
+* ``ui``: section [optional]
+  User Interface settings for the console. This is relevant only for MTDA clients.
+
+  * ``prefix``: string [optional]
+      Change the key prefix to control the interactive MTDA console. The default
+      prefix is ``ctrl-a`` (which is also used by the ``screen`` tool, this
+      setting may be used to use e.g. ``ctrl-b`` instead).
+
 * ``console``: section [optional]
     Specify console settings when running the agent-side of MTDA (this section
     is ignored when running MTDA as a client). The ``variant`` key should be
