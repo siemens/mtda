@@ -328,3 +328,41 @@ to the shell and may restart the agent::
 
 Clients may now connect to the MTDA agent, control the power input of the Device
 Under Test and remotely access its console.
+
+Variant
+~~~~~~~
+
+Boards booting from a SD card instead of a USB stick may use Tizen's SDWire
+to share the microSD card between the host and device under test. A sample
+setup using Terasic's DE0-Nano-SoC Development Kit is shown below:
+
+.. image:: neo_sdwire_de0-nano-soc.png
+
+The SDWire PCB may be built using the PCB fabrication files found on the
+Tizen Wiki (https://wiki.tizen.org/SDWire).
+
+The MTDA image built above already includes the ``sd-mux-ctrl`` tool
+and the MTDA sdmux driver that supports both SDWire but also the older
+SD-MUX design.
+
+The following configuration file may be used for the DE0-Nano-SoC::
+
+    [main]
+    debug=0
+
+    [console]
+    variant=serial
+    port=/dev/ttyUSB0
+    rate=115200
+
+    [power]
+    variant=gpio
+    pin=203
+
+    [sdmux]
+    variant=samsung
+    serial=sdwire1
+
+where ``sdwire1`` is the serial number programmed into the SDWire EEPROM. Use
+``sd-mux-ctrl -l`` to list SDWire devices connected to your NanoPI NEO and
+obtain their serial number.
