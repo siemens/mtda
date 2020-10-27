@@ -26,6 +26,7 @@ _NOPRINT_TRANS_TABLE = {
 
 DEFAULT_PREFIX_KEY = 'ctrl-a'
 
+
 def _make_printable(s):
     return s.translate(_NOPRINT_TRANS_TABLE)
 
@@ -95,19 +96,22 @@ class MultiTenantDeviceAccess:
 
     def _prefix_key_code(self, prefix_key):
         prefix_key = prefix_key.lower()
-        key_dict = {'ctrl-a' : '\x01' , 'ctrl-b' : '\x02' , 'ctrl-c' : '\x03' , 'ctrl-d' : '\x04',
-                    'ctrl-e' : '\x05' , 'ctrl-f' : '\x06' , 'ctrl-g' : '\x07' , 'ctrl-h' : '\x08',
-                    'ctrl-i' : '\x09' , 'ctrl-j' : '\x0A' , 'ctrl-k' : '\x0B' , 'ctrl-l' : '\x0C',
-                    'ctrl-n' : '\x0E' , 'ctrl-o' : '\x0F' , 'ctrl-p' : '\x10' , 'ctrl-q' : '\x11',
-                    'ctrl-r' : '\x12' , 'ctrl-s' : '\x13' , 'ctrl-t' : '\x14' , 'ctrl-u' : '\x15',
-                    'ctrl-v' : '\x16' , 'ctrl-w' : '\x17' , 'ctrl-x' : '\x18' , 'ctrl-y' : '\x19',
-                    'ctrl-z' : '\x1A' }
+        key_dict = {'ctrl-a': '\x01', 'ctrl-b': '\x02', 'ctrl-c': '\x03',
+                    'ctrl-d': '\x04', 'ctrl-e': '\x05', 'ctrl-f': '\x06',
+                    'ctrl-g': '\x07', 'ctrl-h': '\x08', 'ctrl-i': '\x09',
+                    'ctrl-j': '\x0A', 'ctrl-k': '\x0B', 'ctrl-l': '\x0C',
+                    'ctrl-n': '\x0E', 'ctrl-o': '\x0F', 'ctrl-p': '\x10',
+                    'ctrl-q': '\x11', 'ctrl-r': '\x12', 'ctrl-s': '\x13',
+                    'ctrl-t': '\x14', 'ctrl-u': '\x15', 'ctrl-v': '\x16',
+                    'ctrl-w': '\x17', 'ctrl-x': '\x18', 'ctrl-y': '\x19',
+                    'ctrl-z': '\x1A'}
 
         if prefix_key in key_dict:
             key_ascii = key_dict[prefix_key]
             return key_ascii
         else:
-            raise ValueError("the prefix key specified %s is not supported" %(prefix_key))
+            raise ValueError("the prefix key specified '{0}' is not "
+                             "supported".format(prefix_key))
 
     def console_getkey(self):
         self.mtda.debug(3, "main.console_getkey()")
@@ -1022,7 +1026,8 @@ class MultiTenantDeviceAccess:
 
     def load_ui_config(self, parser):
         self.mtda.debug(3, "main.load_ui_config()")
-        self.prefix_key = self._prefix_key_code(parser.get('ui', 'prefix', fallback=DEFAULT_PREFIX_KEY))
+        self.prefix_key = self._prefix_key_code(parser.get(
+            'ui', 'prefix', fallback=DEFAULT_PREFIX_KEY))
 
     def load_usb_config(self, parser):
         self.mtda.debug(3, "main.load_usb_config()")
