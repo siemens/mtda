@@ -438,13 +438,16 @@ class Application:
                 remote_version = "<=0.5"
             else:
                 raise e
+
         host = MultiTenantDeviceAccess()
+        prefix_key = chr(ord(client.console_prefix_key()) + ord('a') - 1)
 
         # Print general information
         print("Host           : %s (%s)%30s\r" % (
               socket.gethostname(), host.version, ""))
         print("Remote         : %s (%s)%30s\r" % (
               remote, remote_version, ""))
+        print("Prefix key:    : ctrl-%s\r" % (prefix_key))
         print("Session        : %s\r" % (session))
         print("Target         : %-6s%s\r" % (tgt_status, locked))
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
