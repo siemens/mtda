@@ -8,6 +8,7 @@ import termios
 # Local imports
 from mtda.console.interface import ConsoleInterface
 
+
 class QemuConsole(ConsoleInterface):
 
     def __init__(self, mtda):
@@ -29,7 +30,7 @@ class QemuConsole(ConsoleInterface):
         self.mtda.debug(3, "console.qemu.open()")
 
         result = self.opened
-        if self.opened == False:
+        if self.opened is False:
             try:
                 self.tx = open("/tmp/qemu-serial.in",  mode="wb", buffering=0)
                 self.rx = open("/tmp/qemu-serial.out", mode="rb", buffering=0)
@@ -56,7 +57,7 @@ class QemuConsole(ConsoleInterface):
         self.mtda.debug(3, "console.qemu.pending()")
 
         result = 0
-        if self.opened == True:
+        if self.opened is True:
             avail = array.array('l', [0])
             fcntl.ioctl(self.rx, termios.FIONREAD, avail, 1)
             result = avail[0]
@@ -69,7 +70,7 @@ class QemuConsole(ConsoleInterface):
         self.mtda.debug(3, "console.qemu.read()")
 
         result = None
-        if self.opened == True:
+        if self.opened is True:
             try:
                 result = self.rx.read(n)
             except BlockingIOError:
@@ -86,11 +87,12 @@ class QemuConsole(ConsoleInterface):
         self.mtda.debug(3, "console.qemu.write(data=%s)" % str(data))
 
         result = None
-        if self.opened == True:
+        if self.opened is True:
             result = self.tx.write(data)
 
         self.mtda.debug(3, "console.qemu.write(): %s" % str(result))
         return result
+
 
 def instantiate(mtda):
     return QemuConsole(mtda)
