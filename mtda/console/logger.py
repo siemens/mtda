@@ -2,11 +2,12 @@
 
 # System imports
 import codecs
-from   collections import deque
+from collections import deque
 import os
 import sys
 import threading
 import time
+
 
 class ConsoleLogger:
 
@@ -27,7 +28,8 @@ class ConsoleLogger:
 
     def start(self):
         self.rx_alive = True
-        self.rx_thread = threading.Thread(target=self.reader, name='console_rx')
+        self.rx_thread = threading.Thread(
+            target=self.reader, name='console_rx')
         self.rx_thread.daemon = True
         self.rx_thread.start()
 
@@ -125,7 +127,7 @@ class ConsoleLogger:
             line = self.rx_buffer[-1]
         else:
             return None
-        if discard == True:
+        if discard is True:
             self._clear()
         return line.decode("utf-8", "ignore")
 
@@ -137,13 +139,14 @@ class ConsoleLogger:
 
     def write(self, data, raw=False):
         try:
-            if raw == False:
+            if raw is False:
                 data = codecs.escape_decode(bytes(data, "utf-8"))[0]
             else:
                 data = bytes(data, "utf-8")
             self.console.write(data)
-        except Exception as e:
-            print("write error on the console (%s)!" % e.strerror, file=sys.stderr)
+        except IOError as e:
+            print("write error on the console ({0})!".format(
+                e.strerror), file=sys.stderr)
 
     def reset_timer(self):
         self.basetime = 0
@@ -171,7 +174,7 @@ class ConsoleLogger:
             self.basetime = time.time()
 
         # Add timestamps
-        if self.timestamps == True:
+        if self.timestamps is True:
             newdata = bytearray()
             linefeeds = 0
             for x in data:
@@ -203,8 +206,8 @@ class ConsoleLogger:
             off = self.rx_queue.find(b'\n', 0)
             if off >= 0:
                 # Will include the line feed character in the buffered line
-                off  = off + 1
-                rem  = sz - off
+                off = off + 1
+                rem = sz - off
 
                 # Extract line from the RX queue
                 line = self.rx_queue[:off]
@@ -240,7 +243,7 @@ class ConsoleLogger:
             self.power_controller.wait()
             con.open()
 
-        while self.rx_alive == True:
+        while self.rx_alive is True:
             if self.power_controller is not None:
                 self.power_controller.wait()
 
@@ -248,19 +251,21 @@ class ConsoleLogger:
                 data = con.read(con.pending() or 1)
                 self.process_rx(data)
                 continue
-            except:
+            except IOError:
                 error = sys.exc_info()[0]
 
             try:
                 if retries > 0:
-                    print("resetting console to recover from read error (%s)..." % error, file=sys.stderr)
+                    print("resetting console to recover from read error "
+                          "({0})...".format(error), file=sys.stderr)
                     con.close()
                     con.open()
                     error = None
                 else:
-                    print("failed to reset the console, aborting!", file=sys.stderr)
+                    print("failed to reset the console, "
+                          "aborting!", file=sys.stderr)
                     self.rx_alive = False
-            except:
+            except IOError:
                 retries = retries - 1
 
     def pause(self):
