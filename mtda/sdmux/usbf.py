@@ -6,14 +6,15 @@ import subprocess
 # Local imports
 from mtda.sdmux.helpers.image import Image
 
+
 class UsbFunctionController(Image):
 
     def __init__(self, mtda):
         super().__init__(mtda)
-        self.gadget   = "usb_functions_for_mentor_test_device_agent"
+        self.gadget = "usb_functions_for_mentor_test_device_agent"
         self.function = "mass_storage.usb0"
-        self.mode     = self.SD_ON_HOST
-        self.reset    = None
+        self.mode = self.SD_ON_HOST
+        self.reset = None
 
     """ Configure this sdmux controller from the provided configuration"""
     def configure(self, conf):
@@ -21,13 +22,15 @@ class UsbFunctionController(Image):
 
         result = None
         if 'gadget' in conf:
-           self.gadget = conf['gadget']
+            self.gadget = conf['gadget']
         if 'function' in conf:
-           self.function = conf['function']
+            self.function = conf['function']
         if 'reset' in conf:
-           self.reset = conf['reset']
+            self.reset = conf['reset']
 
-        self.sysfs = "/sys/kernel/config/usb_gadget/{0}/functions/{1}/lun.0/file".format(self.gadget, self.function)
+        self.sysfs = ("/sys/kernel/config/usb_gadget/"
+                      "{0}/functions/{1}/lun.0/file").format(
+                     self.gadget, self.function)
 
         self.mtda.debug(3, "sdmux.usbf.configure(): %s" % str(result))
         return result
@@ -41,7 +44,7 @@ class UsbFunctionController(Image):
             with open(self.sysfs) as conf:
                 self.file = conf.read().rstrip()
                 conf.close()
-        except:
+        except FileNotFoundError:
             result = False
 
         self.mtda.debug(3, "sdmux.usbf.probe(): %s" % str(result))
@@ -69,7 +72,7 @@ class UsbFunctionController(Image):
         self.lock.acquire()
 
         result = self._close()
-        if result == True:
+        if result is True:
             result = self._umount()
 
         if result:
@@ -93,5 +96,6 @@ class UsbFunctionController(Image):
         self.mtda.debug(3, "sdmux.usbf.status(): %s" % str(result))
         return result
 
+
 def instantiate(mtda):
-   return UsbFunctionController(mtda)
+    return UsbFunctionController(mtda)
