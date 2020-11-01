@@ -24,6 +24,7 @@ IMAGE_PREINSTALL += "${MTDA_PACKAGES}"
 IMAGE_PREINSTALL += "  \
     iproute2           \
     isc-dhcp-client    \
+    lava-dispatcher    \
     network-manager    \
     ssh                \
     sudo               \
