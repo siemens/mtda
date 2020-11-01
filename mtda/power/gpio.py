@@ -6,29 +6,30 @@ import threading
 # Local imports
 from mtda.power.controller import PowerController
 
+
 class GpioPowerController(PowerController):
 
     def __init__(self, mtda):
-        self.dev  = None
-        self.ev   = threading.Event()
+        self.dev = None
+        self.ev = threading.Event()
         self.mtda = mtda
-        self.pin  = None
+        self.pin = None
 
     def configure(self, conf):
         """ Configure this power controller from the provided configuration"""
         if 'pin' in conf:
-           self.pin = int(conf['pin'], 10)
+            self.pin = int(conf['pin'], 10)
 
     def probe(self):
         if self.pin is None:
             raise ValueError("GPIO pin not configured!")
 
-        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) == False:
+        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) is False:
             f = open("/sys/class/gpio/export", "w")
             f.write("%d" % self.pin)
             f.close()
 
-        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) == False:
+        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) is False:
             raise ValueError("GPIO %d not found in sysfs!" % self.pin)
 
         f = open("/sys/class/gpio/gpio%d/direction" % self.pin, "w")
@@ -82,5 +83,6 @@ class GpioPowerController(PowerController):
         while self.status() != self.POWER_ON:
             self.ev.wait()
 
+
 def instantiate(mtda):
-   return GpioPowerController(mtda)
+    return GpioPowerController(mtda)
