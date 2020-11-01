@@ -48,7 +48,7 @@ class TelnetConsole(ConsoleInterface):
                 self.telnet.open(self.host, self.port, self.timeout)
                 self.opened = True
                 result = True
-            except:
+            except OSError:
                 result = False
 
         self.mtda.debug(3, "console.telnet.open(): %s" % str(result))
