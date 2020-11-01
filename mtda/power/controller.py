@@ -1,10 +1,11 @@
 import abc
 
+
 class PowerController(object):
     __metaclass__ = abc.ABCMeta
 
-    POWER_OFF    = "OFF"
-    POWER_ON     = "ON"
+    POWER_OFF = "OFF"
+    POWER_ON = "ON"
     POWER_UNSURE = "???"
     POWER_LOCKED = "LOCKED"
 
