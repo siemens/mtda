@@ -1,11 +1,13 @@
 import abc
 
+
 class KeyboardController(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def configure(self, conf):
-        """ Configure this keyboard controller from the provided configuration"""
+        """ Configure this keyboard controller from the provided
+            configuration"""
         return
 
     @abc.abstractmethod
