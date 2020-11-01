@@ -7,6 +7,7 @@ import time
 # Local imports
 from mtda.keyboard.controller import KeyboardController
 
+
 class QemuController(KeyboardController):
 
     def __init__(self, mtda):
@@ -20,8 +21,9 @@ class QemuController(KeyboardController):
         self.mtda.debug(3, "keyboard.qemu.probe()")
 
         result = self.qemu.variant == "qemu"
-        if result == False:
-            self.mtda.debug(1, "keyboard.qemu.probe(): a qemu power controller is required")
+        if result is False:
+            self.mtda.debug(1, "keyboard.qemu.probe(): "
+                               "a qemu power controller is required")
 
         self.mtda.debug(3, "keyboard.qemu.probe(): %s" % str(result))
         return result
@@ -66,5 +68,6 @@ class QemuController(KeyboardController):
     def write(self, str):
         self.mtda.debug(3, "keyboard.qemu.write()")
 
+
 def instantiate(mtda):
-   return QemuController(mtda)
+    return QemuController(mtda)
