@@ -1,10 +1,11 @@
 import abc
 
+
 class SdMuxController(object):
     __metaclass__ = abc.ABCMeta
 
     SD_ON_UNSURE = "???"
-    SD_ON_HOST   = "HOST"
+    SD_ON_HOST = "HOST"
     SD_ON_TARGET = "TARGET"
 
     @abc.abstractmethod
@@ -36,7 +37,6 @@ class SdMuxController(object):
     def supports_hotplug(self):
         """ Whether the sdmux may be hotplugged"""
         return False
-
 
     @abc.abstractmethod
     def to_host(self):
