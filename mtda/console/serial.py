@@ -6,10 +6,11 @@ import serial
 # Local imports
 from mtda.console.interface import ConsoleInterface
 
+
 class SerialConsole(ConsoleInterface):
 
     def __init__(self, mtda):
-        self.ser  = None
+        self.ser = None
         self.mtda = mtda
         self.port = "/dev/ttyUSB0"
         self.rate = 115200
@@ -39,7 +40,7 @@ class SerialConsole(ConsoleInterface):
         self.mtda.debug(3, "console.serial.open()")
 
         if self.ser is not None:
-            if self.opened == False:
+            if self.opened is False:
                 self.ser.open()
                 self.opened = True
             else:
@@ -56,14 +57,14 @@ class SerialConsole(ConsoleInterface):
         self.mtda.debug(3, "console.serial.close()")
 
         if self.ser is not None:
-            if self.opened == True:
+            if self.opened is True:
                 self.ser.close()
                 self.opened = False
             else:
                 self.mtda.debug(4, "console.serial.close(): already closed")
         else:
             self.mtda.debug(0, "serial console not setup!")
-        result = self.opened == False
+        result = self.opened is False
 
         self.mtda.debug(3, "console.serial.close(): %s" % str(result))
         return result
@@ -100,6 +101,7 @@ class SerialConsole(ConsoleInterface):
 
         self.mtda.debug(3, "console.serial.write(): %s" % str(result))
         return result
+
 
 def instantiate(mtda):
     return SerialConsole(mtda)
