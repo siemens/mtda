@@ -1,4 +1,13 @@
-#!/usr/bin/env python3
+# ---------------------------------------------------------------------------
+# Remote console support for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (c) Mentor, a Siemens business, 2017-2020
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
 
 # Local imports
 from mtda.console.output import ConsoleOutput
