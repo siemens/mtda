@@ -7,29 +7,32 @@ import time
 # Local imports
 from mtda.keyboard.controller import KeyboardController
 
+
 class HidKeyboardController(KeyboardController):
 
     def __init__(self, mtda):
-        self.dev  = None
-        self.fd   = None
+        self.dev = None
+        self.fd = None
         self.mtda = mtda
 
     def configure(self, conf):
         self.mtda.debug(3, "keyboard.hid.configure()")
 
-        """ Configure this keyboard controller from the provided configuration"""
         if 'device' in conf:
-           self.dev = conf['device']
-           self.mtda.debug(4, "keyboard.hid.configure(): will use %s" % str(self.dev))
+            self.dev = conf['device']
+            self.mtda.debug(4, "keyboard.hid.configure(): "
+                               "will use %s" % str(self.dev))
 
     def probe(self):
         self.mtda.debug(3, "keyboard.hid.probe()")
 
         result = False
         if self.dev is None:
-            self.mtda.debug(1, "keyboard.hid.probe(): %s not configured" % str(self.dev))
-        elif os.path.exists(self.dev) == False:
-            self.mtda.debug(1, "keyboard.hid.probe(): %s not found" % str(self.dev))
+            self.mtda.debug(1, "keyboard.hid.probe(): "
+                               "%s not configured" % str(self.dev))
+        elif os.path.exists(self.dev) is False:
+            self.mtda.debug(1, "keyboard.hid.probe(): "
+                               "%s not found" % str(self.dev))
         else:
             result = True
 
@@ -40,7 +43,7 @@ class HidKeyboardController(KeyboardController):
         self.mtda.debug(3, "keyboard.hid.write_report()")
 
         return self.fd.write(report.encode())
- 
+
     def idle(self):
         self.mtda.debug(3, "keyboard.hid.idle()")
 
@@ -58,17 +61,20 @@ class HidKeyboardController(KeyboardController):
         NULL_CHAR = chr(0)
         try:
             if self.fd is None:
-                self.mtda.debug(4, "keyboard.hid.press(): opening %s" % self.dev)
+                self.mtda.debug(4, "keyboard.hid.press(): "
+                                   "opening %s" % self.dev)
                 self.fd = open(self.dev, mode="r+b", buffering=0)
-        except:
-            self.mtda.debug(0, "keyboard.hid.press(): failed to open %s" % self.dev)
+        except FileNotFoundError:
+            self.mtda.debug(0, "keyboard.hid.press(): "
+                               "failed to open %s" % self.dev)
             return False
 
         result = True
         while repeat > 0:
             repeat = repeat - 1
             try:
-                written = self.write_report(chr(mod) + NULL_CHAR + chr(key) + NULL_CHAR * 5)
+                written = self.write_report(
+                    chr(mod) + NULL_CHAR + chr(key) + NULL_CHAR * 5)
                 time.sleep(0.1)
                 self.write_report(NULL_CHAR * 8)
                 if repeat > 0:
@@ -76,7 +82,7 @@ class HidKeyboardController(KeyboardController):
                 if written < 8:
                     result = False
                     break
-            except:
+            except IOError:
                 self.write_report(NULL_CHAR * 8)
                 result = False
                 break
@@ -130,5 +136,6 @@ class HidKeyboardController(KeyboardController):
             if k in lower_keys:
                 self.press(lower_keys[k])
 
+
 def instantiate(mtda):
-   return HidKeyboardController(mtda)
+    return HidKeyboardController(mtda)
