@@ -6,29 +6,31 @@ import threading
 # Local imports
 from mtda.power.controller import PowerController
 
+
 class PduClientController(PowerController):
 
     def __init__(self, mtda):
-        self.dev      = None
-        self.ev       = threading.Event()
-        self.daemon   = None
+        self.dev = None
+        self.ev = threading.Event()
+        self.daemon = None
         self.hostname = None
-        self.mtda     = mtda
-        self.port     = None
-        self.status   = self.POWER_UNSURE
+        self.mtda = mtda
+        self.port = None
+        self.status = self.POWER_UNSURE
 
     def configure(self, conf):
         """ Configure this power controller from the provided configuration"""
         if 'daemon' in conf:
-           self.daemon = conf['daemon']
+            self.daemon = conf['daemon']
         if 'hostname' in conf:
-           self.hostname = conf['hostname']
+            self.hostname = conf['hostname']
         if 'port' in conf:
-           self.port = conf['port']
+            self.port = conf['port']
 
     def probe(self):
         if self.daemon is None:
-            raise ValueError("machine running lavapdu-listen not specified ('daemon' not set)!")
+            raise ValueError("machine running lavapdu-listen "
+                             "not specified ('daemon' not set)!")
         if self.hostname is None:
             raise ValueError("pdu not specified ('hostname' not set)!")
         if self.port is None:
@@ -36,7 +38,10 @@ class PduClientController(PowerController):
 
     def cmd(self, what):
         client = "/usr/bin/pduclient"
-        return os.system("%s --daemon %s --hostname %s --command %s --port %s" % (client, self.daemon, self.hostname, what, self.port))
+        return os.system(
+            "{0} --daemon {1} --hostname {2} --command {3} "
+            "--port {4}"
+            .format(client, self.daemon, self.hostname, what, self.port))
 
     def command(self, args):
         return False
@@ -76,5 +81,6 @@ class PduClientController(PowerController):
         while self.status() != self.POWER_ON:
             self.ev.wait()
 
+
 def instantiate(mtda):
-   return PduClientPowerController(mtda)
+    return PduClientPowerController(mtda)
