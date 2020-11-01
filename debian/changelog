@@ -1,3 +1,11 @@
+mtda (0.7-1) testing; urgency=low
+
+  * Kill PEP8 warnings
+  * Add SPDX license identifiers
+  * Fix some issues with configurable command key prefix
+
+ -- Cedric Hombourger <chombourger@gmail.com>  Sun, 01 Nov 2020 16:00:11 +0100
+
 mtda (0.6-1) testing; urgency=low
 
   * support SD Wire with sdmux/samsung
