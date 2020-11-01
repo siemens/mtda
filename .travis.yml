@@ -12,6 +12,7 @@ services:
 before_install:
   - sudo apt-get update
   - sudo apt-get install -y python3-pip python3-setuptools
+  - pip3 install --user pycodestyle
 
 install:
   - pip3 install --user .
@@ -21,4 +22,5 @@ before_script:
 
 script:
   - export PATH=$HOME/.local/bin:$PATH
+  - pycodestyle mtda-cli mtda/
   - mtda-cli help
