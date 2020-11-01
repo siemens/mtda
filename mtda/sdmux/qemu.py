@@ -8,15 +8,16 @@ import threading
 # Local imports
 from mtda.sdmux.helpers.image import Image
 
+
 class QemuController(Image):
 
     def __init__(self, mtda):
         super().__init__(mtda)
-        self.file     = "usb-sdmux.img"
-        self.id       = None
-        self.name     = "sdmux"
-        self.mode     = self.SD_ON_TARGET
-        self.qemu     = mtda.power_controller
+        self.file = "usb-sdmux.img"
+        self.id = None
+        self.name = "sdmux"
+        self.mode = self.SD_ON_TARGET
+        self.qemu = mtda.power_controller
 
     """ Configure this sdmux controller from the provided configuration"""
     def configure(self, conf):
@@ -25,11 +26,11 @@ class QemuController(Image):
 
         result = None
         if 'file' in conf:
-           self.file = os.path.realpath(conf['file'])
-           if os.path.exists(self.file) == False:
-               sparse = pathlib.Path(self.file)
-               sparse.touch()
-               os.truncate(str(sparse), 8*1024*1024*1024)
+            self.file = os.path.realpath(conf['file'])
+            if os.path.exists(self.file) is False:
+                sparse = pathlib.Path(self.file)
+                sparse.touch()
+                os.truncate(str(sparse), 8*1024*1024*1024)
         if 'name' in conf:
             self.name = conf['name']
 
@@ -44,7 +45,8 @@ class QemuController(Image):
         if self.id is None:
             self.id = self.qemu.usb_add(self.name, self.file)
             if self.id is None:
-                self.mtda.debug(1, "sdmux.qemu._add(): usb storage could not be added!")
+                self.mtda.debug(1, "sdmux.qemu._add(): "
+                                   "usb storage could not be added!")
                 result = False
 
         self.mtda.debug(3, "sdmux.qemu._add(): %s" % str(result))
@@ -56,10 +58,11 @@ class QemuController(Image):
         result = True
         if self.id is not None:
             result = self.qemu.usb_rm(self.name)
-            if result == True:
+            if result is True:
                 self.id = None
             else:
-                self.mtda.debug(1, "sdmux.qemu._rm(): usb storage could not be removed!")
+                self.mtda.debug(1, "sdmux.qemu._rm(): "
+                                   "usb storage could not be removed!")
 
         self.mtda.debug(3, "sdmux.qemu._rm(): %s" % str(result))
         return result
@@ -70,8 +73,9 @@ class QemuController(Image):
         self.lock.acquire()
 
         result = self.qemu.variant == "qemu"
-        if result == False:
-            self.mtda.debug(1, "sdmux.qemu.probe(): qemu power controller required!")
+        if result is False:
+            self.mtda.debug(1, "sdmux.qemu.probe(): "
+                               "qemu power controller required!")
 
         self.mtda.debug(3, "sdmux.qemu.probe(): %s" % str(result))
         self.lock.release()
@@ -86,7 +90,7 @@ class QemuController(Image):
         self.lock.acquire()
 
         result = self._rm()
-        if result == True:
+        if result is True:
             self.mode = self.SD_ON_HOST
 
         self.mtda.debug(3, "sdmux.qemu.to_host(): %s" % str(result))
@@ -99,11 +103,11 @@ class QemuController(Image):
         self.lock.acquire()
 
         result = self._close()
-        if result == True:
+        if result is True:
             result = self._umount()
-        if result == True:
+        if result is True:
             result = self._add()
-            if result == True:
+            if result is True:
                 self.mode = self.SD_ON_TARGET
 
         self.mtda.debug(3, "sdmux.qemu.to_target(): %s" % str(result))
@@ -119,5 +123,6 @@ class QemuController(Image):
         self.mtda.debug(3, "sdmux.qemu.status(): %s" % str(result))
         return result
 
+
 def instantiate(mtda):
-   return QemuController(mtda)
+    return QemuController(mtda)
