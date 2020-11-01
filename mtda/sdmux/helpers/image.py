@@ -11,14 +11,15 @@ import threading
 # Local imports
 from mtda.sdmux.controller import SdMuxController
 
+
 class Image(SdMuxController):
 
     def __init__(self, mtda):
-        self.mtda   = mtda
+        self.mtda = mtda
         self.handle = None
         self.isfuse = False
         self.isloop = False
-        self.lock   = threading.Lock()
+        self.lock = threading.Lock()
         atexit.register(self._umount)
 
     def _close(self):
@@ -62,28 +63,35 @@ class Image(SdMuxController):
         if self._status() == self.SD_ON_HOST:
             basedir = self._mountpoint()
             if os.path.exists(basedir):
-                mounts = [d for d in os.listdir(basedir) if os.path.ismount(os.path.join(basedir, d))]
+                mounts = [
+                    d for d in os.listdir(basedir)
+                    if os.path.ismount(os.path.join(basedir, d))]
                 mounts.sort()
                 mounts.reverse()
                 for m in mounts:
-                    self.mtda.debug(2, "sdmux.helpers.image.umount(): removing mount point for '{0}'".format(m))
+                    self.mtda.debug(2, "sdmux.helpers.image.umount(): "
+                                       "removing mount point for '{0}'"
+                                       .format(m))
                     m = os.path.join(basedir, m)
-                    cmd = [ "/bin/umount", m ]
+                    cmd = ["/bin/umount", m]
                     if os.geteuid() != 0:
                         cmd.insert(0, "sudo")
                     if os.system(" ".join(cmd)) == 0:
                         os.rmdir(m)
             if self.isfuse:
                 device = self.device[:-1]
-                self.mtda.debug(2, "sdmux.helpers.image.umount(): removing FUSE mount '{0}'".format(device))
-                cmd = [ "/bin/umount", device ]
+                self.mtda.debug(2, "sdmux.helpers.image.umount(): "
+                                   "removing FUSE mount '{0}'".format(device))
+                cmd = ["/bin/umount", device]
                 if os.system(" ".join(cmd)) == 0:
                     os.rmdir(device)
                     self.device = None
                     self.isfuse = False
             elif self.isloop:
-                self.mtda.debug(2, "sdmux.helpers.image.umount(): removing loopback device '{0}'".format(self.device))
-                cmd = [ "losetup", "-d", self.device ]
+                self.mtda.debug(2, "sdmux.helpers.image.umount(): "
+                                   "removing loopback device '{0}'"
+                                   .format(self.device))
+                cmd = ["losetup", "-d", self.device]
                 if os.geteuid() != 0:
                     cmd.insert(0, "sudo")
                 if os.system(" ".join(cmd)) == 0:
@@ -109,17 +117,19 @@ class Image(SdMuxController):
         self.device = None
         self.isfuse = False
         self.isloop = False
-        if self.mtda.fuse == True and os.path.exists("/usr/bin/partitionfs"):
-            device = os.path.join("/run", "user", str(os.getuid()), "mtda", "sdmux", "0")
+        if self.mtda.fuse is True and os.path.exists("/usr/bin/partitionfs"):
+            device = os.path.join(
+                "/run", "user", str(os.getuid()), "mtda", "sdmux", "0")
             os.makedirs(device, exist_ok=True)
             cmd = "/usr/bin/partitionfs -s {0} {1}".format(self.file, device)
-            self.mtda.debug(2, "sdmux.helpers.image._get_partitions(): {0}".format(cmd))
+            self.mtda.debug(2, "sdmux.helpers.image._get_partitions(): "
+                               "{0}".format(cmd))
             result = (os.system(cmd)) == 0
             if result:
                 self.device = device + "/"
                 self.isfuse = True
         else:
-            cmd = [ "losetup", "-f", "--show", "-P", self.file ]
+            cmd = ["losetup", "-f", "--show", "-P", self.file]
             if os.geteuid() != 0:
                 cmd.insert(0, "sudo")
             device = subprocess.check_output(cmd).decode("utf-8").strip()
@@ -128,7 +138,8 @@ class Image(SdMuxController):
                 self.device = device
                 self.isloop = True
 
-        self.mtda.debug(3, "sdmux.helpers.image._get_partitions(): %s" % str(result))
+        self.mtda.debug(3, "sdmux.helpers.image._get_partitions(): "
+                           "%s" % str(result))
         return result
 
     def _mount_part(self, path):
@@ -138,32 +149,39 @@ class Image(SdMuxController):
         mountpoint = self._mountpoint(path)
         result = False
 
-        if os.path.exists(path) and os.path.ismount(mountpoint) == False:
+        if os.path.exists(path) and os.path.ismount(mountpoint) is False:
             os.makedirs(mountpoint, exist_ok=True)
             if pathlib.Path(path).is_block_device():
-                cmd =["/bin/mount", path, mountpoint]
+                cmd = ["/bin/mount", path, mountpoint]
                 if os.geteuid() != 0:
                     cmd.insert(0, "sudo")
             elif self.isfuse:
                 cmd = None
-                fstype = subprocess.check_output(["/usr/bin/file", path]).decode("utf-8").strip()
+                fstype = subprocess.check_output(["/usr/bin/file", path])
+                fstype = fstype.decode("utf-8").strip()
                 if 'ext4 filesystem' in fstype:
-                    cmd = [ "/usr/bin/fusext2", path, mountpoint, "-o", "rw+" ]
+                    cmd = ["/usr/bin/fusext2", path, mountpoint, "-o", "rw+"]
                 elif 'FAT (32 bit)' in fstype:
-                    cmd = [ "/usr/bin/fusefat", path, mountpoint ]
+                    cmd = ["/usr/bin/fusefat", path, mountpoint]
                 else:
-                    self.mtda.debug(1, "sdmux.helpers.image._mount_part(): {0}".format(fstype))
-                    self.mtda.debug(1, "sdmux.helpers.image._mount_part(): file-system not supported")
+                    self.mtda.debug(1, "sdmux.helpers.image._mount_part(): "
+                                       "{0}".format(fstype))
+                    self.mtda.debug(1, "sdmux.helpers.image._mount_part(): "
+                                       "file-system not supported")
             if cmd:
                 cmd = " ".join(cmd)
-                self.mtda.debug(2, "sdmux.helpers.image._mount_part(): mounting {0} on {1}".format(path, mountpoint))
-                self.mtda.debug(2, "sdmux.helpers.image._mount_part(): {0}".format(cmd))
+                self.mtda.debug(2, "sdmux.helpers.image._mount_part(): "
+                                   "mounting {0} on {1}"
+                                   .format(path, mountpoint))
+                self.mtda.debug(2, "sdmux.helpers.image._mount_part(): "
+                                   "{0}".format(cmd))
                 result = (os.system(cmd)) == 0
 
-            if result == False:
+            if result is False:
                 os.rmdir(mountpoint)
 
-        self.mtda.debug(3, "sdmux.helpers.image._mount_part(): %s" % str(result))
+        self.mtda.debug(3, "sdmux.helpers.image._mount_part(): "
+                           "%s" % str(result))
         return result
 
     def mount(self, part=None):
@@ -174,9 +192,13 @@ class Image(SdMuxController):
         if self._status() == self.SD_ON_HOST:
             result = self._get_partitions()
             if result:
-                self.mtda.debug(2, "sdmux.helpers.image.mount(): '{0}' holds partitions".format(self.device))
+                self.mtda.debug(2, "sdmux.helpers.image.mount(): "
+                                   "'{0}' holds partitions"
+                                   .format(self.device))
             else:
-                self.mtda.debug(1, "sdmux.helpers.image.mount(): failed to get partitions for '{0}'".format(self.file))
+                self.mtda.debug(1, "sdmux.helpers.image.mount(): "
+                                   "failed to get partitions for '{0}'"
+                                   .format(self.file))
             if result:
                 path = None
                 if part:
@@ -190,7 +212,8 @@ class Image(SdMuxController):
                 if path:
                     result = self._mount_part(path)
         else:
-            self.mtda.debug(1, "sdmux.helpers.image.mount(): sdmux attached to target!")
+            self.mtda.debug(1, "sdmux.helpers.image.mount(): "
+                               "sdmux attached to target!")
             result = False
 
         self.mtda.debug(3, "sdmux.helpers.image.mount(): %s" % str(result))
@@ -207,7 +230,7 @@ class Image(SdMuxController):
                 try:
                     self.handle = open(self.file, "r+b")
                     self.handle.seek(0, 0)
-                except:
+                except FileNotFoundError:
                     result = False
 
         self.mtda.debug(3, "sdmux.helpers.image.open(): %s" % str(result))
