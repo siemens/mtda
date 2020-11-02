@@ -14,21 +14,25 @@ import atexit
 import fcntl
 import termios
 import sys
+import tty
 
 
 class ConsoleInput:
 
     def __init__(self):
-        self.fd = sys.stdin.fileno()
-        self.old = termios.tcgetattr(self.fd)
-        atexit.register(self.cleanup)
+        if sys.stdin.isatty():
+            self.fd = sys.stdin.fileno()
+            self.old = termios.tcgetattr(self.fd)
+            atexit.register(self.cleanup)
 
     def start(self):
-        new = termios.tcgetattr(self.fd)
-        new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
-        new[6][termios.VMIN] = 1
-        new[6][termios.VTIME] = 0
-        termios.tcsetattr(self.fd, termios.TCSANOW, new)
+        if sys.stdin.isatty():
+            new = termios.tcgetattr(self.fd)
+            new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
+            new[6][termios.VMIN] = 1
+            new[6][termios.VTIME] = 0
+            termios.tcsetattr(self.fd, termios.TCSANOW, new)
+            tty.setraw(sys.stdin)
 
     def getkey(self):
         c = sys.stdin.read(1)
@@ -37,7 +41,9 @@ class ConsoleInput:
         return c
 
     def cancel(self):
-        fcntl.ioctl(self.fd, termios.TIOCSTI, b'\0')
+        if sys.stdin.isatty():
+            fcntl.ioctl(self.fd, termios.TIOCSTI, b'\0')
 
     def cleanup(self):
-        termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old)
+        if sys.stdin.isatty():
+            termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old)
