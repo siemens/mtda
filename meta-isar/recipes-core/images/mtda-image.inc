@@ -31,6 +31,9 @@ IMAGE_PREINSTALL += "  \
     vim                \
 "
 
+# Expand root file-system
+IMAGE_INSTALL_append = " expand-on-first-boot "
+
 # Remove meta-isar examples if they are there...
 IMAGE_INSTALL_remove = "          \
     example-module-${KERNEL_NAME} \
@@ -49,6 +52,7 @@ USER_mtda[comment] = "Mentor Test Device Agent"
 USER_mtda[flags] = "system create-home"
 USER_mtda[groups] = "mtda sudo"
 USER_mtda[password] ??= "$6$uaP1WXXu/joK8zxJ$LONexagmcWBKkY/HRQe0fVjY7n06FkX1qJUjigQ.4JVYxC9/OfBu3iJrF8hugMo2CaIh1sIOxDdpXvWWIjhfQ1"
+USER_mtda[shell] = "/bin/bash"
 
 # Remove the "isar" accounts
 GROUPS_remove = "isar"
