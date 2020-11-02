@@ -21,7 +21,6 @@ import sys
 import time
 import zlib
 import zmq
-import tty
 
 # Local imports
 from mtda.console.input import ConsoleInput
@@ -137,7 +136,6 @@ class MentorTestDeviceAgent:
     def console_init(self):
         self.console_input = ConsoleInput()
         self.console_input.start()
-        tty.setraw(sys.stdin)
 
     def console_clear(self, session=None):
         self.mtda.debug(3, "main.console_clear()")
