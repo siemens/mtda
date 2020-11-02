@@ -28,6 +28,10 @@ OFF::
 Both commands will fail and return a non-zero status when no power controller
 is attached.
 
+Use the ``reset`` command to power-cycle the device::
+
+    $ mtda-cli target reset
+
 Console commands
 ~~~~~~~~~~~~~~~~
 

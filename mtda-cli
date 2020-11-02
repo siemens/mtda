@@ -430,6 +430,7 @@ class Application:
         print("The 'target' command accepts the following sub-commands:")
         print("   on      Power on the device")
         print("   off     Power off the device")
+        print("   reset   Power cycle the device")
         print("   toggle  Toggle target power")
 
     def target_info(self, args=None):
@@ -480,6 +481,13 @@ class Application:
         status = self.client().target_on()
         return 0 if (status is True) else 1
 
+    def target_reset(self, args=None):
+        status = self.target_off()
+        if status is True:
+            time.sleep(5)
+            status = self.target_on()
+        return 0 if (status is True) else 1
+
     def target_toggle(self, args=None):
         previous_status = self.client().target_status()
         self.client().target_toggle()
@@ -495,6 +503,7 @@ class Application:
                'help': self.target_help,
                'off': self.target_off,
                'on': self.target_on,
+               'reset': self.target_reset,
                'toggle': self.target_toggle
             }
 
