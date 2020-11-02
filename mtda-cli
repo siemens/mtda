@@ -111,7 +111,8 @@ class Application:
         server = self.client()
 
         # Print target information
-        self.target_info()
+        if sys.stdin.isatty():
+            self.target_info()
 
         # Connect to the console
         client.console_remote(self.remote)
