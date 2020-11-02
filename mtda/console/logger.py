@@ -47,9 +47,8 @@ class ConsoleLogger:
         self.rx_queue = bytearray()
 
     def clear(self):
-        self.rx_lock.acquire()
-        self._clear()
-        self.rx_lock.release()
+        with self.rx_lock:
+            self._clear()
 
     def _flush(self):
         data = ""
@@ -64,9 +63,8 @@ class ConsoleLogger:
         return data
 
     def flush(self):
-        self.rx_lock.acquire()
-        data = self._flush()
-        self.rx_lock.release()
+        with self.rx_lock:
+            data = self._flush()
         return data
 
     def _head(self):
@@ -77,15 +75,13 @@ class ConsoleLogger:
         return line
 
     def head(self):
-        self.rx_lock.acquire()
-        line = self._head()
-        self.rx_lock.release()
+        with self.rx_lock:
+            line = self._head()
         return line
 
     def lines(self):
-        self.rx_lock.acquire()
-        lines = len(self.rx_buffer)
-        self.rx_lock.release()
+        with self.rx_lock:
+            lines = len(self.rx_buffer)
         return lines
 
     def _matchprompt(self):
@@ -97,11 +93,10 @@ class ConsoleLogger:
         return prompt.endswith(self._prompt)
 
     def prompt(self, newPrompt=None):
-        self.rx_lock.acquire()
-        if newPrompt is not None:
-            self._prompt = newPrompt
-        p = self._prompt
-        self.rx_lock.release()
+        with self.rx_lock:
+            if newPrompt is not None:
+                self._prompt = newPrompt
+            p = self._prompt
         return p
 
     def run(self, cmd):
@@ -141,9 +136,8 @@ class ConsoleLogger:
         return line.decode("utf-8", "ignore")
 
     def tail(self):
-        self.rx_lock.acquire()
-        line = self._tail()
-        self.rx_lock.release()
+        with self.rx_lock:
+            line = self._tail()
         return line
 
     def write(self, data, raw=False):
@@ -250,7 +244,8 @@ class ConsoleLogger:
 
         if self.power_controller is not None:
             self.power_controller.wait()
-            con.open()
+            with self.rx_lock:
+                con.open()
 
         while self.rx_alive is True:
             if self.power_controller is not None:
@@ -267,8 +262,9 @@ class ConsoleLogger:
                 if retries > 0:
                     print("resetting console to recover from read error "
                           "({0})...".format(error), file=sys.stderr)
-                    con.close()
-                    con.open()
+                    with self.rx_lock:
+                        con.close()
+                        con.open()
                     error = None
                 else:
                     print("failed to reset the console, "
@@ -278,7 +274,9 @@ class ConsoleLogger:
                 retries = retries - 1
 
     def pause(self):
-        self.console.close()
+        with self.rx_lock:
+            self.console.close()
 
     def resume(self):
-        self.console.open()
+        with self.rx_lock:
+            self.console.open()
