@@ -52,3 +52,56 @@ and set the following variables to match your network::
 The service should be restarted::
 
     $ sudo systemctl restart lava-slave
+
+Adding support for devices attached to MTDA
+-------------------------------------------
+
+A ``mtda`` device type may be added to your LAVA installation and used as a
+base for devices added to your LAVA instance. Create
+``/etc/lava-server/dispatcher-config/device-types/mtda.jinja2`` as follows::
+
+    {# device_type: mtda #}
+    {% extends 'base.jinja2' %}
+
+    {% set connection_command = 'mtda-cli -r localhost console raw' %}
+    {% set power_off_command = 'mtda-cli -r localhost target off' %}
+    {% set power_on_command = 'mtda-cli -r localhost target on' %}
+    {% set hard_reset_command = 'mtda-cli -r localhost target reset' %}
+    {% set flasher_deploy_commands = ['mtda-cli -r localhost target off',
+                                      'mtda-cli -r localhost storage host',
+                                      'mtda-cli -r localhost storage write "{IMAGE}"',
+                                      'mtda-cli -r localhost storage target'] %}
+
+    {% block body %}
+
+    actions:
+      deploy:
+        methods:
+    {% if flasher_deploy_commands %}
+          flasher:
+            commands: {{ flasher_deploy_commands }}
+    {% endif %}
+      boot:
+        connections:
+          serial:
+        methods:
+          minimal:
+    {% endblock body %}
+
+    {% block timeouts %}
+    timeouts:
+      actions:
+        bootloader-retry:
+          minutes: 2
+        bootloader-interrupt:
+          minutes: 5
+        bootloader-commands:
+          minutes: 5
+      connections:
+        bootloader-retry:
+          minutes: 2
+        bootloader-interrupt:
+          minutes: 5
+        bootloader-commands:
+          minutes: 5
+    {% endblock timeouts %}
