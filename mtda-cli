@@ -118,13 +118,15 @@ class Application:
 
         client.console_init()
 
-        # Get the value of prefix key
-        prefix_key = client.console_prefix_key()
+        # Get prefix key
+        prefix_key = None
+        if sys.stdin.isatty():
+            prefix_key = client.console_prefix_key()
 
         # Input loop
         while self.exiting is False:
             c = client.console_getkey()
-            if c == prefix_key:
+            if prefix_key is not None and c == prefix_key:
                 c = client.console_getkey()
                 self.console_menukey(c)
             else:
