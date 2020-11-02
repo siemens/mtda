@@ -192,6 +192,19 @@ class Application:
             sys.stdout.write(data)
             sys.stdout.flush()
 
+    def console_raw(self, args=None):
+        client = self.agent
+        server = self.client()
+
+        # Connect to the console
+        client.console_remote(self.remote)
+
+        # Input loop
+        client.console_init()
+        while self.exiting is False:
+            c = client.console_getkey()
+            server.console_send(c, True)
+
     def console_run(self, args):
         data = self.client().console_run(args[0])
         if data is not None:
@@ -217,6 +230,7 @@ class Application:
         print("   lines         Print number of lines present in the console"
               " buffer")
         print("   prompt        Configure or print the target shell prompt")
+        print("   raw           Open the console for use from scripts")
         print("   run           Run the specified command via the device"
               " console")
         print("   send          Send characters to the device console")
@@ -235,6 +249,7 @@ class Application:
                'interactive': self.console_interactive,
                'lines': self.console_lines,
                'prompt': self.console_prompt,
+               'raw': self.console_raw,
                'run': self.console_run,
                'send': self.console_send,
                'tail': self.console_tail
