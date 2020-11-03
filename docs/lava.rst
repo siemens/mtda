@@ -63,17 +63,18 @@ base for devices added to your LAVA instance. Create
     {# device_type: mtda #}
     {% extends 'base.jinja2' %}
 
-    {% set connection_command = 'mtda-cli -r localhost console raw' %}
-    {% set power_off_command = 'mtda-cli -r localhost target off' %}
-    {% set power_on_command = 'mtda-cli -r localhost target on' %}
-    {% set hard_reset_command = 'mtda-cli -r localhost target reset' %}
-    {% set flasher_deploy_commands = ['mtda-cli -r localhost target off',
-                                      'mtda-cli -r localhost storage host',
-                                      'mtda-cli -r localhost storage write "{IMAGE}"',
-                                      'mtda-cli -r localhost storage target'] %}
+    {% set mtda_cli = 'mtda-cli -r ' ~ mtda_agent|default('localhost') %}
+
+    {% set connection_command = mtda_cli ~ ' console raw' %}
+    {% set power_off_command = mtda_cli ~ ' target off' %}
+    {% set power_on_command = mtda_cli ~ ' target on' %}
+    {% set hard_reset_command = mtda_cli ~ ' target reset' %}
+    {% set flasher_deploy_commands = [mtda_cli ~ ' target off',
+                                      mtda_cli ~ ' storage host',
+                                      mtda_cli ~ ' storage write "{IMAGE}"',
+                                      mtda_cli ~ ' storage target'] %}
 
     {% block body %}
-
     actions:
       deploy:
         methods:
@@ -105,3 +106,38 @@ base for devices added to your LAVA instance. Create
         bootloader-commands:
           minutes: 5
     {% endblock timeouts %}
+
+The ``mtda`` device type needs to be registered as follows::
+
+    $ sudo lava-server manage device-types add mtda
+
+Adding test devices
+-------------------
+
+A Jinja file for your test device needs to be created in
+``/etc/lava-server/dispatcher-config/devices/`` with the following contents::
+
+    {% extends 'mtda.jinja2' %}
+    {% set mtda_agent = 'mtda-for-de0-nano-soc.lan' %}
+
+where ``mtda-for-de0-nano-soc.lan`` is the name of the host running the MTDA agent
+and being physically connected to the device to be tested. The file should be
+named ``<device>.jinja2`` where ``<device>`` is the name of your device (e.g.
+``de0-nano-soc1``).
+
+Once created, the device needs to be registered::
+
+    $ lava-server manage devices add \
+          --device-type mtda \
+          --worker mtda-for-de0-nano-soc.lan \
+          de0-nano-soc1
+
+It should be noted that while MTDA agent images include ``lava-dispatcher``,
+you may choose to use a separate worker (``mtda-cli`` needs to be installed)
+to get more adequate storage (test images are downloaded on the worker) and/or
+more compute power as depicted below:
+
+.. image:: lava_shared_worker.png
+
+Change the ``--worker`` option to use this intermediate node instead of the
+MTDA agent.
