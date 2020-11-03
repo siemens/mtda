@@ -1,6 +1,20 @@
 Use with LAVA
 =============
 
+Introduction
+------------
+
+LAVA is a continuous integration platform for deploying and testing operating systems
+onto physical and virtual hardware. It needs methods to power targets, write system
+images and interact with the system (usually over a serial console). These mechanics
+can be provided/abstracted by MTDA. A sample deployment is shown below:
+
+.. image:: lava_mtda_workers.png
+
+This section provides some guidance to install LAVA and configure it to interact with
+MTDA agents. Please refer to the LAVA documentation for details or for more advanced
+configuration.
+
 Installing LAVA on Debian
 -------------------------
 
