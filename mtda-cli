@@ -497,11 +497,14 @@ class Application:
         return 0 if (status is True) else 1
 
     def target_reset(self, args=None):
-        status = self.target_off()
-        if status is True:
+        status = self.client().target_status()
+        if status != "OFF":
+            status = self.target_off()
+            if status != 0:
+                return status
             time.sleep(5)
-            status = self.target_on()
-        return 0 if (status is True) else 1
+        status = self.target_on()
+        return status
 
     def target_toggle(self, args=None):
         previous_status = self.client().target_status()
