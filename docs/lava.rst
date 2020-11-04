@@ -77,25 +77,25 @@ base for devices added to your LAVA instance. Create
     {# device_type: mtda #}
     {% extends 'base.jinja2' %}
 
-    {% set mtda_cli = 'mtda-cli -r ' ~ mtda_agent|default('localhost') %}
+    {% set def_mtda_agent = 'localhost' %}
+    {% set mtda_cli = 'mtda-cli -r ' ~ mtda_agent|default(def_mtda_agent) %}
 
     {% set connection_command = mtda_cli ~ ' console raw' %}
     {% set power_off_command = mtda_cli ~ ' target off' %}
     {% set power_on_command = mtda_cli ~ ' target on' %}
     {% set hard_reset_command = mtda_cli ~ ' target reset' %}
-    {% set flasher_deploy_commands = [mtda_cli ~ ' target off',
-                                      mtda_cli ~ ' storage host',
-                                      mtda_cli ~ ' storage write "{IMAGE}"',
-                                      mtda_cli ~ ' storage target'] %}
+
+    {% set def_mtda_deploy_cmds = [mtda_cli ~ ' target off',
+                                   mtda_cli ~ ' storage host',
+                                   mtda_cli ~ ' storage write "{IMAGE}"',
+                                   mtda_cli ~ ' storage target'] %}
 
     {% block body %}
     actions:
       deploy:
         methods:
-    {% if flasher_deploy_commands %}
           flasher:
-            commands: {{ flasher_deploy_commands }}
-    {% endif %}
+            commands: {{ mtda_deploy_cmds|default(def_mtda_deploy_cmds) }}
       boot:
         connections:
           serial:
@@ -155,3 +155,18 @@ more compute power as depicted below:
 
 Change the ``--worker`` option to use this intermediate node instead of the
 MTDA agent.
+
+Passing context variables to device dictionaries
+------------------------------------------------
+
+LAVA jobs may override variables from device or device-type dictionaries. By
+default, only white-listed variables (about a dozen options for qemu machines
+and a dozen miscellaneous options) may be added to the ``context`` dictionary.
+Additional keywords may be added to the schema by adding the following line
+to ``/etc/lava-server/settings.conf``::
+
+    "EXTRA_CONTEXT_VARIABLES": ["mtda_agent"]
+
+The LAVA server will require a restart for these changes to take effect (it
+will otherwise refuse to validate job definitions having MTDA options listed
+under the ``context`` clause.
