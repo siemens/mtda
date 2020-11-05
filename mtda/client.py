@@ -57,6 +57,9 @@ class Client:
     def console_clear(self):
         return self._impl.console_clear(self._session)
 
+    def console_dump(self):
+        return self._impl.console_dump(self._session)
+
     def console_flush(self):
         return self._impl.console_flush(self._session)
 
