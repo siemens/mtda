@@ -50,7 +50,7 @@ class ConsoleLogger:
         with self.rx_lock:
             self._clear()
 
-    def _flush(self):
+    def _dump(self, flush=True):
         data = ""
         lines = len(self.rx_buffer)
         while lines > 0:
@@ -59,12 +59,18 @@ class ConsoleLogger:
             lines = lines - 1
         line = self.rx_queue.decode("utf-8", "ignore")
         data = data + line
-        self.rx_queue = bytearray()
+        if flush:
+            self.rx_queue = bytearray()
+        return data
+
+    def dump(self):
+        with self.rx_lock:
+            data = self._dump(flush=False)
         return data
 
     def flush(self):
         with self.rx_lock:
-            data = self._flush()
+            data = self._dump(flush=True)
         return data
 
     def _head(self):
@@ -118,7 +124,7 @@ class ConsoleLogger:
 
         # Strip first line (command we sent) and flush received bytes
         self._head()
-        data = self._flush()
+        data = self._dump(flush=True)
 
         # Release and return command output
         self.rx_lock.release()
