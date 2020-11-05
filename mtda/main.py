@@ -152,12 +152,42 @@ class MentorTestDeviceAgent:
         self.mtda.debug(3, "main.console_clear(): %s" % str(result))
         return result
 
+    def console_dump(self, session=None):
+        self.mtda.debug(3, "main.console_dump()")
+
+        self._check_expired(session)
+        if self.console_locked(session):
+            self.mtda.debug(2, "console_dump(): console is locked")
+            return None
+
+        result = None
+        if self.console_logger is not None:
+            result = self.console_logger.dump()
+
+        self.mtda.debug(3, "main.console_dump(): %s" % str(result))
+        return result
+
+    def console_dump(self, session=None):
+        self.mtda.debug(3, "main.console_dump()")
+
+        self._check_expired(session)
+        if self.console_locked(session):
+            self.mtda.debug(2, "console_dump(): console is locked")
+            return None
+
+        result = None
+        if self.console_logger is not None:
+            result = self.console_logger.dump()
+
+        self.mtda.debug(3, "main.console_dump(): %s" % str(result))
+        return result
+
     def console_flush(self, session=None):
         self.mtda.debug(3, "main.console_flush()")
 
         self._check_expired(session)
         if self.console_locked(session):
-            self.mtda.debug(2, "console_clear(): console is locked")
+            self.mtda.debug(2, "console_flush(): console is locked")
             return None
 
         result = None
