@@ -1,8 +1,60 @@
-Use with LAVA
-=============
+Integrate with
+==============
+
+HomeKit
+-------
 
 Introduction
-------------
+~~~~~~~~~~~~
+
+HomeKit is a smart home system to control appliances. MTDA may advertise itself
+as a HomeKit compatible (but not certified) device to let users turn test devices
+ON or OFF using Apple's Home application or its assistant (Siri).
+
+Configuration
+~~~~~~~~~~~~~
+
+Add the following configuration block to your MTDA configuration file::
+
+    [assistant]
+    variant=homekit
+    name=MyDevice
+    port=32768
+
+where ``name`` is the user-friendly name to be advertise on the network and
+``port`` the network port to listen on.
+
+Setup
+~~~~~
+
+Use the IOS Home application to register your MTDA device as an accessory
+
+.. image:: homekit_add_1.png
+   :width: 50%
+   :align: center
+
+Proceed without a QR code by tapping on ``I Don't have a Code or Cannot Scan``
+
+.. image:: homekit_add_2.png
+   :width: 50%
+   :align: center
+
+The requested code may be found in the MTDA logs (``/var/log/mtda.log``). For
+instance::
+
+    Enter this code in your HomeKit app on your iOS device: 891-68-283
+
+To finalize the setup of your MTDA device, tell ``Home`` where it sits and give
+it a name. It is recommended to display our MTDA device as a ``Power Point``.
+
+The ``Home`` application should now have an outlet icon for your MTDA and show its
+status. Tapping on the icon will toggle power for the device attached to MTDA.
+
+LAVA
+----
+
+Introduction
+~~~~~~~~~~~~
 
 LAVA is a continuous integration platform for deploying and testing operating systems
 onto physical and virtual hardware. It needs methods to power targets, write system
@@ -15,8 +67,8 @@ This section provides some guidance to install LAVA and configure it to interact
 MTDA agents. Please refer to the LAVA documentation for details or for more advanced
 configuration.
 
-Installing LAVA on Debian
--------------------------
+Install on Debian
+~~~~~~~~~~~~~~~~~
 
 A LAVA instance may be installed on Debian with ``apt``::
 
@@ -43,8 +95,8 @@ The web interface should be enabled with::
     $ sudo service apache2 restart
     $ sudo service lava-server-gunicorn restart
 
-Attaching your MTDA device to LAVA
-----------------------------------
+Attach to lava-server
+~~~~~~~~~~~~~~~~~~~~~
 
 The sample NanoPI NEO image comes with the ``lava-dispatcher`` package
 pre-installed. It however needs to be configured to connect to the LAVA master
@@ -67,8 +119,8 @@ The service should be restarted::
 
     $ sudo systemctl restart lava-slave
 
-Adding support for devices attached to MTDA
--------------------------------------------
+Device support
+~~~~~~~~~~~~~~
 
 A ``mtda`` device type may be added to your LAVA installation and used as a
 base for devices added to your LAVA instance. Create
@@ -125,8 +177,8 @@ The ``mtda`` device type needs to be registered as follows::
 
     $ sudo lava-server manage device-types add mtda
 
-Adding test devices
--------------------
+Register devices
+~~~~~~~~~~~~~~~~
 
 A Jinja file for your test device needs to be created in
 ``/etc/lava-server/dispatcher-config/devices/`` with the following contents::
@@ -156,8 +208,8 @@ more compute power as depicted below:
 Change the ``--worker`` option to use this intermediate node instead of the
 MTDA agent.
 
-Passing context variables to device dictionaries
-------------------------------------------------
+Context variables
+~~~~~~~~~~~~~~~~~
 
 LAVA jobs may override variables from device or device-type dictionaries. By
 default, only white-listed variables (about a dozen options for qemu machines
