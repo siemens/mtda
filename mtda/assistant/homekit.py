@@ -35,8 +35,20 @@ class PowerSwitch(Accessory):
         self.relay_in_use = serv_switch.configure_char(
             'OutletInUse', setter_callback=self.get_relay_in_use)
 
-    def get_relay(self):
-        return "1" if self.mtda.target_status() == "ON" else 0
+    def get_relay(self, status=None):
+        if status is None:
+            status = self.mtda.target_status()
+        return "1" if status == "ON" else 0
+
+    def relay_changed(self, status):
+        self.mtda.debug(3, "mtda.assistant.homekit.relay_changed(%s)" % status)
+
+        result = self.get_relay(status)
+        self.relay_on.set_value(result)
+
+        self.mtda.debug(3, "mtda.assistant.homekit.relay_changed(): "
+                           "%s" % str(result))
+        return result
 
     def set_relay(self, state):
         self.mtda.debug(3, "mtda.assistant.homekit.set_relay()")
@@ -49,7 +61,8 @@ class PowerSwitch(Accessory):
                 self.mtda.target_off('homekit')
             result = self.get_relay()
 
-        self.mtda.debug(3, "mtda.assistant.homekit.set_relay(): %s" % str(result))
+        self.mtda.debug(3, "mtda.assistant.homekit.set_relay(): "
+                           "%s" % str(result))
         return result
 
     def get_relay_in_use(self, state):
@@ -61,7 +74,8 @@ class PowerSwitch(Accessory):
         pincode = self.driver.state.pincode.decode()
         result = self.mtda.env_set('homekit-setup-code', pincode, 'homekit')
 
-        self.mtda.debug(3, "mtda.assistant.homekit.setup_message(): %s" % str(result))
+        self.mtda.debug(3, "mtda.assistant.homekit.setup_message(): "
+                           "%s" % str(result))
         return result
 
 
@@ -69,6 +83,7 @@ class HomeKitAssistant(Assistant):
 
     def __init__(self, mtda):
         self.mtda = mtda
+        self.accessory = None
         self.name = "MTDA"
         self.port = 51826
 
@@ -81,9 +96,13 @@ class HomeKitAssistant(Assistant):
     def probe(self):
         return True
 
+    def power_changed(self, status):
+        self.accessory.relay_changed(status)
+
     def start(self):
         drv = AccessoryDriver(port=self.port)
-        drv.add_accessory(accessory=PowerSwitch(self.mtda, drv, self.name))
+        self.accessory = PowerSwitch(self.mtda, drv, self.name)
+        drv.add_accessory(self.accessory)
         drv.start_service()
 
 

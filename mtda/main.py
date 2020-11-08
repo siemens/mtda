@@ -58,6 +58,7 @@ class MentorTestDeviceAgent:
         self.power_controller = None
         self.power_on_script = None
         self.power_off_script = None
+        self.power_monitors = []
         self.sdmux_controller = None
         self._storage_bytes_written = 0
         self._storage_mounted = False
@@ -702,6 +703,10 @@ class MentorTestDeviceAgent:
 
         return self._lock_owner
 
+    def _power_event(self, status):
+        for m in self.power_monitors:
+            m.power_changed(status)
+
     def _parse_script(self, script):
         self.mtda.debug(3, "main._parse_script()")
 
@@ -736,6 +741,7 @@ class MentorTestDeviceAgent:
             result = self.power_controller.on()
             if result is True:
                 self.exec_power_on_script()
+                self._power_event(self.power_controller.POWER_ON)
 
         self.mtda.debug(3, "main.target_on(): %s" % str(result))
         return result
@@ -760,6 +766,7 @@ class MentorTestDeviceAgent:
                 if result is True:
                     self.console_logger.pause()
                     self.exec_power_off_script()
+                    self._power_event(self.power_controller.POWER_OFF)
 
         self.mtda.debug(3, "main.target_off(): %s" % str(result))
         return result
@@ -786,11 +793,13 @@ class MentorTestDeviceAgent:
                 if self.console_logger is not None:
                     self.console_logger.resume()
                 self.exec_power_on_script()
+                self._power_event(self.power_controller.POWER_ON)
             elif result == self.power_controller.POWER_OFF:
                 self.exec_power_off_script()
                 if self.console_logger is not None:
                     self.console_logger.pause()
                     self.console_logger.reset_timer()
+                self._power_event(self.power_controller.POWER_OFF)
         else:
             result = self.power_controller.POWER_LOCKED
 
@@ -1158,6 +1167,7 @@ class MentorTestDeviceAgent:
             self.console_logger.start()
 
         if self.assistant is not None:
+            self.power_monitors.append(self.assistant)
             self.assistant.start()
 
         return True
