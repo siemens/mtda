@@ -1,0 +1,38 @@
+Source: hap-python
+Section: net
+Priority: optional
+Maintainer: Cedric Hombourger <cedric_hombourger@mentor.com>
+Build-Depends: debhelper (>=10),
+               dh-python,
+               python3-all,
+               python3-cryptography,
+               python3-curve25519-donna,
+               python3-ed25519,
+               python3-pytest,
+               python3-setuptools,
+               python3-zeroconf
+Standards-Version: 4.5.0
+Homepage: https://github.com/ikalchev/HAP-python
+Rules-Requires-Root: no
+
+Package: python3-hap-python
+Architecture: all
+Depends: avahi-utils, ${python3:Depends}, ${misc:Depends}
+Suggests: python-hap-python-doc
+Description: HomeKit Accessory Protocol implementation in python 3.
+ With this project, you can integrate your own smart devices and add them to
+ your iOS Home app. Since Siri is integrated with the Home app, you can start
+ voice-control your accessories right away.
+ .
+ This package installs the library for Python 3.
+
+Package: python-hap-python-doc
+Architecture: all
+Section: doc
+Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+Description: documentation for HomeKit Accessory Protocol implementation in python 3
+ With this project, you can integrate your own smart devices and add them to
+ your iOS Home app. Since Siri is integrated with the Home app, you can start
+ voice-control your accessories right away.
+ .
+ This is the common documentation package.
