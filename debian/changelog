@@ -1,3 +1,12 @@
+mtda (0.8-1) testing; urgency=low
+
+  * Document how to integrate MTDA with LAVA
+  * Initial (incomplete) support for HomeKit
+  * Add console_dump() API
+  * Add "console raw" and "target reset" commands to the CLI
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Sun, 08 Nov 2020 21:27:28 +0100
+
 mtda (0.7-1) testing; urgency=low
 
   * Kill PEP8 warnings
