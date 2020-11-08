@@ -39,13 +39,16 @@ Proceed without a QR code by tapping on ``I Don't have a Code or Cannot Scan``
    :width: 50%
    :align: center
 
-The requested code may be found in the MTDA logs (``/var/log/mtda.log``). For
-instance::
+The requested code may be retrieved using the ``getenv`` command provided by
+``mtda-cli``::
 
-    Enter this code in your HomeKit app on your iOS device: 891-68-283
+    $ mtda-cli -r my-mtda-device.lan getenv homekit-setup-code
+    534-60-652
 
-To finalize the setup of your MTDA device, tell ``Home`` where it sits and give
-it a name. It is recommended to display our MTDA device as a ``Power Point``.
+where ``my-mtda-device.lan`` is the name or IP address of the device running
+the MTDA service. To finalize the setup of your MTDA device, tell ``Home``
+where it sits and give it a name. It is recommended to display our MTDA device
+as a ``Power Point``.
 
 The ``Home`` application should now have an outlet icon for your MTDA and show its
 status. Tapping on the icon will toggle power for the device attached to MTDA.

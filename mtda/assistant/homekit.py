@@ -55,6 +55,15 @@ class PowerSwitch(Accessory):
     def get_relay_in_use(self, state):
         return True
 
+    def setup_message(self):
+        self.mtda.debug(3, "mtda.assistant.homekit.setup_message()")
+
+        pincode = self.driver.state.pincode.decode()
+        result = self.mtda.env_set('homekit-setup-code', pincode, 'homekit')
+
+        self.mtda.debug(3, "mtda.assistant.homekit.setup_message(): %s" % str(result))
+        return result
+
 
 class HomeKitAssistant(Assistant):
 
