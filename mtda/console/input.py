@@ -20,6 +20,7 @@ import tty
 class ConsoleInput:
 
     def __init__(self):
+        sys.stdin.reconfigure(encoding='utf-8', errors='ignore')
         if sys.stdin.isatty():
             self.fd = sys.stdin.fileno()
             self.old = termios.tcgetattr(self.fd)
