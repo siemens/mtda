@@ -1,0 +1,35 @@
+Source: python-zeroconf
+Section: net
+Priority: optional
+Maintainer: Cedric Hombourger <cedric_hombourger@mentor.com>
+Build-Depends: debhelper (>=10),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-zeroconf
+Standards-Version: 4.5.0
+Homepage: https://pypi.org/project/zeroconf
+Rules-Requires-Root: no
+
+Package: python3-zeroconf
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Suggests: python-zeroconf-doc
+Description: Pure Python implementation of multicast DNS service discovery
+ This is an implementation of the multicast DNS Service Discover Library
+ zeroconf in pure Python.
+ .
+ Compared to some other Zeroconf/Bonjour/Avahi Python packages:
+ .
+  - isn't tied to Bonjour or Avahi
+  - doesn't use D-Bus
+  - doesn't force you to use particular event loop or Twisted
+ .
+ This package installs the library for Python 3.
+
+Package: python-zeroconf-doc
+Architecture: all
+Section: doc
+Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+Description: documentation for python3-zeroconf
+ This is the common documentation package.
