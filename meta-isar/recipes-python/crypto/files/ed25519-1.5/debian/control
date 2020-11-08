@@ -1,0 +1,36 @@
+Source: ed25519
+Section: python
+Priority: optional
+Maintainer: Cedric Hombourger <cedric_hombourger@mentor.com>
+Build-Depends: debhelper (>=10), dh-python, libpython3-dev, python3-setuptools, python3-all
+Standards-Version: 4.5.0
+Homepage: https://pypi.org/project/ed25519/
+Rules-Requires-Root: no
+
+Package: python3-ed25519
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Suggests: python-ed25519-doc
+Description: Python bindings to the Ed25519 public-key signature system
+ This offers a comfortable python interface to a C implementation of the Ed25519
+ public-key signature system (http://ed25519.cr.yp.to/), using the portable
+ ‘ref’ code from the ‘SUPERCOP’ benchmarking suite.
+ .
+ This system provides high (128-bit) security, short (32-byte) keys, short
+ (64-byte) signatures, and fast (2-6ms) operation.
+ .
+ This package installs the library for Python 3.
+
+Package: python-ed25519-doc
+Architecture: all
+Section: doc
+Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+Description: documentation for Python bindings to the Ed25519 public-key signature system
+ This offers a comfortable python interface to a C implementation of the Ed25519
+ public-key signature system (http://ed25519.cr.yp.to/), using the portable
+ ‘ref’ code from the ‘SUPERCOP’ benchmarking suite.
+ .
+ This system provides high (128-bit) security, short (32-byte) keys, short
+ (64-byte) signatures, and fast (2-6ms) operation.
+ .
+ This is the common documentation package.
