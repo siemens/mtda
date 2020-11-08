@@ -1,8 +1,11 @@
 # This Isar layer is part of MTDA
-# Copyright (C) 2017-2019 Mentor Graphics, a Siemens business
+# Copyright (C) 2017-2020 Mentor Graphics, a Siemens business
 
 # Default device/file to use for our USB Mass Storage Gadget
 MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
+
+# Make sure packages we build are deployed
+do_build[deptask] += "do_deploy_deb"
 
 # Here's our list of custom packages
 MTDA_PACKAGES = "                        \
@@ -13,18 +16,31 @@ MTDA_PACKAGES = "                        \
     sshd-regen-keys                      \
     usb-ms-use-${MTDA_MASS_STORAGE_FILE} \
 "
-
-# Add them as build dependencies
 DEPENDS += " ${MTDA_PACKAGES} "
 
-# And now add them to the image
+# and to the image...
 IMAGE_PREINSTALL += "${MTDA_PACKAGES}"
+
+# HAP-python requires a few more custom packages, list them here
+HAP_PACKAGES = "     \
+    hap-python       \
+"
+DEPENDS += " ${HAP_PACKAGES} "
+
+HAP_PREINSTALL = "     \
+    python3-hap-python \
+"
+
+LAVA_PREINSTALL = " \
+    lava-dispatcher \
+"
 
 # Finally, add the following Debian packages to the image
 IMAGE_PREINSTALL += "  \
+    ${HAP_PREINSTALL}  \
+    ${LAVA_PREINSTALL} \
     iproute2           \
     isc-dhcp-client    \
-    lava-dispatcher    \
     network-manager    \
     ssh                \
     sudo               \
