@@ -13,7 +13,7 @@ Welcome to MTDA's documentation!
    intro
    install
    usage
-   lava
+   integration
    config
    build
 
