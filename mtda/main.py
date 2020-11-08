@@ -54,6 +54,7 @@ class MultiTenantDeviceAccess:
         self.fuse = False
         self.keyboard = None
         self.mtda = self
+        self.assistant = None
         self.power_controller = None
         self.power_on_script = None
         self.power_off_script = None
@@ -921,6 +922,8 @@ class MultiTenantDeviceAccess:
         if parser.has_section('ui'):
             self.load_ui_config(parser)
         if self.is_remote is False:
+            if parser.has_section('assistant'):
+                self.load_assistant_config(parser)
             if parser.has_section('power'):
                 self.load_power_config(parser)
             if parser.has_section('console'):
@@ -954,6 +957,25 @@ class MultiTenantDeviceAccess:
             self.mtda.debug(4, "main.load_environment(): "
                                "%s => %s" % (opt, value))
             self.env_set(opt, value)
+
+    def load_assistant_config(self, parser):
+        self.mtda.debug(3, "main.load_assistant_config()")
+
+        try:
+            # Get variant
+            variant = parser.get('assistant', 'variant')
+            # Try loading its support class
+            mod = importlib.import_module("mtda.assistant." + variant)
+            factory = getattr(mod, 'instantiate')
+            self.assistant = factory(self)
+            self.assistant.variant = variant
+            # Configure the assistant
+            self.assistant.configure(dict(parser.items('assistant')))
+        except configparser.NoOptionError:
+            print('assistant variant not defined!', file=sys.stderr)
+        except ImportError:
+            print('assistant "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
 
     def load_console_config(self, parser):
         self.mtda.debug(3, "main.load_console_config()")
@@ -1134,6 +1156,9 @@ class MultiTenantDeviceAccess:
             self.console_logger = ConsoleLogger(
                 self, self.console, socket, self.power_controller)
             self.console_logger.start()
+
+        if self.assistant is not None:
+            self.assistant.start()
 
         return True
 
