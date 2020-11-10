@@ -1,14 +1,21 @@
+env:
+  global:
+    - secure: "gY6xRfRhIkziEFjkZ3VcdmH2v4ttZZdwSmCVLaWfyMBCfVBeQgbOAa5gEtMdOOBTKNdq48ClHc0bMBj/bNipbG5vgqyRY1tPHxxAIPCFsMt7jtBee+uVHdu1xOC/vLtFhjlwRKXAOQd4OwOlCTfkYIArRtQnDa12QAY37gdVFRir2J35lO01rG8zy7qVKflX53m9uSpjhDjf0T0YXnJb1PFPPeWzvIgDiqBMSZnB3v2wlyQJnGYghh2X7EVXARLOxc+icpKnhI4afIbCSaZ5PCaQZaiP2b4n6IIXiuMEh3UtuIsU1MHaUwXsjiHa6hMBCVNs6n373l+tFMUqP/dDvbYKzjcXBS4v6FICenl6IqcMzibv8fdQqq8pLr4yyb1q3/q2rjCDeVEWGbWge5hpCkfcYi+9caZiXaTDElFW3MQbQrLVlenzxTnWcMHJGf060CtfkSSHGtJ5aJ3F7kpR7uZJH18HArERi+T4Smb7R5OMDuaeP5PBwgf+ODb32AxrdpMBsD2UZlzUGre+0B1px2aeVQtQq2Wb1YFUWIQM9kAiSmB202L+/ls50qjQizQn4OaCZqVdsye9gyfhg6zJNwEI3nmACH8NIGAsYs0iEdXppVOixsDmzuzsJOrHbpfoZpBQIZnWntaD6hOq7bfCm/Ky3O13Zg4ZxeQrA9t60kk="
+    - secure: "T0Zy0N4KoLHHIdhe6ywx/8Qtj9QtXIu/IlXdvdFrrNpygvhiyh39dJoH2ggsy1lUqyfacSHc1IK1mFcRrghYOwCDuBoESgD3m+7tyv9r2xrnDI3IaJmh6w+pd1kdDMM+/B+ka/evRLgKOYdnY/1x1LpCWgGljzPa4wgVsL2kTrqcsIhhRSNCjnKd5z7HFqyfB7WZyernS5yz6+/pCzLJtR4eDP9rA1VHyOhS4Zc1SAdnmxiWp9L/XBgpFCvPoq4qpEM+kvc6NLwAOcuhS5gB/kqdezIwy/Mj4RzGOTFSGJa9Nekam88bM4yhCHZo7tvFHlSRR4pU5Cp1Mf8Jx4tKzDIRDDwP6rVkXyhXvfjQz5uyaAFdElVt2bkzB5hjK9wYGdaZtKraRopfW/j8RVtMiDmqmxnBp/G/ADdh4usSko7u6J6vyr/OMWr0M9v/K32nRpz9jeENIftd1aycBZ0owEsXVvnRK7ecqAtcRkU5uuA0lWjmiO0QeRdT6ydgcQbWNwr1a1ckBoYwrZt63r7rpd63jfZoI2RGaOsbwrqKtevu4y55ACWGPmebyAgu9Gdcnggk7NnLC6iG6VXA/OfMfRv7Kns9v+yXSr+/MSKZmp065JtZWtgCpkh1bh4l9x0bgwrzm2z2A+plPtL9guF+92oOruMXAh7AVf60izHaSEc="
+
 dist: focal
 branches:
   only:
   - master
-language: minimal
+language: shell
+os: linux
 services:
 - docker
 before_install:
 - sudo apt-get update
 - sudo apt-get install -y python3-pip python3-setuptools
 - sudo apt-get install -y debootstrap qemu-user-static reprepro
+- gem install dpl
 - pip3 install --user kas pycodestyle
 install:
 - pip3 install --user .
@@ -18,14 +25,18 @@ script:
 - export PATH=$HOME/.local/bin:$PATH
 - pycodestyle mtda-cli mtda/
 - mtda-cli help
-- mkdir build-packages
-- cd build-packages
-- kas build --target mtda-packages ../kas/mtda-nanopi-neo.yml
+- export KAS_WORK_DIR=$PWD/build-armhf && mkdir -p $KAS_WORK_DIR
+- kas build --target mtda-packages kas/mtda-nanopi-neo.yml
 deploy:
-  provider: pypi
-  username: "__token__"
+- provider: pypi
+  username: __token__
   password:
-    secure: hNn0yGWomST9t2MS9xVtFjpm0Xs7dTnhFZ3GVJCTSsNOXBqQlNDwNQ5wZTdwz9HoU9DVJqQ25Xegu6ZCn7n3aO4TTUS6WdGfuPL1uuDvSf/S8cPlrPAEJQnVK7ghYkwo27B4Ucbr4cM9Ar/ng8ukpMTegZtUxUgFvcp+UYRPWaMF/318//CScoW2xbCJIARKcXhcR0YFY/GnYs3dey5sM95hYisGB3JAVpmgJgKPFO7f5rIBE81PGAIpHAtw77T2xgUKEHm+eu7d9FszEhlnP5P2UiX257A/aubKsee99ELSwmcMlisIlCyqRW5uyme/DdCCGWwWGUipQaNJ/+Hg0u8oywkLOaAI6Nvs36MKgwhe5c0ezX3tIR9jTo0PKT73f1yEM95jdJh1/+l7LwWdisMqi5yNZO8zXqwHqs5XjCLstlMnH0DJBvk5yf+QzePAoOdD2JraXuQNpJN1znTddrBYR5lD6ELokS1g11jlL/Zgq28+7QF3SJqevThGPFXzR3ayDScsdqep+wgB8bgYtpWwfIZxTgCLD04cqxh6b6BNoX7OurcuwYhv9RGZTTGHdKXMtoHjSRfF4/FJcjvJWytWuP3Y4BXslgdOeO7z1buflDt6I1Tpw957v4FUdJ80LoZ+y669LmAdmoeKpEN/HX5H/m2GNEeEdNioyhftLbc=
+    secure: "fzPEkxI2t9wZkueoDa/0HJnUrXl2bZFiqR0EzN4wnh0F5pXpb7OhaDxguvulbUicWd4bYJM3Ni+nDzUgKCuoxSd6sBqacaLrQGmYWv3m5/qoKEd31SDe7d7IP+mNSAG1gTS8sf8tw6Va58DNc2qYItbr25xCCKHv0vBYmdS43LVS0kJIWc5K8alBM/WDknL5IE14wtJxdFxq+Ut7iC0DoedNcmizEKRrv86+ULsEb4r3ZmjUts+SkGNEdqctxy9gSkP/i3k9+Jx9Vh3XCtAnYpE9Kt79xqZ+qPgXqd9gs2iFs6HCZX7IOXHwL+OtexlqcD338qum5M5Fl4XYmqW2Y4JRKSk1W2ymiqbD9kKCCeUyl2S/LJu/89YFkzdNzLV2+o8sa0B3gZw9WQuVYjdDbHORDdr3v4+tyNld86U+kZwU95MSD+4ofjbs0uSfKcNKu+Ekag147jq7j9GsiF0usuisRmwxW+OTEf4pa5RitO3Ysj4y9WMB7BT2OtQxICVZJV9DysafuWY27vqdKo+mQu12+HDoAEevqhSE6XhV6NKwgZOPJbNuYeEWaEPoQSS68dGeI4txokyclTVQM04x7aabsuTDqx1axV+7UpE6MLFO9NypSzy9pR6OSXrL3hK8danSa05a0oeO/cXRN2VA/rKmn7YLJ913V+OBqLSCZGs="
   skip_existing: true
+  on:
+    tags: true
+- provider: script
+  skip_cleanup: true
+  script: scripts/upload-debs.sh
   on:
     tags: true
