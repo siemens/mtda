@@ -4,48 +4,33 @@
 # Default device/file to use for our USB Mass Storage Gadget
 MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
 
-# Make sure packages we build are deployed
+# Build and deploy our MTDA packages
+DEPENDS += "mtda-packages"
 do_build[deptask] += "do_deploy_deb"
 
-# Here's our list of custom packages
-MTDA_PACKAGES = "                        \
-    mtda                                 \
+IMAGE_INSTALL += "                       \
     mtda-hostname                        \
-    mtda-usb-functions                   \
-    sd-mux-ctrl                          \
     sshd-regen-keys                      \
     usb-ms-use-${MTDA_MASS_STORAGE_FILE} \
 "
-DEPENDS += " ${MTDA_PACKAGES} "
 
-# and to the image...
-IMAGE_PREINSTALL += "${MTDA_PACKAGES}"
-
-# HAP-python requires a few more custom packages, list them here
-HAP_PACKAGES = "     \
-    hap-python       \
-"
-DEPENDS += " ${HAP_PACKAGES} "
-
-HAP_PREINSTALL = "     \
-    python3-hap-python \
+IMAGE_PREINSTALL += "                    \
+    iproute2                             \
+    isc-dhcp-client                      \
+    mtda                                 \
+    mtda-usb-functions                   \
+    network-manager                      \
+    sd-mux-ctrl                          \
+    ssh                                  \
+    sudo                                 \
+    vim                                  \
 "
 
-LAVA_PREINSTALL = " \
-    lava-dispatcher \
-"
+# HomeKit support
+IMAGE_PREINSTALL += "python3-hap-python"
 
-# Finally, add the following Debian packages to the image
-IMAGE_PREINSTALL += "  \
-    ${HAP_PREINSTALL}  \
-    ${LAVA_PREINSTALL} \
-    iproute2           \
-    isc-dhcp-client    \
-    network-manager    \
-    ssh                \
-    sudo               \
-    vim                \
-"
+# LAVA support
+IMAGE_PREINSTALL += "lava-dispatcher"
 
 # Expand root file-system
 IMAGE_INSTALL_append = " expand-on-first-boot "
