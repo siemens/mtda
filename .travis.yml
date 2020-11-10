@@ -12,7 +12,8 @@ services:
 before_install:
   - sudo apt-get update
   - sudo apt-get install -y python3-pip python3-setuptools
-  - pip3 install --user pycodestyle
+  - sudo apt-get install -y debootstrap qemu-user-static reprepro
+  - pip3 install --user kas pycodestyle
 
 install:
   - pip3 install --user .
@@ -24,3 +25,6 @@ script:
   - export PATH=$HOME/.local/bin:$PATH
   - pycodestyle mtda-cli mtda/
   - mtda-cli help
+  - mkdir build-packages
+  - cd build-packages
+  - kas build --target mtda-packages ../kas/mtda-nanopi-neo.yml
