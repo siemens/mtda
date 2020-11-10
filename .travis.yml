@@ -1,30 +1,31 @@
 dist: focal
-
 branches:
   only:
   - master
-
 language: minimal
-
 services:
-  - docker
-
+- docker
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install -y python3-pip python3-setuptools
-  - sudo apt-get install -y debootstrap qemu-user-static reprepro
-  - pip3 install --user kas pycodestyle
-
+- sudo apt-get update
+- sudo apt-get install -y python3-pip python3-setuptools
+- sudo apt-get install -y debootstrap qemu-user-static reprepro
+- pip3 install --user kas pycodestyle
 install:
-  - pip3 install --user .
-
+- pip3 install --user .
 before_script:
-  - ./scripts/check-version
-
+- "./scripts/check-version"
 script:
-  - export PATH=$HOME/.local/bin:$PATH
-  - pycodestyle mtda-cli mtda/
-  - mtda-cli help
-  - mkdir build-packages
-  - cd build-packages
-  - kas build --target mtda-packages ../kas/mtda-nanopi-neo.yml
+- export PATH=$HOME/.local/bin:$PATH
+- pycodestyle mtda-cli mtda/
+- mtda-cli help
+- mkdir build-packages
+- cd build-packages
+- kas build --target mtda-packages ../kas/mtda-nanopi-neo.yml
+deploy:
+  provider: pypi
+  username: "__token__"
+  password:
+    secure: hNn0yGWomST9t2MS9xVtFjpm0Xs7dTnhFZ3GVJCTSsNOXBqQlNDwNQ5wZTdwz9HoU9DVJqQ25Xegu6ZCn7n3aO4TTUS6WdGfuPL1uuDvSf/S8cPlrPAEJQnVK7ghYkwo27B4Ucbr4cM9Ar/ng8ukpMTegZtUxUgFvcp+UYRPWaMF/318//CScoW2xbCJIARKcXhcR0YFY/GnYs3dey5sM95hYisGB3JAVpmgJgKPFO7f5rIBE81PGAIpHAtw77T2xgUKEHm+eu7d9FszEhlnP5P2UiX257A/aubKsee99ELSwmcMlisIlCyqRW5uyme/DdCCGWwWGUipQaNJ/+Hg0u8oywkLOaAI6Nvs36MKgwhe5c0ezX3tIR9jTo0PKT73f1yEM95jdJh1/+l7LwWdisMqi5yNZO8zXqwHqs5XjCLstlMnH0DJBvk5yf+QzePAoOdD2JraXuQNpJN1znTddrBYR5lD6ELokS1g11jlL/Zgq28+7QF3SJqevThGPFXzR3ayDScsdqep+wgB8bgYtpWwfIZxTgCLD04cqxh6b6BNoX7OurcuwYhv9RGZTTGHdKXMtoHjSRfF4/FJcjvJWytWuP3Y4BXslgdOeO7z1buflDt6I1Tpw957v4FUdJ80LoZ+y669LmAdmoeKpEN/HX5H/m2GNEeEdNioyhftLbc=
+  skip_existing: true
+  on:
+    tags: true
