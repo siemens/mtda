@@ -12,6 +12,9 @@
 
 # System imports
 import abc
+import os
+
+# HAP-Python imports
 from pyhap.accessory import Accessory
 from pyhap.accessory_driver import AccessoryDriver
 import pyhap.const as Category
@@ -86,12 +89,24 @@ class HomeKitAssistant(Assistant):
         self.accessory = None
         self.name = "MTDA"
         self.port = 51826
+        self.state = "/var/lib/mtda/homekit.state"
 
     def configure(self, conf):
+        self.mtda.debug(3, "mtda.assistant.homekit.configure()")
+
+        result = True
         if 'name' in conf:
             self.name = conf['name']
         if 'port' in conf:
             self.port = int(conf['port'], 10)
+        if 'state' in conf:
+            self.state = conf['state']
+        dir = os.path.dirname(self.state)
+        os.makedirs(dir, mode=0o755, exist_ok=True)
+
+        self.mtda.debug(3, "mtda.assistant.homekit.configure(): "
+                           "%s" % str(result))
+        return result
 
     def probe(self):
         return True
@@ -100,7 +115,7 @@ class HomeKitAssistant(Assistant):
         self.accessory.relay_changed(status)
 
     def start(self):
-        drv = AccessoryDriver(port=self.port)
+        drv = AccessoryDriver(persist_file=self.state, port=self.port)
         self.accessory = PowerSwitch(self.mtda, drv, self.name)
         drv.add_accessory(self.accessory)
         drv.start_service()
