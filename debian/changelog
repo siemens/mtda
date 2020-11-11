@@ -1,3 +1,11 @@
+mtda (0.8.1-1) testing; urgency=low
+
+  * Update HomeKit on power state changes
+  * Put HomeKit setup code in the environment 
+  * Improve CI to build and publish Debian packages
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Wed, 11 Nov 2020 09:48:55 +0100
+
 mtda (0.8-1) testing; urgency=low
 
   * Document how to integrate MTDA with LAVA
