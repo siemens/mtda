@@ -32,4 +32,4 @@ class RemoteConsoleOutput(ConsoleOutput):
         while True:
             data = socket.recv()
             sys.stdout.buffer.write(data)
-            sys.stdout.flush()
+            sys.stdout.buffer.flush()
