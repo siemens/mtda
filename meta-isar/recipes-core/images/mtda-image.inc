@@ -4,6 +4,9 @@
 # Default device/file to use for our USB Mass Storage Gadget
 MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
 
+# MTDA Package Feeds
+MTDA_APT_URI ??= "https://dl.bintray.com/chombourger/mtda"
+
 # Build and deploy our MTDA packages
 DEPENDS += "mtda-packages"
 do_build[deptask] += "do_deploy_deb"
@@ -58,3 +61,10 @@ USER_mtda[shell] = "/bin/bash"
 # Remove the "isar" accounts
 GROUPS_remove = "isar"
 USERS_remove  = "isar"
+
+# Add mtda package feeds to /etc/apt/sources.list.d/
+ROOTFS_POSTPROCESS_COMMAND += "mtda_add_apt_sources"
+mtda_add_apt_sources() {
+    echo "deb [trusted=yes] ${MTDA_APT_URI} ${BASE_DISTRO_CODENAME} main" \
+        | sudo tee -a ${IMAGE_ROOTFS}/etc/apt/sources.list.d/mtda.list
+}
