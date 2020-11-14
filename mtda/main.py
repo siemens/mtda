@@ -64,7 +64,6 @@ class MentorTestDeviceAgent:
         self._storage_mounted = False
         self._storage_opened = False
         self.blksz = 1 * 1024 * 1024
-        self.bz2dec = None
         self.zdec = None
         self.fbintvl = 8  # Feedback interval
         self.usb_switches = []
@@ -365,7 +364,6 @@ class MentorTestDeviceAgent:
         if self.sdmux_controller is None:
             result = False
         else:
-            self.bz2dec = None
             self.zdec = None
             if self._storage_opened is True:
                 self._storage_opened = not self.sdmux_controller.close()
@@ -475,20 +473,20 @@ class MentorTestDeviceAgent:
         self.mtda.debug(3, "main._storage_write_bz2()")
 
         # Decompress and write the newly received data
-        uncompressed = self.bz2dec.decompress(data, self.blksz)
-        result = self.sdmux_controller.write(uncompressed)
-        if result is False:
-            result = -1
-        else:
-            self._storage_bytes_written += len(uncompressed)
+        result = 0
+        uncompressed = self.zdec.decompress(data, self.blksz)
+        try:
+            result = self.sdmux_controller.write(uncompressed)
+            self._storage_bytes_written += result
 
             # Check if we can write more data without further input
-            if self.bz2dec.needs_input is False:
-                result = 0
-            else:
+            if self.zdec.needs_input is True:
                 # Data successfully uncompressed and written to the shared
                 # storage device
                 result = self.blksz
+        except OSError:
+            self.mtda.debug(1, "main._storage_write_bz2(): write error!")
+            result = -1
 
         self.mtda.debug(3, "main._storage_write_bz2(): %s" % str(result))
         return result
@@ -501,8 +499,8 @@ class MentorTestDeviceAgent:
             result = -1
         else:
             # Create a bz2 decompressor when called for the first time
-            if self.bz2dec is None:
-                self.bz2dec = bz2.BZ2Decompressor()
+            if self.zdec is None:
+                self.zdec = bz2.BZ2Decompressor()
 
             cont = True
             start = time.monotonic()
@@ -533,8 +531,8 @@ class MentorTestDeviceAgent:
                     # Handle multi-streams: create a new decompressor and
                     # we will start with data unused from the previous
                     # decompressor
-                    data = self.bz2dec.unused_data
-                    self.bz2dec = bz2.BZ2Decompressor()
+                    data = self.zdec.unused_data
+                    self.zdec = bz2.BZ2Decompressor()
                     cont = (len(data) > 0)  # loop only if we have unused data
                     result = 0              # we do not need more input data
 
@@ -546,11 +544,9 @@ class MentorTestDeviceAgent:
 
         # Decompress and write the newly received data
         uncompressed = self.zdec.decompress(data, self.blksz)
-        status = self.sdmux_controller.write(uncompressed)
-        if status is False:
-            result = -1
-        else:
-            self._storage_bytes_written += len(uncompressed)
+        try:
+            result = self.sdmux_controller.write(uncompressed)
+            self._storage_bytes_written += result
 
             # Check if we can write more data without further input
             if len(self.zdec.unconsumed_tail) > 0:
@@ -559,6 +555,9 @@ class MentorTestDeviceAgent:
                 # Data successfully uncompressed and written to the shared
                 # storage device
                 result = self.blksz
+        except (OSError, zlib.error) as e:
+            self.mtda.debug(1, "main._storage_write_gz(): write error!")
+            result = -1
 
         self.mtda.debug(3, "main._storage_write_gz(): %s" % str(result))
         return result
@@ -612,13 +611,13 @@ class MentorTestDeviceAgent:
             self.mtda.debug(1, "main.storage_write_raw(): no sdmux!")
             result = -1
         else:
-            result = self.sdmux_controller.write(data)
-            if result is False:
-                self.mtda.debug(1, "main.storage_write_raw(): write() failed")
-                result = -1
-            else:
-                self._storage_bytes_written += len(data)
+            try:
+                result = self.sdmux_controller.write(data)
+                self._storage_bytes_written += result
                 result = self.blksz
+            except OSError:
+                self.mtda.debug(1, "main._storage_write_raw(): write error!")
+                result = -1
 
         self.mtda.debug(3, "main.storage_write_raw(): %s" % str(result))
         return result

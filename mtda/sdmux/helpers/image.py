@@ -291,13 +291,9 @@ class Image(SdMuxController):
         self.mtda.debug(3, "sdmux.helpers.image.write()")
         self.lock.acquire()
 
-        result = False
+        result = None
         if self.handle is not None:
-            try:
-                self.handle.write(data)
-                result = True
-            except OSError:
-                result = False
+            result = self.handle.write(data)
 
         self.mtda.debug(3, "sdmux.helpers.image.write(): %s" % str(result))
         self.lock.release()
