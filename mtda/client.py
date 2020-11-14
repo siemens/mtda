@@ -182,8 +182,12 @@ class Client:
         try:
             st = os.stat(path)
             imgsize = st.st_size
-            isBZ2 = path.endswith(".bz2")
-            isGZ = path.endswith(".gz")
+            if path.endswith(".bz2"):
+                writefunc = self._impl.storage_write_bz2
+            elif path.endswith(".gz"):
+                writefunc = self._impl.storage_write_gz
+            else:
+                writefunc = self._impl.storage_write_raw
             image = open(path, "rb")
         except FileNotFoundError:
             return False
@@ -206,15 +210,7 @@ class Client:
                 callback(imgname, totalread, imgsize)
 
             # Write block to shared storage device
-            if isBZ2 is True:
-                bytes_wanted = self._impl.storage_write_bz2(
-                    data, self._session)
-            if isGZ is True:
-                bytes_wanted = self._impl.storage_write_gz(
-                    data, self._session)
-            else:
-                bytes_wanted = self._impl.storage_write_raw(
-                    data, self._session)
+            bytes_wanted = writefunc(data, self._session)
 
             # Check what to do next
             if bytes_wanted < 0:
