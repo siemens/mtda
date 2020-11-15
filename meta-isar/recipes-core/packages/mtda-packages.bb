@@ -7,6 +7,7 @@ DEPENDS = "                              \
     mtda                                 \
     mtda-usb-functions                   \
     sd-mux-ctrl                          \
+    zstandard                            \
 "
 
 # Make sure packages we built were added to the isar-apt repository

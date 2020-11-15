@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+
+DEB_BUILD_OPTIONS=nocheck
+export PYBUILD_NAME=zstandard
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
