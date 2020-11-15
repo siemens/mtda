@@ -43,6 +43,7 @@ and testers to remotely access and control hardware devices.
         "pyzmq>=15.0",
         "psutil",
         "requests",
-        "zerorpc>=0.6.0"
+        "zerorpc>=0.6.0",
+        "zstandard>=0.14"
     ],
 )
