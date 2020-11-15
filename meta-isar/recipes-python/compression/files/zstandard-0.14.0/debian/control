@@ -1,0 +1,26 @@
+Source: zstandard
+Section: python
+Priority: optional
+Maintainer: Cedric Hombourger <cedric_hombourger@mentor.com>
+Build-Depends: debhelper (>=10), dh-python, libpython3-dev, python3-setuptools, python3-all
+Standards-Version: 4.5.0
+Homepage: https://pypi.org/project/zstandard
+Rules-Requires-Root: no
+
+Package: python3-zstandard
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Suggests: python-zstandard-doc
+Description: Python bindings for interfacing with the Zstandard compression library
+ A C extension and CFFI interface are provided
+ .
+ This package installs the library for Python 3.
+
+Package: python-zstandard-doc
+Architecture: all
+Section: doc
+Depends: ${sphinxdoc:Depends}, ${misc:Depends}
+Description: documentation for Python bindings for interfacing with the Zstandard compression library
+ A C extension and CFFI interface are provided
+ .
+ This is the common documentation package.
