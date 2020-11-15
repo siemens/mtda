@@ -10,22 +10,23 @@
 # ---------------------------------------------------------------------------
 
 # System imports
-import bz2
 import configparser
 import daemon
 import gevent
 import importlib
 import os
+import queue
 import signal
 import sys
 import time
-import zlib
 import zmq
 
 # Local imports
 from mtda.console.input import ConsoleInput
 from mtda.console.logger import ConsoleLogger
 from mtda.console.remote_output import RemoteConsoleOutput
+from mtda.sdmux.writer import AsyncImageWriter
+import mtda.constants as CONSTS
 import mtda.keyboard.controller
 import mtda.power.controller
 from mtda import __version__
@@ -60,12 +61,11 @@ class MentorTestDeviceAgent:
         self.power_off_script = None
         self.power_monitors = []
         self.sdmux_controller = None
-        self._storage_bytes_written = 0
         self._storage_mounted = False
         self._storage_opened = False
-        self.blksz = 1 * 1024 * 1024
-        self.zdec = None
-        self.fbintvl = 8  # Feedback interval
+        self._writer = None
+        self._writer_data = None
+        self.blksz = CONSTS.WRITER.READ_SIZE
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
@@ -352,9 +352,22 @@ class MentorTestDeviceAgent:
         self.mtda.debug(3, "main.storage_bytes_written()")
 
         self._check_expired(session)
-        result = self._storage_bytes_written
+        result = self._writer.written
 
         self.mtda.debug(3, "main.storage_bytes_written(): %s" % str(result))
+        return result
+
+    def storage_compression(self, compression, session=None):
+        self.mtda.debug(3, "main.storage_compression()")
+
+        self._check_expired(session)
+        if self.sdmux_controller is None:
+            result = None
+        else:
+            result = self._writer.compression.value
+            self._writer.compression = compression
+
+        self.mtda.debug(3, "main.storage_compression(): %s" % str(result))
         return result
 
     def storage_close(self, session=None):
@@ -364,9 +377,9 @@ class MentorTestDeviceAgent:
         if self.sdmux_controller is None:
             result = False
         else:
-            self.zdec = None
-            if self._storage_opened is True:
-                self._storage_opened = not self.sdmux_controller.close()
+            self._writer.stop()
+            self._writer_data = None
+            self._storage_opened = not self.sdmux_controller.close()
             result = (self._storage_opened is False)
 
         self.mtda.debug(3, "main.storage_close(): %s" % str(result))
@@ -424,18 +437,21 @@ class MentorTestDeviceAgent:
         self.mtda.debug(3, "main.storage_mount(): %s" % str(result))
         return result
 
-    def storage_update(self, dst, offset, data, session=None):
+    def storage_update(self, dst, offset, session=None):
         self.mtda.debug(3, "main.storage_update()")
 
         self._check_expired(session)
+        result = False
         if self.sdmux_controller is None:
             self.mtda.debug(4, "storage_update(): no shared storage device")
-            result = -1
-        elif offset == 0:
-            self._storage_bytes_written = 0
-        result = self.sdmux_controller.update(dst, offset, data)
-        if result > 0:
-            self._storage_bytes_written = self._storage_bytes_written + result
+        else:
+            try:
+                result = self.sdmux_controller.update(dst, offset)
+                if result is True:
+                    self._writer.start()
+            except (FileNotFoundError, IOError) as e:
+                self.mtda.debug(1, "main.storage_update(): "
+                                   "%s" % str(e.args[0]))
 
         self.mtda.debug(3, "main.storage_update(): %s" % str(result))
         return result
@@ -449,9 +465,10 @@ class MentorTestDeviceAgent:
             result = False
         else:
             self.storage_close()
-            self._storage_bytes_written = 0
             result = self.sdmux_controller.open()
-            self._storage_opened = (result is True)
+            if result is True:
+                self._writer.start()
+            self._storage_opened = result
 
         self.mtda.debug(3, "main.storage_open(): %s" % str(result))
         return result
@@ -462,164 +479,12 @@ class MentorTestDeviceAgent:
         self._check_expired(session)
         if self.sdmux_controller is None:
             self.mtda.debug(4, "storage_status(): no shared storage device")
-            result = "???"
+            result = "???", False, 0
         else:
-            result = self.sdmux_controller.status()
+            status = self.sdmux_controller.status()
+            result = status, self._writer.writing, self._writer.written
 
         self.mtda.debug(3, "main.storage_status(): %s" % str(result))
-        return result
-
-    def _storage_write_bz2(self, data):
-        self.mtda.debug(3, "main._storage_write_bz2()")
-
-        # Decompress and write the newly received data
-        result = 0
-        uncompressed = self.zdec.decompress(data, self.blksz)
-        try:
-            result = self.sdmux_controller.write(uncompressed)
-            self._storage_bytes_written += result
-
-            # Check if we can write more data without further input
-            if self.zdec.needs_input is True:
-                # Data successfully uncompressed and written to the shared
-                # storage device
-                result = self.blksz
-        except OSError:
-            self.mtda.debug(1, "main._storage_write_bz2(): write error!")
-            result = -1
-
-        self.mtda.debug(3, "main._storage_write_bz2(): %s" % str(result))
-        return result
-
-    def storage_write_bz2(self, data, session=None):
-        self.mtda.debug(3, "main.storage_write_bz2()")
-
-        self._check_expired(session)
-        if self.sdmux_controller is None:
-            result = -1
-        else:
-            # Create a bz2 decompressor when called for the first time
-            if self.zdec is None:
-                self.zdec = bz2.BZ2Decompressor()
-
-            cont = True
-            start = time.monotonic()
-            result = -1
-
-            while cont is True:
-                # Decompress and write newly received data
-                try:
-                    # Uncompress and write data
-                    result = self._storage_write_bz2(data)
-                    if result != 0:
-                        # Either got an error or needing more data; escape from
-                        # this loop to provide feedback
-                        cont = False
-                    else:
-                        # Check if this loop has been running for quite
-                        # some time, in which case we would to give our
-                        # client an update
-                        now = time.monotonic()
-                        if (now - start) >= self.fbintvl:
-                            cont = False
-                        # If we should continue and do not need more data
-                        # at this time, use an empty buffer for the next
-                        # iteration
-                        elif result == 0:
-                            data = b''
-                except EOFError:
-                    # Handle multi-streams: create a new decompressor and
-                    # we will start with data unused from the previous
-                    # decompressor
-                    data = self.zdec.unused_data
-                    self.zdec = bz2.BZ2Decompressor()
-                    cont = (len(data) > 0)  # loop only if we have unused data
-                    result = 0              # we do not need more input data
-
-        self.mtda.debug(3, "main.storage_write_bz2(): %s" % str(result))
-        return result
-
-    def _storage_write_gz(self, data):
-        self.mtda.debug(3, "main._storage_write_gz()")
-
-        # Decompress and write the newly received data
-        uncompressed = self.zdec.decompress(data, self.blksz)
-        try:
-            result = self.sdmux_controller.write(uncompressed)
-            self._storage_bytes_written += result
-
-            # Check if we can write more data without further input
-            if len(self.zdec.unconsumed_tail) > 0:
-                result = 0
-            else:
-                # Data successfully uncompressed and written to the shared
-                # storage device
-                result = self.blksz
-        except (OSError, zlib.error) as e:
-            self.mtda.debug(1, "main._storage_write_gz(): write error!")
-            result = -1
-
-        self.mtda.debug(3, "main._storage_write_gz(): %s" % str(result))
-        return result
-
-    def storage_write_gz(self, data, session=None):
-        self.mtda.debug(3, "main.storage_write_gz()")
-
-        self._check_expired(session)
-        if self.sdmux_controller is None:
-            result = -1
-        else:
-            # Create a zlib decompressor when called for the first time
-            if self.zdec is None:
-                self.zdec = zlib.decompressobj(16+zlib.MAX_WBITS)
-
-            # Check if we should use unconsumed data from the previous call
-            if len(data) == 0:
-                data = self.zdata
-
-            cont = True
-            start = time.monotonic()
-            result = -1
-
-            while cont is True:
-                # Decompress and write newly received data
-                result = self._storage_write_gz(data)
-                self.zdata = None
-                if result != 0:
-                    # Either got an error or needing more data; escape from
-                    # this loop to provide feedback
-                    cont = False
-                else:
-                    # If we should continue and do not need more data at this
-                    # time, use the unconsumed data for the next iteration
-                    data = self.zdec.unconsumed_tail
-                    # Check if this loop has been running for quite some time,
-                    # in which case we would to give our client an update
-                    now = time.monotonic()
-                    if (now - start) >= self.fbintvl:
-                        self.zdata = data
-                        cont = False
-
-        self.mtda.debug(3, "main.storage_write_gz(): %s" % str(result))
-        return result
-
-    def storage_write_raw(self, data, session=None):
-        self.mtda.debug(3, "main.storage_write_raw()")
-
-        self._check_expired(session)
-        if self.sdmux_controller is None:
-            self.mtda.debug(1, "main.storage_write_raw(): no sdmux!")
-            result = -1
-        else:
-            try:
-                result = self.sdmux_controller.write(data)
-                self._storage_bytes_written += result
-                result = self.blksz
-            except OSError:
-                self.mtda.debug(1, "main._storage_write_raw(): write error!")
-                result = -1
-
-        self.mtda.debug(3, "main.storage_write_raw(): %s" % str(result))
         return result
 
     def storage_to_host(self, session=None):
@@ -663,6 +528,34 @@ class MentorTestDeviceAgent:
         return result
 
         self.mtda.debug(3, "main.storage_swap(): %s" % str(result))
+        return result
+
+    def storage_write(self, data, session=None):
+        self.mtda.debug(3, "main.storage_write()")
+
+        self._check_expired(session)
+        if self.sdmux_controller is None or self._writer.failed is True:
+            result = -1
+        else:
+            try:
+                if len(data) == 0:
+                    self.mtda.debug(2, "main.storage_write(): "
+                                       "using queued data")
+                    data = self._writer_data
+                self._writer_data = data
+                self._writer.put(data, timeout=10)
+                result = self.blksz
+            except queue.Full:
+                self.mtda.debug(2, "main.storage_write(): "
+                                   "queue is full")
+                result = 0
+
+        if self._writer.failed is True:
+            self.mtda.debug(1, "main.storage_write(): "
+                               "write or decompression error")
+            result = -1
+
+        self.mtda.debug(3, "main.storage_write(): %s" % str(result))
         return result
 
     def toggle_timestamps(self):
@@ -1052,6 +945,7 @@ class MentorTestDeviceAgent:
             mod = importlib.import_module("mtda.sdmux." + variant)
             factory = getattr(mod, 'instantiate')
             self.sdmux_controller = factory(self)
+            self._writer = AsyncImageWriter(self, self.sdmux_controller)
             # Configure the sdmux controller
             self.sdmux_controller.configure(dict(parser.items('sdmux')))
         except configparser.NoOptionError:

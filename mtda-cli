@@ -165,9 +165,9 @@ class Application:
             if status is True:
                 server.console_print("\r\n*** Target was released ***\r\n")
         elif c == 's':
-            previous_status = server.storage_status()
+            previous_status, writing, written = server.storage_status()
             server.storage_swap()
-            new_status = server.storage_status()
+            new_status, writing, written = server.storage_status()
             if new_status != previous_status:
                 server.console_print(
                     "\r\n*** Storage now connected to "
@@ -400,18 +400,26 @@ class Application:
             return 1
         return 0
 
+    def _human_readable_size(self, size):
+        if size < 1024*1024:
+            return "{:d} KiB".format(int(size/1024))
+        elif size < 1024*1024*1024:
+            return "{:d} MiB".format(int(size/1024/1024))
+        else:
+            return "{:.2f} GiB".format(size/1024/1024/1024)
+
     def _storage_write_cb(self, imgname, totalread, imgsize):
-        # Print progress
+        totalwritten = self.agent.storage_bytes_written()
         progress = int((float(totalread) / float(imgsize)) * float(100))
         blocks = int(round((20 * progress) / 100))
         spaces = ' ' * (20 - blocks)
         blocks = '#' * blocks
-        totalread = int(totalread / 1024 / 1024)
-        totalwritten = int(self.agent.storage_bytes_written() / 1024 / 1024)
         elapsed = time.monotonic() - self.start_time
-        speed = round(totalwritten / elapsed, 2)
-        sys.stdout.write("\r{0}: [{1}] {2}% ({3} MiB read, "
-                         "{4} MiB written, {5} MiB/s) ".format(
+        speed = round((totalwritten / 1024 / 1024) / elapsed, 2)
+        totalread = self._human_readable_size(totalread)
+        totalwritten = self._human_readable_size(totalwritten)
+        sys.stdout.write("\r{0}: [{1}] {2}% ({3} read, "
+                         "{4} written, {5} MiB/s) ".format(
                              imgname, str(blocks + spaces), progress,
                              totalread, totalwritten, speed))
         sys.stdout.flush()
@@ -466,8 +474,9 @@ class Application:
         locked = " (locked)" if client.target_locked() else ""
         remote = "Local" if self.remote is None else self.remote
         session = client.session()
-        storage_status = client.storage_status()
-        storage_written = client.storage_bytes_written() / 1024 / 1024
+        storage_status, writing, written = client.storage_status()
+        writing = "WRITING" if writing is True else "IDLE"
+        written = self._human_readable_size(written)
         tgt_status = client.target_status()
         try:
             remote_version = client.agent_version()
@@ -489,7 +498,7 @@ class Application:
         print("Session        : %s\r" % (session))
         print("Target         : %-6s%s\r" % (tgt_status, locked))
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
-        print("Storage writes : %u MiB\r" % (storage_written))
+        print("Storage writes : %s (%s)\r" % (written, writing))
 
         # Print status of the USB ports
         ports = client.usb_ports()
