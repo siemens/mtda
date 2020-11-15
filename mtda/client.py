@@ -9,13 +9,15 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-from mtda.main import MultiTenantDeviceAccess
 
 import os
 import random
 import socket
 import time
 import zerorpc
+
+from mtda.main import MultiTenantDeviceAccess
+import mtda.constants as CONSTS
 
 
 class Client:
@@ -133,72 +135,9 @@ class Client:
     def storage_status(self):
         return self._impl.storage_status(self._session)
 
-    def storage_update(self, dest, src=None, callback=None):
-        path = dest if src is None else src
-        imgname = os.path.basename(path)
-        try:
-            st = os.stat(path)
-            imgsize = st.st_size
-            image = open(path, "rb")
-        except FileNotFoundError:
-            return False
-
+    def _storage_write(self, image, imgname, imgsize, callback=None):
         # Copy loop
-        data = image.read(self._agent.blksz)
-        dataread = len(data)
-        totalread = 0
-        offset = 0
-        while totalread < imgsize:
-            totalread += dataread
-
-            # Report progress via callback
-            if callback is not None:
-                callback(imgname, totalread, imgsize)
-
-            # Write block to the shared storage device
-            datawritten = self._impl.storage_update(
-                dest, offset, data, self._session)
-            offset = offset + datawritten
-
-            # Check what to do next
-            if datawritten < 0:
-                # Handle read/write error
-                image.close()
-                return False
-            else:
-                # Read next block
-                data = image.read(self._agent.blksz)
-                dataread = len(data)
-
-        # Close the local image and shared storage device
-        image.close()
-        return True
-
-    def storage_write_image(self, path, callback=None):
-        # Get size of the (compressed) image
-        imgname = os.path.basename(path)
-
-        # Open the specified image
-        try:
-            st = os.stat(path)
-            imgsize = st.st_size
-            if path.endswith(".bz2"):
-                writefunc = self._impl.storage_write_bz2
-            elif path.endswith(".gz"):
-                writefunc = self._impl.storage_write_gz
-            else:
-                writefunc = self._impl.storage_write_raw
-            image = open(path, "rb")
-        except FileNotFoundError:
-            return False
-
-        # Open the shared storage device
-        status = self.storage_open()
-        if status is False:
-            image.close()
-            return False
-
-        # Copy loop
+        bytes_wanted = 0
         data = image.read(self._agent.blksz)
         dataread = len(data)
         totalread = 0
@@ -210,14 +149,11 @@ class Client:
                 callback(imgname, totalread, imgsize)
 
             # Write block to shared storage device
-            bytes_wanted = writefunc(data, self._session)
+            bytes_wanted = self._impl.storage_write(data, self._session)
 
             # Check what to do next
             if bytes_wanted < 0:
-                # Handle read/write error
-                image.close()
-                self.storage_close()
-                return False
+                break
             elif bytes_wanted > 0:
                 # Read next block
                 data = image.read(bytes_wanted)
@@ -227,10 +163,75 @@ class Client:
                 data = b''
                 dataread = 0
 
-        # Close the local image and shared storage device
+        # Close the local image
         image.close()
+
+        # Wait for background writes to complete
+        while True:
+            status, writing, written = self._impl.storage_status(self._session)
+            if writing is False:
+                break
+            if callback is not None:
+                callback(imgname, totalread, imgsize)
+            time.sleep(0.5)
+
+        # Storage may be closed now
         status = self.storage_close()
+
+        # Provide final update to specified callback
+        if status is True and callback is not None:
+            callback(imgname, totalread, imgsize)
+
+        # Make sure an error is reported if a write error was received
+        if bytes_wanted < 0:
+            status = False
+
         return status
+
+    def storage_update(self, dest, src=None, callback=None):
+        path = dest if src is None else src
+        imgname = os.path.basename(path)
+        try:
+            st = os.stat(path)
+            imgsize = st.st_size
+            image = open(path, "rb")
+        except FileNotFoundError:
+            return False
+
+        status = self._impl.storage_update(dest, 0, self._session)
+        if status is False:
+            image.close()
+            return False
+
+        self._impl.storage_compression(CONSTS.IMAGE.RAW.value, self._session)
+        return self._storage_write(image, imgname, imgsize, callback)
+
+    def storage_write_image(self, path, callback=None):
+        # Get size of the (compressed) image
+        imgname = os.path.basename(path)
+
+        # Open the specified image
+        try:
+            st = os.stat(path)
+            imgsize = st.st_size
+            if path.endswith(".bz2"):
+                compression = CONSTS.IMAGE.BZ2.value
+            elif path.endswith(".gz"):
+                compression = CONSTS.IMAGE.GZ.value
+            else:
+                compression = CONSTS.IMAGE.RAW.value
+            self._impl.storage_compression(compression, self._session)
+            image = open(path, "rb")
+        except FileNotFoundError:
+            return False
+
+        # Open the shared storage device
+        status = self.storage_open()
+        if status is False:
+            image.close()
+            return False
+
+        return self._storage_write(image, imgname, imgsize, callback)
 
     def storage_to_host(self):
         return self._impl.storage_to_host(self._session)

@@ -65,6 +65,11 @@ class SdMuxController(object):
         return self.SD_ON_UNSURE
 
     @abc.abstractmethod
+    def update(self, dst, offset):
+        """ Update specified file"""
+        return False
+
+    @abc.abstractmethod
     def write(self, data):
         """ Write data to the device SD card"""
         return False
