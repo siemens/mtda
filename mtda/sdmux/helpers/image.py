@@ -117,6 +117,7 @@ class Image(SdMuxController):
         self.device = None
         self.isfuse = False
         self.isloop = False
+        p = pathlib.Path(self.file)
         if self.mtda.fuse is True and os.path.exists("/usr/bin/partitionfs"):
             device = os.path.join(
                 "/run", "user", str(os.getuid()), "mtda", "sdmux", "0")
@@ -128,6 +129,9 @@ class Image(SdMuxController):
             if result:
                 self.device = device + "/"
                 self.isfuse = True
+        elif p.is_block_device() is True:
+            self.device = self.file
+            result = True
         else:
             cmd = ["losetup", "-f", "--show", "-P", self.file]
             if os.geteuid() != 0:
@@ -149,7 +153,10 @@ class Image(SdMuxController):
         mountpoint = self._mountpoint(path)
         result = False
 
-        if os.path.exists(path) and os.path.ismount(mountpoint) is False:
+        if os.path.exists(path) is False:
+            self.mtda.debug(1, "sdmux.helpers.image._mount_part(): "
+                               "{0} does not exist!".format(path))
+        elif os.path.ismount(mountpoint) is False:
             os.makedirs(mountpoint, exist_ok=True)
             if pathlib.Path(path).is_block_device():
                 cmd = ["/bin/mount", path, mountpoint]
@@ -179,10 +186,19 @@ class Image(SdMuxController):
 
             if result is False:
                 os.rmdir(mountpoint)
+        else:
+            self.mtda.debug(1, "sdmux.helpers.image._mount_part(): "
+                               "{0} is a mount point".format(mountpoint))
 
         self.mtda.debug(3, "sdmux.helpers.image._mount_part(): "
                            "%s" % str(result))
         return result
+
+    def _part_dev(self, path, part):
+        if path[-1:].isdigit():
+            return "{0}p{1}".format(path, part)
+        else:
+            return "{0}{1}".format(path, part)
 
     def mount(self, part=None):
         self.mtda.debug(3, "sdmux.helpers.image.mount()")
@@ -202,11 +218,7 @@ class Image(SdMuxController):
             if result:
                 path = None
                 if part:
-                    tmp = "{0}p{1}".format(self.device, part)
-                    if os.path.exists(tmp):
-                        path = tmp
-                    else:
-                        path = "{0}{1}".format(self.device, part)
+                    path = self._part_dev(self.device, part)
                 else:
                     path = self.device
                 if path:
@@ -266,26 +278,28 @@ class Image(SdMuxController):
         self.mtda.debug(3, "sdmux.helpers.image._locate(): %s" % str(result))
         return result
 
-    def update(self, dst, offset, data):
+    def update(self, dst, offset):
         self.mtda.debug(3, "sdmux.helpers.image.update()")
-        self.lock.acquire()
 
-        f = None
-        path = self._locate(dst)
-        result = -1
-        if path is not None:
-            try:
-                mode = "ab" if offset > 0 else "wb"
-                f = open(path, mode)
-                f.seek(offset)
-                result = f.write(data)
-            finally:
-                if f is not None:
-                    f.close()
+        with self.lock:
+            result = False
+            if self.handle is None:
+                path = self._locate(dst)
+                if path is not None:
+                    mode = "ab" if offset > 0 else "wb"
+                    self.handle = open(path, mode)
+                    self.handle.seek(offset)
+                    result = True
+                else:
+                    self.mtda.debug(1, "sdmux.helpers.image.update(): "
+                                       "%s could not be found!" % str(dst))
+                    raise FileNotFoundError(dst + " could not be found!")
+            else:
+                self.mtda.debug(1, "sdmux.helpers.image.update(): "
+                                   "shared storage already opened!")
 
-        self.mtda.debug(3, "sdmux.helpers.image.update(): %s" % str(result))
-        self.lock.release()
-        return result
+            self.mtda.debug(3, "sdmux.helpers.image.update(): %s" % str(result))
+            return result
 
     def write(self, data):
         self.mtda.debug(3, "sdmux.helpers.image.write()")
