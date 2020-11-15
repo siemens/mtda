@@ -298,7 +298,8 @@ class Image(SdMuxController):
                 self.mtda.debug(1, "sdmux.helpers.image.update(): "
                                    "shared storage already opened!")
 
-            self.mtda.debug(3, "sdmux.helpers.image.update(): %s" % str(result))
+            self.mtda.debug(3, "sdmux.helpers.image.update(): "
+                               "%s" % str(result))
             return result
 
     def write(self, data):

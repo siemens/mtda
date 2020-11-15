@@ -14,6 +14,7 @@ import queue
 import threading
 import mtda.constants as CONSTS
 import zlib
+import zstandard as zstd
 
 
 class AsyncImageWriter(queue.Queue):
@@ -189,6 +190,23 @@ class AsyncImageWriter(queue.Queue):
             self._failed = True
 
         self.mtda.debug(3, "sdmux.writer.write_bz2(): %s" % str(result))
+        return result
+
+    def write_zst(self, data):
+        self.mtda.debug(3, "sdmux.writer.write_zst()")
+
+        # Create a decompressor when called for the first time
+        if self._zdec is None:
+            dctx = zstd.ZstdDecompressor()
+            self._zdec = dctx.stream_writer(self.storage)
+        try:
+            result = self._zdec.write(data)
+            self._written += result if result is not None else 0
+        except OSError:
+            self.mtda.debug(1, "sdmux.writer.write_zst(): write error!")
+            self._failed = True
+
+        self.mtda.debug(3, "sdmux.writer.write_zst(): %s" % str(result))
         return result
 
     @property
