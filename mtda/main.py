@@ -519,12 +519,12 @@ class MentorTestDeviceAgent:
 
         self._check_expired(session)
         if self.storage_locked(session) is False:
-            result = self.storage_status(session)
+            result, writing, written = self.storage_status(session)
             if result == self.sdmux_controller.SD_ON_HOST:
                 self.sdmux_controller.to_target()
             elif result == self.sdmux_controller.SD_ON_TARGET:
                 self.sdmux_controller.to_host()
-        result = self.storage_status(session)
+        result, writing, written = self.storage_status(session)
         return result
 
         self.mtda.debug(3, "main.storage_swap(): %s" % str(result))
