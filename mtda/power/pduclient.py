@@ -27,7 +27,7 @@ class PduClientController(PowerController):
         self.hostname = None
         self.mtda = mtda
         self.port = None
-        self.status = self.POWER_UNSURE
+        self.state = self.POWER_UNSURE
 
     def configure(self, conf):
         """ Configure this power controller from the provided configuration"""
@@ -61,7 +61,7 @@ class PduClientController(PowerController):
         """ Power on the attached device"""
         status = self.cmd('on')
         if status == 0:
-            self.status = self.POWER_ON
+            self.state = self.POWER_ON
             self.ev.set()
             return True
         return False
@@ -70,14 +70,14 @@ class PduClientController(PowerController):
         """ Power off the attached device"""
         status = self.cmd('off')
         if status == 0:
-            self.status = self.POWER_OFF
+            self.state = self.POWER_OFF
             self.ev.set()
             return True
         return False
 
     def status(self):
         """ Determine the current power state of the attached device"""
-        return self.status
+        return self.state
 
     def toggle(self):
         """ Toggle power for the attached device"""
@@ -86,7 +86,7 @@ class PduClientController(PowerController):
             self.on()
         else:
             self.off()
-        return self.status()
+        return self.state
 
     def wait(self):
         while self.status() != self.POWER_ON:
