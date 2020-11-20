@@ -1,3 +1,14 @@
+mtda (0.9.2-1) testing; urgency=low
+
+  * power/pduclient: fix clash between status member variable and the status method
+    by renaming the former to state.
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 20 Nov 2020 17:36:12 +0100
+
+mtda (0.9-1) testing; urgency=low
+
+  * Refactor storage code 
+
 mtda (0.9.1-1) testing; urgency=low
 
   * fix storage_swap() to use new storage_status() API
