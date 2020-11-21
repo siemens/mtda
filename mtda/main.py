@@ -292,9 +292,11 @@ class MultiTenantDeviceAccess:
                 prefix = "# debug%d: " % level
             msg = str(msg).replace("\n", "\n%s ... " % prefix)
             lines = msg.splitlines()
+            sys.stderr.buffer.write(prefix.encode("utf-8"))
             for line in lines:
-                line = _make_printable(line)
-                print("%s%s" % (prefix, line), file=sys.stderr)
+                sys.stderr.buffer.write(_make_printable(line).encode("utf-8"))
+                sys.stderr.buffer.write(b"\n")
+                sys.stderr.buffer.flush()
 
     def env_get(self, name, session=None):
         self.mtda.debug(3, "env_get()")
