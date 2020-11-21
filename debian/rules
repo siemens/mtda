@@ -3,9 +3,4 @@
 DESTDIR=$(CURDIR)/debian/mtda
 
 %:
-	dh $@ --with python3 --with systemd --buildsystem=pybuild
-
-override_dh_install:
-	install -d $(DESTDIR)/lib/systemd/system
-	install -m 644 mtda.service $(DESTDIR)/lib/systemd/system/
-	dh_install
+	dh $@ --with python3 --with=systemd --buildsystem=pybuild
