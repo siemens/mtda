@@ -18,7 +18,7 @@ import threading
 from mtda.power.controller import PowerController
 
 
-class PduClientController(PowerController):
+class PduClientPowerController(PowerController):
 
     def __init__(self, mtda):
         self.dev = None
