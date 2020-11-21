@@ -2,7 +2,8 @@
 Description=Mentor Test Device Agent
 
 [Service]
-ExecStart=/usr/bin/mtda-cli -d
+Type=simple
+ExecStart=/usr/bin/python3 -u /usr/bin/mtda-cli -d -n
 
 [Install]
 WantedBy=multi-user.target
