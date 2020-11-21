@@ -1,3 +1,11 @@
+mtda (0.9.4-1) testing; urgency=low
+
+  * make debian restart the mtda service after an upgrade
+
+  * redirect debug prints to journald
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Sat, 21 Nov 2020 21:09:23 +0100
+
 mtda (0.9.3-1) testing; urgency=low
 
   [Hemanth Koturappa]
