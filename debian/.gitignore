@@ -1,0 +1,7 @@
+*.debhelper
+*.log
+*.substvars
+debhelper-build-stamp
+files
+mtda
+mtda-kvm

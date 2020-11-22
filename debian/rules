@@ -4,3 +4,13 @@ DESTDIR=$(CURDIR)/debian/mtda
 
 %:
 	dh $@ --with python3 --with=systemd --buildsystem=pybuild
+
+override_dh_auto_install:
+	dh_auto_install
+	rm -rf debian/mtda debian/mtda-kvm
+	install -m 0755 -d debian/mtda
+	mv debian/tmp/usr debian/mtda/
+	install -m 0755 -d debian/mtda-kvm/etc/mtda
+	install -m 0644 configs/qemu.ini debian/mtda-kvm/etc/mtda/config
+	install -m 0755 -d debian/mtda-kvm/var/lib/mtda
+	install -m 0644 configs/qemu-ovmf-vars.fd debian/mtda-kvm/var/lib/mtda/
