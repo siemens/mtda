@@ -1,3 +1,9 @@
+mtda (0.9.7-1) testing; urgency=low
+
+  * bump version of our dependency for bintray to reindex them
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Sun, 22 Nov 2020 20:38:17 +0100
+
 mtda (0.9.6-1) testing; urgency=low
 
   * publish "all" packages separately
