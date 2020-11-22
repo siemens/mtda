@@ -1,3 +1,9 @@
+ed25519 (1.5-2) unstable; urgency=medium
+
+  * Version bump for bintray to re-index this package and place it in binary-all
+
+ -- Cedric Hombourger <cedric_hombourger@mentor.com>  Sun, 22 Nov 2020 20:34:37 +0100
+
 ed25519 (1.5-1) unstable; urgency=medium
 
   * Initial release
