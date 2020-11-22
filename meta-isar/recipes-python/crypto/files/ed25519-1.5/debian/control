@@ -8,7 +8,7 @@ Homepage: https://pypi.org/project/ed25519/
 Rules-Requires-Root: no
 
 Package: python3-ed25519
-Architecture: all
+Architecture: any
 Depends: ${python3:Depends}, ${misc:Depends}
 Suggests: python-ed25519-doc
 Description: Python bindings to the Ed25519 public-key signature system

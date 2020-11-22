@@ -1,3 +1,9 @@
+zstandard (0.14.0-3) unstable; urgency=medium
+
+  * Change architecture to any since this module includes a shared library
+
+ -- Cedric Hombourger <cedric_hombourger@mentor.com>  Sun, 22 Nov 2020 22:08:30 +0100
+
 zstandard (0.14.0-2) unstable; urgency=medium
 
   * Version bump for bintray to re-index this package and place it in binary-all
