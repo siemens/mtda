@@ -1,3 +1,9 @@
+mtda (0.9.6-1) testing; urgency=low
+
+  * publish "all" packages separately
+
+ -- Cedric Hombourger <chombourger@gmail.com>  Sun, 22 Nov 2020 19:49:19 +0100
+
 mtda (0.9.5-1) testing; urgency=low
 
   * produce a mtda-kvm package for debian
