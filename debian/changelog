@@ -1,3 +1,9 @@
+mtda (0.9.5-1) testing; urgency=low
+
+  * produce a mtda-kvm package for debian
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Sun, 22 Nov 2020 18:32:30 +0100
+
 mtda (0.9.4-1) testing; urgency=low
 
   * make debian restart the mtda service after an upgrade
