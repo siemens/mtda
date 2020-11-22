@@ -28,6 +28,8 @@ script:
 - mtda-cli help
 - export KAS_WORK_DIR=$PWD/build-armhf && mkdir -p $KAS_WORK_DIR
 - kas build --target mtda-packages kas/mtda-nanopi-neo.yml
+- export KAS_WORK_DIR=$PWD/build-amd64 && mkdir -p $KAS_WORK_DIR
+- kas build --target mtda-packages kas/mtda-qemu-amd64.yml
 deploy:
 - provider: pypi
   username: __token__
