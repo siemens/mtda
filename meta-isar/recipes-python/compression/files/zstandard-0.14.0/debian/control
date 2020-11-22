@@ -8,7 +8,7 @@ Homepage: https://pypi.org/project/zstandard
 Rules-Requires-Root: no
 
 Package: python3-zstandard
-Architecture: all
+Architecture: any
 Depends: ${python3:Depends}, ${misc:Depends}
 Suggests: python-zstandard-doc
 Description: Python bindings for interfacing with the Zstandard compression library
