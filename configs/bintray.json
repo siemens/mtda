@@ -23,11 +23,11 @@
         "gpgSign": true
     },
     "files":
-        [{"includePattern": "deploy-armhf/(.*\.deb)", "uploadPattern": "pool/main/m/mtda/$1",
+        [{"includePattern": "deploy-@ARCH@/(.*\.deb)", "uploadPattern": "pool/main/m/mtda/$1",
       	"matrixParams": {
         "deb_distribution": "buster",
         "deb_component": "main",
-        "deb_architecture": "armhf"}
+        "deb_architecture": "@ARCH@"}
     }
     ]
 }
