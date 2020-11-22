@@ -1,3 +1,9 @@
+mtda (0.9.8-1) testing; urgency=low
+
+  * change architecture to "any" for dependent packages shipping a shared library
+
+ -- Cedric Hombourger <chombourger@gmail.com>  Sun, 22 Nov 2020 22:12:47 +0100
+
 mtda (0.9.7-1) testing; urgency=low
 
   * bump version of our dependency for bintray to reindex them
