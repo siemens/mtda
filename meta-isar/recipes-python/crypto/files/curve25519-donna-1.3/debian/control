@@ -8,7 +8,7 @@ Homepage: https://pypi.org/project/curve25519-donna
 Rules-Requires-Root: no
 
 Package: python3-curve25519-donna
-Architecture: all
+Architecture: any
 Depends: ${python3:Depends}, ${misc:Depends}
 Suggests: python-curve25519-donna-doc
 Description: python3 implementations of curve25519, an elliptic curve Diffie Hellman primitive
