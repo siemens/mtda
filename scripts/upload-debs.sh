@@ -29,7 +29,12 @@ MTDA_VERSION=$(python3 -c 'import mtda; print(mtda.__version__)')
 # Abort if a command fails
 set -e
 
-for arch in amd64 armhf
+# We do not have a build for the "all" architecture, point to the "amd64"
+# build to keep the for loop below happy
+ln -sf build-amd64 build-all
+
+# Publish packages for each architecture starting with "generic" packages
+for arch in all amd64 armhf
 do
     # Replace MTDA variables in config file
     config_json=$(mktemp)
@@ -40,7 +45,9 @@ do
     
     # Copy Debian packages from the Isar build
     mkdir -p deploy-${arch}
-    find build-${arch}/build/tmp/deploy/isar-apt/apt -name *.deb -exec cp {} deploy-${arch}/ \;
+    find build-${arch}/build/tmp/deploy/isar-apt/apt \
+        -name *_${arch}.deb                          \
+        -exec cp {} deploy-${arch}/ \;
     
     # Upload them to bintray
     dpl --provider=bintray            \
