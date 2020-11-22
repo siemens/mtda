@@ -23,3 +23,11 @@ Description: Multi-Tenant Device Access
  device on or off (assuming an IP/USB power switch is available),
  plug USB devices in or out (also requiring special hardware) or
  simply access its console (in most cases serial).
+
+Package: mtda-kvm
+Architecture: all
+Multi-Arch: foreign
+Depends: qemu-kvm
+Description: KVM machine managed by MTDA
+ Provide a KVM machine with a MTDA interface to control its
+ life-cycle and connected devices.
