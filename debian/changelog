@@ -1,3 +1,10 @@
+mtda (0.9.9-1) testing; urgency=low
+
+  * rework zerorpc recipe to pull sources from PyPI.org and debian meta-data
+    from this layer
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Mon, 23 Nov 2020 16:42:07 +0100
+
 mtda (0.9.8-1) testing; urgency=low
 
   * change architecture to "any" for dependent packages shipping a shared library
