@@ -70,10 +70,10 @@ class QemuController(PowerController):
             self.storage = os.path.realpath(conf['storage'])
         if 'swtpm' in conf:
             self.swtpm = os.path.realpath(conf['swtpm'])
-        if 'watchdog' in conf:
-            self.watchdog = conf['watchdog']
         elif os.path.exists(self.swtpm) is False:
             self.swtpm = None
+        if 'watchdog' in conf:
+            self.watchdog = conf['watchdog']
 
     def probe(self):
         self.mtda.debug(3, "power.qemu.probe()")
