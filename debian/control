@@ -2,15 +2,14 @@ Source: mtda
 Section: devel
 Priority: extra
 Maintainer: Cedric Hombourger <Cedric_Hombourger@mentor.com>
-Build-Depends: debhelper (>=9),
+Build-Depends: debhelper (>=10),
                dh-python,
                dh-systemd,
                python3-setuptools,
                python3-all
-Standards-Version: 3.9.8
+Standards-Version: 4.5.0 
 Homepage: https://github.com/MentorEmbedded/mtda
-X-Python-Version: >= 2.6
-X-Python3-Version: >= 3.2
+X-Python3-Version: >= 3.7
 
 Package: mtda
 Architecture: all
@@ -27,7 +26,7 @@ Description: Multi-Tenant Device Access
 Package: mtda-kvm
 Architecture: all
 Multi-Arch: foreign
-Depends: qemu-kvm
+Depends: mtda, qemu-kvm
 Description: KVM machine managed by MTDA
  Provide a KVM machine with a MTDA interface to control its
  life-cycle and connected devices.
