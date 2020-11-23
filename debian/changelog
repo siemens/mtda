@@ -1,3 +1,11 @@
+mtda (0.9.10-1) testing; urgency=low
+
+  * make mtda-kvm depend on mtda
+
+  * fix check swtpm check when not configured
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Mon, 23 Nov 2020 17:44:14 +0100
+
 mtda (0.9.9-1) testing; urgency=low
 
   * rework zerorpc recipe to pull sources from PyPI.org and debian meta-data
