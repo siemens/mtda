@@ -1,0 +1,25 @@
+Source: zerorpc-python
+Section: devel
+Priority: extra
+Maintainer: Cedric Hombourger <Cedric_Hombourger@mentor.com>
+Build-Depends: debhelper (>=10),
+               dh-python,
+               python3-setuptools,
+               python3-all,
+               python3-future,
+               python3-gevent,
+               python3-msgpack,
+               python3-nose,
+               python3-zmq
+Standards-Version: 4.5.0
+Homepage: https://github.com/0rpc/zerorpc-python
+X-Python3-Version: >= 3.7
+
+Package: python3-zerorpc
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${python3:Depends}
+Description: zerorpc for python 
+ zerorpc is a flexible RPC implementation based on zeromq and
+ messagepack. Service APIs exposed with zerorpc are called
+ "zeroservices".
