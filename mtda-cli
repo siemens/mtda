@@ -304,6 +304,8 @@ class Application:
             print("   command   Send a command (string) to the device")
             print("   console   Interact with the device console")
             print("   getenv    Get named variable from the environment")
+            print("   monitor   Interact with the device monitor console"
+                  " (if any)")
             print("   target    Power control the device")
             print("   setenv    Set named variable to specified value in the"
                   " environment")
@@ -332,6 +334,27 @@ class Application:
             else:
                 print("unknown keyboard command '%s'!" % (cmd),
                       file=sys.stderr)
+
+    def monitor_cmd(self, args):
+        if len(args) > 0:
+            cmd = args[0]
+            args.pop(0)
+
+            cmds = {
+               'send': self.monitor_send
+            }
+
+            if cmd in cmds:
+                cmds[cmd](args)
+            else:
+                print("unknown monitor command '%s'!" % (cmd), file=sys.stderr)
+
+    def monitor_help(self, args=None):
+        print("The 'monitor' command accepts the following sub-commands:")
+        print("   send          Send characters to the device monitor")
+
+    def monitor_send(self, args):
+        self.client().monitor_send(args[0])
 
     def setenv_cmd(self, args=None):
         if len(args) == 0:
@@ -646,6 +669,7 @@ class Application:
                 'getenv': self.getenv_cmd,
                 'help': self.help_cmd,
                 'keyboard': self.keyboard_cmd,
+                'monitor': self.monitor_cmd,
                 'setenv': self.setenv_cmd,
                 'storage': self.storage_cmd,
                 'target': self.target_cmd,

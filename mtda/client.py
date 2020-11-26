@@ -107,6 +107,9 @@ class Client:
     def keyboard_write(self, data):
         return self._impl.keyboard_write(data, self._session)
 
+    def monitor_send(self, data, raw=False):
+        return self._impl.monitor_send(data, raw, self._session)
+
     def power_locked(self):
         return self._impl.power_locked(self._session)
 
