@@ -68,7 +68,7 @@ class GpioPowerController(PowerController):
         f.close()
         status = self.status()
         if status == self.POWER_OFF:
-            self.ev.set()
+            self.ev.clear()
             return True
         return False
 
