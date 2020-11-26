@@ -48,6 +48,8 @@ class MentorTestDeviceAgent:
         self.config_files = ['mtda.ini']
         self.console = None
         self.console_logger = None
+        self.monitor = None
+        self.monitor_logger = None
         self.console_input = None
         self.console_output = None
         self.debug_level = 0
@@ -336,6 +338,18 @@ class MentorTestDeviceAgent:
             result = self.keyboard.write(str)
 
         self.mtda.debug(3, "main.keyboard_write(): %s" % str(result))
+        return result
+
+    def monitor_send(self, data, raw=False, session=None):
+        self.mtda.debug(3, "main.monitor_send()")
+
+        self._check_expired(session)
+        result = None
+        if self.console_locked(session) is False and \
+           self.monitor_logger is not None:
+            result = self.monitor_logger.write(data, raw)
+
+        self.mtda.debug(3, "main.monitor_send(): %s" % str(result))
         return result
 
     def power_locked(self, session=None):
@@ -833,6 +847,8 @@ class MentorTestDeviceAgent:
                 self.load_console_config(parser)
             if parser.has_section('keyboard'):
                 self.load_keyboard_config(parser)
+            if parser.has_section('monitor'):
+                self.load_monitor_config(parser)
             if parser.has_section('sdmux'):
                 self.load_sdmux_config(parser)
             if parser.has_section('usb'):
@@ -916,6 +932,25 @@ class MentorTestDeviceAgent:
             print('keyboard controller variant not defined!', file=sys.stderr)
         except ImportError:
             print('keyboard controller "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
+
+    def load_monitor_config(self, parser):
+        self.mtda.debug(3, "main.load_monitor_config()")
+
+        try:
+            # Get variant
+            variant = parser.get('monitor', 'variant')
+            # Try loading its support class
+            mod = importlib.import_module("mtda.console." + variant)
+            factory = getattr(mod, 'instantiate')
+            self.monitor = factory(self)
+            self.monitor.variant = variant
+            # Configure the monitor console
+            self.monitor.configure(dict(parser.items('monitor')))
+        except configparser.NoOptionError:
+            print('monitor variant not defined!', file=sys.stderr)
+        except ImportError:
+            print('monitor "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
 
     def load_power_config(self, parser):
@@ -1060,6 +1095,18 @@ class MentorTestDeviceAgent:
             self.console_logger = ConsoleLogger(
                 self, self.console, socket, self.power_controller)
             self.console_logger.start()
+
+        if self.monitor is not None:
+            # Create and start console logger
+            status = self.monitor.probe()
+            if status is False:
+                print('Probe of the %s monitor console failed!' % (
+                      self.monitor.variant), file=sys.stderr)
+                return False
+            self.monitor_logger = ConsoleLogger(
+                self, self.monitor, None, self.power_controller)
+            self.monitor_logger.toggle_prints()
+            self.monitor_logger.start()
 
         if self.assistant is not None:
             self.power_monitors.append(self.assistant)
