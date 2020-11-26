@@ -64,6 +64,17 @@ Data in the ring buffer may also be discarded with ``console clear``::
 
     $ mtda-cli console clear
 
+Monitor commands
+~~~~~~~~~~~~~~~~
+
+Some devices may have a secondary console that may be used to control the
+system. Data received from the monitor interface is logged into a ring
+buffer that may be read with the ``monitor`` commands listed below.
+
+Send a command (string) to the monitor interface::
+
+    $ mtda-cli monitor send "run boot_usb\n"
+
 Storage commands
 ~~~~~~~~~~~~~~~~
 

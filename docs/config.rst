@@ -50,6 +50,16 @@ General settings
   * ``variant``: string [required]
       Select a keyboard driver between ``hid`` and ``qemu``.
 
+* ``monitor``: section [optional]
+    Specify settings for the monitor console when running the agent-side of
+    MTDA (this section is ignored when running MTDA as a client). The
+    ``variant`` key should be set, other settings in this section are
+    variant-specific.
+
+  * ``variant``: string [required]
+      Select a console variant. MTDA provides the following drivers: ``serial``
+      and ``telnet``.
+
 * ``power``: section [optional]
     Configure a power controller for the device attached to MTDA. The driver
     may be selected with ``variant``.
@@ -98,12 +108,16 @@ General settings
       Number of USB ports. Each port should then be configured with its own
       ``[usbN]`` section where ``N`` is the port index (starting from ``1``).
 
-Console settings
-----------------
+Console and Monitor settings
+----------------------------
 
-The ``[console]`` section configures the console for interacting with the
-device to the MTDA agent. The driver is selected with the ``variant``
-setting. Options specific to each driver are documented below.
+The ``[console]`` and ``[monitor]`` sections respectively configure the user
+and monitor consoles for interacting with the device under test. The monitor
+console is optional (most devices have a single console). Data received on the
+user console will be streamed to MTDA clients while data received from the
+monitor interface will be logged in a ring buffer (that clients may read).
+For both consoles, the driver is selected with the ``variant`` setting.
+Options specific to each driver are documented below.
 
 ``qemu`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~
