@@ -137,10 +137,40 @@ class QemuController(PowerController):
         if self.machine is not None:
             options += " -machine %s" % self.machine
         if self.pflash_ro is not None:
-            options += " -drive if=pflash,format=raw,"
-            options += "readonly,file=%s" % self.pflash_ro
+            if pathlib.Path(self.pflash_ro).is_file():
+                if os.access(self.pflash_ro, os.R_OK):
+                    options += " -drive if=pflash,format=raw,"
+                    options += "readonly,file=%s" % self.pflash_ro
+                else:
+                    raise ValueError("Read-only pflash file (%s) "
+                                     "cannot be read." % self.pflash_ro)
+            else:
+                raise ValueError("Read-only pflash file (%s) does not "
+                                 "exist or is not a file." % self.pflash_ro)
         if self.pflash_rw is not None:
-            options += " -drive if=pflash,format=raw,file=%s" % self.pflash_rw
+            try:
+                options += " -drive if=pflash,format=raw,"
+                options += "file=%s" % self.pflash_rw
+                if pathlib.Path(self.pflash_rw).is_file():
+                    if not os.access(self.pflash_rw, os.W_OK):
+                        raise ValueError("Writeable pflash file (%s) has no "
+                                         "write permission." % self.pflash_rw)
+                else:
+                    # This is probably recoverable, we'll create an empty file
+                    # and trust the try/except to save us if the specified
+                    # location isn't usable for some reason (eg. the location
+                    # is write protected or the specified file already exists
+                    # as a directory or something).
+                    #
+                    # The existing OVMF fd file is ~2MB so we'll create our
+                    # writeable copy at the same size.
+                    sparse = pathlib.Path(self.pflash_rw)
+                    sparse.touch()
+                    os.truncate(str(sparse), 2*1024*1024)
+            except Exception as e:
+                raise ValueError("Writeable pflash file (%s) does not exist "
+                                 "or is not a file and cannot be created: "
+                                 "%s" % (self.pflash_rw, e))
         if self.storage is not None:
             options += " -drive file=%s,media=disk,format=raw" % self.storage
             if os.path.exists(self.storage) is False:
