@@ -52,6 +52,7 @@ class MentorTestDeviceAgent:
         self.monitor_logger = None
         self.console_input = None
         self.console_output = None
+        self.monitor_output = None
         self.debug_level = 0
         self.env = {}
         self.fuse = False
@@ -245,7 +246,8 @@ class MentorTestDeviceAgent:
         result = None
         if self.is_remote is True:
             # Create and start our remote console
-            self.console_output = RemoteConsoleOutput(host, self.conport)
+            self.console_output = RemoteConsoleOutput(
+                host, self.conport, b'CON')
             self.console_output.start()
 
         self.mtda.debug(3, "main.console_remote(): %s" % str(result))
@@ -284,6 +286,19 @@ class MentorTestDeviceAgent:
             result = self.console_logger.tail()
 
         self.mtda.debug(3, "main.console_tail(): %s" % str(result))
+        return result
+
+    def console_toggle(self, session=None):
+        self.mtda.debug(3, "main.console_toggle()")
+
+        result = None
+        self._check_expired(session)
+        if self.console_output is not None:
+            self.console_output.toggle()
+        if self.monitor_output is not None:
+            self.monitor_output.toggle()
+
+        self.mtda.debug(3, "main.console_toggle(): %s" % str(result))
         return result
 
     def debug(self, level, msg):
@@ -338,6 +353,20 @@ class MentorTestDeviceAgent:
             result = self.keyboard.write(str)
 
         self.mtda.debug(3, "main.keyboard_write(): %s" % str(result))
+        return result
+
+    def monitor_remote(self, host):
+        self.mtda.debug(3, "main.monitor_remote()")
+
+        result = None
+        if self.is_remote is True:
+            # Create and start our remote console in paused (buffering) state
+            self.monitor_output = RemoteConsoleOutput(
+                host, self.conport, b'MON')
+            self.monitor_output.pause()
+            self.monitor_output.start()
+
+        self.mtda.debug(3, "main.monitor_remote(): %s" % str(result))
         return result
 
     def monitor_send(self, data, raw=False, session=None):
@@ -1093,7 +1122,7 @@ class MentorTestDeviceAgent:
                       self.console.variant), file=sys.stderr)
                 return False
             self.console_logger = ConsoleLogger(
-                self, self.console, socket, self.power_controller)
+                self, self.console, socket, self.power_controller, b'CON')
             self.console_logger.start()
 
         if self.monitor is not None:
@@ -1104,8 +1133,7 @@ class MentorTestDeviceAgent:
                       self.monitor.variant), file=sys.stderr)
                 return False
             self.monitor_logger = ConsoleLogger(
-                self, self.monitor, None, self.power_controller)
-            self.monitor_logger.toggle_prints()
+                self, self.monitor, socket, self.power_controller, b'MON')
             self.monitor_logger.start()
 
         if self.assistant is not None:

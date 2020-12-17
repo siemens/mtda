@@ -40,6 +40,7 @@ class Application:
         self.logfile = "/var/log/mtda.log"
         self.pidfile = "/var/run/mtda.pid"
         self.exiting = False
+        self.channel = "console"
 
     def daemonize(self):
         context = daemon.DaemonContext(
@@ -120,8 +121,9 @@ class Application:
         if sys.stdin.isatty():
             self.target_info()
 
-        # Connect to the console
+        # Connect to the consoles
         client.console_remote(self.remote)
+        client.monitor_remote(self.remote)
 
         client.console_init()
 
@@ -136,12 +138,15 @@ class Application:
             if prefix_key is not None and c == prefix_key:
                 c = client.console_getkey()
                 self.console_menukey(c)
-            else:
+            elif self.channel == 'console':
                 server.console_send(c, True)
+            else:
+                server.monitor_send(c, True)
 
         print("\r\nThank you for using MTDA!\r\n\r\n")
 
     def console_menukey(self, c):
+        client = self.agent
         server = self.client()
         if c == 'a':
             status = server.target_lock()
@@ -151,6 +156,16 @@ class Application:
             self.console_pastebin()
         elif c == 'i':
             self.target_info()
+        elif c == 'm':
+            if self.channel == 'console':
+                # Switch the alternate screen buffer
+                print("\x1b[?1049h") # same as tput smcup
+                self.channel = 'monitor'
+            else:
+                # Return to the main screen buffer
+                print("\x1b[?1049l") # same as tput rmcup
+                self.channel = 'console'
+            client.console_toggle()
         elif c == 'p':
             previous_status = server.target_status()
             server.target_toggle()
@@ -219,7 +234,7 @@ class Application:
             sys.stdout.flush()
 
     def console_send(self, args):
-        self.client().console_send(args[0])
+         self.client().console_send(args[0])
 
     def console_tail(self, args):
         line = self.client().console_tail()
