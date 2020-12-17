@@ -13,23 +13,28 @@
 from mtda.console.output import ConsoleOutput
 
 # System imports
+import collections
 import sys
 import zmq
 
 
 class RemoteConsoleOutput(ConsoleOutput):
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, topic=b'CON'):
         ConsoleOutput.__init__(self)
         self.host = host
         self.port = port
+        self.topic = topic
 
     def reader(self):
         context = zmq.Context()
         socket = context.socket(zmq.SUB)
         socket.connect("tcp://%s:%s" % (self.host, self.port))
-        socket.setsockopt(zmq.SUBSCRIBE, b'')
+        socket.setsockopt(zmq.SUBSCRIBE, self.topic)
         while True:
-            data = socket.recv()
-            sys.stdout.buffer.write(data)
-            sys.stdout.buffer.flush()
+            topic, data = socket.recv_multipart()
+            self.write(data)
+
+    def print(self, data):
+        sys.stdout.buffer.write(data)
+        sys.stdout.buffer.flush()

@@ -16,11 +16,13 @@ import os
 import sys
 import threading
 import time
+import zmq
 
 
 class ConsoleLogger:
 
-    def __init__(self, mtda, console, socket=None, power_controller=None):
+    def __init__(self, mtda, console, socket=None,
+                 power_controller=None, topic=b'CON'):
         self.mtda = mtda
         self.console = console
         self._prompt = "=> "
@@ -33,6 +35,7 @@ class ConsoleLogger:
         self.rx_lock = threading.Lock()
         self.rx_cond = threading.Condition(self.rx_lock)
         self.socket = socket
+        self.topic = topic
         self.basetime = 0
         self.timestamps = False
 
@@ -171,6 +174,7 @@ class ConsoleLogger:
     def _print(self, data):
         if self.prints is True:
             if self.socket is not None:
+                self.socket.send(self.topic, flags=zmq.SNDMORE)
                 self.socket.send(data)
             else:
                 # Write to stdout if received are not pushed to the network
