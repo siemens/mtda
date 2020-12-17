@@ -95,6 +95,9 @@ class Client:
     def console_send(self, data, raw=False):
         return self._impl.console_send(data, raw, self._session)
 
+    def console_toggle(self):
+        return self._agent.console_toggle(self._session)
+
     def console_tail(self):
         return self._impl.console_tail(self._session)
 
@@ -106,6 +109,9 @@ class Client:
 
     def keyboard_write(self, data):
         return self._impl.keyboard_write(data, self._session)
+
+    def monitor_remote(self, host):
+        return self._agent.monitor_remote(host)
 
     def monitor_send(self, data, raw=False):
         return self._impl.monitor_send(data, raw, self._session)
