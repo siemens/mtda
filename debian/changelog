@@ -1,3 +1,13 @@
+mtda (0.10-1) testing; urgency=low
+
+  [Joe MacDonald]
+  * handle missing or unreadable QEMU flash files
+
+  [Cedric Hombourger]
+  * support a monitor console in addition to the primary console
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 18 Dec 2020 20:34:01 +0100
+
 mtda (0.9.10-1) testing; urgency=low
 
   * make mtda-kvm depend on mtda
