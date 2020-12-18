@@ -18,12 +18,13 @@ import threading
 
 class ConsoleOutput:
 
-    def __init__(self):
+    def __init__(self, screen):
         self.rx_alive = False
         self.rx_lock = threading.Lock()
         self.rx_paused = False
         self.rx_queue = collections.deque(maxlen=1000)
         self.rx_thread = None
+        self.screen = screen
 
     def _pause(self):
         self.rx_paused = True
@@ -33,7 +34,7 @@ class ConsoleOutput:
             self._pause()
 
     def print(self, data):
-        return None
+        self.screen.print(data)
 
     def reader(self):
         return None

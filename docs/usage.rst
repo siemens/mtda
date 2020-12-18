@@ -144,6 +144,7 @@ The following key bindings may be used to control MTDA from the interactive cons
 
  * ``Ctrl-a`` + ``a``: acquire the target
  * ``Ctrl-a`` + ``b``: paste console buffer to pastebin.com
+ * ``Ctrl-a`` + ``c``: start/stop screen capture to "screen.cast"
  * ``Ctrl-a`` + ``i``: print target information (power status, SD card, USB ports, etc.)
  * ``Ctrl-a`` + ``m``: switch between the monitor and the console
  * ``Ctrl-a`` + ``p``: toggle power on/off
