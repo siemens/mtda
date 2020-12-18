@@ -240,14 +240,14 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.console_prompt(): %s" % str(result))
         return result
 
-    def console_remote(self, host):
+    def console_remote(self, host, screen):
         self.mtda.debug(3, "main.console_remote()")
 
         result = None
         if self.is_remote is True:
             # Create and start our remote console
             self.console_output = RemoteConsoleOutput(
-                host, self.conport, b'CON')
+                host, self.conport, screen, b'CON')
             self.console_output.start()
 
         self.mtda.debug(3, "main.console_remote(): %s" % str(result))
@@ -355,14 +355,14 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.keyboard_write(): %s" % str(result))
         return result
 
-    def monitor_remote(self, host):
+    def monitor_remote(self, host, screen):
         self.mtda.debug(3, "main.monitor_remote()")
 
         result = None
         if self.is_remote is True:
             # Create and start our remote console in paused (buffering) state
             self.monitor_output = RemoteConsoleOutput(
-                host, self.conport, b'MON')
+                host, self.conport, screen, b'MON')
             self.monitor_output.pause()
             self.monitor_output.start()
 

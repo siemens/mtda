@@ -14,14 +14,13 @@ from mtda.console.output import ConsoleOutput
 
 # System imports
 import collections
-import sys
 import zmq
 
 
 class RemoteConsoleOutput(ConsoleOutput):
 
-    def __init__(self, host, port, topic=b'CON'):
-        ConsoleOutput.__init__(self)
+    def __init__(self, host, port, screen, topic=b'CON'):
+        ConsoleOutput.__init__(self, screen)
         self.host = host
         self.port = port
         self.topic = topic
@@ -34,7 +33,3 @@ class RemoteConsoleOutput(ConsoleOutput):
         while True:
             topic, data = socket.recv_multipart()
             self.write(data)
-
-    def print(self, data):
-        sys.stdout.buffer.write(data)
-        sys.stdout.buffer.flush()

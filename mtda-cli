@@ -27,6 +27,7 @@ import socket
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
 from mtda.client import Client
+from mtda.console.screen import ScreenOutput
 
 PASTEBIN_API_KEY = "1a265f6e04cf3c1df5e153018390eb29"
 PASTEBIN_ENDPOINT = "http://pastebin.com/api/api_post.php"
@@ -41,6 +42,7 @@ class Application:
         self.pidfile = "/var/run/mtda.pid"
         self.exiting = False
         self.channel = "console"
+        self.screen = ScreenOutput(self)
 
     def daemonize(self):
         context = daemon.DaemonContext(
@@ -122,8 +124,8 @@ class Application:
             self.target_info()
 
         # Connect to the consoles
-        client.console_remote(self.remote)
-        client.monitor_remote(self.remote)
+        client.console_remote(self.remote, self.screen)
+        client.monitor_remote(self.remote, self.screen)
 
         client.console_init()
 
@@ -154,16 +156,23 @@ class Application:
                 server.console_print("\r\n*** Target was acquired ***\r\n")
         elif c == 'b':
             self.console_pastebin()
+        elif c == 'c':
+            if self.screen.capture_enabled() is False:
+                self.screen.print(b"\r\n*** Screen capture started... ***\r\n")
+                self.screen.capture_start()
+            else:
+                self.screen.capture_stop()
+                self.screen.print(b"\r\n*** Screen capture stopped ***\r\n")
         elif c == 'i':
             self.target_info()
         elif c == 'm':
             if self.channel == 'console':
                 # Switch the alternate screen buffer
-                print("\x1b[?1049h") # same as tput smcup
+                print("\x1b[?1049h")  # same as tput smcup
                 self.channel = 'monitor'
             else:
                 # Return to the main screen buffer
-                print("\x1b[?1049l") # same as tput rmcup
+                print("\x1b[?1049l")  # same as tput rmcup
                 self.channel = 'console'
             client.console_toggle()
         elif c == 'p':
@@ -174,6 +183,7 @@ class Application:
                 server.console_print(
                     "\r\n*** Target is now %s ***\r\n" % (new_status))
         elif c == 'q':
+            self.screen.capture_stop()
             self.exiting = True
         elif c == 'r':
             status = server.target_unlock()
@@ -218,7 +228,7 @@ class Application:
         server = self.client()
 
         # Connect to the console
-        client.console_remote(self.remote)
+        client.console_remote(self.remote, self.screen)
 
         # Input loop
         client.console_init()
@@ -234,7 +244,7 @@ class Application:
             sys.stdout.flush()
 
     def console_send(self, args):
-         self.client().console_send(args[0])
+        self.client().console_send(args[0])
 
     def console_tail(self, args):
         line = self.client().console_tail()

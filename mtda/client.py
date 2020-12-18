@@ -86,8 +86,8 @@ class Client:
     def console_prompt(self, newPrompt=None):
         return self._impl.console_prompt(newPrompt, self._session)
 
-    def console_remote(self, host):
-        return self._agent.console_remote(host)
+    def console_remote(self, host, screen):
+        return self._agent.console_remote(host, screen)
 
     def console_run(self, cmd):
         return self._impl.console_run(cmd, self._session)
@@ -110,8 +110,8 @@ class Client:
     def keyboard_write(self, data):
         return self._impl.keyboard_write(data, self._session)
 
-    def monitor_remote(self, host):
-        return self._agent.monitor_remote(host)
+    def monitor_remote(self, host, screen):
+        return self._agent.monitor_remote(host, screen)
 
     def monitor_send(self, data, raw=False):
         return self._impl.monitor_send(data, raw, self._session)
