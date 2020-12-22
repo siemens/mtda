@@ -306,6 +306,9 @@ class MentorTestDeviceAgent:
 
         self._check_expired(session)
         result = None
+        if session is not None and timeout is None:
+            self.mtda.debug(1, "main.console_wait(): no timeout specified!")
+            timeout = CONSTS.RPC.TIMEOUT
         if self.console_locked(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.wait(what, timeout)
@@ -398,6 +401,9 @@ class MentorTestDeviceAgent:
 
         self._check_expired(session)
         result = None
+        if session is not None and timeout is None:
+            self.mtda.debug(1, "main.monitor_wait(): no timeout specified!")
+            timeout = CONSTS.RPC.TIMEOUT
         if self.console_locked(session) is False and \
            self.monitor_logger is not None:
             result = self.monitor_logger.wait(what, timeout)
