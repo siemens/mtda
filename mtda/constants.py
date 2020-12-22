@@ -19,6 +19,10 @@ class IMAGE(Enum):
     ZST = 3
 
 
+class RPC:
+    TIMEOUT = 2*60
+
+
 class WRITER:
     QUEUE_SLOTS = 16
     QUEUE_TIMEOUT = 5
