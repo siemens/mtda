@@ -85,14 +85,24 @@ General settings
 
 * ``scripts``: section [optional]
     Python scripts to be executed upon certain events. Use ``... `` instead of
-    hard/soft spaces.
+    hard/soft spaces to preserve indentation.
 
   * ``power off``: string [optional]
       Execute a Python script when the device is powered off.
      
   * ``power on``: string [optional]
-      Execute a Python script when the device is powered on.
-     
+      Execute a Python script when the device is powered on such as the
+      following::
+
+          if 'boot-from-sd' in env and env['boot-from-sd'] == '1':
+          ... mtda.monitor_wait("Hit any key to stop autoboot")
+          ... mtda.monitor_send(" ")
+          ... mtda.monitor_send("run bootcmd_mmc0\n")
+
+      This sample script would instruct MTDA to wait for the ``Hit any key to
+      stop autoboot`` on the ``monitor`` interface before sending a space and
+      sending a custom boot command.
+ 
 * ``sdmux``: section [optional]
     Configure a shared storage driver that may be swapped between the device
     attached to MTDA and the host running the agent. The driver will be
