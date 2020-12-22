@@ -301,6 +301,18 @@ class MentorTestDeviceAgent:
         self.mtda.debug(3, "main.console_toggle(): %s" % str(result))
         return result
 
+    def console_wait(self, what, timeout=None, session=None):
+        self.mtda.debug(3, "main.console_wait()")
+
+        self._check_expired(session)
+        result = None
+        if self.console_locked(session) is False and \
+           self.console_logger is not None:
+            result = self.console_logger.wait(what, timeout)
+
+        self.mtda.debug(3, "main.console_wait(): %s" % str(result))
+        return result
+
     def debug(self, level, msg):
         if self.debug_level >= level:
             if self.debug_level == 0:
@@ -379,6 +391,18 @@ class MentorTestDeviceAgent:
             result = self.monitor_logger.write(data, raw)
 
         self.mtda.debug(3, "main.monitor_send(): %s" % str(result))
+        return result
+
+    def monitor_wait(self, what, timeout=None, session=None):
+        self.mtda.debug(3, "main.monitor_wait()")
+
+        self._check_expired(session)
+        result = None
+        if self.console_locked(session) is False and \
+           self.monitor_logger is not None:
+            result = self.monitor_logger.wait(what, timeout)
+
+        self.mtda.debug(3, "main.monitor_wait(): %s" % str(result))
         return result
 
     def power_locked(self, session=None):
