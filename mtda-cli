@@ -252,6 +252,13 @@ class Application:
             sys.stdout.write(line)
             sys.stdout.flush()
 
+    def console_wait(self, args):
+        timeout = None
+        if len(args) == 2:
+            timeout = int(args[1])
+        result = self.client().console_wait(args[0], timeout)
+        return 0 if result is True else 1
+
     def console_help(self, args=None):
         print("The 'console' command accepts the following sub-commands:")
         print("   clear         Clear any data present in the console buffer")
@@ -269,6 +276,7 @@ class Application:
         print("   send          Send characters to the device console")
         print("   tail          Fetch and print the last line from the console"
               " buffer")
+        print("   wait          Wait for the specified string on the console")
 
     def console_cmd(self, args):
         if len(args) > 0:
@@ -286,11 +294,12 @@ class Application:
                'raw': self.console_raw,
                'run': self.console_run,
                'send': self.console_send,
-               'tail': self.console_tail
+               'tail': self.console_tail,
+               'wait': self.console_wait
             }
 
             if cmd in cmds:
-                cmds[cmd](args)
+                return cmds[cmd](args)
             else:
                 print("unknown console command '%s'!" % (cmd), file=sys.stderr)
 
@@ -366,20 +375,29 @@ class Application:
             args.pop(0)
 
             cmds = {
-               'send': self.monitor_send
+               'send': self.monitor_send,
+               'wait': self.monitor_wait
             }
 
             if cmd in cmds:
-                cmds[cmd](args)
+                return cmds[cmd](args)
             else:
                 print("unknown monitor command '%s'!" % (cmd), file=sys.stderr)
 
     def monitor_help(self, args=None):
         print("The 'monitor' command accepts the following sub-commands:")
         print("   send          Send characters to the device monitor")
+        print("   wait          Wait for the specified string on the monitor")
 
     def monitor_send(self, args):
         self.client().monitor_send(args[0])
+
+    def monitor_wait(self, args):
+        timeout = None
+        if len(args) == 2:
+            timeout = int(args[1])
+        result = self.client().monitor_wait(args[0], timeout)
+        return 0 if result is True else 1
 
     def setenv_cmd(self, args=None):
         if len(args) == 0:
