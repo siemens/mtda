@@ -1,3 +1,9 @@
+mtda (0.11-1) testing; urgency=low
+
+  * add "console wait" and "monitor wait" commands and APIs
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Tue, 22 Dec 2020 19:24:48 +0100
+
 mtda (0.10-1) testing; urgency=low
 
   [Joe MacDonald]
