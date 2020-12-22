@@ -64,6 +64,10 @@ Data in the ring buffer may also be discarded with ``console clear``::
 
     $ mtda-cli console clear
 
+Wait up to 60 seconds for a given string on the console::
+
+    $ mtda-cli console wait "login:" 60
+
 Monitor commands
 ~~~~~~~~~~~~~~~~
 
@@ -74,6 +78,10 @@ buffer that may be read with the ``monitor`` commands listed below.
 Send a command (string) to the monitor interface::
 
     $ mtda-cli monitor send "run boot_usb\n"
+
+Wait up to 30 seconds for a given string on the monitor console::
+
+    $ mtda-cli monitor wait "Hit any key" 30
 
 Storage commands
 ~~~~~~~~~~~~~~~~

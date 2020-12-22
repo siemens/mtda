@@ -102,6 +102,9 @@ class Client:
     def console_tail(self):
         return self._impl.console_tail(self._session)
 
+    def console_wait(self, what, timeout=None):
+        return self._impl.console_wait(what, timeout, self._session)
+
     def env_get(self, name):
         return self._impl.env_get(name, self._session)
 
@@ -116,6 +119,9 @@ class Client:
 
     def monitor_send(self, data, raw=False):
         return self._impl.monitor_send(data, raw, self._session)
+
+    def monitor_wait(self, what, timeout=None):
+        return self._impl.monitor_wait(what, timeout, self._session)
 
     def power_locked(self):
         return self._impl.power_locked(self._session)
