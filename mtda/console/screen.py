@@ -28,8 +28,7 @@ class ScreenOutput:
         self.capture_time = None
 
     def print(self, data):
-        sys.stdout.buffer.write(data)
-        sys.stdout.buffer.flush()
+        self.write(data)
         with self.lock:
             if self.capture_fd is not None:
                 delta = time.monotonic_ns() - self.capture_time
@@ -65,3 +64,7 @@ class ScreenOutput:
             if self.capture_fd is not None:
                 self.capture_fd.close()
                 self.capture_fd = None
+
+    def write(self, data):
+        sys.stdout.buffer.write(data)
+        sys.stdout.buffer.flush()
