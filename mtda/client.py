@@ -22,7 +22,7 @@ import mtda.constants as CONSTS
 
 class Client:
 
-    def __init__(self, host=None):
+    def __init__(self, host=None, session=None):
         agent = MultiTenantDeviceAccess()
         agent.load_config(host)
         if agent.remote is not None:
@@ -34,19 +34,22 @@ class Client:
             self._impl = agent
         self._agent = agent
 
-        HOST = socket.gethostname()
-        USER = os.getenv("USER")
-        WORDS = "/usr/share/dict/words"
-        if os.path.exists(WORDS):
-            WORDS = open(WORDS).read().splitlines()
-            name = random.choice(WORDS)
-            if name.endswith("'s"):
-                name = name.replace("'s", "")
-        elif USER is not None and HOST is not None:
-            name = "%s@%s" % (USER, HOST)
+        if session is None:
+            HOST = socket.gethostname()
+            USER = os.getenv("USER")
+            WORDS = "/usr/share/dict/words"
+            if os.path.exists(WORDS):
+                WORDS = open(WORDS).read().splitlines()
+                name = random.choice(WORDS)
+                if name.endswith("'s"):
+                    name = name.replace("'s", "")
+            elif USER is not None and HOST is not None:
+                name = "%s@%s" % (USER, HOST)
+            else:
+                name = "mtda"
+            self._session = os.getenv('MTDA_SESSION', name)
         else:
-            name = "mtda"
-        self._session = os.getenv('MTDA_SESSION', name)
+            self._session = session
 
     def agent_version(self):
         return self._impl.agent_version()
