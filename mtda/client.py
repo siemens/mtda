@@ -329,3 +329,6 @@ class Client:
 
     def usb_toggle(self, ndx):
         return self._impl.usb_toggle(ndx, self._session)
+
+    def version(self):
+        return self._agent.version
