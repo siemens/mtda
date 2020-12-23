@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+# ---------------------------------------------------------------------------
+# Command Line Interface for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (c) Mentor, a Siemens business, 2017-2020
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+import os
+import sys
+import time
+
+from py3qterm import TerminalWidget
+from py3qterm.backend import Session
+from py3qterm.backend import Terminal
+
+from PyQt5.QtWidgets import qApp, QMainWindow, QAction, QApplication, QStyle
+from PyQt5.QtGui import QIcon
+
+from mtda.client import Client
+from mtda.console.screen import ScreenOutput
+
+
+class DeviceConsole(TerminalWidget):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def execute(self, command="/bin/bash"):
+        self._session = DeviceSession()
+        self._session.start(command)
+        self._timer_id = None
+        self.focusInEvent(None)
+
+
+class DeviceMux:
+
+    def __init__(self):
+        self.session = {}
+
+    def proc_keepalive(self, sid, w, h, cmd=None):
+        if sid not in self.session:
+            # Start a new session
+            self.remote = os.getenv("MTDA_REMOTE", "localhost")
+            agent = Client(self.remote)
+            term = Terminal(w, h)
+            self.session[sid] = {
+                'agent': agent,
+                'state': 'unborn',
+                'term': term,
+                'time': time.time(),
+                'w': w,
+                'h': h}
+            screen = DeviceScreen(agent, term, self.session[sid])
+            agent.console_remote(self.remote, screen)
+            agent.start()
+            self.session[sid]['state'] = 'alive'
+        return True
+
+    def proc_dump(self, sid):
+        if sid not in self.session:
+            return False
+        return self.session[sid]['term'].dump()
+
+    def proc_write(self, sid, d):
+        if sid not in self.session:
+            return False
+        elif self.session[sid]['state'] != 'alive':
+            return False
+        term = self.session[sid]['term']
+        d = term.pipe(d)
+        agent = self.session[sid]['agent']
+        agent.console_send(d)
+        return True
+
+    def stop(self):
+        return None
+
+
+class DeviceScreen(ScreenOutput):
+
+    def __init__(self, mtda, term, session):
+        super().__init__(mtda)
+        self._term = term
+        self._session = session
+
+    def print(self, data):
+        self._term.write(data)
+        data = self._term.read()
+        self._session["changed"] = time.time()
+
+
+class DeviceSession(Session):
+
+    def __init__(self):
+        super().__init__()
+        Session._mux = DeviceMux()
+
+
+class MultiTenantDeviceAccessWindow(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.initUI()
+
+    def initUI(self):
+
+        win = DeviceConsole(self)
+        self.setCentralWidget(win)
+
+        exitIcn = self.style().standardIcon(QStyle.SP_FileDialogEnd)
+        exitAct = QAction(exitIcn, 'Exit', self)
+        exitAct.setShortcut('Ctrl+Q')
+        exitAct.setStatusTip('Exit MTDA')
+        exitAct.triggered.connect(self.close)
+
+        self.statusBar()
+
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu('&File')
+        fileMenu.addAction(exitAct)
+
+        toolbar = self.addToolBar('Exit')
+        toolbar.addAction(exitAct)
+
+        self.resize(880, 760)
+        self.setWindowTitle('MTDA')
+        self.show()
+
+
+def main():
+    app = QApplication(sys.argv)
+    ex = MultiTenantDeviceAccessWindow()
+    os._exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
