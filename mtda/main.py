@@ -24,7 +24,7 @@ import zmq
 # Local imports
 from mtda.console.input import ConsoleInput
 from mtda.console.logger import ConsoleLogger
-from mtda.console.remote_output import RemoteConsoleOutput
+from mtda.console.remote import RemoteConsole, RemoteMonitor
 from mtda.sdmux.writer import AsyncImageWriter
 import mtda.constants as CONSTS
 import mtda.keyboard.controller
@@ -246,8 +246,7 @@ class MultiTenantDeviceAccess:
         result = None
         if self.is_remote is True:
             # Create and start our remote console
-            self.console_output = RemoteConsoleOutput(
-                host, self.conport, screen, b'CON')
+            self.console_output = RemoteConsole(host, self.conport, screen)
             self.console_output.start()
 
         self.mtda.debug(3, "main.console_remote(): %s" % str(result))
@@ -376,8 +375,7 @@ class MultiTenantDeviceAccess:
         result = None
         if self.is_remote is True:
             # Create and start our remote console in paused (buffering) state
-            self.monitor_output = RemoteConsoleOutput(
-                host, self.conport, screen, b'MON')
+            self.monitor_output = RemoteMonitor(host, self.conport, screen)
             self.monitor_output.pause()
             self.monitor_output.start()
 
@@ -673,6 +671,7 @@ class MultiTenantDeviceAccess:
     def _power_event(self, status):
         for m in self.power_monitors:
             m.power_changed(status)
+        self.notify("POWER %s" % status)
 
     def _parse_script(self, script):
         self.mtda.debug(3, "main._parse_script()")
@@ -1115,6 +1114,17 @@ class MultiTenantDeviceAccess:
             print('usb switch "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
 
+    def notify(self, what):
+        self.mtda.debug(3, "main.notify()")
+
+        result = None
+        if self.socket is not None:
+            self.socket.send(CONSTS.CHANNEL.EVENTS, flags=zmq.SNDMORE)
+            self.socket.send_string(what)
+
+        self.mtda.debug(3, "main.notify: %s" % str(result))
+        return result
+
     def start(self):
         self.mtda.debug(3, "main.start()")
 
@@ -1144,6 +1154,7 @@ class MultiTenantDeviceAccess:
                 socket.bind("tcp://*:%s" % self.conport)
             else:
                 socket = None
+            self.socket = socket
 
             # Create and start console logger
             status = self.console.probe()

@@ -12,6 +12,12 @@
 from enum import Enum
 
 
+class CHANNEL:
+    CONSOLE = b'CON'
+    EVENTS = b'EVT'
+    MONITOR = b'MON'
+
+
 class IMAGE(Enum):
     RAW = 0
     BZ2 = 1

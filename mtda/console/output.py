@@ -19,12 +19,16 @@ import threading
 class ConsoleOutput:
 
     def __init__(self, screen):
+        self.exiting = False
         self.rx_alive = False
         self.rx_lock = threading.Lock()
         self.rx_paused = False
         self.rx_queue = collections.deque(maxlen=1000)
         self.rx_thread = None
         self.screen = screen
+
+    def on_event(self, event):
+        self.screen.on_event(event)
 
     def _pause(self):
         self.rx_paused = True
@@ -55,6 +59,9 @@ class ConsoleOutput:
             target=self.reader, name='console_rx')
         self.rx_thread.daemon = True
         self.rx_thread.start()
+
+    def stop(self):
+        self.exiting = True
 
     def toggle(self):
         with self.rx_lock:

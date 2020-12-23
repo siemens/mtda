@@ -18,8 +18,8 @@ from py3qterm import TerminalWidget
 from py3qterm.backend import Session
 from py3qterm.backend import Terminal
 
-from PyQt5.QtWidgets import qApp, QMainWindow, QAction, QApplication, QStyle
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import qApp, QMainWindow, QAction, QApplication, QStyle
 
 from mtda.client import Client
 from mtda.console.screen import ScreenOutput
@@ -69,9 +69,11 @@ class DeviceMux:
                 'term': term,
                 'time': time.time(),
                 'w': w,
-                'h': h}
+                'h': h
+            }
             screen = DeviceScreen(agent, term, self.session[sid])
             agent.console_remote(self.remote, screen)
+            agent.monitor_remote(self.remote, screen)
             agent.start()
             self.session[sid]['state'] = 'alive'
             self.session[sid]['screen'] = screen
@@ -108,8 +110,17 @@ class DeviceScreen(ScreenOutput):
 
     def __init__(self, mtda, term, session):
         super().__init__(mtda)
+        self._event_handler = None
         self._term = term
         self._session = session
+
+    def add_listener(self, handler):
+        self._event_handler = handler
+
+    def on_event(self, event):
+        if self._event_handler is not None:
+            event = event.split()
+            self._event_handler(event[0], event[1:])
 
     def write(self, data):
         self._term.write(data)
@@ -143,9 +154,16 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
                 icn = self.style().standardIcon(QStyle.SP_BrowserStop)
                 self.captureAct.setIcon(icn)
 
+    def device_event(self, event, data):
+        if event == "POWER":
+            self.power_event(data[0])
+
     def initUI(self):
 
         self.console = DeviceConsole(self)
+        agent = self.console.agent()
+        screen = self.console.screen()
+        screen.add_listener(self.device_event)
         self.setCentralWidget(self.console)
 
         exitIcn = self.style().standardIcon(QStyle.SP_FileDialogEnd)
@@ -154,11 +172,11 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         exitAct.setStatusTip('Exit MTDA')
         exitAct.triggered.connect(self.close)
 
-        powerIcn = self.style().standardIcon(QStyle.SP_ComputerIcon)
-        powerAct = QAction(powerIcn, 'Power on/off', self)
+        powerAct = QAction('Power on/off', self)
         powerAct.setShortcut('Ctrl+P')
-        powerAct.setStatusTip('Power device on/off')
         powerAct.triggered.connect(self.power)
+        self.powerAct = powerAct
+        self.power_event(agent.target_status())
 
         captureIcn = self.style().standardIcon(QStyle.SP_DialogSaveButton)
         captureAct = QAction(captureIcn, 'Capture screen start/stop', self)
@@ -185,6 +203,17 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         if agent is not None:
             agent.target_toggle()
 
+    def power_event(self, event):
+        a = self.powerAct
+        if event == "OFF":
+            icn = self.style().standardIcon(QStyle.SP_ComputerIcon)
+            txt = "Power on device"
+        else:
+            icn = self.style().standardIcon(QStyle.SP_MediaStop)
+            txt = "Power off device"
+        a.setStatusTip(txt)
+        a.setText(txt)
+        a.setIcon(icn)
 
 def main():
     app = QApplication(sys.argv)
