@@ -30,17 +30,32 @@ class DeviceConsole(TerminalWidget):
     def __init__(self, parent):
         super().__init__(parent)
 
+    def agent(self):
+        if Session._mux is not None:
+            return Session._mux.agent(self._session._session_id)
+        return None
+
     def execute(self, command="/bin/bash"):
         self._session = DeviceSession()
         self._session.start(command)
         self._timer_id = None
         self.focusInEvent(None)
 
+    def screen(self):
+        if Session._mux is not None:
+            return Session._mux.screen(self._session._session_id)
+        return None
+
 
 class DeviceMux:
 
     def __init__(self):
         self.session = {}
+
+    def agent(self, sid):
+        if sid in self.session:
+            return self.session[sid]['agent']
+        return None
 
     def proc_keepalive(self, sid, w, h, cmd=None):
         if sid not in self.session:
@@ -59,6 +74,9 @@ class DeviceMux:
             agent.console_remote(self.remote, screen)
             agent.start()
             self.session[sid]['state'] = 'alive'
+            self.session[sid]['screen'] = screen
+        os.environ["COLUMNS"] = str(w)
+        os.environ["ROWS"] = str(h)
         return True
 
     def proc_dump(self, sid):
@@ -77,6 +95,11 @@ class DeviceMux:
         agent.console_send(d)
         return True
 
+    def screen(self, sid):
+        if sid in self.session:
+            return self.session[sid]['screen']
+        return None
+
     def stop(self):
         return None
 
@@ -88,7 +111,7 @@ class DeviceScreen(ScreenOutput):
         self._term = term
         self._session = session
 
-    def print(self, data):
+    def write(self, data):
         self._term.write(data)
         data = self._term.read()
         self._session["changed"] = time.time()
@@ -108,16 +131,40 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
 
         self.initUI()
 
+    def capture(self):
+        screen = self.console.screen()
+        if screen is not None:
+            if screen.capture_enabled() is True:
+                screen.capture_stop()
+                icn = self.style().standardIcon(QStyle.SP_DialogSaveButton)
+                self.captureAct.setIcon(icn)
+            else:
+                screen.capture_start()
+                icn = self.style().standardIcon(QStyle.SP_BrowserStop)
+                self.captureAct.setIcon(icn)
+
     def initUI(self):
 
-        win = DeviceConsole(self)
-        self.setCentralWidget(win)
+        self.console = DeviceConsole(self)
+        self.setCentralWidget(self.console)
 
         exitIcn = self.style().standardIcon(QStyle.SP_FileDialogEnd)
         exitAct = QAction(exitIcn, 'Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit MTDA')
         exitAct.triggered.connect(self.close)
+
+        powerIcn = self.style().standardIcon(QStyle.SP_ComputerIcon)
+        powerAct = QAction(powerIcn, 'Power on/off', self)
+        powerAct.setShortcut('Ctrl+P')
+        powerAct.setStatusTip('Power device on/off')
+        powerAct.triggered.connect(self.power)
+
+        captureIcn = self.style().standardIcon(QStyle.SP_DialogSaveButton)
+        captureAct = QAction(captureIcn, 'Capture screen start/stop', self)
+        captureAct.setStatusTip('Capture screen output start/stop')
+        captureAct.triggered.connect(self.capture)
+        self.captureAct = captureAct
 
         self.statusBar()
 
@@ -126,11 +173,17 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         fileMenu.addAction(exitAct)
 
         toolbar = self.addToolBar('Exit')
-        toolbar.addAction(exitAct)
+        toolbar.addAction(powerAct)
+        toolbar.addAction(captureAct)
 
         self.resize(880, 760)
         self.setWindowTitle('MTDA')
         self.show()
+
+    def power(self):
+        agent = self.console.agent()
+        if agent is not None:
+            agent.target_toggle()
 
 
 def main():
