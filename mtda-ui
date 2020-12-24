@@ -157,6 +157,8 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
     def device_event(self, event, data):
         if event == "POWER":
             self.power_event(data[0])
+        elif event == "STORAGE":
+            self.storage_event(data[0])
 
     def initUI(self):
 
@@ -178,6 +180,13 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         self.powerAct = powerAct
         self.power_event(agent.target_status())
 
+        storageAct = QAction('Swap storage', self)
+        storageAct.setShortcut('Ctrl+S')
+        storageAct.triggered.connect(self.storage)
+        self.storageAct = storageAct
+        status, writing, written = agent.storage_status()
+        self.storage_event(status)
+
         captureIcn = self.style().standardIcon(QStyle.SP_DialogSaveButton)
         captureAct = QAction(captureIcn, 'Capture screen start/stop', self)
         captureAct.setStatusTip('Capture screen output start/stop')
@@ -192,6 +201,7 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
 
         toolbar = self.addToolBar('Exit')
         toolbar.addAction(powerAct)
+        toolbar.addAction(storageAct)
         toolbar.addAction(captureAct)
 
         self.resize(880, 760)
@@ -211,6 +221,25 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         else:
             icn = self.style().standardIcon(QStyle.SP_MediaStop)
             txt = "Power off device"
+        a.setStatusTip(txt)
+        a.setText(txt)
+        a.setIcon(icn)
+
+    def storage(self):
+        agent = self.console.agent()
+        if agent is not None:
+            agent.storage_swap()
+
+    def storage_event(self, event):
+        a = self.storageAct
+        if event == "HOST":
+            icn = self.style().standardIcon(QStyle.SP_DriveHDIcon)
+            txt = "Connect storage to target"
+        elif event == "TARGET":
+            icn = self.style().standardIcon(QStyle.SP_DirClosedIcon)
+            txt = "Connect storage to host"
+        else:
+            return None
         a.setStatusTip(txt)
         a.setText(txt)
         a.setIcon(icn)
