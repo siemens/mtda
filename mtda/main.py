@@ -421,6 +421,9 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.power_locked(): %s" % str(result))
         return result
 
+    def _storage_event(self, status):
+        self.notify("STORAGE %s" % status)
+
     def storage_bytes_written(self, session=None):
         self.mtda.debug(3, "main.storage_bytes_written()")
 
@@ -566,6 +569,8 @@ class MultiTenantDeviceAccess:
         self._check_expired(session)
         if self.storage_locked(session) is False:
             result = self.sdmux_controller.to_host()
+            if result is True:
+                self._storage_event(self.sdmux_controller.SD_ON_HOST)
         else:
             self.mtda.debug(1, "storage_to_host(): shared storage is locked")
             result = False
@@ -580,6 +585,8 @@ class MultiTenantDeviceAccess:
         if self.storage_locked(session) is False:
             self.storage_close()
             result = self.sdmux_controller.to_target()
+            if result is True:
+                self._storage_event(self.sdmux_controller.SD_ON_TARGET)
         else:
             self.mtda.debug(1, "storage_to_target(): shared storage is locked")
             result = False
@@ -594,9 +601,11 @@ class MultiTenantDeviceAccess:
         if self.storage_locked(session) is False:
             result, writing, written = self.storage_status(session)
             if result == self.sdmux_controller.SD_ON_HOST:
-                self.sdmux_controller.to_target()
+                if self.sdmux_controller.to_target() is True:
+                    self._storage_event(self.sdmux_controller.SD_ON_TARGET)
             elif result == self.sdmux_controller.SD_ON_TARGET:
-                self.sdmux_controller.to_host()
+                if self.sdmux_controller.to_host() is True:
+                    self._storage_event(self.sdmux_controller.SD_ON_HOST)
         result, writing, written = self.storage_status(session)
         return result
 
