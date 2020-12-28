@@ -22,8 +22,10 @@ class RemoteConsole(ConsoleOutput):
 
     def __init__(self, host, port, screen):
         ConsoleOutput.__init__(self, screen)
+        self.context = None
         self.host = host
         self.port = port
+        self.socket = None
         self.topic = CONSTS.CHANNEL.CONSOLE
 
     def connect(self):
@@ -31,6 +33,8 @@ class RemoteConsole(ConsoleOutput):
         socket = context.socket(zmq.SUB)
         socket.connect("tcp://%s:%s" % (self.host, self.port))
         socket.setsockopt(zmq.SUBSCRIBE, self.topic)
+        self.context = context
+        self.socket = socket
         return socket
 
     def dispatch(self, topic, data):
@@ -38,9 +42,18 @@ class RemoteConsole(ConsoleOutput):
 
     def reader(self):
         socket = self.connect()
-        while self.exiting is False:
-            topic, data = socket.recv_multipart()
-            self.dispatch(topic, data)
+        try:
+            while self.exiting is False:
+                topic, data = socket.recv_multipart()
+                self.dispatch(topic, data)
+        except zmq.error.ContextTerminated as e:
+            self.socket = None
+
+    def stop(self):
+        super().stop()
+        if self.context is not None:
+            self.context.term()
+            self.context = None
 
 
 class RemoteMonitor(RemoteConsole):

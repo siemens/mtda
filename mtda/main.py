@@ -245,6 +245,9 @@ class MultiTenantDeviceAccess:
 
         result = None
         if self.is_remote is True:
+            # Stop previous remote console
+            if self.console_output is not None:
+                self.console_output.stop()
             # Create and start our remote console
             self.console_output = RemoteConsole(host, self.conport, screen)
             self.console_output.start()
@@ -374,6 +377,9 @@ class MultiTenantDeviceAccess:
 
         result = None
         if self.is_remote is True:
+            # Stop previous remote console
+            if self.monitor_output is not None:
+                self.monitor_output.stop()
             # Create and start our remote console in paused (buffering) state
             self.monitor_output = RemoteMonitor(host, self.conport, screen)
             self.monitor_output.pause()
