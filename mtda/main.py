@@ -1198,6 +1198,9 @@ class MultiTenantDeviceAccess:
 
         return True
 
+    def _session_event(self, info):
+        self.notify("SESSION %s" % info)
+
     def _check_expired(self, session):
         self.mtda.debug(3, "main._check_expired()")
 
@@ -1206,6 +1209,7 @@ class MultiTenantDeviceAccess:
             if session == self._lock_owner:
                 self._lock_expiry = now + (self._lock_timeout * 60)
             elif now >= self._lock_expiry:
+                self._session_event("EXPIRED %s" % self._lock_owner)
                 self._lock_owner = None
 
     def _check_locked(self, session):
