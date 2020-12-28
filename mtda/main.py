@@ -18,6 +18,7 @@ import os
 import queue
 import signal
 import sys
+import threading
 import time
 import zmq
 
@@ -29,6 +30,7 @@ from mtda.sdmux.writer import AsyncImageWriter
 import mtda.constants as CONSTS
 import mtda.keyboard.controller
 import mtda.power.controller
+import mtda.utils
 from mtda import __version__
 
 _NOPRINT_TRANS_TABLE = {
@@ -79,6 +81,10 @@ class MultiTenantDeviceAccess:
         self._lock_owner = None
         self._lock_expiry = None
         self._lock_timeout = 5  # Lock timeout (in minutes)
+        self._session_lock = threading.Lock()
+        self._session_timer = None
+        self._session_timeout = 5  # Session timeout (in minutes)
+        self._sessions = {}
         self.version = __version__
 
         # Config file in $HOME/.mtda/config
@@ -96,7 +102,7 @@ class MultiTenantDeviceAccess:
     def command(self, args, session=None):
         self.mtda.debug(3, "main.command()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = False
         if self.power_locked(session) is False:
             result = self.power_controller.command(args)
@@ -144,7 +150,7 @@ class MultiTenantDeviceAccess:
     def console_clear(self, session=None):
         self.mtda.debug(3, "main.console_clear()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.console_locked(session):
             self.mtda.debug(2, "console_clear(): console is locked")
             return None
@@ -159,7 +165,7 @@ class MultiTenantDeviceAccess:
     def console_dump(self, session=None):
         self.mtda.debug(3, "main.console_dump()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.console_locked(session):
             self.mtda.debug(2, "console_dump(): console is locked")
             return None
@@ -174,7 +180,7 @@ class MultiTenantDeviceAccess:
     def console_flush(self, session=None):
         self.mtda.debug(3, "main.console_flush()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.console_locked(session):
             self.mtda.debug(2, "console_flush(): console is locked")
             return None
@@ -189,7 +195,7 @@ class MultiTenantDeviceAccess:
     def console_head(self, session=None):
         self.mtda.debug(3, "main.console_head()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.console_logger is not None:
             result = self.console_logger.head()
@@ -200,7 +206,7 @@ class MultiTenantDeviceAccess:
     def console_lines(self, session=None):
         self.mtda.debug(3, "main.console_lines()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.console_logger is not None:
             result = self.console_logger.lines()
@@ -211,7 +217,7 @@ class MultiTenantDeviceAccess:
     def console_locked(self, session=None):
         self.mtda.debug(3, "main.console_locked()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = self._check_locked(session)
 
         self.mtda.debug(3, "main.console_locked(): %s" % str(result))
@@ -220,7 +226,7 @@ class MultiTenantDeviceAccess:
     def console_print(self, data, session=None):
         self.mtda.debug(3, "main.console_print()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.console_logger is not None:
             result = self.console_logger.print(data)
@@ -231,7 +237,7 @@ class MultiTenantDeviceAccess:
     def console_prompt(self, newPrompt=None, session=None):
         self.mtda.debug(3, "main.console_prompt()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.console_locked(session) is False and \
            self.console_logger is not None:
@@ -258,7 +264,7 @@ class MultiTenantDeviceAccess:
     def console_run(self, cmd, session=None):
         self.mtda.debug(3, "main.console_run()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.console_locked(session) is False and \
            self.console_logger is not None:
@@ -270,7 +276,7 @@ class MultiTenantDeviceAccess:
     def console_send(self, data, raw=False, session=None):
         self.mtda.debug(3, "main.console_send()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.console_locked(session) is False and \
            self.console_logger is not None:
@@ -282,7 +288,7 @@ class MultiTenantDeviceAccess:
     def console_tail(self, session=None):
         self.mtda.debug(3, "main.console_tail()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.console_locked(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.tail()
@@ -294,7 +300,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.console_toggle()")
 
         result = None
-        self._check_expired(session)
+        self._session_check(session)
         if self.console_output is not None:
             self.console_output.toggle()
         if self.monitor_output is not None:
@@ -306,7 +312,7 @@ class MultiTenantDeviceAccess:
     def console_wait(self, what, timeout=None, session=None):
         self.mtda.debug(3, "main.console_wait()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if session is not None and timeout is None:
             self.mtda.debug(1, "main.console_wait(): no timeout specified!")
@@ -335,7 +341,7 @@ class MultiTenantDeviceAccess:
     def env_get(self, name, session=None):
         self.mtda.debug(3, "env_get()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if name in self.env:
             result = self.env[name]
@@ -346,7 +352,7 @@ class MultiTenantDeviceAccess:
     def env_set(self, name, value, session=None):
         self.mtda.debug(3, "env_set()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
 
         if name in self.env:
@@ -364,7 +370,7 @@ class MultiTenantDeviceAccess:
     def keyboard_write(self, str, session=None):
         self.mtda.debug(3, "main.keyboard_write()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.keyboard is not None:
             result = self.keyboard.write(str)
@@ -391,7 +397,7 @@ class MultiTenantDeviceAccess:
     def monitor_send(self, data, raw=False, session=None):
         self.mtda.debug(3, "main.monitor_send()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if self.console_locked(session) is False and \
            self.monitor_logger is not None:
@@ -403,7 +409,7 @@ class MultiTenantDeviceAccess:
     def monitor_wait(self, what, timeout=None, session=None):
         self.mtda.debug(3, "main.monitor_wait()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = None
         if session is not None and timeout is None:
             self.mtda.debug(1, "main.monitor_wait(): no timeout specified!")
@@ -418,7 +424,7 @@ class MultiTenantDeviceAccess:
     def power_locked(self, session=None):
         self.mtda.debug(3, "main.power_locked()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.power_controller is None:
             result = True
         else:
@@ -433,7 +439,7 @@ class MultiTenantDeviceAccess:
     def storage_bytes_written(self, session=None):
         self.mtda.debug(3, "main.storage_bytes_written()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = self._writer.written
 
         self.mtda.debug(3, "main.storage_bytes_written(): %s" % str(result))
@@ -442,7 +448,7 @@ class MultiTenantDeviceAccess:
     def storage_compression(self, compression, session=None):
         self.mtda.debug(3, "main.storage_compression()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.sdmux_controller is None:
             result = None
         else:
@@ -455,7 +461,7 @@ class MultiTenantDeviceAccess:
     def storage_close(self, session=None):
         self.mtda.debug(3, "main.storage_close()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.sdmux_controller is None:
             result = False
         else:
@@ -470,7 +476,7 @@ class MultiTenantDeviceAccess:
     def storage_locked(self, session=None):
         self.mtda.debug(3, "main.storage_locked()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self._check_locked(session):
             result = True
         # Cannot swap the shared storage device between the host and target
@@ -505,7 +511,7 @@ class MultiTenantDeviceAccess:
     def storage_mount(self, part=None, session=None):
         self.mtda.debug(3, "main.storage_mount()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self._storage_mounted is True:
             self.mtda.debug(4, "storage_mount(): already mounted")
             result = True
@@ -522,7 +528,7 @@ class MultiTenantDeviceAccess:
     def storage_update(self, dst, offset, session=None):
         self.mtda.debug(3, "main.storage_update()")
 
-        self._check_expired(session)
+        self._session_check(session)
         result = False
         if self.sdmux_controller is None:
             self.mtda.debug(4, "storage_update(): no shared storage device")
@@ -541,7 +547,7 @@ class MultiTenantDeviceAccess:
     def storage_open(self, session=None):
         self.mtda.debug(3, "main.storage_open()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.sdmux_controller is None:
             self.mtda.debug(1, "storage_open(): no shared storage device")
             result = False
@@ -558,7 +564,7 @@ class MultiTenantDeviceAccess:
     def storage_status(self, session=None):
         self.mtda.debug(3, "main.storage_status()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.sdmux_controller is None:
             self.mtda.debug(4, "storage_status(): no shared storage device")
             result = "???", False, 0
@@ -572,7 +578,7 @@ class MultiTenantDeviceAccess:
     def storage_to_host(self, session=None):
         self.mtda.debug(3, "main.storage_to_host()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.storage_locked(session) is False:
             result = self.sdmux_controller.to_host()
             if result is True:
@@ -587,7 +593,7 @@ class MultiTenantDeviceAccess:
     def storage_to_target(self, session=None):
         self.mtda.debug(3, "main.storage_to_target()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.storage_locked(session) is False:
             self.storage_close()
             result = self.sdmux_controller.to_target()
@@ -603,7 +609,7 @@ class MultiTenantDeviceAccess:
     def storage_swap(self, session=None):
         self.mtda.debug(3, "main.storage_swap()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.storage_locked(session) is False:
             result, writing, written = self.storage_status(session)
             if result == self.sdmux_controller.SD_ON_HOST:
@@ -621,7 +627,7 @@ class MultiTenantDeviceAccess:
     def storage_write(self, data, session=None):
         self.mtda.debug(3, "main.storage_write()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.sdmux_controller is None or self._writer.failed is True:
             result = -1
         else:
@@ -661,13 +667,15 @@ class MultiTenantDeviceAccess:
     def target_lock(self, session):
         self.mtda.debug(3, "main.target_lock()")
 
-        self._check_expired(session)
-        owner = self.target_owner()
-        if owner is None or owner == session:
-            self._lock_owner = session
-            result = True
-        else:
-            result = False
+        self._session_check(session)
+        with self._session_lock:
+            owner = self.target_owner()
+            if owner is None or owner == session:
+                self._lock_owner = session
+                self._session_event("LOCKED %s" % session)
+                result = True
+            else:
+                result = False
 
         self.mtda.debug(3, "main.target_lock(): %s" % str(result))
         return result
@@ -675,7 +683,7 @@ class MultiTenantDeviceAccess:
     def target_locked(self, session):
         self.mtda.debug(3, "main.target_locked()")
 
-        self._check_expired(session)
+        self._session_check(session)
         return self._check_locked(session)
 
     def target_owner(self):
@@ -716,7 +724,7 @@ class MultiTenantDeviceAccess:
 
         if self.console_logger is not None:
             self.console_logger.resume()
-        self._check_expired(session)
+        self._session_check(session)
         result = False
         if self.power_locked(session) is False:
             result = self.power_controller.on()
@@ -737,7 +745,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.target_off()")
 
         result = False
-        self._check_expired(session)
+        self._session_check(session)
         if self.power_locked(session) is False:
             result = self.power_controller.off()
             if self.keyboard is not None:
@@ -755,7 +763,7 @@ class MultiTenantDeviceAccess:
     def target_status(self, session=None):
         self.mtda.debug(3, "main.target_status()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.power_controller is None:
             result = "???"
         else:
@@ -767,7 +775,7 @@ class MultiTenantDeviceAccess:
     def target_toggle(self, session=None):
         self.mtda.debug(3, "main.target_toggle()")
 
-        self._check_expired(session)
+        self._session_check(session)
         if self.power_locked(session) is False:
             result = self.power_controller.toggle()
             if result == self.power_controller.POWER_ON:
@@ -791,10 +799,12 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.target_unlock()")
 
         result = False
-        self._check_expired(session)
-        if self.target_owner() == session:
-            self._lock_owner = None
-            result = True
+        self._session_check(session)
+        with self._session_lock:
+            if self.target_owner() == session:
+                self._session_event("UNLOCKED %s" % session)
+                self._lock_owner = None
+                result = True
 
         self.mtda.debug(3, "main.target_unlock(): %s" % str(result))
         return result
@@ -802,7 +812,7 @@ class MultiTenantDeviceAccess:
     def usb_find_by_class(self, className, session=None):
         self.mtda.debug(3, "main.usb_find_by_class()")
 
-        self._check_expired(session)
+        self._session_check(session)
         ports = len(self.usb_switches)
         ndx = 0
         while ndx < ports:
@@ -815,14 +825,14 @@ class MultiTenantDeviceAccess:
     def usb_has_class(self, className, session=None):
         self.mtda.debug(3, "main.usb_has_class()")
 
-        self._check_expired(session)
+        self._session_check(session)
         usb_switch = self.usb_find_by_class(className, session)
         return usb_switch is not None
 
     def usb_off(self, ndx, session=None):
         self.mtda.debug(3, "main.usb_off()")
 
-        self._check_expired(session)
+        self._session_check(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -833,7 +843,7 @@ class MultiTenantDeviceAccess:
     def usb_off_by_class(self, className, session=None):
         self.mtda.debug(3, "main.usb_off_by_class()")
 
-        self._check_expired(session)
+        self._session_check(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
             return usb_switch.off()
@@ -842,7 +852,7 @@ class MultiTenantDeviceAccess:
     def usb_on(self, ndx, session=None):
         self.mtda.debug(3, "main.usb_on()")
 
-        self._check_expired(session)
+        self._session_check(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -853,7 +863,7 @@ class MultiTenantDeviceAccess:
     def usb_on_by_class(self, className, session=None):
         self.mtda.debug(3, "main.usb_on_by_class()")
 
-        self._check_expired(session)
+        self._session_check(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
             return usb_switch.on()
@@ -862,13 +872,13 @@ class MultiTenantDeviceAccess:
     def usb_ports(self, session=None):
         self.mtda.debug(3, "main.usb_ports()")
 
-        self._check_expired(session)
+        self._session_check(session)
         return len(self.usb_switches)
 
     def usb_status(self, ndx, session=None):
         self.mtda.debug(3, "main.usb_status()")
 
-        self._check_expired(session)
+        self._session_check(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -887,7 +897,7 @@ class MultiTenantDeviceAccess:
     def usb_toggle(self, ndx, session=None):
         self.mtda.debug(3, "main.usb_toggle()")
 
-        self._check_expired(session)
+        self._session_check(session)
         try:
             if ndx > 0:
                 usb_switch = self.usb_switches[ndx-1]
@@ -1196,21 +1206,59 @@ class MultiTenantDeviceAccess:
             self.power_monitors.append(self.assistant)
             self.assistant.start()
 
+        self._session_timer = mtda.utils.RepeatTimer(60, self._session_check)
+        self._session_timer.start()
+
         return True
 
+    def _session_check(self, session=None):
+        self.mtda.debug(3, "main._session_check(%s)" % str(session))
+
+        events = []
+        now = time.monotonic()
+        result = None
+
+        with self._session_lock:
+            # Register new session
+            if session is not None:
+                if session not in self._sessions:
+                    events.append("ACTIVE %s" % session)
+                self._sessions[session] = now + (self._session_timeout * 60)
+
+            # Release device if the session owning the lock is idle
+            if self._lock_owner is not None:
+                if session == self._lock_owner:
+                    self._lock_expiry = now + (self._lock_timeout * 60)
+                elif now >= self._lock_expiry:
+                    events.append("UNLOCKED %s" % self._lock_owner)
+                    self._lock_owner = None
+
+            # Check for inactive sessions
+            inactive = []
+            for s in self._sessions:
+                left = self._sessions[s] - now
+                self.mtda.debug(2, "session %s: %d seconds" % (s, left))
+                if left <= 0:
+                    inactive.append(s)
+            for s in inactive:
+                events.append("INACTIVE %s" % s)
+                self._sessions.pop(s, "")
+
+        # Send event sessions generated above
+        for e in events:
+            self._session_event(e)
+
+        self.mtda.debug(3, "main._session_check: %s" % str(result))
+        return result
+
     def _session_event(self, info):
+        self.mtda.debug(3, "main._session_event(%s)" % str(info))
+
+        result = None
         self.notify("SESSION %s" % info)
 
-    def _check_expired(self, session):
-        self.mtda.debug(3, "main._check_expired()")
-
-        if self._lock_owner:
-            now = time.monotonic()
-            if session == self._lock_owner:
-                self._lock_expiry = now + (self._lock_timeout * 60)
-            elif now >= self._lock_expiry:
-                self._session_event("EXPIRED %s" % self._lock_owner)
-                self._lock_owner = None
+        self.mtda.debug(3, "main._session_event: %s" % str(result))
+        return result
 
     def _check_locked(self, session):
         self.mtda.debug(3, "main._check_locked()")
