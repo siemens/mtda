@@ -278,3 +278,18 @@ a SD card between the DUT and host. The following settings are supported:
 * ``serial``: string [optional]
   Identifier of the sdmux/sdwire device to use (defaults to ``sdmux``). Use
   ``sd-mux-ctrl`` to list available devices.
+
+Timeout settings
+----------------
+
+The ``[timeouts]`` section allows various timeouts to be configured:
+
+* ``lock``: integer [optional]
+  Automatically release the DUT after the specified number of minutes.
+
+* ``power``: integer [optional]
+  Automatically power off the DUT if there are no active sessions. Use
+  ``0`` to disable.
+
+* ``session``: integer [optional]
+  Mark a session inactive after the specified number of minutes.

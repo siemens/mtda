@@ -80,10 +80,9 @@ class MultiTenantDeviceAccess:
         self.remote = None
         self._lock_owner = None
         self._lock_expiry = None
-        self._lock_timeout = 5  # Lock timeout (in minutes)
+        self._power_expiry = None
         self._session_lock = threading.Lock()
         self._session_timer = None
-        self._session_timeout = 5  # Session timeout (in minutes)
         self._sessions = {}
         self.version = __version__
 
@@ -692,6 +691,11 @@ class MultiTenantDeviceAccess:
         return self._lock_owner
 
     def _power_event(self, status):
+        if status == self.power_controller.POWER_ON:
+            self._power_expiry = 0
+        elif status == self.power_controller.POWER_OFF:
+            self._power_expiry = None
+
         for m in self.power_monitors:
             m.power_changed(status)
         self.notify("POWER %s" % status)
@@ -741,21 +745,30 @@ class MultiTenantDeviceAccess:
         if self.power_off_script:
             exec(self.power_off_script, {"env": self.env, "mtda": self})
 
+    def _target_off(self, session=None):
+        self.mtda.debug(3, "main._target_off()")
+
+        result = False
+        result = self.power_controller.off()
+        if self.keyboard is not None:
+            self.keyboard.idle()
+        if self.console_logger is not None:
+            self.console_logger.reset_timer()
+            if result is True:
+                self.console_logger.pause()
+                self.exec_power_off_script()
+                self._power_event(self.power_controller.POWER_OFF)
+
+        self.mtda.debug(3, "main._target_off(): %s" % str(result))
+        return result
+
     def target_off(self, session=None):
         self.mtda.debug(3, "main.target_off()")
 
         result = False
         self._session_check(session)
         if self.power_locked(session) is False:
-            result = self.power_controller.off()
-            if self.keyboard is not None:
-                self.keyboard.idle()
-            if self.console_logger is not None:
-                self.console_logger.reset_timer()
-                if result is True:
-                    self.console_logger.pause()
-                    self.exec_power_off_script()
-                    self._power_event(self.power_controller.POWER_OFF)
+            result = self._target_off(session)
 
         self.mtda.debug(3, "main.target_off(): %s" % str(result))
         return result
@@ -919,6 +932,7 @@ class MultiTenantDeviceAccess:
             self.load_environment(parser)
         if parser.has_section('remote'):
             self.load_remote_config(parser)
+        self.load_timeouts_config(parser)
         if parser.has_section('ui'):
             self.load_ui_config(parser)
         if self.is_remote is False:
@@ -1092,6 +1106,22 @@ class MultiTenantDeviceAccess:
             self.remote = None
         self.is_remote = self.remote is not None
 
+    def load_timeouts_config(self, parser):
+        self.mtda.debug(3, "main.load_timeouts_config()")
+
+        result = None
+        s = "timeouts"
+
+        self._lock_timeout = int(parser.get(s, "lock",
+                                 fallback=CONSTS.DEFAULTS.LOCK_TIMEOUT))
+        self._power_timeout = int(parser.get(s, "power",
+                                  fallback=CONSTS.DEFAULTS.POWER_TIMEOUT))
+        self._session_timeout = int(parser.get(s, "session",
+                                    fallback=CONSTS.DEFAULTS.SESSION_TIMEOUT))
+
+        self.mtda.debug(3, "main.load_timeouts_config: %s" % str(result))
+        return result
+
     def load_ui_config(self, parser):
         self.mtda.debug(3, "main.load_ui_config()")
         self.prefix_key = self._prefix_key_code(parser.get(
@@ -1216,6 +1246,7 @@ class MultiTenantDeviceAccess:
 
         events = []
         now = time.monotonic()
+        power_off = False
         result = None
 
         with self._session_lock:
@@ -1224,14 +1255,6 @@ class MultiTenantDeviceAccess:
                 if session not in self._sessions:
                     events.append("ACTIVE %s" % session)
                 self._sessions[session] = now + (self._session_timeout * 60)
-
-            # Release device if the session owning the lock is idle
-            if self._lock_owner is not None:
-                if session == self._lock_owner:
-                    self._lock_expiry = now + (self._lock_timeout * 60)
-                elif now >= self._lock_expiry:
-                    events.append("UNLOCKED %s" % self._lock_owner)
-                    self._lock_owner = None
 
             # Check for inactive sessions
             inactive = []
@@ -1244,9 +1267,37 @@ class MultiTenantDeviceAccess:
                 events.append("INACTIVE %s" % s)
                 self._sessions.pop(s, "")
 
+                # Check if we should arm the auto power-off timer
+                if self._power_expiry is not None \
+                    and self._power_timeout > 0 \
+                    and len(self._sessions) == 0:
+
+                    self.mtda.debug(2, "device will be powered down in %d "
+                                       "minutes" % self._power_timeout)
+                    self._power_expiry = now + (self._power_timeout * 60)
+
+            if len(self._sessions) == 0:
+                if self._power_expiry is not None and now > self._power_expiry:
+                    self._lock_expiry = 0
+                    power_off = True
+
+            # Release device if the session owning the lock is idle
+            if self._lock_owner is not None:
+                if session == self._lock_owner:
+                    self._lock_expiry = now + (self._lock_timeout * 60)
+                elif now >= self._lock_expiry:
+                    events.append("UNLOCKED %s" % self._lock_owner)
+                    self._lock_owner = None
+
         # Send event sessions generated above
         for e in events:
             self._session_event(e)
+
+        # Check if we should auto power-off the device
+        if power_off is True:
+            self._target_off()
+            self.mtda.debug(2, "device powered down after %d minutes of "
+                               "inactivity" % self._power_timeout)
 
         self.mtda.debug(3, "main._session_check: %s" % str(result))
         return result

@@ -18,6 +18,12 @@ class CHANNEL:
     MONITOR = b'MON'
 
 
+class DEFAULTS:
+    LOCK_TIMEOUT = 5
+    POWER_TIMEOUT = 60
+    SESSION_TIMEOUT = 5
+
+
 class IMAGE(Enum):
     RAW = 0
     BZ2 = 1
