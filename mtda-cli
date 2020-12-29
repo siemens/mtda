@@ -530,6 +530,27 @@ class Application:
         print("   off     Power off the device")
         print("   reset   Power cycle the device")
         print("   toggle  Toggle target power")
+        print("   uptime  Print target uptime")
+
+    def target_uptime(self):
+        result = ""
+        uptime = self.client().target_uptime()
+        days = int(uptime / (24 * 60 * 60.0))
+        if days > 0:
+            result = result + " %d days" % int(days)
+            uptime = uptime % (24 * 60 * 60.0)
+        hours = int(uptime / (60 * 60.0))
+        if hours > 0:
+            result = result + " %d hours" % int(hours)
+            uptime = uptime % (60 * 60.0)
+        minutes = int(uptime / 60.0)
+        if minutes > 0:
+            result = result + " %d minutes" % int(minutes)
+            uptime = uptime % 60.0
+        seconds = int(uptime)
+        if seconds > 0:
+            result = result + " %d seconds" % int(seconds)
+        return result.strip()
 
     def target_info(self, args=None):
         sys.stdout.write("\rFetching target information...\r")
@@ -544,6 +565,9 @@ class Application:
         writing = "WRITING" if writing is True else "IDLE"
         written = self._human_readable_size(written)
         tgt_status = client.target_status()
+        uptime = ""
+        if tgt_status == "ON":
+            uptime = " (up %s)" % self.target_uptime()
         try:
             remote_version = client.agent_version()
         except (zerorpc.RemoteError) as e:
@@ -562,7 +586,7 @@ class Application:
               remote, remote_version, ""))
         print("Prefix key:    : ctrl-%s\r" % (prefix_key))
         print("Session        : %s\r" % (session))
-        print("Target         : %-6s%s\r" % (tgt_status, locked))
+        print("Target         : %-6s%s%s\r" % (tgt_status, locked, uptime))
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
         print("Storage writes : %s (%s)\r" % (written, writing))
 
@@ -596,6 +620,11 @@ class Application:
         new_status = self.client().target_status()
         return 0 if (new_status != previous_status) else 1
 
+    def target_uptime_cmd(self, args=None):
+        uptime = self.target_uptime()
+        print(uptime)
+        return 0
+
     def target_cmd(self, args):
         if len(args) > 0:
             cmd = args[0]
@@ -606,7 +635,8 @@ class Application:
                'off': self.target_off,
                'on': self.target_on,
                'reset': self.target_reset,
-               'toggle': self.target_toggle
+               'toggle': self.target_toggle,
+               'uptime': self.target_uptime_cmd
             }
 
             if cmd in cmds:

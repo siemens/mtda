@@ -32,6 +32,14 @@ Use the ``reset`` command to power-cycle the device::
 
     $ mtda-cli target reset
 
+Uptime may be printed with the ``uptime`` command::
+
+    $ mtda-cli target uptime
+    16 minutes 33 seconds
+
+This is the elapsed time since the device was powered and does not account for
+soft resets triggered from the Operating System or hardware watchdog.
+
 Console commands
 ~~~~~~~~~~~~~~~~
 

@@ -300,6 +300,9 @@ class Client:
     def target_unlock(self):
         return self._impl.target_unlock(self._session)
 
+    def target_uptime(self):
+        return self._impl.target_uptime(self._session)
+
     def toggle_timestamps(self):
         return self._impl.toggle_timestamps()
 

@@ -84,6 +84,7 @@ class MultiTenantDeviceAccess:
         self._session_lock = threading.Lock()
         self._session_timer = None
         self._sessions = {}
+        self._uptime = 0
         self.version = __version__
 
         # Config file in $HOME/.mtda/config
@@ -693,8 +694,10 @@ class MultiTenantDeviceAccess:
     def _power_event(self, status):
         if status == self.power_controller.POWER_ON:
             self._power_expiry = 0
+            self._uptime = time.monotonic()
         elif status == self.power_controller.POWER_OFF:
             self._power_expiry = None
+            self._uptime = 0
 
         for m in self.power_monitors:
             m.power_changed(status)
@@ -820,6 +823,16 @@ class MultiTenantDeviceAccess:
                 result = True
 
         self.mtda.debug(3, "main.target_unlock(): %s" % str(result))
+        return result
+
+    def target_uptime(self, session=None):
+        self.mtda.debug(3, "main.target_uptime()")
+
+        result = 0
+        if self._uptime > 0:
+            result = time.monotonic() - self._uptime
+
+        self.mtda.debug(3, "main.target_uptime(): %s" % str(result))
         return result
 
     def usb_find_by_class(self, className, session=None):
@@ -1269,8 +1282,7 @@ class MultiTenantDeviceAccess:
 
                 # Check if we should arm the auto power-off timer
                 if self._power_expiry is not None \
-                    and self._power_timeout > 0 \
-                    and len(self._sessions) == 0:
+                    and self._power_timeout > 0 and len(self._sessions) == 0:
 
                     self.mtda.debug(2, "device will be powered down in %d "
                                        "minutes" % self._power_timeout)
