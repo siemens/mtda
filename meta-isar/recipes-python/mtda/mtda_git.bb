@@ -3,7 +3,7 @@
 
 inherit dpkg
 
-SRC_URI += "git://github.com/MentorEmbedded/mtda.git;protocol=https;branch=master"
+SRC_URI += "git://git@github.com/MentorEmbedded/mtda.git;protocol=ssh;branch=master"
 SRCREV   = "530334becfcc182e115e2b491e7b1d5ab951a704"
 S        = "${WORKDIR}/git"
 
