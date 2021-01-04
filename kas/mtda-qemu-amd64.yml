@@ -1,9 +1,10 @@
 header:
-  version: 8
+  version: 10
 
 machine: qemuamd64
 distro: debian-buster
 target: isar-image-base
+build_system: isar
 
 repos:
   this:

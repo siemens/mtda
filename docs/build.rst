@@ -216,10 +216,10 @@ where the following functions will be exposed:
 Building the microSD card image
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use ``kas-docker`` to build a Debian image for the nanoPI NEO-LTS with MTDA
+Use ``kas-container`` to build a Debian image for the nanoPI NEO-LTS with MTDA
 pre-installed::
 
-    $ kas-docker --isar build kas/mtda-nanopi-neo.yml
+    $ kas-container build kas/mtda-nanopi-neo.yml
 
 Insert a microSD card to your system and write the generated image::
 
