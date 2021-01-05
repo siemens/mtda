@@ -49,6 +49,7 @@ class MultiTenantDeviceAccess:
     def __init__(self):
         self.config_files = ['mtda.ini']
         self.console = None
+        self.socket = None
         self.console_logger = None
         self.monitor = None
         self.monitor_logger = None
