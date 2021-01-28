@@ -22,7 +22,7 @@ class UsbFunctionController(Image):
 
     def __init__(self, mtda):
         super().__init__(mtda)
-        self.gadget = "usb_functions_for_mentor_test_device_agent"
+        self.gadget = "usb_functions_for_multi-tenant_device_access"
         self.function = "mass_storage.usb0"
         self.mode = self.SD_ON_HOST
         self.reset = None
