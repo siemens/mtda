@@ -20,6 +20,7 @@ IMAGE_INSTALL += "                       \
 IMAGE_PREINSTALL += "                    \
     iproute2                             \
     isc-dhcp-client                      \
+    lavapdu-client                       \
     mtda                                 \
     mtda-usb-functions                   \
     network-manager                      \
