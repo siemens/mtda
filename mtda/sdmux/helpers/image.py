@@ -20,7 +20,6 @@ class Image(SdMuxController):
         self.isfuse = False
         self.isloop = False
         self.lock = threading.Lock()
-        atexit.register(self._umount)
 
     def _close(self):
         self.mtda.debug(3, "sdmux.helpers.image._close()")
