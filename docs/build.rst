@@ -311,7 +311,7 @@ Hit ``i`` to enter the input mode and type the following configuration::
 
     [power]
     variant=gpio
-    pin=203
+    pins=203
 
     [keyboard]
     variant=hid
@@ -357,7 +357,7 @@ The following configuration file may be used for the DE0-Nano-SoC::
 
     [power]
     variant=gpio
-    pin=203
+    pins=203
 
     [sdmux]
     variant=samsung
