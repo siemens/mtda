@@ -197,8 +197,12 @@ The ``gpio`` driver may be used to control a simple electric relay using GPIO
 lines from the system running the MTDA agent. The following settings are
 supported:
 
-* ``pin``: integer [required]
+* ``pin``: integer [deprecated, required]
     Specify the GPIO pin number to be used to control the relay.
+
+* ``pins``: string [required]
+    Comma separated list of GPIO pins to toggle relays driving power of
+    the device.
 
 ``pduclient`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
