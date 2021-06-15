@@ -85,6 +85,9 @@ class MultiTenantDeviceAccess:
         self._session_lock = threading.Lock()
         self._session_timer = None
         self._sessions = {}
+        self._time_from_pwr = None
+        self._time_from_str = None
+        self._time_until_str = None
         self._uptime = 0
         self.version = __version__
 
@@ -1019,7 +1022,20 @@ class MultiTenantDeviceAccess:
             self.console = factory(self)
             self.console.variant = variant
             # Configure the console
-            self.console.configure(dict(parser.items('console')))
+            config = dict(parser.items('console'))
+            self.console.configure(config)
+            timestamps = parser.getboolean('console', 'timestamps',
+                                           fallback=None)
+            self._time_from_pwr = timestamps
+            if timestamps is None or timestamps is True:
+                # check 'time-from' / 'time-until' settings if timestamps is
+                # either yes or unspecified
+                if 'time-until' in config:
+                    self._time_until_str = config['time-until']
+                    self._time_from_pwr = True
+                if 'time-from' in config:
+                    self._time_from_str = config['time-from']
+                    self._time_from_pwr = False
         except configparser.NoOptionError:
             print('console variant not defined!', file=sys.stderr)
         except ImportError:
@@ -1233,6 +1249,12 @@ class MultiTenantDeviceAccess:
                 return False
             self.console_logger = ConsoleLogger(
                 self, self.console, socket, self.power_controller, b'CON')
+            if self._time_from_str is not None:
+                self.console_logger.time_from = self._time_from_str
+            if self._time_until_str is not None:
+                self.console_logger.time_until = self._time_until_str
+            if self._time_from_pwr is not None and self._time_from_pwr is True:
+                self.toggle_timestamps()
             self.console_logger.start()
 
         if self.monitor is not None:
@@ -1282,8 +1304,9 @@ class MultiTenantDeviceAccess:
                 self._sessions.pop(s, "")
 
                 # Check if we should arm the auto power-off timer
-                if self._power_expiry is not None \
-                    and self._power_timeout > 0 and len(self._sessions) == 0:
+                if (self._power_expiry is not None and
+                        self._power_timeout > 0 and
+                        len(self._sessions) == 0):
 
                     self.mtda.debug(2, "device will be powered down in %d "
                                        "minutes" % self._power_timeout)

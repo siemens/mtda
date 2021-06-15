@@ -38,6 +38,8 @@ class ConsoleLogger:
         self.topic = topic
         self.basetime = 0
         self.timestamps = False
+        self._time_from = None
+        self._time_until = None
 
     def start(self):
         self.rx_alive = True
@@ -220,20 +222,27 @@ class ConsoleLogger:
             self.basetime = time.time()
 
         # Add timestamps
-        if self.timestamps is True:
+        if self.timestamps is True or self._time_from is not None:
             newdata = bytearray()
             linefeeds = 0
+            now = time.time()
+            if self._time_from is not None and data.count(self._time_from):
+                self.basetime = now
+                self.timestamps = True
             for x in data:
                 if x == 0xd:
                     continue
                 newdata.append(x)
                 if x == 0xa:
-                    linetime = time.time()
-                    elapsed = linetime - self.basetime
-                    timestr = "[%4.6f] " % elapsed
-                    newdata.extend(timestr.encode("utf-8"))
+                    newdata.extend(b'\r')
+                    if self.timestamps is True:
+                        elapsed = now - self.basetime
+                        timestr = "[%4.6f] " % elapsed
+                        newdata.extend(timestr.encode("utf-8"))
                     linefeeds = linefeeds + 1
             data = newdata
+            if self._time_until is not None and data.count(self._time_until):
+                self.timestamps = False
         else:
             linefeeds = 1
 
@@ -323,3 +332,33 @@ class ConsoleLogger:
     def resume(self):
         with self.rx_lock:
             self.console.open()
+
+    @property
+    def time_from(self):
+        if self._time_from is None:
+            result = ""
+        else:
+            result = self._time_from.encode("utf-8")
+        return result
+
+    @time_from.setter
+    def time_from(self, from_str):
+        if from_str is None:
+            self._time_from = None
+        else:
+            self._time_from = bytes(from_str, 'utf-8')
+
+    @property
+    def time_until(self):
+        if self._time_until is None:
+            result = ""
+        else:
+            result = self._time_until.encode("utf-8")
+        return result
+
+    @time_until.setter
+    def time_until(self, until_str):
+        if until_str is None:
+            self._time_until = None
+        else:
+            self._time_until = bytes(until_str, 'utf-8')
