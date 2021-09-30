@@ -2,9 +2,8 @@ Source: mtda
 Section: devel
 Priority: extra
 Maintainer: Cedric Hombourger <Cedric_Hombourger@mentor.com>
-Build-Depends: debhelper (>=10),
+Build-Depends: debhelper (>=10) | dh-systemd,
                dh-python,
-               dh-systemd,
                python3-setuptools,
                python3-all
 Standards-Version: 4.5.0 
