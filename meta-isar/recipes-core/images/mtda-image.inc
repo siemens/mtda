@@ -1,5 +1,5 @@
 # This Isar layer is part of MTDA
-# Copyright (C) 2017-2020 Mentor Graphics, a Siemens business
+# Copyright (C) 2017-2021 Mentor Graphics, a Siemens business
 
 # Default device/file to use for our USB Mass Storage Gadget
 MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
@@ -20,10 +20,10 @@ IMAGE_INSTALL += "                       \
 IMAGE_PREINSTALL += "                    \
     iproute2                             \
     isc-dhcp-client                      \
-    lavapdu-client                       \
     mtda                                 \
     mtda-usb-functions                   \
     network-manager                      \
+    pdudaemon-client                     \
     sd-mux-ctrl                          \
     ssh                                  \
     sudo                                 \
