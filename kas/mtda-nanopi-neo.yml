@@ -2,7 +2,7 @@ header:
   version: 10
 
 machine: nanopi-neo
-distro: debian-buster
+distro: debian-bullseye
 target: isar-image-base
 build_system: isar
 
