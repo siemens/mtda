@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (c) Mentor, a Siemens business, 2017-2020
+# Copyright (c) Mentor, a Siemens business, 2017-2021
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -30,6 +30,7 @@ from mtda.sdmux.writer import AsyncImageWriter
 import mtda.constants as CONSTS
 import mtda.keyboard.controller
 import mtda.power.controller
+import mtda.video.controller
 import mtda.utils
 from mtda import __version__
 
@@ -60,6 +61,7 @@ class MultiTenantDeviceAccess:
         self.env = {}
         self.fuse = False
         self.keyboard = None
+        self.video = None
         self.mtda = self
         self.assistant = None
         self.power_controller = None
@@ -967,6 +969,8 @@ class MultiTenantDeviceAccess:
                 self.load_sdmux_config(parser)
             if parser.has_section('usb'):
                 self.load_usb_config(parser)
+            if parser.has_section('video'):
+                self.load_video_config(parser)
             if parser.has_section('scripts'):
                 scripts = parser['scripts']
                 self.power_on_script = self._parse_script(
@@ -1199,6 +1203,24 @@ class MultiTenantDeviceAccess:
             print('usb switch "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
 
+    def load_video_config(self, parser):
+        self.mtda.debug(3, "main.load_video_config()")
+
+        try:
+            # Get variant
+            variant = parser.get('video', 'variant')
+            # Try loading its support class
+            mod = importlib.import_module("mtda.video." + variant)
+            factory = getattr(mod, 'instantiate')
+            self.video = factory(self)
+            # Configure the video controller
+            self.video.configure(dict(parser.items('video')))
+        except configparser.NoOptionError:
+            print('video controller variant not defined!', file=sys.stderr)
+        except ImportError:
+            print('video controller "%s" could not be found/loaded!' % (
+                variant), file=sys.stderr)
+
     def notify(self, what):
         self.mtda.debug(3, "main.notify()")
 
@@ -1271,6 +1293,14 @@ class MultiTenantDeviceAccess:
         if self.assistant is not None:
             self.power_monitors.append(self.assistant)
             self.assistant.start()
+
+        if self.video is not None:
+            status = self.video.probe()
+            if status is False:
+                print('Probe of the %s video failed!' % (
+                      self.video.variant), file=sys.stderr)
+                return False
+            self.video.start()
 
         self._session_timer = mtda.utils.RepeatTimer(60, self._session_check)
         self._session_timer.start()
