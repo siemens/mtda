@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+
+override_dh_fixperms:
+	dh_fixperms
+
+%:
+	dh $@ --buildsystem=cmake

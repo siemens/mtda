@@ -1,0 +1,26 @@
+Source: mjpg-streamer
+Section: misc
+Priority: optional
+Standards-Version: 4.5.1
+Maintainer: Mentor Embedded <embedded_support@mentor.com>
+Build-Depends: debhelper (>= 10),
+               cmake,
+               libjpeg62-turbo-dev,
+               protobuf-c-compiler
+
+Package: mjpg-streamer
+Architecture: any
+Description: application to stream JPEG frames
+ mjpg-streamer is a command line application that copies JPEG frames
+ from one or more input plugins to multiple output plugins. It can
+ be used to stream JPEG files over an IP-based network from a webcam
+ to various types of viewers such as Chrome, Firefox, Cambozola, VLC,
+ mplayer, and other software capable of receiving MJPG streams.
+ .
+ It was originally written for embedded devices with very limited
+ resources in terms of RAM and CPU. Its predecessor "uvc_streamer"
+ was created because Linux-UVC compatible cameras directly produce
+ JPEG-data, allowing fast and perfomant M-JPEG streams even from an
+ embedded device running OpenWRT. The input module "input_uvc.so"
+ captures such JPG frames from a connected webcam. mjpg-streamer now
+ supports a variety of different input devices.
