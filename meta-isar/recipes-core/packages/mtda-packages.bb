@@ -1,9 +1,10 @@
 # This Isar layer is part of MTDA
-# Copyright (C) 2017-2020 Mentor Graphics, a Siemens business
+# Copyright (C) 2017-2021 Mentor Graphics, a Siemens business
 
 # Here's our list of custom packages
 DEPENDS = "                              \
     hap-python                           \
+    mjpg-streamer                        \
     mtda                                 \
     mtda-usb-functions                   \
     sd-mux-ctrl                          \
