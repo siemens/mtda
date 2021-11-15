@@ -118,6 +118,14 @@ General settings
       Number of USB ports. Each port should then be configured with its own
       ``[usbN]`` section where ``N`` is the port index (starting from ``1``).
 
+* ``video``: section [optional]
+    Configure a video capture driver to stream what is displayed on the
+    Device Under Test. The driver will be selected with ``variant``.
+
+  * ``variant``: string [required]
+      Select a ``video`` variant: ``mjpg_streamer`` is the only supported
+      driver at this time.
+
 Console and Monitor settings
 ----------------------------
 
@@ -297,3 +305,33 @@ The ``[timeouts]`` section allows various timeouts to be configured:
 
 * ``session``: integer [optional]
   Mark a session inactive after the specified number of minutes.
+
+Video capture settings
+----------------------
+
+The ``[video]`` section configures a video capture device to stream the
+contents of the device display. The driver is selected with the ``variant``
+setting. Driver-specific settings are detailed below.
+
+``mjpg_streamer`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``mjpg_streamer`` driver supports Webcams and video capture devices
+such as the Tihokile HDMI capture dongle. The following settings are
+supported:
+
+* ``device``: string [optional]
+  Video device to grab MJPEG images from (defaults to ``/dev/video0``)
+
+* ``port``: integer [optional]
+  HTTP port to serve on (defaults to ``8080``)
+
+* ``resolution``: string [optional]
+  Resolution of the video stream (defaults to ``1280x780``)
+
+* ``www``: string [optional]
+  Path to static web pages to serve (defaults to
+  ``/usr/share/mjpg-streamer/www``)
+
+Point VLC (or similar) to ``http://<mtda-ip-or-name>:8080/?action=stream``
+to stream video from the Device Under Test.
