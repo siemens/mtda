@@ -266,7 +266,7 @@ class Image(SdMuxController):
         self.mtda.debug(3, "sdmux.helpers.image._locate()")
 
         result = None
-        mountpoint = self._mountpoint(self.device)
+        mountpoint = self._mountpoint()
         partitions = psutil.disk_partitions()
         for p in partitions:
             if p.mountpoint.startswith(mountpoint):
