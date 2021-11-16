@@ -1,3 +1,22 @@
+mtda (0.12-1) testing; urgency=low
+
+  [Cedric Hombourger]
+  * initial support for video capture devices
+  * switch to bullseye
+  * add 'time-from' and 'time-until' settings for automatic timestamps
+  * support multiple pins for gpio-based power controllers
+  * add pduclient to the image
+  * option to auto power-off the device when there are no active sessions
+  * basic (incomplete) PyQt5 client application
+
+  [Hemanth Koturappa]
+  * add support for function keys (F1..F12)
+
+  [Vijai Kumar K]
+  * various bug fixes
+
+ -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Tue, 16 Nov 2021 18:25:00 +0100
+
 mtda (0.11-1) testing; urgency=low
 
   * add "console wait" and "monitor wait" commands and APIs
