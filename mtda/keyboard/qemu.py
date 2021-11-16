@@ -79,6 +79,53 @@ class QemuController(KeyboardController):
     def write(self, str):
         self.mtda.debug(3, "keyboard.qemu.write()")
 
+    def f1(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f1()")
+        return self.press("f1", repeat)
+
+    def f2(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f2()")
+        return self.press("f2", repeat)
+
+    def f3(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f3()")
+        return self.press("f3", repeat)
+
+    def f4(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f4()")
+        return self.press("f4", repeat)
+
+    def f5(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f5()")
+        return self.press("f5", repeat)
+
+    def f6(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f6()")
+        return self.press("f6", repeat)
+
+    def f7(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f7()")
+        return self.press("f7", repeat)
+
+    def f8(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f8()")
+        return self.press("f8", repeat)
+
+    def f9(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f9()")
+        return self.press("f9", repeat)
+
+    def f10(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f10()")
+        return self.press("f10", repeat)
+
+    def f11(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f11()")
+        return self.press("f11", repeat)
+
+    def f12(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.f12()")
+        return self.press("f12", repeat)
 
 def instantiate(mtda):
     return QemuController(mtda)
