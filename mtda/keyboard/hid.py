@@ -129,6 +129,66 @@ class HidKeyboardController(KeyboardController):
 
         return self.press(0x52, 0, repeat)
 
+    def f1(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf1()")
+
+        return self.press(0x3a, 0, repeat)
+
+    def f2(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf2()")
+
+        return self.press(0x3b, 0, repeat)
+
+    def f3(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf3()")
+
+        return self.press(0x3c, 0, repeat)
+
+    def f4(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf4()")
+
+        return self.press(0x3d, 0, repeat)
+
+    def f5(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf5()")
+
+        return self.press(0x3e, 0, repeat)
+
+    def f6(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf6()")
+
+        return self.press(0x3f, 0, repeat)
+
+    def f7(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf7()")
+
+        return self.press(0x40, 0, repeat)
+
+    def f8(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf8()")
+
+        return self.press(0x41, 0, repeat)
+
+    def f9(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf9()")
+
+        return self.press(0x42, 0, repeat)
+
+    def f10(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf10())")
+
+        return self.press(0x43, 0, repeat)
+
+    def f11(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf11()")
+
+        return self.press(0x44, 0, repeat)
+
+    def f12(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.keyf12()")
+
+        return self.press(0x45, 0, repeat)
+
     def write(self, str):
         self.mtda.debug(3, "keyboard.hid.write()")
 
