@@ -1,5 +1,14 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------
+# Setup script for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (c) Mentor, a Siemens business, 2017-2021
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
 
 import os
 from setuptools import setup, find_packages
