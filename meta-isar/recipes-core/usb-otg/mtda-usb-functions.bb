@@ -1,5 +1,6 @@
 # This Isar layer is part of MTDA
-# Copyright (C) 2017-2020 Mentor Graphics, a Siemens business
+# Copyright (C) 2017-2021 Mentor Graphics, a Siemens business
+# SPDX-License-Identifier: MIT
 
 inherit dpkg-raw
 
@@ -7,9 +8,10 @@ DESCRIPTION        = "USB functions for MTDA"
 HOMEPAGE           = "https://mentor.com/"
 LICENSE            = "MIT"
 MAINTAINER         = "Mentor Embedded <embedded_support@mentor.com>"
-PV                 = "0.3"
+PV                 = "0.4"
 FILESPATH_prepend := "${THISDIR}/${PN}:"
 DEBIAN_DEPENDS     = "python3"
+DPKG_ARCH          = "all"
 SRC_URI            = "file://mtda-usb-functions.service \
                       file://postinst                   \
                       file://usb-functions              "
