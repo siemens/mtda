@@ -1,10 +1,12 @@
 # This Isar layer is part of MTDA
 # Copyright (C) 2017-2020 Mentor Graphics, a Siemens business
+# SPDX-License-Identifier: MIT
 
-DESCRIPTION        = "use /dev/mmcblk0 as device for our USB Mass Storage function"
+DESCRIPTION        = "use /dev/sda as device for our USB Mass Storage function"
 MAINTAINER         = "Cedric Hombourger <cedric_hombourger@mentor.com>"
 SRC_URI            = "file://usb-functions"
 FILESPATH_prepend := "${THISDIR}/${PN}:"
+DPKG_ARCH          = "all"
 
 inherit dpkg-raw
 
