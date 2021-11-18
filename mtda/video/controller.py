@@ -35,3 +35,8 @@ class VideoController(object):
     def stop(self):
         """ Stop video capture """
         return False
+
+    @abc.abstractmethod
+    def url(self, host=""):
+        """ URL for the video stream """
+        return None

@@ -14,8 +14,9 @@ import abc
 import atexit
 import os
 import psutil
-import sys
 import signal
+import socket
+import sys
 import threading
 import time
 
@@ -62,7 +63,7 @@ class MJPGStreamerVideoController(VideoController):
         result = True
         if os.system("%s --version" % self.executable) != 0:
             raise ValueError("could not execute %s!" % self.executable)
-        if os.path.exists(self.dev) == False:
+        if os.path.exists(self.dev) is False:
             self.mtda.debug(1, "video.mjpg_streamer.probe(): "
                                "video device (%s) not found!"
                                % self.dev)
@@ -137,6 +138,18 @@ class MJPGStreamerVideoController(VideoController):
 
         self.lock.release()
         self.mtda.debug(3, "video.mjpg_streamer.stop(): %s" % str(result))
+        return result
+
+    def url(self, host=""):
+        self.mtda.debug(3, "video.mjpg_streamer.url(host='%s')" % str(host))
+
+        if host is None or host == "":
+            host = socket.getfqdn()
+            self.mtda.debug(3, "video.mjpg_streamer.url: "
+                               "using host='%s'" % str(host))
+        result = "http://{0}:{1}/?action=stream".format(host, self.port)
+
+        self.mtda.debug(3, "video.mjpg_streamer.url(): %s" % str(result))
         return result
 
 
