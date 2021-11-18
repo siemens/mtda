@@ -18,8 +18,13 @@ from py3qterm import TerminalWidget
 from py3qterm.backend import Session
 from py3qterm.backend import Terminal
 
+from PyQt5.QtCore import QUrl
+
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import qApp, QMainWindow, QAction, QApplication, QStyle
+from PyQt5.QtWidgets import qApp, QMainWindow, QAction, QApplication, QStyle, QTabWidget
+
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaMetaData
+from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 from mtda.client import Client
 from mtda.console.screen import ScreenOutput
@@ -162,11 +167,24 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
 
     def initUI(self):
 
-        self.console = DeviceConsole(self)
+        self.tabs = QTabWidget(self)
+        self.tabs.setTabBarAutoHide(True)
+        self.setCentralWidget(self.tabs)
+
+        self.console = DeviceConsole(self.tabs)
         agent = self.console.agent()
         screen = self.console.screen()
         screen.add_listener(self.device_event)
-        self.setCentralWidget(self.console)
+        self.tabs.addTab(self.console, 'Console')
+
+        self.media = QMediaPlayer(None, QMediaPlayer.StreamPlayback)
+        self.video = QVideoWidget(self.tabs)
+        self.media.setVideoOutput(self.video)
+
+        self.video_url = agent.video_url()
+        if self.video_url is not None:
+            self.media.setMedia(QMediaContent(QUrl(self.video_url)))
+            self.tabs.addTab(self.video, 'Video')
 
         exitIcn = self.style().standardIcon(QStyle.SP_FileDialogEnd)
         exitAct = QAction(exitIcn, 'Exit', self)
@@ -218,9 +236,13 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         if event == "OFF":
             icn = self.style().standardIcon(QStyle.SP_ComputerIcon)
             txt = "Power on device"
+            self.media.stop()
         else:
             icn = self.style().standardIcon(QStyle.SP_MediaStop)
             txt = "Power off device"
+            if self.video_url != '':
+                self.media.play()
+
         a.setStatusTip(txt)
         a.setText(txt)
         a.setIcon(icn)
