@@ -1,0 +1,144 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: MTDA
+Upstream-Contact: Cedric Hombourger <Cedric_Hombourger@mentor.com>
+Source: https://github.com/MentorEmbedded/mtda
+
+Files: .gitignore
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: MAINTAINERS.md
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: README.md
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: configs/qemu-ovmf-vars.fd
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/.gitignore
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/build.rst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/config.rst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/index.rst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/install.rst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/integration.rst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/intro.rst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/usage.rst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/homekit_add_1.png
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/homekit_add_2.png
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/lava_mtda_workers.png
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/lava_shared_worker.png
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-conf/hostname/files/postinst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-conf/mass-storage/usb-ms-use-mmcblk0/usb-functions
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-conf/mass-storage/usb-ms-use-sda/usb-functions
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-core/usb-otg/mtda-usb-functions/postinst
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-core/usb-otg/mtda-usb-functions/mtda-usb-functions.service
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-core/usb-otg/mtda-usb-functions/usb-functions
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/crypto/files/curve25519-donna-1.3/debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/crypto/files/curve25519-donna-1.3/debian/source/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/crypto/files/ed25519-1.5/debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/crypto/files/ed25519-1.5/debian/source/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-multimedia/mjpg-streamer/files/git/mjpg-streamer-experimental/debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/compression/files/zstandard-0.14.0/debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/net/files/hap-python-3.0/debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/net/files/hap-python-3.0/debian/source/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/net/files/zeroconf-0.28.6/debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/net/files/zeroconf-0.28.6/debian/source/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/source/*
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
