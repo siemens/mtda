@@ -27,6 +27,17 @@ General settings
       instead of ``losetup`` and ``mount``. This feature is experimental and
       requires ``partitionfs``, ``fuseext2`` and ``fusefat``.
 
+* ``pastebin``: section [optional]
+  Support for posting console content to services like pastebin.com. An API key
+  is required and may be specified with:
+
+  * ``api-key``: string [optional]
+    Define the API key to be passed to the pastebin service
+
+  * ``endpoint``: string [optional]
+    Specify an alternate pastebin service (defaults to
+    http://pastebin.com/api/api_post.php)
+
 * ``ui``: section [optional]
   User Interface settings for the console. This is relevant only for MTDA clients.
 
