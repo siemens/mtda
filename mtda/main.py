@@ -948,6 +948,16 @@ class MultiTenantDeviceAccess:
         except IndexError:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
+    def video_url(self, host=""):
+        self.mtda.debug(3, "main.video_url(host='%s')" % host)
+
+        result = None
+        if self.video is not None:
+            result = self.video.url(host)
+
+        self.mtda.debug(3, "main.video_url(): %s" % str(result))
+        return result
+
     def load_config(self, remote=None, is_server=False):
         self.mtda.debug(3, "main.load_config()")
 
