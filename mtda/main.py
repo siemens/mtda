@@ -39,6 +39,7 @@ _NOPRINT_TRANS_TABLE = {
 }
 
 DEFAULT_PREFIX_KEY = 'ctrl-a'
+DEFAULT_PASTEBIN_EP = "http://pastebin.com/api/api_post.php"
 
 
 def _make_printable(s):
@@ -69,6 +70,8 @@ class MultiTenantDeviceAccess:
         self.power_off_script = None
         self.power_monitors = []
         self.sdmux_controller = None
+        self._pastebin_api_key = None
+        self._pastebin_endpoint = None
         self._storage_mounted = False
         self._storage_opened = False
         self._writer = None
@@ -426,6 +429,14 @@ class MultiTenantDeviceAccess:
 
         self.mtda.debug(3, "main.monitor_wait(): %s" % str(result))
         return result
+
+    def pastebin_api_key(self):
+        self.mtda.debug(3, "main.pastebin_api_key()")
+        return self._pastebin_api_key
+
+    def pastebin_endpoint(self):
+        self.mtda.debug(3, "main.pastebin_endpoint()")
+        return self._pastebin_endpoint
 
     def power_locked(self, session=None):
         self.mtda.debug(3, "main.power_locked()")
@@ -949,6 +960,8 @@ class MultiTenantDeviceAccess:
             self.load_main_config(parser)
         if parser.has_section('environment'):
             self.load_environment(parser)
+        if parser.has_section('pastebin'):
+            self.load_pastebin_config(parser)
         if parser.has_section('remote'):
             self.load_remote_config(parser)
         self.load_timeouts_config(parser)
@@ -1083,6 +1096,13 @@ class MultiTenantDeviceAccess:
         except ImportError:
             print('monitor "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
+
+    def load_pastebin_config(self, parser):
+        self.mtda.debug(3, "main.load_pastebin_config()")
+        self._pastebin_api_key = parser.get('pastebin', 'api-key',
+                                            fallback='')
+        self._pastebin_endpoint = parser.get('pastebin', 'endpoint',
+                                             fallback=DEFAULT_PASTEBIN_EP)
 
     def load_power_config(self, parser):
         self.mtda.debug(3, "main.load_power_config()")

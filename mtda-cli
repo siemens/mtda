@@ -29,9 +29,6 @@ from mtda.main import MultiTenantDeviceAccess
 from mtda.client import Client
 from mtda.console.screen import ScreenOutput
 
-PASTEBIN_API_KEY = "1a265f6e04cf3c1df5e153018390eb29"
-PASTEBIN_ENDPOINT = "http://pastebin.com/api/api_post.php"
-
 
 class Application:
 
@@ -203,13 +200,22 @@ class Application:
             server.usb_toggle(1)
 
     def console_pastebin(self):
+        client = self.agent
+        server = self.client()
+        api_key = client.pastebin_api_key()
+        endpoint = client.pastebin_endpoint()
+        if api_key is None or endpoint is None:
+            server.console_print(
+                    "\r\n*** key/endpoint for pastebin "
+                    "are not configured! ***\r\n")
+            return
         data = {
-                'api_dev_key': PASTEBIN_API_KEY,
+                'api_dev_key': api_key,
                 'api_option': 'paste',
                 'api_paste_code': self.client().console_dump(),
                 'api_paste_format': 'python'
                }
-        r = requests.post(url=PASTEBIN_ENDPOINT, data=data)
+        r = requests.post(url=endpoint, data=data)
         server = self.client()
         server.console_print(
             "\r\n*** console buffer posted to %s ***\r\n" % (r.text))

@@ -126,6 +126,12 @@ class Client:
     def monitor_wait(self, what, timeout=None):
         return self._impl.monitor_wait(what, timeout, self._session)
 
+    def pastebin_api_key(self):
+        return self._agent.pastebin_api_key()
+
+    def pastebin_endpoint(self):
+        return self._agent.pastebin_endpoint()
+
     def power_locked(self):
         return self._impl.power_locked(self._session)
 
