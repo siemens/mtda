@@ -1,5 +1,13 @@
-# Minimal makefile for Sphinx documentation
+# ---------------------------------------------------------------------------
+# Makefile for Sphinx documentation
+# ---------------------------------------------------------------------------
 #
+# This software is a part of MTDA.
+# Copyright (c) Mentor, a Siemens business, 2017-2021
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
 
 # You can set these variables from the command line, and also
 # from the environment for the first two.
