@@ -1,8 +1,13 @@
+# ---------------------------------------------------------------------------
 # Configuration file for the Sphinx documentation builder.
+# ---------------------------------------------------------------------------
 #
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+# This software is a part of MTDA.
+# Copyright (c) Mentor, a Siemens business, 2017-2021
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
 
 # -- Path setup --------------------------------------------------------------
 
@@ -16,7 +21,7 @@ import mtda  # noqa (disables pycodestyle check for this line)
 # -- Project information -----------------------------------------------------
 
 project = 'MTDA'
-copyright = 'Mentor Embedded, 2017-2020'
+copyright = 'Mentor Embedded, 2017-2021'
 author = 'Cedric Hombourger'
 
 # The version info for the project you're documenting, acts as replacement for
