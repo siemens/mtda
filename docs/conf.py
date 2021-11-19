@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (c) Mentor, a Siemens business, 2017-2021
+# Copyright (C) 2021 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -21,7 +21,7 @@ import mtda  # noqa (disables pycodestyle check for this line)
 # -- Project information -----------------------------------------------------
 
 project = 'MTDA'
-copyright = 'Mentor Embedded, 2017-2021'
+copyright = '2021 Siemens Digital Industries Software'
 author = 'Cedric Hombourger'
 
 # The version info for the project you're documenting, acts as replacement for

@@ -15,13 +15,13 @@ mtda (0.12-1) testing; urgency=low
   [Vijai Kumar K]
   * various bug fixes
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Tue, 16 Nov 2021 18:25:00 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 16 Nov 2021 18:25:00 +0100
 
 mtda (0.11-1) testing; urgency=low
 
   * add "console wait" and "monitor wait" commands and APIs
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Tue, 22 Dec 2020 19:24:48 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 22 Dec 2020 19:24:48 +0100
 
 mtda (0.10-1) testing; urgency=low
 
@@ -31,7 +31,7 @@ mtda (0.10-1) testing; urgency=low
   [Cedric Hombourger]
   * support a monitor console in addition to the primary console
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 18 Dec 2020 20:34:01 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 18 Dec 2020 20:34:01 +0100
 
 mtda (0.9.10-1) testing; urgency=low
 
@@ -39,14 +39,14 @@ mtda (0.9.10-1) testing; urgency=low
 
   * fix check swtpm check when not configured
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Mon, 23 Nov 2020 17:44:14 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 23 Nov 2020 17:44:14 +0100
 
 mtda (0.9.9-1) testing; urgency=low
 
   * rework zerorpc recipe to pull sources from PyPI.org and debian meta-data
     from this layer
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Mon, 23 Nov 2020 16:42:07 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 23 Nov 2020 16:42:07 +0100
 
 mtda (0.9.8-1) testing; urgency=low
 
@@ -95,7 +95,7 @@ mtda (0.9.2-1) testing; urgency=low
   * power/pduclient: fix clash between status member variable and the status method
     by renaming the former to state.
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 20 Nov 2020 17:36:12 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 20 Nov 2020 17:36:12 +0100
 
 mtda (0.9-1) testing; urgency=low
 
@@ -105,7 +105,7 @@ mtda (0.9.1-1) testing; urgency=low
 
   * fix storage_swap() to use new storage_status() API
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Mon, 16 Nov 2020 20:52:33 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 16 Nov 2020 20:52:33 +0100
 
 mtda (0.9-1) testing; urgency=low
 
@@ -127,7 +127,7 @@ mtda (0.8.2-1) testing; urgency=low
 
   * Use sys.stdout.buffer.flush()
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Wed, 11 Nov 2020 23:03:25 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 11 Nov 2020 23:03:25 +0100
 
 mtda (0.8.1-1) testing; urgency=low
 
@@ -135,7 +135,7 @@ mtda (0.8.1-1) testing; urgency=low
   * Put HomeKit setup code in the environment 
   * Improve CI to build and publish Debian packages
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Wed, 11 Nov 2020 09:48:55 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 11 Nov 2020 09:48:55 +0100
 
 mtda (0.8-1) testing; urgency=low
 
@@ -174,7 +174,7 @@ mtda (0.5.1-1) testing; urgency=low
   * document console key bindings
   * make meta-isar pull v0.5.1
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 09 Oct 2020 16:27:40 -0400
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 09 Oct 2020 16:27:40 -0400
 
 mtda (0.5-1) testing; urgency=low
 
@@ -185,7 +185,7 @@ mtda (0.5-1) testing; urgency=low
   * add optional reset command to sdmux/usbf
   * more documentation updates
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Fri, 02 Oct 2020 13:25:55 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 02 Oct 2020 13:25:55 +0100
 
 mtda (0.4-1) testing; urgency=low
 
@@ -197,4 +197,4 @@ mtda (0.3-1) testing; urgency=low
 
   * Package version 0.3
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Wed, 18 Dec 2019 08:48:40 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 18 Dec 2019 08:48:40 +0100

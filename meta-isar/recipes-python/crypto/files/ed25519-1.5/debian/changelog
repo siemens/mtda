@@ -2,16 +2,16 @@ ed25519 (1.5-3) unstable; urgency=medium
 
   * Change architecture to any since this module includes a shared library
 
- -- Cedric Hombourger <cedric_hombourger@mentor.com>  Sun, 22 Nov 2020 22:10:46 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 22 Nov 2020 22:10:46 +0100
 
 ed25519 (1.5-2) unstable; urgency=medium
 
   * Version bump for bintray to re-index this package and place it in binary-all
 
- -- Cedric Hombourger <cedric_hombourger@mentor.com>  Sun, 22 Nov 2020 20:34:37 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 22 Nov 2020 20:34:37 +0100
 
 ed25519 (1.5-1) unstable; urgency=medium
 
   * Initial release
 
- -- Cedric Hombourger <cedric_hombourger@mentor.com>  Sun, 08 Nov 2020 08:49:49 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 08 Nov 2020 08:49:49 +0100

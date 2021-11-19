@@ -2,10 +2,10 @@ hap-python (3.0-2) unstable; urgency=medium
 
   * Version bump for bintray to re-index this package and place it in binary-all
 
- -- Cedric Hombourger <cedric_hombourger@mentor.com>  Sun, 22 Nov 2020 20:34:37 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 22 Nov 2020 20:34:37 +0100
 
 hap-python (3.0-1) unstable; urgency=medium
 
   * Initial release
 
- -- Cedric Hombourger <cedric_hombourger@mentor.com>  Sun, 08 Nov 2020 08:49:49 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 08 Nov 2020 08:49:49 +0100

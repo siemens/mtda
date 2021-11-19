@@ -1,7 +1,7 @@
 Source: ed25519
 Section: python
 Priority: optional
-Maintainer: Cedric Hombourger <cedric_hombourger@mentor.com>
+Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>=10), dh-python, libpython3-dev, python3-setuptools, python3-all
 Standards-Version: 4.5.0
 Homepage: https://pypi.org/project/ed25519/

@@ -1,13 +1,13 @@
 Source: mtda
 Section: devel
 Priority: extra
-Maintainer: Cedric Hombourger <Cedric_Hombourger@mentor.com>
+Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>=10) | dh-systemd,
                dh-python,
                python3-setuptools,
                python3-all
 Standards-Version: 4.5.0 
-Homepage: https://github.com/MentorEmbedded/mtda
+Homepage: https://github.com/siemens/mtda
 X-Python3-Version: >= 3.7
 
 Package: mtda

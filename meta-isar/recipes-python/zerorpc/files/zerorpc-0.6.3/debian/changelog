@@ -2,10 +2,10 @@ zerorpc-python (0.6.3-2) testing; urgency=low
 
   * Pull sources from PyPI.org and get debian meta-data from this layer
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Mon, 23 Nov 2020 16:39:36 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 23 Nov 2020 16:39:36 +0100
 
 zerorpc-python (0.6.3-1) testing; urgency=low
 
   * Package upstream version 0.6.3
 
- -- Cedric Hombourger <Cedric_Hombourger@mentor.com>  Wed, 18 Dec 2019 08:48:40 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 18 Dec 2019 08:48:40 +0100

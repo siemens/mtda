@@ -8,7 +8,7 @@ The latest released version may be installed using pip::
 You may alternatively fetch the latest version from GitHub and install it as
 follows::
 
-    $ git clone https://github.com/MentorEmbedded/mtda
+    $ git clone https://github.com/siemens/mtda
     $ cd mtda
     $ pip3 install --user .
 

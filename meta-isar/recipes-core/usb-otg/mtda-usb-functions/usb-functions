@@ -7,7 +7,7 @@ import shutil
 vendor_id    = "0x1d6b"  # Linux Foundation
 product_id   = "0x0104"  # Multifunction Composite Gadget
 serialnumber = "mtda-2020"
-manufacturer = "Mentor Graphics"
+manufacturer = "Siemens Digital Industries Software"
 product      = "USB functions for Multi-Tenant Device Access"
 lang         = "0x409"  # english
 path         = "/sys/kernel/config/usb_gadget/" + product.lower().replace(" ", "_")
