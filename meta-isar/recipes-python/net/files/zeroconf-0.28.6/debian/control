@@ -1,7 +1,7 @@
 Source: python-zeroconf
 Section: net
 Priority: optional
-Maintainer: Cedric Hombourger <cedric_hombourger@mentor.com>
+Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>=10),
                dh-python,
                python3-all,

@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (c) Mentor, a Siemens business, 2017-2021
+# Copyright (C) 2021 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -21,10 +21,10 @@ setup(
     scripts=['mtda-cli'],
     packages=find_packages(exclude=["demos"]),
     author='Cedric Hombourger',
-    author_email='Cedric_Hombourger@mentor.com',
+    author_email='cedric.hombourger@siemens.com',
 
     maintainer='Cedric Hombourger',
-    maintainer_email='Cedric_Hombourger@mentor.com',
+    maintainer_email='cedric.hombourger@siemens.com',
 
     description='Multi-Tenant Device Access',
     long_description='''
@@ -32,7 +32,7 @@ mtda is a small agent abstracting hardware controls and interfaces for a
 connected test device. The main purpose of this tool is to allow developers
 and testers to remotely access and control hardware devices.
 ''',
-    url='https://github.com/MentorEmbedded/mtda',
+    url='https://github.com/siemens/mtda',
     license='MIT',
     keywords='remote test',
     classifiers=[

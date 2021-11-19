@@ -3,12 +3,12 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (c) Mentor, a Siemens business, 2017-2021
+# Copyright (C) 2021 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
 __license__ = 'MIT'
-__copyright__ = 'Copyright (c) Mentor Embedded, 2017-2021'
+__copyright__ = 'Copyright (C) 2021 Siemens Digital Industries Software'
 __version__ = '0.12'

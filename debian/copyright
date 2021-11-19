@@ -1,28 +1,28 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: mtda
-Source: https://github.com/MentorEmbedded/mtda
+Source: https://github.com/siemens/mtda
 Files:     .gitignore
-           Documentation/Pi3+Aviosys8800+SDMux+USB+MX6Q.jpg
-           Documentation/Pi3.md
            README.md
-           TODO.md
-           demos/bdd/README.md
-           demos/bdd/linux/conformance/kernel/version.feature
-           demos/bdd/linux/conformance/usb/msc.feature
-           demos/bdd/mtda.ini
-           demos/bdd/radish/step.py
-           demos/bdd/radish/terrain.py
-           demos/bdd/settings.json
+           docs/*.jpg
+           docs/*.md
+           docs/*.png
+           kas/*.yml
            mtda-cli
+           mtda-ui
            mtda.ini
+           setup.py
            mtda/*.py
+           mtda/__init__.py
+           mtda/__version__.py
            mtda/client.py
+           mtda/assistant/*.py
            mtda/console/*.py
+           mtda/keyboard/*.py
            mtda/power/*.py
            mtda/sdmux/*.py
            mtda/usb/*.py
-           setup.py
-Copyright: Copyright (c) Mentor Graphics, 2017-2019
+           mtda/video/*.py
+Copyright: 2021 Siemens Digital Industries Software
 License:   MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal

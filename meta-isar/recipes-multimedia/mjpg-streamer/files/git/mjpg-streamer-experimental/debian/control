@@ -2,7 +2,7 @@ Source: mjpg-streamer
 Section: misc
 Priority: optional
 Standards-Version: 4.5.1
-Maintainer: Mentor Embedded <embedded_support@mentor.com>
+Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>= 10),
                cmake,
                libjpeg62-turbo-dev,

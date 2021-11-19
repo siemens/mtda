@@ -1,7 +1,7 @@
 Source: zerorpc-python
 Section: devel
 Priority: extra
-Maintainer: Cedric Hombourger <Cedric_Hombourger@mentor.com>
+Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>=10),
                dh-python,
                python3-setuptools,
