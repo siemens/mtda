@@ -51,6 +51,22 @@ Files: docs/intro.rst
 Copyright: 2021 Mentor, a Siemens business
 License: MIT
 
+Files: docs/jqc3f-05vdc.jpg
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/neo_block_diagram.png
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/neo_pinout.jpg
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
+Files: docs/neo_sdwire_de0-nano-soc.png
+Copyright: 2021 Mentor, a Siemens business
+License: MIT
+
 Files: docs/usage.rst
 Copyright: 2021 Mentor, a Siemens business
 License: MIT
