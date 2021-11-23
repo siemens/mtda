@@ -18,6 +18,17 @@ A sample setup is depicted below:
  * [Configuration](https://mtda.readthedocs.io/en/latest/config.html)
  * [Build Your Own](https://mtda.readthedocs.io/en/latest/build.html)
 
+# Development
+
+Mailing list:
+[mtda-users@googlegroups.com](mtda-users@googlegroups.com)
+
+Archive:
+[https://www.mail-archive.com/mtda-users@googlegroups.com/](https://www.mail-archive.com/mtda-users@googlegroups.com)
+
+For sending patches, please refer to the mailing list and `CONTRIBUTING.md` in
+the source tree.
+
 # License
 
 MTDA is licensed under the [MIT](https://opensource.org/licenses/MIT) license.
