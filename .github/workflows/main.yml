@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------------------
+# CI workflows for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2021 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+name: CI
+
+on: [push]
+
+jobs:
+  mtda-nanopi-neo-image:
+    name: Debian image for running MTDA on the NanoPI NEO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build image
+        run: ./kas-container build kas/mtda-nanopi-neo.yml
+      - name: Upload image
+        uses: actions/upload-artifact@v2
+        with:
+          name: mtda-nanopi-neo-image
+          path: |
+            build/tmp/deploy/images/nanopi-neo/isar-image-base-debian-bullseye-nanopi-neo.wic.img
+            build/tmp/deploy/images/nanopi-neo/isar-image-base-debian-bullseye-nanopi-neo.wic.img.bmap
