@@ -11,6 +11,10 @@ Files: *.md
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
+Files: kas-container
+Copyright: 2021 Siemens AG
+License: MIT
+
 Files: configs/qemu-ovmf-vars.fd
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
