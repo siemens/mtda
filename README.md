@@ -11,6 +11,10 @@ A sample setup is depicted below:
 
 ![NanoPI setup](docs/neo_block_diagram.png)
 
+# Badges
+
+[![CI](https://github.com/siemens/mtda/actions/workflows/main.yml/badge.svg)](https://github.com/siemens/mtda/actions/workflows/main.yml)
+
 # Getting Started
 
  * [Installation](https://mtda.readthedocs.io/en/latest/install.html)
