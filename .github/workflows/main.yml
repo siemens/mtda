@@ -29,3 +29,10 @@ jobs:
           path: |
             build/tmp/deploy/images/nanopi-neo/isar-image-base-debian-bullseye-nanopi-neo.wic.img
             build/tmp/deploy/images/nanopi-neo/isar-image-base-debian-bullseye-nanopi-neo.wic.img.bmap
+      - name: Publish .deb to Gemfury
+        env:
+          GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
+        run: |
+          find build/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
+            curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
+          done
