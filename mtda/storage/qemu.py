@@ -38,6 +38,8 @@ class QemuController(Image):
         result = None
         if 'file' in conf:
             self.file = os.path.realpath(conf['file'])
+            d = os.path.dirname(self.file)
+            os.makedirs(d, mode=0o755, exist_ok=True)
             if os.path.exists(self.file) is False:
                 sparse = pathlib.Path(self.file)
                 sparse.touch()
