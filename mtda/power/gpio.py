@@ -92,7 +92,8 @@ class GpioPowerController(PowerController):
                 value = self.POWER_ON
             else:
                 value = self.POWER_OFF
-            self.mtda.debug(3, "power.gpio.status: pin #%d is %s" % (pin, value))
+            self.mtda.debug(3, "power.gpio.status: "
+                               "pin #%d is %s" % (pin, value))
             if first is True:
                 first = False
                 result = value
