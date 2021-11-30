@@ -14,6 +14,7 @@ A sample setup is depicted below:
 # Badges
 
 [![CI](https://github.com/siemens/mtda/actions/workflows/main.yml/badge.svg)](https://github.com/siemens/mtda/actions/workflows/main.yml)
+[![DOCS](https://readthedocs.org/projects/mtda/badge/?version=latest)](https://mtda.readthedocs.io/en/latest/?badge=latest)
 
 # Getting Started
 
