@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# USB Function sdmux driver for MTDA
+# USB Function storage driver for MTDA
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -15,7 +15,7 @@ import os
 import subprocess
 
 # Local imports
-from mtda.sdmux.helpers.image import Image
+from mtda.storage.helpers.image import Image
 
 
 class UsbFunctionController(Image):
@@ -27,9 +27,9 @@ class UsbFunctionController(Image):
         self.mode = self.SD_ON_HOST
         self.reset = None
 
-    """ Configure this sdmux controller from the provided configuration"""
+    """ Configure this storage controller from the provided configuration"""
     def configure(self, conf):
-        self.mtda.debug(3, "sdmux.usbf.configure()")
+        self.mtda.debug(3, "storage.usbf.configure()")
 
         result = None
         if 'gadget' in conf:
@@ -43,12 +43,12 @@ class UsbFunctionController(Image):
                       "{0}/functions/{1}/lun.0/file").format(
                      self.gadget, self.function)
 
-        self.mtda.debug(3, "sdmux.usbf.configure(): %s" % str(result))
+        self.mtda.debug(3, "storage.usbf.configure(): %s" % str(result))
         return result
 
     """ Get file used by the USB Function driver"""
     def probe(self):
-        self.mtda.debug(3, "sdmux.usbf.probe()")
+        self.mtda.debug(3, "storage.usbf.probe()")
 
         result = True
         try:
@@ -58,12 +58,12 @@ class UsbFunctionController(Image):
         except FileNotFoundError:
             result = False
 
-        self.mtda.debug(3, "sdmux.usbf.probe(): %s" % str(result))
+        self.mtda.debug(3, "storage.usbf.probe(): %s" % str(result))
         return result
 
-    """ Attach the SD card to the host"""
+    """ Attach the shared storage device to the host"""
     def to_host(self):
-        self.mtda.debug(3, "sdmux.usbf.to_host()")
+        self.mtda.debug(3, "storage.usbf.to_host()")
         self.lock.acquire()
 
         result = True
@@ -73,13 +73,13 @@ class UsbFunctionController(Image):
         if result:
             self.mode = self.SD_ON_HOST
 
-        self.mtda.debug(3, "sdmux.usbf.to_host(): %s" % str(result))
+        self.mtda.debug(3, "storage.usbf.to_host(): %s" % str(result))
         self.lock.release()
         return result
 
-    """ Attach the SD card to the target"""
+    """ Attach the shared storage device to the target"""
     def to_target(self):
-        self.mtda.debug(3, "sdmux.usbf.to_target()")
+        self.mtda.debug(3, "storage.usbf.to_target()")
         self.lock.acquire()
 
         result = self._close()
@@ -95,16 +95,16 @@ class UsbFunctionController(Image):
             self.mode = self.SD_ON_TARGET
 
         self.lock.release()
-        self.mtda.debug(3, "sdmux.usbf.to_target(): %s" % str(result))
+        self.mtda.debug(3, "storage.usbf.to_target(): %s" % str(result))
         return result
 
-    """ Determine where is the SD card attached"""
+    """ Determine where the shared storage device is attached"""
     def _status(self):
-        self.mtda.debug(3, "sdmux.usbf.status()")
+        self.mtda.debug(3, "storage.usbf.status()")
 
         result = self.mode
 
-        self.mtda.debug(3, "sdmux.usbf.status(): %s" % str(result))
+        self.mtda.debug(3, "storage.usbf.status(): %s" % str(result))
         return result
 
 

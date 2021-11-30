@@ -114,13 +114,13 @@ General settings
       stop autoboot`` on the ``monitor`` interface before sending a space and
       sending a custom boot command.
  
-* ``sdmux``: section [optional]
+* ``storage``: section [optional]
     Configure a shared storage driver that may be swapped between the device
     attached to MTDA and the host running the agent. The driver will be
     selected with ``variant``.
 
   * ``variant``: string [required]
-      Select a sdmux variant from ``qemu``, ``samsung`` and ``usbf``.
+      Select a shared storage variant from ``qemu``, ``samsung`` and ``usbf``.
 
 * ``usb``: section [optional]
     Specify how many USB ports may be controlled from this agent.
@@ -283,7 +283,7 @@ The following settings are supported:
 Shared device settings
 ----------------------
 
-The ``[sdmux]`` section configures a shared storage device that may be used
+The ``[storage]`` section configures a shared storage device that may be used
 either from the device under test or from the host running the MTDA agent. The
 driver is selected with the ``variant`` setting. Driver-specific settings are
 detailed below.

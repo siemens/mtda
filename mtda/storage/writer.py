@@ -34,17 +34,17 @@ class AsyncImageWriter(queue.Queue):
 
     @property
     def compression(self):
-        self.mtda.debug(3, "sdmux.writer.compression.get()")
+        self.mtda.debug(3, "storage.writer.compression.get()")
 
         result = self._compression
 
-        self.mtda.debug(3, "sdmux.writer.compression.get(): "
+        self.mtda.debug(3, "storage.writer.compression.get(): "
                            "%s" % str(result))
         return result
 
     @compression.setter
     def compression(self, compression):
-        self.mtda.debug(3, "sdmux.writer.compression.set()")
+        self.mtda.debug(3, "storage.writer.compression.set()")
 
         compression = CONSTS.IMAGE(compression)
         if compression == CONSTS.IMAGE.RAW:
@@ -60,7 +60,7 @@ class AsyncImageWriter(queue.Queue):
         self._compression = compression
 
         result = compression
-        self.mtda.debug(3, "sdmux.writer.compression.set(): "
+        self.mtda.debug(3, "storage.writer.compression.set(): "
                            "%s" % str(result))
 
     @property
@@ -68,49 +68,49 @@ class AsyncImageWriter(queue.Queue):
         return self._failed
 
     def put(self, chunk, block=True, timeout=None):
-        self.mtda.debug(3, "sdmux.writer.put()")
+        self.mtda.debug(3, "storage.writer.put()")
 
         if self.storage is None:
-            self.mtda.debug(1, "sdmux.writer.put(): no storage!")
+            self.mtda.debug(1, "storage.writer.put(): no storage!")
             raise IOError("no storage!")
         result = super().put(chunk, block, timeout)
 
-        self.mtda.debug(3, "sdmux.writer.put(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.put(): %s" % str(result))
         return result
 
     def start(self):
-        self.mtda.debug(3, "mtda.sdmux.writer.start()")
+        self.mtda.debug(3, "mtda.storage.writer.start()")
 
         result = None
         self._thread = threading.Thread(target=self.worker,
                                         daemon=True, name='writer')
         self._thread.start()
 
-        self.mtda.debug(3, "sdmux.writer.start(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.start(): %s" % str(result))
         return result
 
     def stop(self):
-        self.mtda.debug(3, "sdmux.writer.stop()")
+        self.mtda.debug(3, "storage.writer.stop()")
 
         result = None
-        self.mtda.debug(2, "sdmux.writer.stop(): waiting on queue...")
+        self.mtda.debug(2, "storage.writer.stop(): waiting on queue...")
         self.join()
 
         if self._thread is not None:
-            self.mtda.debug(2, "sdmux.writer.stop(): waiting on thread...")
+            self.mtda.debug(2, "storage.writer.stop(): waiting on thread...")
             self._exiting = True
             self.put(b'')
             self._thread.join()
 
-        self.mtda.debug(2, "sdmux.writer.stop(): all done")
+        self.mtda.debug(2, "storage.writer.stop(): all done")
         self._thread = None
         self._zdec = None
 
-        self.mtda.debug(3, "sdmux.writer.stop(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.stop(): %s" % str(result))
         return result
 
     def worker(self):
-        self.mtda.debug(3, "sdmux.writer.worker()")
+        self.mtda.debug(3, "storage.writer.worker()")
 
         result = None
         self._exiting = False
@@ -124,28 +124,28 @@ class AsyncImageWriter(queue.Queue):
                 self._writing = False
             self.task_done()
             if self._failed is True:
-                self.mtda.debug(1, "sdmux.writer.worker(): "
+                self.mtda.debug(1, "storage.writer.worker(): "
                                    "write or decompression error!")
                 break
 
-        self.mtda.debug(3, "sdmux.writer.worker(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.worker(): %s" % str(result))
         return result
 
     def write_raw(self, data, session=None):
-        self.mtda.debug(3, "sdmux.writer.write_raw()")
+        self.mtda.debug(3, "storage.writer.write_raw()")
 
         try:
             result = self.storage.write(data)
             self._written += result if result is not None else 0
         except OSError:
-            self.mtda.debug(1, "sdmux.writer.write_raw(): write error!")
+            self.mtda.debug(1, "storage.writer.write_raw(): write error!")
             self._failed = True
 
-        self.mtda.debug(3, "sdmux.writer.write_raw(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.write_raw(): %s" % str(result))
         return result
 
     def write_gz(self, data, session=None):
-        self.mtda.debug(3, "sdmux.writer.write_gz()")
+        self.mtda.debug(3, "storage.writer.write_gz()")
 
         # Create a zlib decompressor when called for the first time
         if self._zdec is None:
@@ -161,15 +161,15 @@ class AsyncImageWriter(queue.Queue):
                 result = self.storage.write(uncompressed)
                 self._written += result if result is not None else 0
         except (OSError, zlib.error) as e:
-            self.mtda.debug(1, "sdmux.writer.write_gz(): "
+            self.mtda.debug(1, "storage.writer.write_gz(): "
                                "%s" % str(e.args[0]))
             self._failed = True
 
-        self.mtda.debug(3, "sdmux.writer.write_gz(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.write_gz(): %s" % str(result))
         return result
 
     def write_bz2(self, data):
-        self.mtda.debug(3, "sdmux.writer.write_bz2()")
+        self.mtda.debug(3, "storage.writer.write_bz2()")
 
         # Create a bz2 decompressor when called for the first time
         if self._zdec is None:
@@ -185,15 +185,15 @@ class AsyncImageWriter(queue.Queue):
                 cont = self._zdec.needs_input is False
                 data = b''
         except OSError as e:
-            self.mtda.debug(1, "sdmux.writer.write_bz2(): "
+            self.mtda.debug(1, "storage.writer.write_bz2(): "
                                "%s" % str(e.args[0]))
             self._failed = True
 
-        self.mtda.debug(3, "sdmux.writer.write_bz2(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.write_bz2(): %s" % str(result))
         return result
 
     def write_zst(self, data):
-        self.mtda.debug(3, "sdmux.writer.write_zst()")
+        self.mtda.debug(3, "storage.writer.write_zst()")
 
         # Create a decompressor when called for the first time
         if self._zdec is None:
@@ -203,10 +203,10 @@ class AsyncImageWriter(queue.Queue):
             result = self._zdec.write(data)
             self._written += result if result is not None else 0
         except OSError:
-            self.mtda.debug(1, "sdmux.writer.write_zst(): write error!")
+            self.mtda.debug(1, "storage.writer.write_zst(): write error!")
             self._failed = True
 
-        self.mtda.debug(3, "sdmux.writer.write_zst(): %s" % str(result))
+        self.mtda.debug(3, "storage.writer.write_zst(): %s" % str(result))
         return result
 
     @property

@@ -26,7 +26,7 @@ import zmq
 from mtda.console.input import ConsoleInput
 from mtda.console.logger import ConsoleLogger
 from mtda.console.remote import RemoteConsole, RemoteMonitor
-from mtda.sdmux.writer import AsyncImageWriter
+from mtda.storage.writer import AsyncImageWriter
 import mtda.constants as CONSTS
 import mtda.keyboard.controller
 import mtda.power.controller
@@ -69,7 +69,7 @@ class MultiTenantDeviceAccess:
         self.power_on_script = None
         self.power_off_script = None
         self.power_monitors = []
-        self.sdmux_controller = None
+        self.storage_controller = None
         self._pastebin_api_key = None
         self._pastebin_endpoint = None
         self._storage_mounted = False
@@ -466,7 +466,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_compression()")
 
         self._session_check(session)
-        if self.sdmux_controller is None:
+        if self.storage_controller is None:
             result = None
         else:
             result = self._writer.compression.value
@@ -479,12 +479,12 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_close()")
 
         self._session_check(session)
-        if self.sdmux_controller is None:
+        if self.storage_controller is None:
             result = False
         else:
             self._writer.stop()
             self._writer_data = None
-            self._storage_opened = not self.sdmux_controller.close()
+            self._storage_opened = not self.storage_controller.close()
             result = (self._storage_opened is False)
 
         self.mtda.debug(3, "main.storage_close(): %s" % str(result))
@@ -498,12 +498,12 @@ class MultiTenantDeviceAccess:
             result = True
         # Cannot swap the shared storage device between the host and target
         # without a driver
-        elif self.sdmux_controller is None:
+        elif self.storage_controller is None:
             self.mtda.debug(4, "storage_locked(): no shared storage device")
             result = True
         # If hotplugging is supported, swap only if the shared storage
         # isn't opened
-        elif self.sdmux_controller.supports_hotplug() is True:
+        elif self.storage_controller.supports_hotplug() is True:
             result = self._storage_opened
         # We also need a power controller to be safe
         elif self.power_controller is None:
@@ -532,11 +532,11 @@ class MultiTenantDeviceAccess:
         if self._storage_mounted is True:
             self.mtda.debug(4, "storage_mount(): already mounted")
             result = True
-        elif self.sdmux_controller is None:
+        elif self.storage_controller is None:
             self.mtda.debug(4, "storage_mount(): no shared storage device")
             return False
         else:
-            result = self.sdmux_controller.mount(part)
+            result = self.storage_controller.mount(part)
             self._storage_mounted = (result is True)
 
         self.mtda.debug(3, "main.storage_mount(): %s" % str(result))
@@ -547,11 +547,11 @@ class MultiTenantDeviceAccess:
 
         self._session_check(session)
         result = False
-        if self.sdmux_controller is None:
+        if self.storage_controller is None:
             self.mtda.debug(4, "storage_update(): no shared storage device")
         else:
             try:
-                result = self.sdmux_controller.update(dst, offset)
+                result = self.storage_controller.update(dst, offset)
                 if result is True:
                     self._writer.start()
             except (FileNotFoundError, IOError) as e:
@@ -565,12 +565,12 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_open()")
 
         self._session_check(session)
-        if self.sdmux_controller is None:
+        if self.storage_controller is None:
             self.mtda.debug(1, "storage_open(): no shared storage device")
             result = False
         else:
             self.storage_close()
-            result = self.sdmux_controller.open()
+            result = self.storage_controller.open()
             if result is True:
                 self._writer.start()
             self._storage_opened = result
@@ -582,11 +582,11 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_status()")
 
         self._session_check(session)
-        if self.sdmux_controller is None:
+        if self.storage_controller is None:
             self.mtda.debug(4, "storage_status(): no shared storage device")
             result = "???", False, 0
         else:
-            status = self.sdmux_controller.status()
+            status = self.storage_controller.status()
             result = status, self._writer.writing, self._writer.written
 
         self.mtda.debug(3, "main.storage_status(): %s" % str(result))
@@ -597,9 +597,9 @@ class MultiTenantDeviceAccess:
 
         self._session_check(session)
         if self.storage_locked(session) is False:
-            result = self.sdmux_controller.to_host()
+            result = self.storage_controller.to_host()
             if result is True:
-                self._storage_event(self.sdmux_controller.SD_ON_HOST)
+                self._storage_event(self.storage_controller.SD_ON_HOST)
         else:
             self.mtda.debug(1, "storage_to_host(): shared storage is locked")
             result = False
@@ -613,9 +613,9 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         if self.storage_locked(session) is False:
             self.storage_close()
-            result = self.sdmux_controller.to_target()
+            result = self.storage_controller.to_target()
             if result is True:
-                self._storage_event(self.sdmux_controller.SD_ON_TARGET)
+                self._storage_event(self.storage_controller.SD_ON_TARGET)
         else:
             self.mtda.debug(1, "storage_to_target(): shared storage is locked")
             result = False
@@ -629,12 +629,12 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         if self.storage_locked(session) is False:
             result, writing, written = self.storage_status(session)
-            if result == self.sdmux_controller.SD_ON_HOST:
-                if self.sdmux_controller.to_target() is True:
-                    self._storage_event(self.sdmux_controller.SD_ON_TARGET)
-            elif result == self.sdmux_controller.SD_ON_TARGET:
-                if self.sdmux_controller.to_host() is True:
-                    self._storage_event(self.sdmux_controller.SD_ON_HOST)
+            if result == self.storage_controller.SD_ON_HOST:
+                if self.storage_controller.to_target() is True:
+                    self._storage_event(self.storage_controller.SD_ON_TARGET)
+            elif result == self.storage_controller.SD_ON_TARGET:
+                if self.storage_controller.to_host() is True:
+                    self._storage_event(self.storage_controller.SD_ON_HOST)
         result, writing, written = self.storage_status(session)
         return result
 
@@ -645,7 +645,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_write()")
 
         self._session_check(session)
-        if self.sdmux_controller is None or self._writer.failed is True:
+        if self.storage_controller is None or self._writer.failed is True:
             result = -1
         else:
             try:
@@ -988,8 +988,8 @@ class MultiTenantDeviceAccess:
                 self.load_keyboard_config(parser)
             if parser.has_section('monitor'):
                 self.load_monitor_config(parser)
-            if parser.has_section('sdmux'):
-                self.load_sdmux_config(parser)
+            if parser.has_section('storage'):
+                self.load_storage_config(parser)
             if parser.has_section('usb'):
                 self.load_usb_config(parser)
             if parser.has_section('video'):
@@ -1133,21 +1133,21 @@ class MultiTenantDeviceAccess:
             print('power controller "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
 
-    def load_sdmux_config(self, parser):
-        self.mtda.debug(3, "main.load_sdmux_config()")
+    def load_storage_config(self, parser):
+        self.mtda.debug(3, "main.load_storage_config()")
 
         try:
             # Get variant
-            variant = parser.get('sdmux', 'variant')
+            variant = parser.get('storage', 'variant')
             # Try loading its support class
-            mod = importlib.import_module("mtda.sdmux." + variant)
+            mod = importlib.import_module("mtda.storage." + variant)
             factory = getattr(mod, 'instantiate')
-            self.sdmux_controller = factory(self)
-            self._writer = AsyncImageWriter(self, self.sdmux_controller)
-            # Configure the sdmux controller
-            self.sdmux_controller.configure(dict(parser.items('sdmux')))
+            self.storage_controller = factory(self)
+            self._writer = AsyncImageWriter(self, self.storage_controller)
+            # Configure the storage controller
+            self.storage_controller.configure(dict(parser.items('storage')))
         except configparser.NoOptionError:
-            print('sdmux controller variant not defined!', file=sys.stderr)
+            print('storage controller variant not defined!', file=sys.stderr)
         except ImportError:
             print('power controller "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
@@ -1275,9 +1275,9 @@ class MultiTenantDeviceAccess:
                 print('Probe of the Power Controller failed!', file=sys.stderr)
                 return False
 
-        # Probe the specified sdmux controller
-        if self.sdmux_controller is not None:
-            status = self.sdmux_controller.probe()
+        # Probe the specified storage controller
+        if self.storage_controller is not None:
+            status = self.storage_controller.probe()
             if status is False:
                 print('Probe of the shared storage device failed!',
                       file=sys.stderr)
