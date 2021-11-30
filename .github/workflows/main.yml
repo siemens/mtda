@@ -30,12 +30,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Build packages
+        run: |
+          export KAS_BUILD_DIR=${PWD}/build-nanopi
+          ./kas-container build --target mtda-packages kas/mtda-nanopi-neo.yml
       - name: Build image
+        if: github.ref == 'refs/heads/master'
         run: |
           export KAS_BUILD_DIR=${PWD}/build-nanopi
           ./kas-container build kas/mtda-nanopi-neo.yml
       - name: Upload image
         uses: actions/upload-artifact@v2
+        if: github.ref == 'refs/heads/master'
         with:
           name: mtda-nanopi-neo-image
           path: |
@@ -55,7 +61,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build image
+      - name: Build packages
         run: |
           export KAS_BUILD_DIR=${PWD}/build-amd64
           ./kas-container build --target mtda-packages kas/mtda-qemu-amd64.yml
