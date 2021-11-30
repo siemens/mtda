@@ -49,7 +49,7 @@ The agent will create three disk image files on startup if they do not exist
 (you may create these files yourself with different sizes):
 
  * ssd.img: 16 GiB serving as primary storage
- * usb-sdmux.img: 8 GiB as a mass storage that be swapped between host & target
+ * usb-shared-storage.img: 8 GiB as a mass storage that be swapped between host & target
  * usb-data-storage.img: an extra mass storage device
 
 The shared storage (``usb-sdmux``) may be initialized as follows::
@@ -317,7 +317,7 @@ Hit ``i`` to enter the input mode and type the following configuration::
     variant=hid
     device=/dev/hidg0
 
-    [sdmux]
+    [storage]
     variant=usbf
 
 Hit ``ESC`` to leave the input mode and type ``:x`` to exit. You should be back
@@ -342,7 +342,7 @@ The SDWire PCB may be built using the PCB fabrication files found on the
 Tizen Wiki (https://wiki.tizen.org/SDWire).
 
 The MTDA image built above already includes the ``sd-mux-ctrl`` tool
-and the MTDA sdmux driver that supports both SDWire but also the older
+and the MTDA samsung driver that supports both SDWire but also the older
 SD-MUX design.
 
 The following configuration file may be used for the DE0-Nano-SoC::
@@ -359,7 +359,7 @@ The following configuration file may be used for the DE0-Nano-SoC::
     variant=gpio
     pins=203
 
-    [sdmux]
+    [storage]
     variant=samsung
     serial=sdwire1
 

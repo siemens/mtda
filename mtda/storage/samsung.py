@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Samsung sdmux driver for MTDA
+# Storage driver for Samsung sdmux on MTDA
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -16,19 +16,19 @@ import psutil
 import subprocess
 
 # Local imports
-from mtda.sdmux.helpers.image import Image
+from mtda.storage.helpers.image import Image
 
 
-class SamsungSdMuxController(Image):
+class SamsungSdMuxStorageController(Image):
 
     def __init__(self, mtda):
         super().__init__(mtda)
         self.file = "/dev/sda"
         self.serial = "sdmux"
 
-    """ Configure this sdmux controller from the provided configuration"""
+    """ Configure this storage controller from the provided configuration"""
     def configure(self, conf):
-        self.mtda.debug(3, "sdmux.samsung.configure()")
+        self.mtda.debug(3, "storage.samsung.configure()")
 
         result = None
         if 'device' in conf:
@@ -36,12 +36,12 @@ class SamsungSdMuxController(Image):
         if 'serial' in conf:
             self.serial = conf['serial']
 
-        self.mtda.debug(3, "sdmux.samsung.configure(): %s" % str(result))
+        self.mtda.debug(3, "storage.samsung.configure(): %s" % str(result))
         return result
 
-    """ Check presence of the sdmux controller"""
+    """ Check presence of the sdmux"""
     def probe(self):
-        self.mtda.debug(3, "sdmux.samsung.probe()")
+        self.mtda.debug(3, "storage.samsung.probe()")
 
         result = True
         try:
@@ -51,12 +51,12 @@ class SamsungSdMuxController(Image):
         except subprocess.CalledProcessError:
             result = False
 
-        self.mtda.debug(3, "sdmux.samsung.probe(): %s" % str(result))
+        self.mtda.debug(3, "storage.samsung.probe(): %s" % str(result))
         return result
 
     """ Attach the SD card to the host"""
     def to_host(self):
-        self.mtda.debug(3, "sdmux.samsung.to_host()")
+        self.mtda.debug(3, "storage.samsung.to_host()")
 
         result = True
         try:
@@ -66,12 +66,12 @@ class SamsungSdMuxController(Image):
         except subprocess.CalledProcessError:
             result = False
 
-        self.mtda.debug(3, "sdmux.samsung.to_host(): %s" % str(result))
+        self.mtda.debug(3, "storage.samsung.to_host(): %s" % str(result))
         return result
 
     """ Attach the SD card to the target"""
     def to_target(self):
-        self.mtda.debug(3, "sdmux.samsung.to_target()")
+        self.mtda.debug(3, "storage.samsung.to_target()")
         self.lock.acquire()
 
         result = self._close()
@@ -85,13 +85,13 @@ class SamsungSdMuxController(Image):
             except subprocess.CalledProcessError:
                 result = False
 
-        self.mtda.debug(3, "sdmux.samsung.to_target(): %s" % str(result))
+        self.mtda.debug(3, "storage.samsung.to_target(): %s" % str(result))
         self.lock.release()
         return result
 
     """ Determine where is the SD card attached"""
     def _status(self):
-        self.mtda.debug(3, "sdmux.samsung.status()")
+        self.mtda.debug(3, "storage.samsung.status()")
 
         try:
             status = subprocess.check_output([
@@ -106,12 +106,12 @@ class SamsungSdMuxController(Image):
                     result = self.SD_ON_TARGET
                     break
         except subprocess.CalledProcessError:
-            self.mtda.debug(1, "sdmux.samsung.status(): sd-mux-ctrl failed!")
+            self.mtda.debug(1, "storage.samsung.status(): sd-mux-ctrl failed!")
             result = self.SD_ON_UNSURE
 
-        self.mtda.debug(3, "sdmux.samsung.status(): %s" % str(result))
+        self.mtda.debug(3, "storage.samsung.status(): %s" % str(result))
         return result
 
 
 def instantiate(mtda):
-    return SamsungSdMuxController(mtda)
+    return SamsungSdMuxStorageController(mtda)
