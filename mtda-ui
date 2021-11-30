@@ -21,7 +21,8 @@ from py3qterm.backend import Terminal
 from PyQt5.QtCore import QUrl
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import qApp, QMainWindow, QAction, QApplication, QStyle, QTabWidget
+from PyQt5.QtWidgets import (qApp, QMainWindow, QAction, QApplication,
+                             QStyle, QTabWidget)
 
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaMetaData
 from PyQt5.QtMultimediaWidgets import QVideoWidget
@@ -265,6 +266,7 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         a.setStatusTip(txt)
         a.setText(txt)
         a.setIcon(icn)
+
 
 def main():
     app = QApplication(sys.argv)
