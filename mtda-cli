@@ -711,11 +711,14 @@ class Application:
         detach = True
 
         options, stuff = getopt.getopt(
-            sys.argv[1:], 'dnr:v',
-            ['daemon', 'no-detach', 'remote=', 'version'])
+            sys.argv[1:], 'dhnr:v',
+            ['daemon', 'help', 'no-detach', 'remote=', 'version'])
         for opt, arg in options:
             if opt in ('-d', '--daemon'):
                 daemonize = True
+            if opt in ('-h', '--help'):
+                self.help_cmd()
+                sys.exit(0)
             if opt in ('-n', '--no-detach'):
                 detach = False
             if opt in ('-r', '--remote'):
