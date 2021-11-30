@@ -1,6 +1,19 @@
 Installation
 ============
 
+Using apt
+---------
+
+Packages for Debian 11 (bullseye) may be installed as follows::
+
+   $ echo 'deb [trusted=yes] https://apt.fury.io/mtda/ /' | \
+     sudo tee /etc/apt/sources.list.d/mtda.list
+   $ sudo apt-get update
+   $ sudo apt-get install -y mtda
+
+Using pip
+---------
+
 The latest released version may be installed using pip::
 
     $ pip3 install --user mtda
