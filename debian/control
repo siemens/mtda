@@ -29,3 +29,11 @@ Depends: mtda, qemu-kvm
 Description: KVM machine managed by MTDA
  Provide a KVM machine with a MTDA interface to control its
  life-cycle and connected devices.
+
+Package: mtda-ui
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda, python3-py3qterm, python3-pyqt5.qtmultimedia
+Description: a simple user-interface for MTDA
+ Provide a simple client-side user-interface to interact with
+ devices under test.

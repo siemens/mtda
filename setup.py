@@ -18,7 +18,7 @@ from mtda import __version__
 setup(
     name='mtda',
     version=__version__,
-    scripts=['mtda-cli'],
+    scripts=['mtda-cli', 'mtda-ui'],
     packages=find_packages(exclude=["demos"]),
     author='Cedric Hombourger',
     author_email='cedric.hombourger@siemens.com',

@@ -5,3 +5,4 @@ debhelper-build-stamp
 files
 mtda
 mtda-kvm
+mtda-ui

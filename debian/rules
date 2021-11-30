@@ -14,3 +14,5 @@ override_dh_auto_install:
 	install -m 0644 configs/qemu.ini debian/mtda-kvm/etc/mtda/config
 	install -m 0755 -d debian/mtda-kvm/var/lib/mtda
 	install -m 0644 configs/qemu-ovmf-vars.fd debian/mtda-kvm/var/lib/mtda/
+	install -m 0755 -d debian/mtda-ui/usr/bin
+	mv debian/mtda/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
