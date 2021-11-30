@@ -1,0 +1,5 @@
+py3qterm (0.4-1) testing; urgency=low
+
+  * Package upstream version 0.4
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 30 Dec 2021 20:41:00 +0100
