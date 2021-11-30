@@ -11,6 +11,7 @@ DEPENDS = "                              \
     mjpg-streamer                        \
     mtda                                 \
     mtda-usb-functions                   \
+    py3qterm                             \
     sd-mux-ctrl                          \
     zstandard                            \
 "

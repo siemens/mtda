@@ -1,0 +1,19 @@
+Source: py3qterm
+Section: devel
+Priority: extra
+Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
+Build-Depends: debhelper (>=10),
+               dh-python,
+               python3-setuptools,
+               python3-all
+Standards-Version: 4.5.0
+Homepage: https://gitlab.com/mikeramsey/py3qtermwidget
+X-Python3-Version: >= 3.7
+
+Package: python3-py3qterm
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${python3:Depends}
+Description: Simple terminal widget for PyQt5/Pyside2 with vt100 support
+ Unlike the older pyqonsole this console widget works with PyQt5/PySide2
+ and let's you embed a shell into your application.

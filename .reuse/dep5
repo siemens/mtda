@@ -151,6 +151,10 @@ Files: meta-isar/recipes-python/net/files/zeroconf-0.28.6/debian/source/*
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
+Files: meta-isar/recipes-python/qt5/files/py3qterm-0.4/debian/*
+Copyright: 2021 Siemens Digital Industries Software
+License: MIT
+
 Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/*
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
