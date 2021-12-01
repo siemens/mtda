@@ -376,13 +376,13 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "env_set(): %s" % str(result))
         return result
 
-    def keyboard_write(self, str, session=None):
+    def keyboard_write(self, input_str, session=None):
         self.mtda.debug(3, "main.keyboard_write()")
 
         self._session_check(session)
         result = None
         if self.keyboard is not None:
-            result = self.keyboard.write(str)
+            result = self.keyboard.write(input_str)
 
         self.mtda.debug(3, "main.keyboard_write(): %s" % str(result))
         return result
