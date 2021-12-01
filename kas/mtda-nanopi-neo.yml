@@ -18,7 +18,7 @@ target: isar-image-base
 build_system: isar
 
 repos:
-  this:
+  mtda:
     layers:
       meta-isar:
   isar:
