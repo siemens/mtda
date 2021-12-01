@@ -15,7 +15,7 @@ on: [push]
 
 jobs:
   lint:
-    name: Check code for stylistic issues
+    name: Check code for issues
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,6 +24,10 @@ jobs:
         run: |
           pip3 install --user pycodestyle
           pycodestyle mtda-cli mtda-ui mtda
+      - name: reuse
+        run: |
+          pip3 install --user reuse
+          reuse lint
   mtda-nanopi-neo-image:
     name: Debian image for running MTDA on the NanoPI NEO
     runs-on: ubuntu-latest
