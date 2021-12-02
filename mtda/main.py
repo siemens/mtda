@@ -1335,6 +1335,12 @@ class MultiTenantDeviceAccess:
         self._session_timer = mtda.utils.RepeatTimer(60, self._session_check)
         self._session_timer.start()
 
+        # Stop the timer thread on ctrl+C
+        def signal_handler(signum, frame):
+            print("Exiting, Thank you for using MTDA ...")
+            self._session_timer.cancel()
+
+        signal.signal(signal.SIGINT, signal_handler)
         return True
 
     def _session_check(self, session=None):
