@@ -1,3 +1,22 @@
+mtda (0.13-1) testing; urgency=low
+
+  [Cedric Hombourger]
+  * use "all" architecture packages for generic packages
+  * make this project reuse compliant
+  * pastebin service will now be specified via the configuration file
+  * add various badges to the README file
+  * build and upload Debian packages to Gemfury
+  * rename the "sdmux" controller to "storage"
+  * provide a recipe for the py3qterm package
+  * move mtda-ui to its own package
+  * add --help to mtda-cli
+
+  [Bhargav Das]
+  * modify keyboard_write() to have its string parameter named "input_str"
+    instead of "str"
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 02 Dec 2021 08:43:00 +0100
+
 mtda (0.12-1) testing; urgency=low
 
   [Cedric Hombourger]
