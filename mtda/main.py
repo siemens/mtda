@@ -1337,7 +1337,7 @@ class MultiTenantDeviceAccess:
 
         # Stop the timer thread on ctrl+C
         def signal_handler(signum, frame):
-            print("Exiting, Thank you for using MTDA ...")
+            self.mtda.debug(2, "process interrupted, shutting down...")
             self._session_timer.cancel()
 
         signal.signal(signal.SIGINT, signal_handler)
