@@ -182,7 +182,8 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         self.video = QVideoWidget(self.tabs)
         self.media.setVideoOutput(self.video)
 
-        self.video_url = agent.video_url()
+        opts = {'sink': {'name': 'qtvideosink'}}
+        self.video_url = agent.video_url(opts=opts)
         if self.video_url is not None:
             self.media.setMedia(QMediaContent(QUrl(self.video_url)))
             self.tabs.addTab(self.video, 'Video')
