@@ -37,6 +37,6 @@ class VideoController(object):
         return False
 
     @abc.abstractmethod
-    def url(self, host=""):
+    def url(self, host="", opts=None):
         """ URL for the video stream """
         return None

@@ -342,7 +342,7 @@ class Client:
     def version(self):
         return self._agent.version
 
-    def video_url(self, host=""):
+    def video_url(self, host="", opts=None):
         if host == "":
             host = os.getenv("MTDA_REMOTE", "")
-        return self._impl.video_url(host)
+        return self._impl.video_url(host, opts)
