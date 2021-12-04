@@ -346,3 +346,15 @@ supported:
 
 Point VLC (or similar) to ``http://<mtda-ip-or-name>:8080/?action=stream``
 to stream video from the Device Under Test.
+
+``qemu`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``qemu`` driver may be used with clients supporting the RFB (VNC)
+protocol. The following settings are supported:
+
+* ``sink``: string [optional]
+  GStreamer sink element to be used on the client-side for rendering
+
+The ``url()`` method of the driver will return the GStreamer pipeline
+to be used on the client side.
