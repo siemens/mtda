@@ -140,7 +140,7 @@ class MJPGStreamerVideoController(VideoController):
         self.mtda.debug(3, "video.mjpg_streamer.stop(): %s" % str(result))
         return result
 
-    def url(self, host=""):
+    def url(self, host="", opts=None):
         self.mtda.debug(3, "video.mjpg_streamer.url(host='%s')" % str(host))
 
         if host is None or host == "":
