@@ -37,13 +37,25 @@ system::
     $ sudo install -m 0755 -d /etc/mtda
     $ sudo install -m 0644 configs/qemu.ini /etc/mtda/config
 
+Alternatively, get prebuilt packages for Debian as follows::
+
+    $ echo 'deb [trusted=yes] https://apt.fury.io/mtda/ /' | \
+      sudo tee /etc/apt/sources.list.d/mtda.list
+    $ sudo apt-get update
+    $ sudo apt-get install mtda-kvm swtpm
+
 Running the agent
 ~~~~~~~~~~~~~~~~~
 
-The agent may be started after installing required packages and configuration
-files as described above::
+The agent may be manually started after installing required packages and
+configuration files as follows::
 
-    $ mtda-cli -d -n
+    $ sudo mtda-cli -d -n
+
+If prebuilt packages were installed (see above), it may be started as a
+systemd service instead::
+
+    $ sudo systemctl start mtda
 
 The agent will create three disk image files on startup if they do not exist
 (you may create these files yourself with different sizes):
@@ -69,7 +81,8 @@ You may use VNC to access the emulated display (port 5900, no password).
 TPM emulation
 ~~~~~~~~~~~~~
 
-QEMU may emulate a TPM. The following steps were required for debian-based hosts.
+QEMU may emulate a TPM. The following steps were required for Debian-based
+hosts. These steps may be skipped if prebuilt packages were installed.
 
 Add missing tpmtool in gnutls-bin
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
