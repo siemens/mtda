@@ -152,7 +152,7 @@ Fetch the latest release from GitHub::
 
     $ git clone https://github.com/stefanberger/libtpms.git
     $ cd libtpms
-    $ git checkout v0.7.3
+    $ git checkout v0.9.1
 
 and build it as follows::
 
