@@ -69,6 +69,7 @@ jobs:
         run: |
           export KAS_BUILD_DIR=${PWD}/build-amd64
           ./kas-container build --target mtda-packages kas/mtda-qemu-amd64.yml
+          ./kas-container build --target qemu-packages kas/mtda-qemu-amd64.yml
       - name: Publish .deb to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
