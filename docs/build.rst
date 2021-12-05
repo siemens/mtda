@@ -171,7 +171,7 @@ Fetch the latest release from GitHub::
 
     $ git clone https://github.com/stefanberger/swtpm.git
     $ cd swtpm
-    $ git checkout v0.3.4
+    $ git checkout v0.7.0
 
 and build it as follows::
 

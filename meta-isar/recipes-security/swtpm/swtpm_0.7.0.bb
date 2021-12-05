@@ -5,22 +5,14 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-# Here's our list of custom packages for qemu
-DEPENDS = "  \
-    gnutls28 \
-    libtpms  \
-    swtpm    \
-"
+inherit dpkg
 
-# Make sure packages we built were added to the isar-apt repository
-do_build[deptask] += "do_deploy_deb"
+SRC_URI = "https://github.com/stefanberger/${PN}/archive/refs/tags/v${PV}.tar.gz \
+           file://nocheck.patch"
+SRC_URI[sha256sum] = "bed41871ad42ec852c450f5764be36b6c16456b943b912351eca9c29ce382976"
 
-# This is a meta-package, nothing to build per se
-do_build() {
-    true
+DEPENDS = "libtpms"
+
+dpkg_runbuild_prepend() {
+    export DEB_BUILD_OPTIONS=nocheck
 }
-
-do_deploy_deb() {
-    true
-}
-addtask deploy_deb after do_build
