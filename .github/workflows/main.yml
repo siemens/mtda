@@ -37,12 +37,12 @@ jobs:
       - name: Build packages
         run: |
           export KAS_BUILD_DIR=${PWD}/build-nanopi
-          ./kas-container build --target mtda-packages kas/mtda-nanopi-neo.yml
+          ./kas-container build --target mtda-packages kas/debian/mtda-nanopi-neo.yml
       - name: Build image
         if: github.ref == 'refs/heads/master'
         run: |
           export KAS_BUILD_DIR=${PWD}/build-nanopi
-          ./kas-container build kas/mtda-nanopi-neo.yml
+          ./kas-container build kas/debian/mtda-nanopi-neo.yml
       - name: Upload image
         uses: actions/upload-artifact@v2
         if: github.ref == 'refs/heads/master'
@@ -68,8 +68,8 @@ jobs:
       - name: Build packages
         run: |
           export KAS_BUILD_DIR=${PWD}/build-amd64
-          ./kas-container build --target mtda-packages kas/mtda-qemu-amd64.yml
-          ./kas-container build --target qemu-packages kas/mtda-qemu-amd64.yml
+          ./kas-container build --target mtda-packages kas/debian/mtda-qemu-amd64.yml
+          ./kas-container build --target qemu-packages kas/debian/mtda-qemu-amd64.yml
       - name: Publish .deb to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
