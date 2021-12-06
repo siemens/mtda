@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------------
+# Ubuntu focal image to run MTDA on x86_64
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2021 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+header:
+  version: 10
+
+machine: qemuamd64
+distro: ubuntu-focal
+target: isar-image-base
+build_system: isar
+
+repos:
+  mtda:
+    layers:
+      meta-isar:
+  isar:
+    url: https://github.com/ilbers/isar.git
+    refspec: master
+    layers:
+      meta:
+      meta-isar:
+
+bblayers_conf_header:
+  mtda: |
+    LCONF_VERSION = "6"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+
+local_conf_header:
+  mtda: |
+    CONF_VERSION = "1"
+    MTDA_MASS_STORAGE_FILE = "sda"
