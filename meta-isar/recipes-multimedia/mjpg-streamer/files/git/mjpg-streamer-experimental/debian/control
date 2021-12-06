@@ -5,7 +5,7 @@ Standards-Version: 4.5.1
 Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>= 10),
                cmake,
-               libjpeg62-turbo-dev,
+               libjpeg-dev,
                protobuf-c-compiler
 
 Package: mjpg-streamer

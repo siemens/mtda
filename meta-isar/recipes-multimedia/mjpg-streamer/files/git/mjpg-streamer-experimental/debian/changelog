@@ -1,3 +1,10 @@
+mjpg-streamer (20210220-2) stable; urgency=medium
+
+  * Build-Depends on libjpeg-dev instead of libjpeg62-turbo-dev to support
+    both bullseye (Debian) and focal (Ubuntu)
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 06 Dec 2021 18:26:00 +0100
+
 mjpg-streamer (20210220-1) stable; urgency=medium
 
   * Initial package
