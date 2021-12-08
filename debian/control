@@ -13,7 +13,7 @@ X-Python3-Version: >= 3.7
 Package: mtda
 Architecture: all
 Multi-Arch: foreign
-Depends: wamerican, ${misc:Depends}, ${python3:Depends}
+Depends: usbrelay, wamerican, ${misc:Depends}, ${python3:Depends}
 Description: Multi-Tenant Device Access
  Multi-Tenant Device Access (or MTDA for short) is a relatively
  small Python application and library acting as an interface
