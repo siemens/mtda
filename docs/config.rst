@@ -76,8 +76,8 @@ General settings
     may be selected with ``variant``.
 
   * ``variant``: string [required]
-      Select a power variant from ``aviosys_8800``, ``gpio``, ``pduclient`` and
-      ``qemu``.
+      Select a power variant from ``aviosys_8800``, ``gpio``, ``pduclient``, 
+      ``qemu`` and ``usbrelay``.
 
 * ``remote``: section [optional]
     Specify the host and ports to connect to when using a MTDA client (such as
@@ -279,6 +279,16 @@ The following settings are supported:
 
 * ``watchdog``: string [optional]
     Name of the watchdog driver provided by QEMU/KVM for the selected machine.
+
+``usbrelay`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``usbrelay`` driver may be used to control USB HID relays attached to the
+system running the MTDA agent. The following settings are supported:
+
+* ``lines``: string [required]
+    Comma separated list of lines to toggle relays driving power of
+    the device.
 
 Shared device settings
 ----------------------
