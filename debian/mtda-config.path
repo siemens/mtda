@@ -1,0 +1,8 @@
+[Unit]
+Wants=mtda.service
+
+[Path]
+PathChanged=/etc/mtda/config
+
+[Install]
+WantedBy=multi-user.target
