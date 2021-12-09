@@ -23,6 +23,7 @@ import time
 import sys
 import zerorpc
 import socket
+import zeroconf
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
@@ -59,6 +60,13 @@ class Application:
             status = self.server()
             return status
 
+    def _ip(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('192.0.2.0', 0))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+
     def server(self):
         # Start our agent
         status = self.agent.start()
@@ -69,7 +77,27 @@ class Application:
         uri = "tcp://*:%d" % (self.agent.ctrlport)
         s = zerorpc.Server(self.agent, heartbeat=20)
         s.bind(uri)
+
+        # Initialize ZeroConf
+        interfaces = zeroconf.InterfaceChoice.All
+        zc = zeroconf.Zeroconf(interfaces=interfaces)
+        props = {
+            'description': 'Multi-Tenant Device Access'
+        }
+        deviceType = '_MTDA._tcp.local.'
+        name = socket.gethostname()
+        info = zeroconf.ServiceInfo(
+                type_=deviceType,
+                name='{}.{}'.format(name, deviceType),
+                addresses=[socket.inet_aton(self._ip())],
+                port=int(self.agent.ctrlport),
+                properties=props,
+                server='{}.local.'.format(name))
+
+        zc.register_service(info)
         s.run()
+        zc.unregister_service(info)
+
         return True
 
     def client(self):
