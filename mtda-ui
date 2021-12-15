@@ -11,24 +11,69 @@
 # ---------------------------------------------------------------------------
 
 import os
+import socket
 import sys
+import threading
 import time
+import zeroconf
 
 from py3qterm import TerminalWidget
 from py3qterm.backend import Session
 from py3qterm.backend import Terminal
 
+from PyQt5.Qt import Qt
 from PyQt5.QtCore import QUrl
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (qApp, QMainWindow, QAction, QApplication,
-                             QStyle, QTabWidget)
+                             QHBoxLayout, QListWidget, QListWidgetItem,
+                             QSizePolicy, QStyle, QTabWidget, QWidget)
 
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaMetaData
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 from mtda.client import Client
 from mtda.console.screen import ScreenOutput
+import mtda.constants as CONSTS
+
+
+class ServiceHandlers(object):
+
+    def __init__(self, listener):
+        self.listener = listener
+
+    def add_service(self, zeroconf, type, name):
+        info = zeroconf.get_service_info(type, name)
+        if self.listener.onServiceEvent:
+            self.listener.onServiceEvent("ADD", name, info)
+
+    def remove_service(self, zeroconf, type, name):
+        if self.listener.onServiceEvent:
+            self.listener.onServiceEvent("REMOVE", name)
+
+    def update_service(self, zeroconf, type, name):
+        info = zeroconf.get_service_info(type, name)
+        if self.listener.onServiceEvent:
+            self.listener.onServiceEvent("UPDATE", name, info)
+
+
+class ServiceListener(object):
+
+    def __init__(self, domain, onServiceEvent=None):
+        self.browser = None
+        self.domain = domain
+        self.onServiceEvent = onServiceEvent
+
+    def listen(self):
+        all = zeroconf.InterfaceChoice.All
+        self.zeroconf = zeroconf.Zeroconf(interfaces=all)
+        self.browser = zeroconf.ServiceBrowser(
+                self.zeroconf, self.domain, ServiceHandlers(self))
+        self.browser.run()
+
+    def shutdown(self):
+        if self.browser:
+            self.browser.cancel()
 
 
 class DeviceConsole(TerminalWidget):
@@ -41,7 +86,11 @@ class DeviceConsole(TerminalWidget):
             return Session._mux.agent(self._session._session_id)
         return None
 
-    def execute(self, command="/bin/bash"):
+    def execute(self, command=None):
+        if command is None:
+            command = os.getenv("MTDA_REMOTE", "localhost")
+        if self._session is not None:
+            self._session.stop()
         self._session = DeviceSession()
         self._session.start(command)
         self._timer_id = None
@@ -63,10 +112,18 @@ class DeviceMux:
             return self.session[sid]['agent']
         return None
 
+    def proc_bury(self, sid):
+        agent = self.agent(sid)
+        # Detach remote consoles
+        agent.console_remote(None, None)
+        agent.monitor_remote(None, None)
+        # Disconnect from agent
+        agent.stop()
+
     def proc_keepalive(self, sid, w, h, cmd=None):
         if sid not in self.session:
             # Start a new session
-            self.remote = os.getenv("MTDA_REMOTE", "localhost")
+            self.remote = cmd
             agent = Client(self.remote)
             term = Terminal(w, h)
             self.session[sid] = {
@@ -147,18 +204,38 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         super().__init__()
 
         self.initUI()
+        self.service_listener = ServiceListener(
+                CONSTS.MDNS.TYPE,
+                self.service_event)
+        self.service_thread = threading.Thread(
+                target=self.service_listener.listen,
+                daemon=True,
+                name='service discovery')
+        self.service_thread.start()
 
     def capture(self):
         screen = self.console.screen()
         if screen is not None:
             if screen.capture_enabled() is True:
-                screen.capture_stop()
-                icn = self.style().standardIcon(QStyle.SP_DialogSaveButton)
-                self.captureAct.setIcon(icn)
+                self.capture_stop()
             else:
+                self.capture_start()
+
+    def capture_start(self):
+        screen = self.console.screen()
+        if screen is not None:
+            if screen.capture_enabled() is False:
                 screen.capture_start()
-                icn = self.style().standardIcon(QStyle.SP_BrowserStop)
-                self.captureAct.setIcon(icn)
+            icn = self.style().standardIcon(QStyle.SP_BrowserStop)
+            self.captureAct.setIcon(icn)
+
+    def capture_stop(self):
+        screen = self.console.screen()
+        if screen is not None:
+            if screen.capture_enabled() is True:
+                screen.capture_stop()
+            icn = self.style().standardIcon(QStyle.SP_DialogSaveButton)
+            self.captureAct.setIcon(icn)
 
     def device_event(self, event, data):
         if event == "POWER":
@@ -166,11 +243,25 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         elif event == "STORAGE":
             self.storage_event(data[0])
 
+    def exit(self):
+        self.service_listener.shutdown()
+        self.close()
+
     def initUI(self):
 
-        self.tabs = QTabWidget(self)
+        self.root_widget = QWidget()
+        self.hlayout = QHBoxLayout()
+        self.root_widget.setLayout(self.hlayout)
+        self.setCentralWidget(self.root_widget)
+
+        self.services = QListWidget()
+        self.services.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        self.services.itemDoubleClicked.connect(self.service_change)
+        self.hlayout.addWidget(self.services)
+
+        self.tabs = QTabWidget(self.root_widget)
         self.tabs.setTabBarAutoHide(True)
-        self.setCentralWidget(self.tabs)
+        self.hlayout.addWidget(self.tabs)
 
         self.console = DeviceConsole(self.tabs)
         agent = self.console.agent()
@@ -182,30 +273,25 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         self.video = QVideoWidget(self.tabs)
         self.media.setVideoOutput(self.video)
 
-        opts = {'sink': {'name': 'qtvideosink'}}
-        self.video_url = agent.video_url(opts=opts)
-        if self.video_url is not None:
-            self.media.setMedia(QMediaContent(QUrl(self.video_url)))
-            self.tabs.addTab(self.video, 'Video')
+        self.video_reset()
 
         exitIcn = self.style().standardIcon(QStyle.SP_FileDialogEnd)
         exitAct = QAction(exitIcn, 'Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit MTDA')
-        exitAct.triggered.connect(self.close)
+        exitAct.triggered.connect(self.exit)
 
         powerAct = QAction('Power on/off', self)
         powerAct.setShortcut('Ctrl+P')
         powerAct.triggered.connect(self.power)
         self.powerAct = powerAct
-        self.power_event(agent.target_status())
+        self.power_reset()
 
         storageAct = QAction('Swap storage', self)
         storageAct.setShortcut('Ctrl+S')
         storageAct.triggered.connect(self.storage)
         self.storageAct = storageAct
-        status, writing, written = agent.storage_status()
-        self.storage_event(status)
+        self.storage_reset()
 
         captureIcn = self.style().standardIcon(QStyle.SP_DialogSaveButton)
         captureAct = QAction(captureIcn, 'Capture screen start/stop', self)
@@ -238,16 +324,55 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         if event == "OFF":
             icn = self.style().standardIcon(QStyle.SP_ComputerIcon)
             txt = "Power on device"
-            self.media.stop()
+            self.video_stop()
         else:
             icn = self.style().standardIcon(QStyle.SP_MediaStop)
             txt = "Power off device"
-            if self.video_url != '':
-                self.media.play()
+            self.video_start()
 
         a.setStatusTip(txt)
         a.setText(txt)
         a.setIcon(icn)
+
+    def power_reset(self):
+        agent = self.console.agent()
+        self.power_event(agent.target_status())
+
+    def service_change(self, item):
+        info = item.data(Qt.UserRole)
+        ip = socket.inet_ntoa(info.addresses[0])
+
+        # Stop on-going screen capture / video playback
+        self.capture_stop()
+        self.video_stop()
+
+        # Connect to selected remote
+        self.video_url = ""
+        self.console.execute(ip)
+
+        # Reset widgets
+        self.power_reset()
+        self.storage_reset()
+        self.video_reset()
+
+    def service_event(self, event, name, data=None):
+        if event == "ADD":
+            newService = QListWidgetItem()
+            shortname = name.split('.')[0]
+            newService.setText(shortname)
+            newService.setData(Qt.ToolTipRole, name)
+            newService.setData(Qt.UserRole, data)
+            self.services.addItem(newService)
+        else:
+            count = self.services.count()
+            for i in range(0, count):
+                item = self.services.item(i)
+                if item.data(Qt.ToolTipRole) == name:
+                    if event == "REMOVE":
+                        self.services.takeItem(i)
+                    if event == "UPDATE":
+                        item.setData(Qt.UserRole, data)
+                    break
 
     def storage(self):
         agent = self.console.agent()
@@ -267,6 +392,32 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         a.setStatusTip(txt)
         a.setText(txt)
         a.setIcon(icn)
+
+    def storage_reset(self):
+        agent = self.console.agent()
+        status, writing, written = agent.storage_status()
+        self.storage_event(status)
+
+    def video_reset(self):
+        agent = self.console.agent()
+        opts = {'sink': {'name': 'qtvideosink'}}
+        self.video_url = agent.video_url(opts=opts)
+        idx = self.tabs.indexOf(self.video)
+        if self.video_url is not None:
+            # Use provided video url
+            self.media.setMedia(QMediaContent(QUrl(self.video_url)))
+            if idx < 0:
+                self.tabs.addTab(self.video, 'Video')
+        elif idx >= 0:
+            # Remove Video tab
+            self.tabs.removeTab(idx)
+
+    def video_start(self):
+        if self.video_url != "":
+            self.media.play()
+
+    def video_stop(self):
+        self.media.stop()
 
 
 def main():
