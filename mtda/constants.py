@@ -31,6 +31,10 @@ class IMAGE(Enum):
     ZST = 3
 
 
+class MDNS:
+    TYPE = '_MTDA._tcp.local.'
+
+
 class RPC:
     HEARTBEAT = 20
     TIMEOUT = 2*60

@@ -29,6 +29,7 @@ import zeroconf
 from mtda.main import MultiTenantDeviceAccess
 from mtda.client import Client
 from mtda.console.screen import ScreenOutput
+import mtda.constants as CONSTS
 
 
 class Application:
@@ -84,7 +85,7 @@ class Application:
         props = {
             'description': 'Multi-Tenant Device Access'
         }
-        deviceType = '_MTDA._tcp.local.'
+        deviceType = CONSTS.MDNS.TYPE
         name = socket.gethostname()
         info = zeroconf.ServiceInfo(
                 type_=deviceType,
