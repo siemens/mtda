@@ -16,7 +16,6 @@ import gevent
 import importlib
 import os
 import queue
-import signal
 import sys
 import threading
 import time
@@ -263,9 +262,12 @@ class MultiTenantDeviceAccess:
             # Stop previous remote console
             if self.console_output is not None:
                 self.console_output.stop()
-            # Create and start our remote console
-            self.console_output = RemoteConsole(host, self.conport, screen)
-            self.console_output.start()
+            if host is not None:
+                # Create and start our remote console
+                self.console_output = RemoteConsole(host, self.conport, screen)
+                self.console_output.start()
+            else:
+                self.console_output = None
 
         self.mtda.debug(3, "main.console_remote(): %s" % str(result))
         return result
@@ -395,10 +397,14 @@ class MultiTenantDeviceAccess:
             # Stop previous remote console
             if self.monitor_output is not None:
                 self.monitor_output.stop()
-            # Create and start our remote console in paused (buffering) state
-            self.monitor_output = RemoteMonitor(host, self.conport, screen)
-            self.monitor_output.pause()
-            self.monitor_output.start()
+            if host is not None:
+                # Create and start our remote console in paused
+                # (i.e. buffering) state
+                self.monitor_output = RemoteMonitor(host, self.conport, screen)
+                self.monitor_output.pause()
+                self.monitor_output.start()
+            else:
+                self.monitor_output = None
 
         self.mtda.debug(3, "main.monitor_remote(): %s" % str(result))
         return result
@@ -1336,13 +1342,37 @@ class MultiTenantDeviceAccess:
         self._session_timer = mtda.utils.RepeatTimer(60, self._session_check)
         self._session_timer.start()
 
-        # Stop the timer thread on ctrl+C
-        def signal_handler(signum, frame):
-            self.mtda.debug(2, "process interrupted, shutting down...")
-            self._session_timer.cancel()
-
-        signal.signal(signal.SIGINT, signal_handler)
         return True
+
+    def stop(self):
+        self.mtda.debug(3, "main.stop()")
+
+        if self.is_remote is True:
+            return True
+
+        # stop sesssion timer
+        self._session_timer.cancel()
+
+        # stop video
+        if self.video is not None:
+            self.video.stop()
+
+        # stop assistant
+        if self.assistant is not None:
+            self.power_monitors.remove(self.assistant)
+            self.assistant.stop()
+
+        # stop monitor console
+        if self.monitor is not None:
+            self.monitor_logger.stop()
+
+        # stop main console
+        if self.console is not None:
+            self.console_logger.stop()
+
+        if self.socket is not None:
+            self.socket.close()
+            self.socket = None
 
     def _session_check(self, session=None):
         self.mtda.debug(3, "main._session_check(%s)" % str(session))

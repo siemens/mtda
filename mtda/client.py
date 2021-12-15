@@ -272,6 +272,12 @@ class Client:
     def start(self):
         return self._agent.start()
 
+    def stop(self):
+        if self._agent.remote is not None:
+            self._impl.close()
+        else:
+            self._agent.stop()
+
     def remote(self):
         return self._agent.remote
 
