@@ -27,27 +27,7 @@ Files: docs/.gitignore
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
-Files: docs/build.rst
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/config.rst
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/index.rst
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/install.rst
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/integration.rst
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/intro.rst
+Files: docs/*.rst
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
@@ -64,10 +44,6 @@ Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
 Files: docs/neo_sdwire_de0-nano-soc.png
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/usage.rst
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
