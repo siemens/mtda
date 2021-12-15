@@ -96,8 +96,13 @@ class Application:
                 server='{}.local.'.format(name))
 
         zc.register_service(info)
-        s.run()
-        zc.unregister_service(info)
+        try:
+            s.run()
+        except KeyboardInterrupt:
+            s.stop()
+            self.agent.stop()
+        finally:
+            zc.unregister_service(info)
 
         return True
 
@@ -768,6 +773,7 @@ class Application:
             if status is False:
                 print('Failed to start the MTDA server!', file=sys.stderr)
                 return False
+            return True
         else:
             # Start our agent
             self.agent = Client(self.remote)

@@ -48,6 +48,12 @@ class ConsoleLogger:
         self.rx_thread.daemon = True
         self.rx_thread.start()
 
+    def stop(self):
+        self.pause()
+        with self.rx_lock:
+            self.rx_alive = False
+            self.rx_cond.notify()
+
     def _clear(self):
         self.rx_buffer.clear()
         self.rx_queue = bytearray()
