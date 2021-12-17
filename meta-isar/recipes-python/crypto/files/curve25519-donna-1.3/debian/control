@@ -2,7 +2,11 @@ Source: curve25519-donna
 Section: python
 Priority: optional
 Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
-Build-Depends: debhelper (>=10), dh-python, libpython3-dev, python3-setuptools, python3-all
+Build-Depends: debhelper (>=10),
+               dh-python,
+               libpython3-dev,
+               python3-dev:any,
+               python3-setuptools:native
 Standards-Version: 4.5.0
 Homepage: https://pypi.org/project/curve25519-donna
 Rules-Requires-Root: no
