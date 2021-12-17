@@ -37,4 +37,5 @@ bblayers_conf_header:
 local_conf_header:
   mtda: |
     CONF_VERSION = "1"
+    ISAR_CROSS_COMPILE = "1"
     MTDA_MASS_STORAGE_FILE = "sda"
