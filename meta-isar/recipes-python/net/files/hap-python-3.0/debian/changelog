@@ -1,3 +1,9 @@
+hap-python (3.0-3) unstable; urgency=medium
+
+  * Fix Build-Depends to support cross-compiling.
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 17 Dec 2021 20:25:00 +0100
+
 hap-python (3.0-2) unstable; urgency=medium
 
   * Version bump for bintray to re-index this package and place it in binary-all

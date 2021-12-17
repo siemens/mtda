@@ -1,3 +1,9 @@
+ed25519 (1.5-4) unstable; urgency=medium
+
+  * Fix Build-Depends to support cross-compiling.
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 17 Dec 2021 20:23:00 +0100
+
 ed25519 (1.5-3) unstable; urgency=medium
 
   * Change architecture to any since this module includes a shared library
