@@ -1,0 +1,9 @@
+# ---------------------------------------------------------------------------
+# This apt configuration file is part of MTDA
+# Copyright (C) 2021 Siemens Digital Industries Software
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+deb	http://deb.debian.org/debian bullseye-backports main contrib non-free
+deb-src	http://deb.debian.org/debian bullseye-backports main contrib non-free
