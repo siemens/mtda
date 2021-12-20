@@ -52,7 +52,24 @@ agent to enable the functions listed above::
 
     [storage]
     variant=usbf
+    device=/dev/sda
 
     [keyboard]
     variant=hid
     device=/dev/hidg0
+
+If the ``storage`` function was enabled, ``/etc/mtda/usb-functions`` should
+be created and also specify the block device to be used::
+
+    MASS_STORAGE_FILE=/dev/sda
+
+Since the ``mtda-usb-functions`` service should only be started after the
+specified device was detected, a dependency should be added to the service
+using a systemd drop-in unit::
+
+    mkdir /lib/systemd/system/mtda-usb-functions.service.d
+    printf "[Unit]\nAfter=dev-sda.device" \
+        > /lib/systemd/system/mtda-usb-functions.service.d/10-wait-dev.conf
+
+The system should be restarted. Use ``systemctl status mtda-usb-functions`` to
+confirm that the service was correctly started.

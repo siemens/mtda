@@ -4,7 +4,7 @@
 
 DESCRIPTION        = "use /dev/sda as device for our USB Mass Storage function"
 MAINTAINER         = "Cedric Hombourger <cedric.hombourger@siemens.com>"
-SRC_URI            = "file://usb-functions"
+SRC_URI            = "file://usb-functions file://10-after-sda.conf"
 FILESPATH_prepend := "${THISDIR}/${PN}:"
 DPKG_ARCH          = "all"
 
@@ -14,4 +14,6 @@ do_install() {
     cd ${WORKDIR}
     install -m 0755 -d            ${D}/etc/mtda/
     install -m 0644 usb-functions ${D}/etc/mtda/
+    install -m 0755 -d            ${D}/lib/systemd/system/mtda-usb-functions.service.d/
+    install -m 0644 *.conf        ${D}/lib/systemd/system/mtda-usb-functions.service.d/
 }
