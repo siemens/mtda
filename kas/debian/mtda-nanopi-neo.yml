@@ -38,4 +38,6 @@ local_conf_header:
   mtda: |
     CONF_VERSION = "1"
     ISAR_CROSS_COMPILE = "1"
+    MTDA_EXTRA_APT_SOURCES = "conf/apt/debian-bullseye-backports.list"
+    MTDA_EXTRA_APT_PREFERENCES = "conf/apt/debian-bullseye-backports.conf"
     MTDA_MASS_STORAGE_FILE = "sda"
