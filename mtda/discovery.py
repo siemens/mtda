@@ -47,6 +47,16 @@ class Watcher(object):
                 self.zeroconf, self.domain, ServiceHandlers(self))
         self.browser.run()
 
+    def lookup(self, name):
+        result = None
+
+        name = '{}.{}'.format(name, self.domain)
+        info = self.zeroconf.get_service_info(self.domain, name)
+        if info is not None:
+            result = socket.inet_ntoa(info.addresses[0])
+
+        return result
+
     def shutdown(self):
         if self.browser:
             self.browser.cancel()
