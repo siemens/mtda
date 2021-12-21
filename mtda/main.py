@@ -27,6 +27,7 @@ from mtda.console.logger import ConsoleLogger
 from mtda.console.remote import RemoteConsole, RemoteMonitor
 from mtda.storage.writer import AsyncImageWriter
 import mtda.constants as CONSTS
+import mtda.discovery
 import mtda.keyboard.controller
 import mtda.power.controller
 import mtda.video.controller
@@ -1173,6 +1174,14 @@ class MultiTenantDeviceAccess:
                     'remote', 'host', fallback=self.remote)
                 # Allow override from the environment
                 self.remote = os.getenv('MTDA_REMOTE', self.remote)
+
+            # Attempt to resolve remote using Zeroconf
+            watcher = mtda.discovery.Watcher(CONSTS.MDNS.TYPE)
+            ip = watcher.lookup(self.remote)
+            if ip is not None:
+                self.debug(2, "resolved '{}' ({}) "
+                              "using Zeroconf".format(self.remote, ip))
+                self.remote = ip
         else:
             self.remote = None
         self.is_remote = self.remote is not None
