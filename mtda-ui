@@ -35,45 +35,7 @@ from PyQt5.QtMultimediaWidgets import QVideoWidget
 from mtda.client import Client
 from mtda.console.screen import ScreenOutput
 import mtda.constants as CONSTS
-
-
-class ServiceHandlers(object):
-
-    def __init__(self, listener):
-        self.listener = listener
-
-    def add_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
-        if self.listener.onServiceEvent:
-            self.listener.onServiceEvent("ADD", name, info)
-
-    def remove_service(self, zeroconf, type, name):
-        if self.listener.onServiceEvent:
-            self.listener.onServiceEvent("REMOVE", name)
-
-    def update_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
-        if self.listener.onServiceEvent:
-            self.listener.onServiceEvent("UPDATE", name, info)
-
-
-class ServiceListener(object):
-
-    def __init__(self, domain, onServiceEvent=None):
-        self.browser = None
-        self.domain = domain
-        self.onServiceEvent = onServiceEvent
-
-    def listen(self):
-        all = zeroconf.InterfaceChoice.All
-        self.zeroconf = zeroconf.Zeroconf(interfaces=all)
-        self.browser = zeroconf.ServiceBrowser(
-                self.zeroconf, self.domain, ServiceHandlers(self))
-        self.browser.run()
-
-    def shutdown(self):
-        if self.browser:
-            self.browser.cancel()
+import mtda.discovery
 
 
 class DeviceConsole(TerminalWidget):
@@ -204,11 +166,11 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         super().__init__()
 
         self.initUI()
-        self.service_listener = ServiceListener(
+        self.service_watcher = mtda.discovery.Watcher(
                 CONSTS.MDNS.TYPE,
                 self.service_event)
         self.service_thread = threading.Thread(
-                target=self.service_listener.listen,
+                target=self.service_watcher.listen,
                 daemon=True,
                 name='service discovery')
         self.service_thread.start()
@@ -244,7 +206,7 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
             self.storage_event(data[0])
 
     def exit(self):
-        self.service_listener.shutdown()
+        self.service_watcher.shutdown()
         self.close()
 
     def initUI(self):
