@@ -8,7 +8,7 @@
 inherit dpkg
 
 SRC_URI += "git://git@github.com/siemens/mtda.git;protocol=https;branch=master"
-SRCREV   = "691b34267ae6204b5b33376ebaa1393d9b03c3a0"
+SRCREV   = "514d28e7b3d141d453a10c2fb25b9fc22d53364d"
 S        = "${WORKDIR}/git"
 
 DEPENDS += "zerorpc-python zstandard"
