@@ -86,7 +86,7 @@ class Application:
             'description': 'Multi-Tenant Device Access'
         }
         deviceType = CONSTS.MDNS.TYPE
-        name = socket.gethostname()
+        name = self.agent.name
         info = zeroconf.ServiceInfo(
                 type_=deviceType,
                 name='{}.{}'.format(name, deviceType),

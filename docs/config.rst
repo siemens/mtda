@@ -27,6 +27,9 @@ General settings
       instead of ``losetup`` and ``mount``. This feature is experimental and
       requires ``partitionfs``, ``fuseext2`` and ``fusefat``.
 
+  * ``name``: string [optional]
+      Name of this agent on the network (defaults to hostname).
+
 * ``pastebin``: section [optional]
   Support for posting console content to services like pastebin.com. An API key
   is required and may be specified with:
