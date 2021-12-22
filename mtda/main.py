@@ -16,6 +16,7 @@ import gevent
 import importlib
 import os
 import queue
+import socket
 import sys
 import threading
 import time
@@ -1011,6 +1012,10 @@ class MultiTenantDeviceAccess:
 
     def load_main_config(self, parser):
         self.mtda.debug(3, "main.load_main_config()")
+
+        # Name of this agent
+        self.name = socket.gethostname()
+        self.name = parser.get('main', 'name', fallback=self.name)
 
         self.mtda.debug_level = int(
             parser.get('main', 'debug', fallback=self.mtda.debug_level))
