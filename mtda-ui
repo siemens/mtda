@@ -59,6 +59,18 @@ class DeviceConsole(TerminalWidget):
         self._timer_id = None
         self.focusInEvent(None)
 
+    def mouseDoubleClickEvent(self, event):
+        pass
+
+    def mouseMoveEvent(self, event):
+        pass
+
+    def mousePressEvent(self, event):
+        self.focusInEvent(None)
+
+    def mouseReleaseEvent(self, event):
+        pass
+
     def screen(self):
         if Session._mux is not None:
             return Session._mux.screen(self._session._session_id)
