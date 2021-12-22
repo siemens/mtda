@@ -1,3 +1,18 @@
+mtda (0.14-1) testing; urgency=low
+
+  [Cedric Hombourger]
+  * add support for qemu video streams (vnc)
+  * build swtpm and dependent packages
+  * support building Debian packages against Ubuntu 20.04
+  * add support for USB HID relays
+  * add preliminary support for Zeroconf
+  * add shutdown code
+
+  [Bhargav Das]
+  * restart the mtda service when /etc/mtda/config is changed
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 22 Dec 2021 13:55:00 +0100
+
 mtda (0.13-1) testing; urgency=low
 
   [Cedric Hombourger]
