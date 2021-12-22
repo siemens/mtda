@@ -48,13 +48,14 @@ class DeviceConsole(TerminalWidget):
             return Session._mux.agent(self._session._session_id)
         return None
 
-    def execute(self, command=None):
-        if command is None:
-            command = os.getenv("MTDA_REMOTE", "localhost")
+    def execute(self, remote=None):
+        if remote is None:
+            remote = os.getenv("MTDA_REMOTE", None)
         if self._session is not None:
             self._session.stop()
         self._session = DeviceSession()
-        self._session.start(command)
+        if remote is not None:
+            self._session.start(remote)
         self._timer_id = None
         self.focusInEvent(None)
 
@@ -75,12 +76,18 @@ class DeviceMux:
         return None
 
     def proc_bury(self, sid):
+        if sid not in self.session:
+            return False
+
         agent = self.agent(sid)
         # Detach remote consoles
         agent.console_remote(None, None)
         agent.monitor_remote(None, None)
         # Disconnect from agent
         agent.stop()
+
+        # Session was buried
+        return True
 
     def proc_keepalive(self, sid, w, h, cmd=None):
         if sid not in self.session:
@@ -183,6 +190,11 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
             else:
                 self.capture_start()
 
+    def capture_reset(self):
+        agent = self.console.agent()
+        enabled = (agent is not None)
+        self.captureAct.setEnabled(enabled)
+
     def capture_start(self):
         screen = self.console.screen()
         if screen is not None:
@@ -227,8 +239,6 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
 
         self.console = DeviceConsole(self.tabs)
         agent = self.console.agent()
-        screen = self.console.screen()
-        screen.add_listener(self.device_event)
         self.tabs.addTab(self.console, 'Console')
 
         self.media = QMediaPlayer(None, QMediaPlayer.StreamPlayback)
@@ -260,6 +270,7 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         captureAct.setStatusTip('Capture screen output start/stop')
         captureAct.triggered.connect(self.capture)
         self.captureAct = captureAct
+        self.capture_reset()
 
         self.statusBar()
 
@@ -298,7 +309,12 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
 
     def power_reset(self):
         agent = self.console.agent()
-        self.power_event(agent.target_status())
+        enabled = (agent is not None)
+
+        # Sync UI state with agent
+        self.powerAct.setEnabled(enabled)
+        if enabled is True:
+            self.power_event(agent.target_status())
 
     def service_change(self, item):
         info = item.data(Qt.UserRole)
@@ -312,15 +328,22 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         self.video_url = ""
         self.console.execute(ip)
 
+        # Listen to screen events from the agent
+        screen = self.console.screen()
+        screen.add_listener(self.device_event)
+
         # Reset widgets
         self.power_reset()
+        self.capture_reset()
         self.storage_reset()
         self.video_reset()
 
     def service_event(self, event, name, data=None):
         if event == "ADD":
+            icon = self.style().standardIcon(QStyle.SP_ComputerIcon)
             newService = QListWidgetItem()
             shortname = name.split('.')[0]
+            newService.setIcon(icon)
             newService.setText(shortname)
             newService.setData(Qt.ToolTipRole, name)
             newService.setData(Qt.UserRole, data)
@@ -357,13 +380,20 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
 
     def storage_reset(self):
         agent = self.console.agent()
-        status, writing, written = agent.storage_status()
-        self.storage_event(status)
+        enabled = (agent is not None)
+        self.storageAct.setEnabled(enabled)
+        if agent is not None:
+            status, writing, written = agent.storage_status()
+            self.storage_event(status)
 
     def video_reset(self):
         agent = self.console.agent()
-        opts = {'sink': {'name': 'qtvideosink'}}
-        self.video_url = agent.video_url(opts=opts)
+        enabled = (agent is not None)
+
+        self.video_url = None
+        if enabled is True:
+            opts = {'sink': {'name': 'qtvideosink'}}
+            self.video_url = agent.video_url(opts=opts)
         idx = self.tabs.indexOf(self.video)
         if self.video_url is not None:
             # Use provided video url
