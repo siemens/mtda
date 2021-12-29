@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------------------
+# Debian image to run MTDA on the NanoPI R1
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2021 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+header:
+  version: 10
+
+machine: nanopi-r1
+distro: debian-bullseye
+target: isar-image-base
+build_system: isar
+
+repos:
+  mtda:
+    layers:
+      meta-isar:
+  isar:
+    url: https://github.com/ilbers/isar.git
+    refspec: master
+    layers:
+      meta:
+      meta-isar:
+
+bblayers_conf_header:
+  mtda: |
+    LCONF_VERSION = "6"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+
+local_conf_header:
+  mtda: |
+    CONF_VERSION = "1"
+    ISAR_CROSS_COMPILE = "1"
+    MTDA_EXTRA_APT_SOURCES = "conf/apt/debian-bullseye-backports.list"
+    MTDA_EXTRA_APT_PREFERENCES = "conf/apt/debian-bullseye-backports.conf"
+    MTDA_MASS_STORAGE_FILE = "sda"
