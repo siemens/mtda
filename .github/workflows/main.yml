@@ -28,8 +28,8 @@ jobs:
         run: |
           pip3 install --user reuse
           reuse lint
-  mtda-nanopi-neo-image:
-    name: Debian image for running MTDA on the NanoPI NEO
+  mtda-nanopi-images:
+    name: Debian image for running MTDA on NanoPI boards
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,20 +37,21 @@ jobs:
       - name: Build packages
         run: |
           export KAS_BUILD_DIR=${PWD}/build-nanopi
-          ./kas-container build --target mtda-packages kas/debian/mtda-nanopi-neo.yml
+          ./kas-container build --target mc:nanopi-neo:mtda-packages kas/debian/mtda-nanopi-all.yml
+          ./kas-container build --target mc:nanopi-r1:mtda-packages kas/debian/mtda-nanopi-all.yml
       - name: Build image
         if: github.ref == 'refs/heads/master'
         run: |
           export KAS_BUILD_DIR=${PWD}/build-nanopi
-          ./kas-container build kas/debian/mtda-nanopi-neo.yml
+          ./kas-container build kas/debian/mtda-nanopi-all.yml
       - name: Upload image
         uses: actions/upload-artifact@v2
         if: github.ref == 'refs/heads/master'
         with:
-          name: mtda-nanopi-neo-image
+          name: mtda-nanopi-images
           path: |
-            build-nanopi/tmp/deploy/images/nanopi-neo/isar-image-base-debian-bullseye-nanopi-neo.wic.img
-            build-nanopi/tmp/deploy/images/nanopi-neo/isar-image-base-debian-bullseye-nanopi-neo.wic.img.bmap
+            build-nanopi/tmp/deploy/images/nanopi-*/isar-image-base-debian-bullseye-nanopi-*.wic.img
+            build-nanopi/tmp/deploy/images/nanopi-*/isar-image-base-debian-bullseye-nanopi-*.wic.img.bmap
       - name: Publish .deb to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
