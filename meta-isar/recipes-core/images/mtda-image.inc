@@ -15,6 +15,9 @@ MTDA_APT_URI ??= "https://dl.bintray.com/chombourger/mtda"
 DEPENDS += "mtda-packages"
 do_build[deptask] += "do_deploy_deb"
 
+# Custom u-boot for the nanopi-r1
+DEPENDS_append_nanopi-r1 = " u-boot-nanopi-r1"
+
 IMAGE_INSTALL += "                       \
     mtda-hostname                        \
     sshd-regen-keys                      \
