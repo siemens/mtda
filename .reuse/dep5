@@ -27,6 +27,10 @@ Files: docs/.gitignore
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
+Files: docs/*.png
+Copyright: 2021 Siemens Digital Industries Software
+License: MIT
+
 Files: docs/*.rst
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
@@ -35,31 +39,7 @@ Files: docs/jqc3f-05vdc.jpg
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
-Files: docs/neo_block_diagram.png
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
 Files: docs/neo_pinout.jpg
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/neo_sdwire_de0-nano-soc.png
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/homekit_add_1.png
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/homekit_add_2.png
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/lava_mtda_workers.png
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: docs/lava_shared_worker.png
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
