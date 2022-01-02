@@ -245,6 +245,8 @@ class Client:
                 compression = CONSTS.IMAGE.GZ.value
             elif path.endswith(".zst"):
                 compression = CONSTS.IMAGE.ZST.value
+            elif path.endswith(".xz"):
+                compression = CONSTS.IMAGE.XZ.value
             else:
                 compression = CONSTS.IMAGE.RAW.value
             self._impl.storage_compression(compression, self._session)
