@@ -29,6 +29,7 @@ class IMAGE(Enum):
     BZ2 = 1
     GZ = 2
     ZST = 3
+    XZ = 4
 
 
 class MDNS:

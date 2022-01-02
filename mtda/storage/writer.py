@@ -15,6 +15,7 @@ import threading
 import mtda.constants as CONSTS
 import zlib
 import zstandard as zstd
+import lzma
 
 
 class AsyncImageWriter(queue.Queue):
@@ -55,6 +56,8 @@ class AsyncImageWriter(queue.Queue):
             self._write = self.write_gz
         elif compression == CONSTS.IMAGE.ZST:
             self._write = self.write_zst
+        elif compression == CONSTS.IMAGE.XZ:
+            self._write = self.write_xz
         else:
             raise ValueError("unsupported image compression!")
         self._compression = compression
@@ -211,6 +214,32 @@ class AsyncImageWriter(queue.Queue):
             self._failed = True
 
         self.mtda.debug(3, "storage.writer.write_zst(): %s" % str(result))
+        return result
+
+    def write_xz(self, data):
+        self.mtda.debug(3, "storage.writer.write_xz()")
+
+        # Create a xz decompressor when called for the first time
+        if self._zdec is None:
+            self._zdec = lzma.LZMADecompressor()
+
+        try:
+            cont = True
+            result = None
+            while cont is True:
+                uncompressed = self._zdec.decompress(data, self._blksz)
+                result = self.storage.write(uncompressed)
+                self._written += result if result is not None else 0
+                cont = self._zdec.needs_input is False
+                data = b''
+        except EOFError:
+            result = 0
+        except OSError as e:
+            self.mtda.debug(1, "storage.writer.write_xz(): "
+                               "%s" % str(e.args[0]))
+            self._failed = True
+
+        self.mtda.debug(3, "storage.writer.write_xz(): %s" % str(result))
         return result
 
     @property
