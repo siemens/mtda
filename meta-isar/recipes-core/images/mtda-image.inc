@@ -36,6 +36,8 @@ IMAGE_PREINSTALL += "                    \
     ssh                                  \
     sudo                                 \
     vim                                  \
+    wireless-regdb                       \
+    wireless-tools                       \
 "
 
 # HomeKit support
