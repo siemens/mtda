@@ -38,6 +38,7 @@ IMAGE_PREINSTALL += "                    \
     vim                                  \
     wireless-regdb                       \
     wireless-tools                       \
+    bluetooth                            \
 "
 
 # HomeKit support
