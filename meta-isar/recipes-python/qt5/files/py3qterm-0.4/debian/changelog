@@ -1,3 +1,9 @@
+py3qterm (0.4-2) testing; urgency=low
+
+  * Use PyQt5 instead of pyqt
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 03 Jan 2022 22:29:00 +0100
+
 py3qterm (0.4-1) testing; urgency=low
 
   * Package upstream version 0.4
