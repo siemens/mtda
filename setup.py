@@ -53,6 +53,7 @@ and testers to remotely access and control hardware devices.
         "psutil",
         "requests",
         "zerorpc>=0.6.0",
-        "zstandard>=0.14"
+        "zstandard>=0.14",
+	"zeroconf>=0.28.6"
     ],
 )
