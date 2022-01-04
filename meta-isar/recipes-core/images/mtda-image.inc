@@ -9,7 +9,7 @@
 MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
 
 # MTDA Package Feeds
-MTDA_APT_URI ??= "https://dl.bintray.com/chombourger/mtda"
+MTDA_APT_URI ??= "https://apt.fury.io/mtda/"
 
 # Build and deploy our MTDA packages
 DEPENDS += "mtda-packages"
@@ -77,6 +77,6 @@ USERS_remove  = "isar"
 # Add mtda package feeds to /etc/apt/sources.list.d/
 ROOTFS_POSTPROCESS_COMMAND += "mtda_add_apt_sources"
 mtda_add_apt_sources() {
-    echo "deb [trusted=yes] ${MTDA_APT_URI} ${BASE_DISTRO_CODENAME} main" \
+    echo "deb [trusted=yes] ${MTDA_APT_URI} /" \
         | sudo tee -a ${IMAGE_ROOTFS}/etc/apt/sources.list.d/mtda.list
 }
