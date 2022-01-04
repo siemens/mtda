@@ -324,6 +324,7 @@ class Application:
             args.pop(0)
 
             cmds = {
+               'help': self.console_help,
                'clear': self.console_clear,
                'dump': self.console_dump,
                'flush': self.console_flush,
@@ -400,6 +401,7 @@ class Application:
             args.pop(0)
 
             cmds = {
+               'help': self.keyboard_help,
                'write': self.keyboard_write
             }
 
@@ -415,6 +417,7 @@ class Application:
             args.pop(0)
 
             cmds = {
+               'help': self.monitor_help,
                'send': self.monitor_send,
                'wait': self.monitor_wait
             }
@@ -456,6 +459,7 @@ class Application:
             args.pop(0)
 
             cmds = {
+               'help': self.storage_help,
                'host': self.storage_host,
                'mount': self.storage_mount,
                'target': self.storage_target,
