@@ -977,8 +977,6 @@ class MultiTenantDeviceAccess:
         configs_found = parser.read(self.config_files)
         if parser.has_section('main'):
             self.load_main_config(parser)
-        if parser.has_section('environment'):
-            self.load_environment(parser)
         if parser.has_section('pastebin'):
             self.load_pastebin_config(parser)
         if parser.has_section('remote'):
@@ -986,9 +984,11 @@ class MultiTenantDeviceAccess:
         self.load_timeouts_config(parser)
         if parser.has_section('ui'):
             self.load_ui_config(parser)
-        if self.is_remote is False:
+        if self.is_remote is False and is_server is True:
             if parser.has_section('assistant'):
                 self.load_assistant_config(parser)
+            if parser.has_section('environment'):
+                self.load_environment(parser)
             if parser.has_section('power'):
                 self.load_power_config(parser)
             if parser.has_section('console'):
