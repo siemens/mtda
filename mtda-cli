@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -356,6 +356,7 @@ class Application:
         return 0
 
     def help_cmd(self, args=None):
+        status = 0
         if args is not None and len(args) > 0:
             cmd = args[0]
             args.pop(0)
@@ -372,6 +373,7 @@ class Application:
             else:
                 print("no help found for command '%s'!" % (cmd),
                       file=sys.stderr)
+                status = 1
         else:
             print("usage: mtda [options] <command> [<args>]")
             print("")
@@ -387,6 +389,7 @@ class Application:
             print("   storage   Interact with the shared storage device")
             print("   usb       Control USB devices attached to the device")
             print("")
+        return status
 
     def keyboard_help(self, args=None):
         print("The 'keyboard' command accepts the following sub-commands:")
@@ -778,40 +781,40 @@ class Application:
                 print('Failed to start the MTDA server!', file=sys.stderr)
                 return False
             return True
-        else:
-            # Start our agent
-            self.agent = Client(self.remote)
-            self.remote = self.agent.remote()
-            self.agent.start()
+
+        # Assume we want an interactive console if called without a command
+        if len(stuff) == 0:
+            stuff = ['console', 'interactive']
 
         # Check for non-option arguments
-        if len(stuff) > 0:
-            cmd = stuff[0]
-            stuff.pop(0)
+        cmd = stuff[0]
+        stuff.pop(0)
 
-            cmds = {
-                'command': self.command_cmd,
-                'console': self.console_cmd,
-                'getenv': self.getenv_cmd,
-                'help': self.help_cmd,
-                'keyboard': self.keyboard_cmd,
-                'monitor': self.monitor_cmd,
-                'setenv': self.setenv_cmd,
-                'storage': self.storage_cmd,
-                'target': self.target_cmd,
-                'usb': self.usb_cmd
-            }
+        cmds = {
+            'command': self.command_cmd,
+            'console': self.console_cmd,
+            'getenv': self.getenv_cmd,
+            'help': self.help_cmd,
+            'keyboard': self.keyboard_cmd,
+            'monitor': self.monitor_cmd,
+            'setenv': self.setenv_cmd,
+            'storage': self.storage_cmd,
+            'target': self.target_cmd,
+            'usb': self.usb_cmd
+        }
 
-            if cmd in cmds:
-                status = cmds[cmd](stuff)
-                sys.exit(status)
-            else:
-                print("unknown command '%s'!" % (cmd), file=sys.stderr)
-                self.help_cmd()
-                sys.exit(1)
+        if cmd in cmds:
+            if cmd != 'help':
+                # Start our agent
+                self.agent = Client(self.remote)
+                self.remote = self.agent.remote()
+                self.agent.start()
+            status = cmds[cmd](stuff)
+            sys.exit(status)
         else:
-            # Assume we want an interactive console if called without a command
-            self.console_interactive()
+            print("unknown command '%s'!" % (cmd), file=sys.stderr)
+            self.help_cmd()
+            sys.exit(1)
         return True
 
 
