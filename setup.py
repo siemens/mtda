@@ -54,6 +54,6 @@ and testers to remotely access and control hardware devices.
         "requests",
         "zerorpc>=0.6.0",
         "zstandard>=0.14",
-	"zeroconf>=0.28.6"
+        "zeroconf>=0.28.6"
     ],
 )
