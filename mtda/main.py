@@ -1353,8 +1353,10 @@ class MultiTenantDeviceAccess:
                 return False
             self.video.start()
 
-        self._session_timer = mtda.utils.RepeatTimer(60, self._session_check)
-        self._session_timer.start()
+        if self.is_server is True:
+            self._session_timer = mtda.utils.RepeatTimer(60,
+                                                         self._session_check)
+            self._session_timer.start()
 
         return True
 
