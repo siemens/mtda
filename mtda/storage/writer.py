@@ -134,11 +134,13 @@ class AsyncImageWriter(queue.Queue):
     def write_raw(self, data, session=None):
         self.mtda.debug(3, "storage.writer.write_raw()")
 
+        result = None
         try:
             result = self.storage.write(data)
             self._written += result if result is not None else 0
-        except OSError:
-            self.mtda.debug(1, "storage.writer.write_raw(): write error!")
+        except OSError as e:
+            self.mtda.debug(1, "storage.writer.write_raw(): "
+                               "%s" % str(e.args[0]))
             self._failed = True
 
         self.mtda.debug(3, "storage.writer.write_raw(): %s" % str(result))
