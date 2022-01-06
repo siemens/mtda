@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -15,7 +15,6 @@ import socket
 import sys
 import threading
 import time
-import zeroconf
 
 from py3qterm import TerminalWidget
 from py3qterm.backend import Session
@@ -24,12 +23,11 @@ from py3qterm.backend import Terminal
 from PyQt5.Qt import Qt
 from PyQt5.QtCore import QUrl
 
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (qApp, QMainWindow, QAction, QApplication,
+from PyQt5.QtWidgets import (QMainWindow, QAction, QApplication,
                              QHBoxLayout, QListWidget, QListWidgetItem,
                              QSizePolicy, QStyle, QTabWidget, QWidget)
 
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaMetaData
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 from mtda.client import Client
@@ -250,7 +248,6 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
         self.hlayout.addWidget(self.tabs)
 
         self.console = DeviceConsole(self.tabs)
-        agent = self.console.agent()
         self.tabs.addTab(self.console, 'Console')
 
         self.media = QMediaPlayer(None, QMediaPlayer.StreamPlayback)
@@ -426,7 +423,7 @@ class MultiTenantDeviceAccessWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    ex = MultiTenantDeviceAccessWindow()
+    MultiTenantDeviceAccessWindow()
     os._exit(app.exec_())
 
 

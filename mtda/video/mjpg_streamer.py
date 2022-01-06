@@ -3,20 +3,18 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
 # System imports
-import abc
 import atexit
 import os
 import psutil
 import signal
 import socket
-import sys
 import threading
 import time
 
