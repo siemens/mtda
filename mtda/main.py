@@ -65,6 +65,7 @@ class MultiTenantDeviceAccess:
         self.keyboard = None
         self.video = None
         self.mtda = self
+        self.name = socket.gethostname()
         self.assistant = None
         self.power_controller = None
         self.power_on_script = None
@@ -1014,7 +1015,6 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.load_main_config()")
 
         # Name of this agent
-        self.name = socket.gethostname()
         self.name = parser.get('main', 'name', fallback=self.name)
 
         self.mtda.debug_level = int(
