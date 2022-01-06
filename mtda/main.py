@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -11,8 +11,6 @@
 
 # System imports
 import configparser
-import daemon
-import gevent
 import importlib
 import os
 import queue
@@ -975,6 +973,9 @@ class MultiTenantDeviceAccess:
         self.is_server = is_server
         parser = configparser.ConfigParser()
         configs_found = parser.read(self.config_files)
+        if configs_found is False:
+            return
+
         if parser.has_section('main'):
             self.load_main_config(parser)
         if parser.has_section('pastebin'):

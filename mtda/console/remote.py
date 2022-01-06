@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -14,7 +14,6 @@ from mtda.console.output import ConsoleOutput
 import mtda.constants as CONSTS
 
 # System imports
-import collections
 import zmq
 
 
@@ -46,7 +45,7 @@ class RemoteConsole(ConsoleOutput):
             while self.exiting is False:
                 topic, data = socket.recv_multipart()
                 self.dispatch(topic, data)
-        except zmq.error.ContextTerminated as e:
+        except zmq.error.ContextTerminated:
             self.socket = None
 
     def stop(self):
