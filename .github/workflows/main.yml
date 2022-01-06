@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -20,14 +20,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: pycodestyle
+      - name: tox
         run: |
-          pip3 install --user pycodestyle
-          pycodestyle mtda-cli mtda-ui mtda
-      - name: reuse
-        run: |
-          pip3 install --user reuse
-          reuse lint
+          pip3 install --user tox
+          tox -s
   mtda-nanopi-images:
     name: Debian image for running MTDA on NanoPI boards
     runs-on: ubuntu-latest
