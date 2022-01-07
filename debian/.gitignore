@@ -5,4 +5,5 @@ debhelper-build-stamp
 files
 mtda
 mtda-kvm
+mtda-pytest
 mtda-ui
