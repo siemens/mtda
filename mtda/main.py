@@ -750,18 +750,32 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.exec_power_on_script(): %s" % str(result))
         return result
 
-    def target_on(self, session=None):
-        self.mtda.debug(3, "main.target_on()")
+    def _target_on(self, session=None):
+        self.mtda.debug(3, "main._target_on()")
 
+        result = False
         if self.console_logger is not None:
             self.console_logger.resume()
-        self._session_check(session)
-        result = False
         if self.power_locked(session) is False:
             result = self.power_controller.on()
             if result is True:
                 self.exec_power_on_script()
                 self._power_event(self.power_controller.POWER_ON)
+
+        self.mtda.debug(3, "main._target_on(): %s" % str(result))
+        return result
+
+    def target_on(self, session=None):
+        self.mtda.debug(3, "main.target_on()")
+
+        result = True
+        self._session_check(session)
+
+        status = self.target_status()
+        if status != self.power_controller.POWER_ON:
+            result = False
+            if self.power_locked(session) is False:
+                result = self._target_on(session)
 
         self.mtda.debug(3, "main.target_on(): %s" % str(result))
         return result
@@ -775,7 +789,6 @@ class MultiTenantDeviceAccess:
     def _target_off(self, session=None):
         self.mtda.debug(3, "main._target_off()")
 
-        result = False
         result = self.power_controller.off()
         if self.keyboard is not None:
             self.keyboard.idle()
@@ -792,10 +805,14 @@ class MultiTenantDeviceAccess:
     def target_off(self, session=None):
         self.mtda.debug(3, "main.target_off()")
 
-        result = False
+        result = True
         self._session_check(session)
-        if self.power_locked(session) is False:
-            result = self._target_off(session)
+
+        status = self.target_status()
+        if status != self.power_controller.POWER_OFF:
+            result = False
+            if self.power_locked(session) is False:
+                result = self._target_off(session)
 
         self.mtda.debug(3, "main.target_off(): %s" % str(result))
         return result
