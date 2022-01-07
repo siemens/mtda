@@ -2,6 +2,7 @@
 .tox
 *.img
 *.pyc
+*.swp
 build
 dist
 isar
