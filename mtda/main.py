@@ -1291,7 +1291,7 @@ class MultiTenantDeviceAccess:
                 variant), file=sys.stderr)
 
     def notify(self, what):
-        self.mtda.debug(3, "main.notify()")
+        self.mtda.debug(3, "main.notify({})".format(what))
 
         result = None
         if self.socket is not None:
@@ -1473,7 +1473,8 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main._session_event(%s)" % str(info))
 
         result = None
-        self.notify("SESSION %s" % info)
+        if info is not None:
+            self.notify("SESSION %s" % info)
 
         self.mtda.debug(3, "main._session_event: %s" % str(result))
         return result
