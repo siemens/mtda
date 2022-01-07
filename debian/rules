@@ -8,6 +8,7 @@ DESTDIR=$(CURDIR)/debian/mtda
 override_dh_auto_install:
 	dh_auto_install
 	rm -rf debian/mtda debian/mtda-kvm
+	rm -rf debian/mtda debian/mtda-pytest
 	install -m 0755 -d debian/mtda
 	mv debian/tmp/usr debian/mtda/
 	install -m 0755 -d debian/mtda-kvm/etc/mtda
@@ -16,6 +17,8 @@ override_dh_auto_install:
 	install -m 0644 configs/qemu-ovmf-vars.fd debian/mtda-kvm/var/lib/mtda/
 	install -m 0755 -d debian/mtda-ui/usr/bin
 	mv debian/mtda/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
+	install -m 0755 -d debian/mtda-pytest/usr/lib/python3/dist-packages/mtda/
+	mv debian/mtda/usr/lib/python*/dist-packages/mtda/pytest.py debian/mtda-pytest/usr/lib/python3/dist-packages/mtda/
 
 override_dh_systemd_enable:
 	dh_systemd_enable
