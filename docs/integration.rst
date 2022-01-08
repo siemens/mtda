@@ -225,3 +225,96 @@ to ``/etc/lava-server/settings.conf``::
 The LAVA server will require a restart for these changes to take effect (it
 will otherwise refuse to validate job definitions having MTDA options listed
 under the ``context`` clause.
+
+pytest
+------
+
+Introduction
+~~~~~~~~~~~~
+
+The pytest framework makes it easy to write tests in Python and exercise your
+software stack. MTDA provides support classes to interact with your device
+and verify its functions using a suite of pytest units. MTDA API tests found
+in the ``tests`` folder may be used as examples.
+
+Test Fixtures
+~~~~~~~~~~~~~
+
+Test fixtures initialize test functions and provide a fixed baseline so that
+tests execute reliably and produce consistent, repeatable, results. Tests
+may specify the test conditions they expect by naming the fixture they expect
+as argument. In order to share fixtures between tests, a ``conftest.py`` file
+may be created within your ``tests`` folder. Fixtures are regular Python
+functions that are decorated with ``@pytest.fixture``.
+
+A sample ``conftest.py`` file is provided below. It defines two simple test
+fixtures: ``powered_off`` and ``powered_on``::
+
+    import pytest
+
+    from mtda.pytest import Target
+    from mtda.pytest import Test
+
+
+    @pytest.fixture()
+    def powered_off():
+        Test.setup()
+        assert Target.off() is True
+
+        yield "powered off"
+
+        Test.teardown()
+
+
+    @pytest.fixture()
+    def powered_on():
+        Test.setup()
+        assert Target.on() is True
+
+        yield "powered on"
+
+        Test.teardown()
+
+Statements before the ``yield`` keyword are setup statements (i.e. what needs
+to be done before a test is executed) and statements that are following will
+tear the test down.
+
+The setup phase requires a connection to the (remote) MTDA service and will
+be achieved with ``Test.setup()``. In addition to creating a MTDA session,
+this will also make pytest receive console and monitor messages on the stdout
+stream (which is captured by pytest). That console will be unmuted and muted
+respectively by the ``setup`` and ``teardown`` methods to capture output
+from the device only while tests are running.
+
+Additional fixtures may be created in order to e.g. get a shell prompt,
+get the device connected to the network, programmatically attach USB
+devices, etc.
+
+Writing tests
+~~~~~~~~~~~~~
+
+Test units may be created in the ``tests`` folder and their name prefixed
+with ``test_`` for pytest to auto-discover your tests. The name of the unit
+should denote the area being tested; e.g. ``test_network.py`` for networking
+tests.
+
+Tests are functions within the unit and also prefixed with ``test_``. Tests
+should specify the test fixture they require as argument. The following
+example shows how to check if a login prompt is offered after the test device
+is powered on::
+
+    from mtda.pytest import Console
+    from mtda.pytest import Target
+
+
+    def test_console_wait_for(powered_off):
+        # Power on and wait for login prompt
+	# with a timeout of 5 minutes
+        assert Target.on() is True
+        assert Console.wait_for("login:", timeout=5*60) is not None
+
+This sample test uses the ``powered_off`` fixture created above to make sure
+the test is started with the device off. It is then turned on with
+``Target.on`` and we then expect ``login:`` to be printed on the console.
+
+MTDA client APIs may be used to write more complex tests.
