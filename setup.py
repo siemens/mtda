@@ -45,6 +45,7 @@ and testers to remotely access and control hardware devices.
     ],
 
     install_requires=[
+        "docker",
         "pyserial>=2.6",
         "python-daemon>=2.0",
         "pyusb>=1.0",
