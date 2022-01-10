@@ -22,6 +22,14 @@ Description: Multi-Tenant Device Access
  plug USB devices in or out (also requiring special hardware) or
  simply access its console (in most cases serial).
 
+Package: mtda-docker
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda, docker-ce | docker.io
+Description: control docker containers using MTDA
+ Provide drivers to start/stop a container from MTDA and interact
+ with it.
+
 Package: mtda-kvm
 Architecture: all
 Multi-Arch: foreign

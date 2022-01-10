@@ -7,18 +7,35 @@ DESTDIR=$(CURDIR)/debian/mtda
 
 override_dh_auto_install:
 	dh_auto_install
-	rm -rf debian/mtda debian/mtda-kvm
-	rm -rf debian/mtda debian/mtda-pytest
+	:
+	rm -rf debian/mtda
+	rm -rf debian/mtda-docker
+	rm -rf debian/mtda-kvm
+	rm -rf debian/mtda-pytest
+	rm -rf debian/mtda-ui
+	:
 	install -m 0755 -d debian/mtda
 	mv debian/tmp/usr debian/mtda/
+	:
+	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/console
+	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/power
+	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/storage
+	mv debian/mtda/usr/lib/python*/dist-packages/mtda/console/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/console/
+	mv debian/mtda/usr/lib/python*/dist-packages/mtda/power/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/power/
+	mv debian/mtda/usr/lib/python*/dist-packages/mtda/storage/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/storage/
+	install -m 0755 -d debian/mtda-docker/etc/mtda
+	install -m 0644 configs/docker.ini debian/mtda-docker/etc/mtda/config
+	:
 	install -m 0755 -d debian/mtda-kvm/etc/mtda
 	install -m 0644 configs/qemu.ini debian/mtda-kvm/etc/mtda/config
 	install -m 0755 -d debian/mtda-kvm/var/lib/mtda
 	install -m 0644 configs/qemu-ovmf-vars.fd debian/mtda-kvm/var/lib/mtda/
-	install -m 0755 -d debian/mtda-ui/usr/bin
-	mv debian/mtda/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
+	:
 	install -m 0755 -d debian/mtda-pytest/usr/lib/python3/dist-packages/mtda/
 	mv debian/mtda/usr/lib/python*/dist-packages/mtda/pytest.py debian/mtda-pytest/usr/lib/python3/dist-packages/mtda/
+	:
+	install -m 0755 -d debian/mtda-ui/usr/bin
+	mv debian/mtda/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
 
 override_dh_systemd_enable:
 	dh_systemd_enable
