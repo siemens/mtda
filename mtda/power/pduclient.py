@@ -70,7 +70,7 @@ class PduClientPowerController(PowerController):
         status = self.cmd('off')
         if status == 0:
             self.state = self.POWER_OFF
-            self.ev.set()
+            self.ev.clear()
             return True
         return False
 
