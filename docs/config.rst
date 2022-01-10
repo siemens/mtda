@@ -123,7 +123,8 @@ General settings
     selected with ``variant``.
 
   * ``variant``: string [required]
-      Select a shared storage variant from ``qemu``, ``samsung`` and ``usbf``.
+      Select a shared storage variant from ``docker``, ``qemu``, ``samsung``
+      and ``usbf``.
 
 * ``usb``: section [optional]
     Specify how many USB ports may be controlled from this agent.
@@ -150,6 +151,13 @@ user console will be streamed to MTDA clients while data received from the
 monitor interface will be logged in a ring buffer (that clients may read).
 For both consoles, the driver is selected with the ``variant`` setting.
 Options specific to each driver are documented below.
+
+``docker`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``docker`` console driver when the power driver is also set to ``docker``.
+This driver will interact with the selected container over a docker socket. There
+are no further settings for this driver.
 
 ``qemu`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -211,6 +219,20 @@ Aviosys. The following settings are supported:
 
 * ``vid``: integer [optional]
     The USB vendor ID of the power outlet (defaults to ``067b``).
+
+``docker`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``docker`` driver may be used to use a docker container instead of a
+physical device. The following settings are supported:
+
+* ``image``: string [optional]
+    The docker image to use for this container. This setting defaults to
+    ``alpine``.
+
+* ``command``: string [optional]
+    The command to execute when the container is started. The default
+    commmand is ``sh``.
 
 ``gpio`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -293,8 +315,8 @@ system running the MTDA agent. The following settings are supported:
     Comma separated list of lines to toggle relays driving power of
     the device.
 
-Shared device settings
-----------------------
+Shared storage settings
+-----------------------
 
 The ``[storage]`` section configures a shared storage device that may be used
 either from the device under test or from the host running the MTDA agent. The
