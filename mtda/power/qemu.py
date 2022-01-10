@@ -350,7 +350,7 @@ class QemuController(PowerController):
         self.cmd("system_reset")
         s = self.status()
         if s == self.POWER_OFF:
-            self.ev.set()
+            self.ev.clear()
             return True
         return False
 
