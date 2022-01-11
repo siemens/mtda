@@ -67,7 +67,7 @@ specified device was detected, a dependency should be added to the service
 using a systemd drop-in unit::
 
     mkdir /lib/systemd/system/mtda-usb-functions.service.d
-    printf "[Unit]\nAfter=dev-sda.device" \
+    printf "[Unit]\nWants=dev-sda.device\nAfter=dev-sda.device" \
         > /lib/systemd/system/mtda-usb-functions.service.d/10-wait-dev.conf
 
 The system should be restarted. Use ``systemctl status mtda-usb-functions`` to
