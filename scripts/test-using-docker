@@ -1,0 +1,78 @@
+#!/bin/bash
+# ---------------------------------------------------------------------------
+# Run pytest using a docker backend
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2022 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+scripts_dir=$(dirname ${0})
+source_dir=$(readlink -f ${scripts_dir}/..)
+tests_dir=${source_dir}/tests
+service_pid=
+tmp_dir=
+
+trap cleanup EXIT SIGINT
+
+cleanup() {
+    if [ -n "${service_pid}" ]; then
+        kill -TERM ${service_pid}
+        wait ${service_pid}
+        service_pid=
+    fi
+
+    if [ -f ${tmp_dir}/debug.log ]; then
+	cat ${tmp_dir}/debug.log
+    fi
+
+    if [ -n "${tmp_dir}" ]; then
+        rm -rf ${tmp_dir}
+        tmp_dir=
+    fi
+}
+
+PYTEST=pytest
+if [ -z "${TOX_WORK_DIR}" ]; then
+    export PYTHONPATH=${source_dir}:${PYTHONPATH}
+    which pytest || PYTEST=pytest-3
+fi
+
+tmp_dir=$(mktemp -d)
+cp ${source_dir}/configs/docker.ini ${tmp_dir}/mtda.ini
+
+sed -i -e 's,debug = 2,debug = 1,g' ${tmp_dir}/mtda.ini
+sed -i -e 's,control = 5556,control = 55556,g' ${tmp_dir}/mtda.ini
+sed -i -e 's,console = 5557,console = 55557,g' ${tmp_dir}/mtda.ini
+sed -i -e 's,command=bash,command=sh,g' ${tmp_dir}/mtda.ini
+
+cd ${tmp_dir}
+
+echo "# getting various docker images"
+docker stop mtda-docker >/dev/null 2>&1 || true
+for image in alpine debian ubuntu archlinux rockylinux
+do
+    docker pull ${image} >/dev/null || exit ${?}
+    docker rm mtda-docker >/dev/null 2>&1 || true
+    docker create --name=mtda-docker ${image} sh >/dev/null
+    docker export mtda-docker > ${image}.tar || exit ${?}
+done
+
+echo "# compressing docker images using various methods"
+gzip -f debian.tar || exit ${?}
+zstd --rm -f ubuntu.tar || exit ${?}
+bzip2 -f archlinux.tar || exit ${?}
+xz -f rockylinux.tar || exit ${?}
+du -sh *.tar*
+
+echo "# starting mtda in the background"
+${source_dir}/mtda-cli -d -n 2>debug.log &
+service_pid=${!}
+
+sleep 30
+
+export TEST_IMAGE=${tmp_dir}/alpine.tar
+${PYTEST} -v ${tests_dir}
