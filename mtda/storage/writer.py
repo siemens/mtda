@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -186,6 +186,8 @@ class AsyncImageWriter(queue.Queue):
                 self._written += result if result is not None else 0
                 cont = self._zdec.needs_input is False
                 data = b''
+        except EOFError:
+            result = 0
         except OSError as e:
             self.mtda.debug(1, "storage.writer.write_bz2(): "
                                "%s" % str(e.args[0]))
