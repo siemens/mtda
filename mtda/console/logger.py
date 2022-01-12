@@ -158,7 +158,7 @@ class ConsoleLogger:
         return line
 
     def _match_any(self):
-        self.mtda.debug(3, "mtda.console.logger._match_any()")
+        self.mtda.debug(3, "console.logger._match_any()")
 
         result = False
         line = self._tail(False)
@@ -166,11 +166,11 @@ class ConsoleLogger:
             self.mtda.debug(2, "matched '%s'" % str(self._what))
             result = True
 
-        self.mtda.debug(3, "mtda.console.logger._match_any: %s" % str(result))
+        self.mtda.debug(3, "console.logger._match_any: %s" % str(result))
         return result
 
     def wait(self, what, timeout=None):
-        self.mtda.debug(3, "mtda.console.logger.wait()")
+        self.mtda.debug(3, "console.logger.wait()")
         self.rx_lock.acquire()
 
         # Wait for specified string
@@ -181,7 +181,7 @@ class ConsoleLogger:
         if result is True:
             self.rx_lock.release()
 
-        self.mtda.debug(3, "mtda.console.logger.wait: %s" % str(result))
+        self.mtda.debug(3, "console.logger.wait: %s" % str(result))
         return result
 
     def write(self, data, raw=False):
@@ -331,12 +331,24 @@ class ConsoleLogger:
                 retries = retries - 1
 
     def pause(self):
+        self.mtda.debug(3, "console.logger.resume()")
+
         with self.rx_lock:
-            self.console.close()
+            result = self.console.close()
+
+        self.mtda.debug(3, "console.logger.pause(): "
+                           "{}".format(result))
+        return result
 
     def resume(self):
+        self.mtda.debug(3, "console.logger.resume()")
+
         with self.rx_lock:
-            self.console.open()
+            result = self.console.open()
+
+        self.mtda.debug(3, "console.logger.resume(): "
+                           "{}".format(result))
+        return result
 
     @property
     def time_from(self):
