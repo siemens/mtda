@@ -754,11 +754,11 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main._target_on()")
 
         result = False
-        if self.console_logger is not None:
-            self.console_logger.resume()
         if self.power_locked(session) is False:
             result = self.power_controller.on()
             if result is True:
+                if self.console_logger is not None:
+                    self.console_logger.resume()
                 self.exec_power_on_script()
                 self._power_event(self.power_controller.POWER_ON)
 
