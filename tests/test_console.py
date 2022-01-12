@@ -26,27 +26,27 @@ def test_console_lines(powered_off):
     assert Target.on() is True
     tries = 30
     while lines == 0 and tries > 0:
+        Console.send('\x03\r')
         lines = Console.lines()
         time.sleep(1)
+        tries = tries - 1
     assert lines > 0
 
 
-def test_console_wait_for(powered_off):
-    # Power on and wait for login prompt
-    assert Target.on() is True
-    assert Console.wait_for("login:",
-                            timeout=Consts.BOOT_TIMEOUT) is not None
+def test_console_wait_for(powered_on):
+    Console.send("uname -s\r")
+    assert Console.wait_for("Linux") is not None
 
 
-def test_console_head(logged_in):
-    cmd = "uname -s\r\n"
+def test_console_head(powered_on):
+    cmd = "uname -s\r"
     Console.send(cmd)
     time.sleep(1)
     assert Console.head().strip() == cmd.strip()
 
 
-def test_console_tail(logged_in):
+def test_console_tail(powered_on):
     prompt = "shell$ "
-    Console.send("export PS1='{}'\r\n".format(prompt))
+    Console.send("export PS1='{}'\r".format(prompt))
     time.sleep(1)
     assert Utils.escape_ansi(Console.tail()).strip() == prompt.strip()
