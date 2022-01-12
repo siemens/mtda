@@ -37,37 +37,3 @@ def powered_on():
     yield "powered on"
 
     Test.teardown()
-
-
-@pytest.fixture()
-def logged_in():
-    Test.setup()
-
-    assert Target.on() is True
-
-    Console.send("\x04")
-    time.sleep(1)
-
-    # Login
-    assert Console.wait_for("login:",
-                            timeout=Consts.BOOT_TIMEOUT) is not None
-    Console.send("mtda\r\n")
-
-    # Password
-    assert Console.wait_for("Password",
-                            timeout=Consts.PASSWORD_TIMEOUT) is not None
-    Console.send("mtda\r\n")
-
-    # Shell prompt
-    assert Console.wait_for("mtda@",
-                            timeout=Consts.PROMPT_TIMEOUT) is not None
-
-    # Let test run within shell session
-    yield "logged in"
-
-    Test.teardown()
-
-    # Logout
-    Console.send("\x03")
-    time.sleep(1)
-    Console.send("\x04")
