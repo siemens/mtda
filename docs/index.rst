@@ -17,6 +17,7 @@ Welcome to MTDA's documentation!
    integration
    config
    build
+   dev
 
 Indices and tables
 ==================
