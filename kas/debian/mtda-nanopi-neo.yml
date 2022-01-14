@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -13,7 +13,7 @@ header:
   version: 10
 
 machine: nanopi-neo
-distro: debian-bullseye
+distro: mtda-bullseye
 target: isar-image-base
 build_system: isar
 
@@ -38,6 +38,4 @@ local_conf_header:
   mtda: |
     CONF_VERSION = "1"
     ISAR_CROSS_COMPILE = "1"
-    MTDA_EXTRA_APT_SOURCES = "conf/apt/debian-bullseye-backports.list"
-    MTDA_EXTRA_APT_PREFERENCES = "conf/apt/debian-bullseye-backports.conf"
     MTDA_MASS_STORAGE_FILE = "sda"
