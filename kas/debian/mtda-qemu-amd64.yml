@@ -13,7 +13,7 @@ header:
   version: 10
 
 machine: qemuamd64
-distro: debian-bullseye
+distro: mtda-bullseye
 target: isar-image-base
 build_system: isar
 
