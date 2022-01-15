@@ -1,3 +1,9 @@
+zerorpc-python (0.6.3-3) testing; urgency=low
+
+  * Amend Build-Depends to support cross-compilation
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sat, 15 Jan 2022 08:06:00 +0100
+
 zerorpc-python (0.6.3-2) testing; urgency=low
 
   * Pull sources from PyPI.org and get debian meta-data from this layer

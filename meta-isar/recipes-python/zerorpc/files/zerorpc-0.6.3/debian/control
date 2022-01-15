@@ -4,13 +4,9 @@ Priority: extra
 Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>=10),
                dh-python,
-               python3-setuptools,
-               python3-all,
-               python3-future,
-               python3-gevent,
-               python3-msgpack,
-               python3-nose,
-               python3-zmq
+               libpython3-dev,
+               python3-dev:any,
+               python3-setuptools:native
 Standards-Version: 4.5.0
 Homepage: https://github.com/0rpc/zerorpc-python
 X-Python3-Version: >= 3.7
