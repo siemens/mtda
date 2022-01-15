@@ -9,33 +9,14 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
+build_system: isar
+machine: nanopi-r1
+
 header:
   version: 10
-
-machine: nanopi-r1
-distro: mtda-bullseye
-target: isar-image-base
-build_system: isar
-
-repos:
-  mtda:
-    layers:
-      meta-isar:
-  isar:
-    url: https://github.com/ilbers/isar.git
-    refspec: master
-    layers:
-      meta:
-      meta-isar:
-
-bblayers_conf_header:
-  mtda: |
-    LCONF_VERSION = "6"
-    BBPATH = "${TOPDIR}"
-    BBFILES ?= ""
+  includes:
+    - kas/debian/bullseye-base.yml
 
 local_conf_header:
   mtda: |
-    CONF_VERSION = "1"
-    ISAR_CROSS_COMPILE = "1"
     MTDA_MASS_STORAGE_FILE = "sda"

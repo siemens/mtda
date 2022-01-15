@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on x86_64
+# Base kas file for all configurations based on Debian bullseye
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -9,14 +9,9 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-build_system: isar
-machine: qemuamd64
-
 header:
   version: 10
   includes:
-    - kas/debian/bullseye-base.yml
+    - kas/common/base.yml
 
-local_conf_header:
-  mtda: |
-    MTDA_MASS_STORAGE_FILE = "sda"
+distro: mtda-bullseye
