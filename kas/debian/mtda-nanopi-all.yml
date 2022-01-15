@@ -13,6 +13,7 @@ header:
   version: 10
 
 build_system: isar
+distro: mtda-bullseye
 target:
   - mc:nanopi-neo:isar-image-base
   - mc:nanopi-r1:isar-image-base
