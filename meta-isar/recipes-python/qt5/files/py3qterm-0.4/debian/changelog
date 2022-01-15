@@ -1,3 +1,9 @@
+py3qterm (0.4-3) testing; urgency=low
+
+  * Amend Build-Depends to support cross-compilation
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sat, 15 Jan 2022 08:05:00 +0100
+
 py3qterm (0.4-2) testing; urgency=low
 
   * Use PyQt5 instead of pyqt
