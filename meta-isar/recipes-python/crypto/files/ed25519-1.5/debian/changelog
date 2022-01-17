@@ -1,3 +1,9 @@
+ed25519 (1.5-5) unstable; urgency=medium
+
+  * Build-Depends against python3-all-dev
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 17 Jan 2022 23:15:00 +0100
+
 ed25519 (1.5-4) unstable; urgency=medium
 
   * Fix Build-Depends to support cross-compiling.

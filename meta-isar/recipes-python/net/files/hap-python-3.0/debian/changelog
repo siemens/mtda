@@ -1,3 +1,9 @@
+hap-python (3.0-4) unstable; urgency=medium
+
+  * Build-Depends against python3-all0-dev
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 17 Jan 2022 23:15:00 +0100
+
 hap-python (3.0-3) unstable; urgency=medium
 
   * Fix Build-Depends to support cross-compiling.

@@ -1,3 +1,9 @@
+zstandard (0.14.0-5) unstable; urgency=medium
+
+  * Build-Depends against python3-all-dev packages
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sat, 17 Jan 2022 23:11:00 +0100
+
 zstandard (0.14.0-4) unstable; urgency=medium
 
   * Amend Build-Depends to support cross-compilation

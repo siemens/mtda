@@ -1,3 +1,9 @@
+py3qterm (0.4-4) testing; urgency=low
+
+  * Build-Depends against python3-all-dev
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 17 Jan 2022 23:17:00 +0100
+
 py3qterm (0.4-3) testing; urgency=low
 
   * Amend Build-Depends to support cross-compilation
