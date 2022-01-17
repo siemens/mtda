@@ -11,7 +11,7 @@ require u-boot-${PV}.inc
 DEBIAN_BUILD_DEPENDS_append = ",libssl-dev:native,libssl-dev"
 
 # Python packages needed during the build
-DEBIAN_BUILD_DEPENDS_append = ",python3-distutils,python3-pkg-resources,python3-dev:native,swig:native"
+DEBIAN_BUILD_DEPENDS_append = ",python3-distutils,python3-pkg-resources,python3-all-dev:native,swig"
 
 U_BOOT_BIN = "u-boot-sunxi-with-spl.bin"
 U_BOOT_CONFIG = "nanopi_r1_defconfig"
