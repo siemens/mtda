@@ -31,6 +31,7 @@ class QemuController(PowerController):
         self.ev = threading.Event()
         self.bios = None
         self.cpu = None
+        self.drives = []
         self.executable = "kvm"
         self.hostname = "mtda-kvm"
         self.lock = threading.Lock()
@@ -41,7 +42,6 @@ class QemuController(PowerController):
         self.pflash_rw = None
         self.pidOfQemu = None
         self.pidOfSwTpm = None
-        self.storage = None
         self.swtpm = "/usr/bin/swtpm"
         self.watchdog = None
 
@@ -64,14 +64,23 @@ class QemuController(PowerController):
             self.pflash_ro = os.path.realpath(conf['pflash_ro'])
         if 'pflash_rw' in conf:
             self.pflash_rw = os.path.realpath(conf['pflash_rw'])
-        if 'storage' in conf:
-            self.storage = os.path.realpath(conf['storage'])
+        if 'storage' in conf and 'storage.0' not in conf:
+            conf['storage.0'] = conf['storage']
         if 'swtpm' in conf:
             self.swtpm = os.path.realpath(conf['swtpm'])
         elif os.path.exists(self.swtpm) is False:
             self.swtpm = None
         if 'watchdog' in conf:
             self.watchdog = conf['watchdog']
+        n = 0
+        while True:
+            key = 'storage.{}'.format(n)
+            if key in conf:
+                path = os.path.realpath(conf[key])
+                self.drives.append(path)
+                n = n + 1
+            else:
+                break
 
     def probe(self):
         self.mtda.debug(3, "power.qemu.probe()")
@@ -156,7 +165,7 @@ class QemuController(PowerController):
                 else:
                     # This is probably recoverable, we'll create an empty file
                     # and trust the try/except to save us if the specified
-                    # location isn't usable for some reason (eg. the location
+                    # location isn't usable for some reason (e.g. the location
                     # is write protected or the specified file already exists
                     # as a directory or something).
                     #
@@ -169,12 +178,13 @@ class QemuController(PowerController):
                 raise ValueError("Writeable pflash file (%s) does not exist "
                                  "or is not a file and cannot be created: "
                                  "%s" % (self.pflash_rw, e))
-        if self.storage is not None:
-            options += " -drive file=%s,media=disk,format=raw" % self.storage
-            if os.path.exists(self.storage) is False:
-                sparse = pathlib.Path(self.storage)
-                sparse.touch()
-                os.truncate(str(sparse), 16*1024*1024*1024)
+        if len(self.drives) > 0:
+            for drv in self.drives:
+                options += " -drive file={},media=disk,format=raw".format(drv)
+                if os.path.exists(drv) is False:
+                    sparse = pathlib.Path(drv)
+                    sparse.touch()
+                    os.truncate(str(sparse), 16*1024*1024*1024)
         if self.watchdog is not None:
             options += " -watchdog %s" % self.watchdog
 
