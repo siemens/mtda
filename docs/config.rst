@@ -297,7 +297,8 @@ The following settings are supported:
     Path to the read-write firmware flash.
 
 * ``storage``: string [optional]
-    Path to the emulated machine storage.
+    Path to the emulated machine storage. Use ``storage.0``, ``storage.1``,
+    etc. if more than one system drive should be emulated.
 
 * ``swtpm``: string [optional]
     Path to the ``swtpm`` binary to support emulation of a TPM device.
