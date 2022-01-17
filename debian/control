@@ -4,8 +4,9 @@ Priority: extra
 Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>=10) | dh-systemd,
                dh-python,
-               python3-setuptools,
-               python3-all
+               libpython3-all-dev,
+               python3-all-dev,
+               python3-setuptools
 Standards-Version: 4.5.0 
 Homepage: https://github.com/siemens/mtda
 X-Python3-Version: >= 3.7
