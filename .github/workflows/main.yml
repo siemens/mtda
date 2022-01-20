@@ -82,14 +82,3 @@ jobs:
           find build-amd64/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
           done
-  mtda-ubuntu-qemu-amd64-packages:
-    name: Ubuntu packages for running MTDA on amd64
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build packages
-        run: |
-          export KAS_BUILD_DIR=${PWD}/build-amd64
-          ./kas-container build --target mtda-packages kas/ubuntu/mtda-qemu-amd64.yml
-          ./kas-container build --target qemu-packages kas/ubuntu/mtda-qemu-amd64.yml
