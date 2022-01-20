@@ -3,12 +3,12 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
 __license__ = 'MIT'
-__copyright__ = 'Copyright (C) 2021 Siemens Digital Industries Software'
-__version__ = '0.14'
+__copyright__ = 'Copyright (C) 2022 Siemens Digital Industries Software'
+__version__ = '0.15'

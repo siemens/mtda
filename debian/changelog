@@ -1,3 +1,80 @@
+mtda (0.15-1) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * meta-isar/recipes-core: introduce MTDA_EXTRA_APT variables
+  * kas: switch to Linux 5.14 to support newer nanopi variants
+  * LICENSES: add GPL-2.0-or-later
+  * meta-isar/recipes-bsp: add u-boot recipe for the nanopi-r1
+  * meta-isar/recipes-core: build custom u-boot for nanopi-r1
+  * meta-isar/scripts: add .wks file for nanopi-r1
+  * meta-isar/conf: add nanopi-r1 machine (Closes: #105)
+  * meta-isar/conf: add multiconfig files for supported nanopi variants
+  * ci: switch from mtda-nanopi-neo to mtda-nanopi-all
+  * kas: make kas-container executable
+  * meta-isar/recipes-python: make py3qterm use PyQt5 (vs pyqt)
+  * docs/build: document nanopi-r1 setup (Closes: #124)
+  * main: do not load server-side settings when running as client
+  * mtda-cli: do nothing but print usage for mtda-cli help
+  * main: start session monitor only when running as a server
+  * storage/writer: fix a variable referenced before use error in write_raw
+    (Closes: #140)
+  * meta-isar/conf: set PREFERRED_PROVIDER for u-boot-nanopi-r1
+  * fix flake8 warnings/errors (mostly ununsed imports)
+  * tox: add configuration file to run supported tests
+  * ci: use tox to run supported tests (flake8, reuse)
+  * main: make sure the agent is created with a default name
+  * gitignore: add .swp files
+  * meta-isar/scripts: pass --use-uuid in sdimage-efi.wks for /boot
+  * main: make target_off/target_on no-ops when already off/on
+  * main: do not send empty session events
+  * tests: provide some basic tests using pytest
+  * docs: describe how to write device tests using pytest
+  * storage/writer: handle end of stream for bzip2 streams (Closes: #147)
+  * meta-isar/conf: introduce mtda-bullseye distro
+  * meta-isar/conf: use IMAGE_FSTYPES instead of IMAGE_TYPE
+  * kas/debian: set distro in multiconfig kas files
+  * kas: refactor yml files to have a single list of repositories
+  * meta-isar/recipes-python: zstandard may now be cross-compiled
+  * meta-isar/recipes-python: zeroconf may now be cross-compiled
+  * meta-isar/recipes-python: py3qterm may now be cross-compiled
+  * meta-isar/recipes-python: zerorpc may now be cross-compiled
+  * kas/common: use a well-defined Isar version
+  * console/logger: add some debug prints
+  * mtda/main: power on before resuming the console
+  * power/docker: support starting and stopping of docker containers
+  * power/pduclient: clear event when powered off
+  * power/qemu: clear event when powered off
+  * console/docker: new driver to attach to the console of a container
+  * storage/docker: new driver to support loading of docker images
+  * config: add sample configuration for docker
+  * docs/config: document settings for docker drivers
+  * debian: add a mtda-docker package
+  * tests/console: make tests work with our docker configuration
+  * tox: run pytest units using docker to validate our APIs
+  * tests/storage: add write tests
+  * docs/dev: document how docker may be used as a virtual platform
+
+  [ Vijai Kumar K ]
+  * kas-container: Update to 2.6.3
+  * docs: Remove transparent canvas in png images
+  * nanopi-r1: add support for Wi-Fi (Closes: #125)
+  * nanopi-r1: add support for Bluetooth (Closes: #126)
+  * mtda-cli: add missing help options for subcommands (Closes: #136)
+  * setup.py: replace tab with space
+  * mtda: add support for xz compressed images (Closes: #121)
+  * Revert "meta-isar/conf: use IMAGE_FSTYPES instead of IMAGE_TYPE"
+
+  [ Richa Bharti ]
+  * setup.py: needs zeroconf to be installed to run mtda-cli on host
+  * apt: mtda apt link changed
+  * storage: start mtda-usb-functions after storage is loaded
+
+  [ Bhargav Das ]
+  * ci: build packages when a PR is created
+  * ci: perform build only when labels are assigned
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 20 Jan 2022 07:00:03 +0100
+
 mtda (0.14-1) testing; urgency=low
 
   [Cedric Hombourger]
