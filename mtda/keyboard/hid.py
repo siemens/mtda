@@ -11,6 +11,7 @@
 
 # System imports
 import os
+import select
 import time
 
 # Local imports
@@ -18,6 +19,9 @@ from mtda.keyboard.controller import KeyboardController
 
 
 class HidKeyboardController(KeyboardController):
+
+    # Timeout (seconds) for writes
+    TIMEOUT = 1
 
     def __init__(self, mtda):
         self.dev = None
@@ -51,7 +55,15 @@ class HidKeyboardController(KeyboardController):
     def write_report(self, report):
         self.mtda.debug(3, "keyboard.hid.write_report()")
 
-        return self.fd.write(report.encode())
+        outs = [self.fd]
+        readable, writable, error = select.select([], outs, [], self.TIMEOUT)
+        if len(writable) > 0:
+            result = self.fd.write(report.encode())
+        else:
+            result = 0
+
+        self.mtda.debug(3, "keyboard.hid.write_report(): {}".format(result))
+        return result
 
     def idle(self):
         self.mtda.debug(3, "keyboard.hid.idle()")
