@@ -1,13 +1,22 @@
 Installation
 ============
 
-Using apt
----------
+Using apt on Debian 11
+----------------------
 
 Packages for Debian 11 (bullseye) may be installed as follows::
 
    $ echo 'deb [trusted=yes] https://apt.fury.io/mtda/ /' | \
      sudo tee /etc/apt/sources.list.d/mtda.list
+   $ sudo apt-get update
+   $ sudo apt-get install -y mtda
+
+Using apt on Ubuntu 20.04
+-------------------------
+
+Packages for Ubuntu 20.04 (Focal Fossa) may be installed as follows::
+
+   $ sudo add-apt-repository ppa:chombourger/mtda-focal
    $ sudo apt-get update
    $ sudo apt-get install -y mtda
 

@@ -1,0 +1,145 @@
+#!/bin/bash
+# ---------------------------------------------------------------------------
+# Build source packages and upload them to PPA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2022 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+build_dir=${1:-build}
+distro=${2:-focal}
+signer=${3:-D26CC6417E10F45C61C83B38FA5C9FECC03529BF}
+tmp_dir=""
+
+# TODO: switch to siemens' PPA
+PPA="chombourger"
+SUITES="stable testing unstable RELEASED UNRELEASED"
+
+cleanup() {
+    if [ -n "${tmp_dir}" ]; then
+        rm -rf ${tmp_dir}
+        tmp_dir=""
+    fi
+}
+
+trap cleanup EXIT SIGINT
+
+# Stop on error
+set -e
+
+# Check if specified build directory exists
+if [ ! -d ${build_dir} ]; then
+    echo "error: ${build_dir} does not exist (or is not a directory)!" >&2
+    exit 1
+fi
+
+# Check if specified key exists
+gpg -K ${signer} >/dev/null 2>/dev/null
+if [ ${?} -ne 0 ]; then
+    echo "error: signing key (${signer}) was not found!" >&2
+    exit 2
+fi
+
+tmp_dir=$(mktemp -d)
+
+cat >${tmp_dir}/dput.conf <<EOF
+[mtda-ppa]
+fqdn = ppa.launchpad.net
+method = ftp
+incoming = ~${PPA}/mtda-${distro}
+login = anonymous
+allow_unsigned_uploads = 0
+EOF
+
+build_dir=$(readlink -f ${build_dir})
+for p in $(find ${build_dir}/tmp/work -maxdepth 5 -name '*.dsc')
+do
+    dir=$(dirname ${p})
+    name=$(basename ${p})
+
+    # Get the latest .dsc file from the build
+    pushd ${dir}
+    latest=$(/bin/ls -1 -t *.dsc|head -n 1)
+    popd
+
+    # When multiple .dsc files are found in the build, only process the
+    # latest
+    [ "${name}" = "${latest}" ] || continue
+    name=$(echo ${name}|cut -d_ -f1)
+
+    # Source packages created by Isar using the dpkg-raw class are invalid
+    # (they reference sources in /home/builder)
+    [ "${name}" != "mtda-usb-functions" ] || continue
+
+    # Create work-directory for this package
+    mkdir -p ${tmp_dir}/${name}
+    pushd ${tmp_dir}/${name}
+
+    # Extract sources there
+    dpkg-source -x ${p}
+
+    # Parse debian/changelog
+    name=$(cd */debian/.. && dpkg-parsechangelog -S Source)
+    version=$(cd */debian/.. && dpkg-parsechangelog -S Version)
+    upstream=$(echo ${version}|cut -d- -f1)
+
+    # Copy upstream tarball
+    for archive in ${dir}/*.tar.*; do
+        [ -f ${archive} ] || continue
+        cp ${archive} .
+    done
+
+    # Extract git bundle
+    for bundle in ${dir}/*.git; do
+        [ -f ${bundle} ] || continue
+        git clone ${bundle}
+        dir=$(find . -maxdepth 1 -type d -name '*.git')
+        git -C ${dir} archive --format=tar --prefix=${name}-${upstream}/ -o ../${name}_${upstream}.orig.tar HEAD
+        rm -rf ${dir} ${name}-${upstream}
+        tar -xf *.orig.tar
+        xz *.orig.tar
+        cp *.orig.tar.xz ~
+    done
+
+    # Use target distro as suite
+    for suite in ${SUITES}; do
+        sed -i -e "s,) ${suite},) ${distro},g" */debian/changelog
+    done
+
+    # Make sure we have an upstream tarball (.orig.tar)
+    for f in *.tar.*
+    do
+        case ${f} in
+            *.debian.tar.*) continue;;
+              *.orig.tar.*) continue;;
+                  *.tar.gz) mv ${f} ${name}_${upstream}.orig.tar.gz;;
+                  *.tar.xz) mv ${f} ${name}_${upstream}.orig.tar.xz;;
+        esac
+    done
+
+    # Delete previous source package
+    rm -f *.changes *.dsc
+    pushd */debian/..
+
+    # Make sure we build a source package against an upstream tarball
+    # (and not a git bundle)
+    mkdir -p debian/source
+    if [ "${version}" != "${upstream}" ]; then
+        echo "3.0 (quilt)" > debian/source/format
+    else
+        echo "3.0 (native)" > debian/source/format
+    fi
+
+    # Rebuild source package for Ubuntu with local changes
+    # done above
+    dpkg-buildpackage -S -sa -d --force-sign -k${signer}
+    popd
+
+    # Upload to PPA
+    dput -c ${tmp_dir}/dput.conf mtda-ppa *.changes
+    popd
+done

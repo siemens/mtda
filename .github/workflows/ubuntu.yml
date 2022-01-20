@@ -27,20 +27,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Build packages using Isar
+        run: |
+          export KAS_BUILD_DIR=${PWD}/build-amd64
+          ./kas-container build --target mtda-packages kas/ubuntu/mtda-qemu-amd64.yml
+          ./kas-container build --target qemu-packages kas/ubuntu/mtda-qemu-amd64.yml
       - name: Import GPG key
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v4
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      - name: GPG user IDs
+      - name: Upload source packages to PPA
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
-          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
-          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
-          echo "name:        ${{ steps.import_gpg.outputs.name }}"
-          echo "email:       ${{ steps.import_gpg.outputs.email }}"
-      - name: Build packages
-        run: |
-          export KAS_BUILD_DIR=${PWD}/build-amd64
-          ./kas-container build --target mtda-packages kas/ubuntu/mtda-qemu-amd64.yml
-          ./kas-container build --target qemu-packages kas/ubuntu/mtda-qemu-amd64.yml
+          sudo apt install -y devscripts dh-python equivs
+          ./scripts/build-using-ppa ${PWD}/build-amd64 focal
