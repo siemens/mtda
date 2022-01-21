@@ -26,7 +26,7 @@ class QemuConsole(ConsoleInterface):
         self.opened = False
 
     """ Configure this console from the provided configuration"""
-    def configure(self, conf):
+    def configure(self, conf, role='console'):
         self.mtda.debug(3, "console.qemu.configure()")
 
     def probe(self):

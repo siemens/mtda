@@ -27,7 +27,7 @@ class SerialConsole(ConsoleInterface):
         self.opened = False
 
     """ Configure this console from the provided configuration"""
-    def configure(self, conf):
+    def configure(self, conf, role='console'):
         self.mtda.debug(3, "console.serial.configure()")
 
         if 'port' in conf:
