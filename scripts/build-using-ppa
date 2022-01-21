@@ -71,10 +71,6 @@ do
     [ "${name}" = "${latest}" ] || continue
     name=$(echo ${name}|cut -d_ -f1)
 
-    # Source packages created by Isar using the dpkg-raw class are invalid
-    # (they reference sources in /home/builder)
-    [ "${name}" != "mtda-usb-functions" ] || continue
-
     # Create work-directory for this package
     mkdir -p ${tmp_dir}/${name}
     pushd ${tmp_dir}/${name}

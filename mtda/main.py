@@ -716,11 +716,10 @@ class MultiTenantDeviceAccess:
         return self._lock_owner
 
     def _power_event(self, status):
+        self._power_expiry = None
         if status == self.power_controller.POWER_ON:
-            self._power_expiry = 0
             self._uptime = time.monotonic()
         elif status == self.power_controller.POWER_OFF:
-            self._power_expiry = None
             self._uptime = 0
 
         for m in self.power_monitors:
