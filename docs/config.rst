@@ -276,6 +276,11 @@ The following settings are supported:
 * ``cpu``: string [optional]
     The CPU to be emulated by QEMU/KVM.
 
+* ``smp``: integer [optional]
+    ``smp=<NUMBER>`` specifies the number of cores the guest is permitted to
+    use. The number can be higher than the available cores on the host system.
+    Use ``smp=0`` to use all currently available cores.
+
 * ``executable``: string [optional]
     The QEMU/KVM executable to use as system emulator. This setting defaults
     to ``kvm``

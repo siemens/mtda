@@ -19,6 +19,7 @@ import signal
 import tempfile
 import threading
 import time
+import multiprocessing
 
 # Local imports
 from mtda.power.controller import PowerController
@@ -31,6 +32,7 @@ class QemuController(PowerController):
         self.ev = threading.Event()
         self.bios = None
         self.cpu = None
+        self.smp = None
         self.drives = []
         self.executable = "kvm"
         self.hostname = "mtda-kvm"
@@ -52,6 +54,8 @@ class QemuController(PowerController):
             self.bios = conf['bios']
         if 'cpu' in conf:
             self.cpu = conf['cpu']
+        if 'smp' in conf:
+            self.smp = int(conf['smp'])
         if 'executable' in conf:
             self.executable = conf['executable']
         if 'hostname' in conf:
@@ -141,6 +145,11 @@ class QemuController(PowerController):
             options += " -bios %s" % self.bios
         if self.cpu is not None:
             options += " -cpu %s" % self.cpu
+        if self.smp is not None:
+            if self.smp == 0:
+                options += " -smp %s" % multiprocessing.cpu_count()
+            else:
+                options += " -smp %s" % self.smp
         if self.machine is not None:
             options += " -machine %s" % self.machine
         if self.pflash_ro is not None:
