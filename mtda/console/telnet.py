@@ -30,7 +30,7 @@ class TelnetConsole(ConsoleInterface):
         self.timeout = 10
 
     """ Configure this console from the provided configuration"""
-    def configure(self, conf):
+    def configure(self, conf, role='console'):
         self.mtda.debug(3, "console.telnet.configure()")
 
         if 'host' in conf:

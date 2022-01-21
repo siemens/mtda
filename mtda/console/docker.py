@@ -30,7 +30,7 @@ class DockerConsole(ConsoleInterface):
         self._socket = None
 
     """ Configure this console from the provided configuration"""
-    def configure(self, conf):
+    def configure(self, conf, role='console'):
         self.mtda.debug(3, "console.docker.configure()")
 
     def probe(self):

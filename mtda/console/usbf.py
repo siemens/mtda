@@ -21,11 +21,11 @@ class UsbFunctionConsole(SerialConsole):
         self.port = "/dev/ttyGS0"
         self.rate = 9600
 
-    def configure(self, conf):
+    def configure(self, conf, role='console'):
         self.mtda.debug(3, "console.usbf.configure()")
 
         super().configure(conf)
-        result = Composite.configure('console', conf)
+        result = Composite.configure(role, conf)
 
         self.mtda.debug(3, "console.usbf.configure(): {}".format(result))
         return result

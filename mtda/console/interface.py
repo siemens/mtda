@@ -16,7 +16,7 @@ class ConsoleInterface(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def configure(self, conf):
+    def configure(self, conf, role='console'):
         """ Configure this console from the provided configuration"""
         return False
 

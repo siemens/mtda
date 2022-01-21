@@ -1129,7 +1129,7 @@ class MultiTenantDeviceAccess:
             self.monitor = factory(self)
             self.monitor.variant = variant
             # Configure the monitor console
-            self.monitor.configure(dict(parser.items('monitor')))
+            self.monitor.configure(dict(parser.items('monitor')), 'monitor')
         except configparser.NoOptionError:
             print('monitor variant not defined!', file=sys.stderr)
         except ImportError:
