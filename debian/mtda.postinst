@@ -1,4 +1,7 @@
 #!/bin/sh
 
-deb-systemd-helper enable mtda-usb-functions.service
+set -e
+
+deb-systemd-helper enable mtda.service
 grep -qe '^libcomposite$' /etc/modules || echo "libcomposite" >/etc/modules
+

@@ -46,9 +46,7 @@ The following blocks may be added to the MTDA configuration file used by the
 agent to enable the functions listed above::
 
     [console]
-    variant=serial
-    port=/dev/ttyGS0
-    rate=9600
+    variant=usbf
 
     [storage]
     variant=usbf
@@ -57,18 +55,12 @@ agent to enable the functions listed above::
     variant=hid
     device=/dev/hidg0
 
-If the ``storage`` function was enabled, ``/etc/mtda/usb-functions`` should
-be created and specify the block device to be used::
+Since the ``mtda`` service should only be started after the specified device was
+detected, a dependency should be added to the service using a systemd drop-in unit::
 
-    MASS_STORAGE_FILE=/dev/sda
-
-Since the ``mtda-usb-functions`` service should only be started after the
-specified device was detected, a dependency should be added to the service
-using a systemd drop-in unit::
-
-    mkdir /lib/systemd/system/mtda-usb-functions.service.d
+    mkdir /lib/systemd/system/mtda.service.d
     printf "[Unit]\nWants=dev-sda.device\nAfter=dev-sda.device" \
-        > /lib/systemd/system/mtda-usb-functions.service.d/10-wait-dev.conf
+        > /lib/systemd/system/mtda.service.d/10-wait-dev.conf
 
-The system should be restarted. Use ``systemctl status mtda-usb-functions`` to
-confirm that the service was correctly started.
+The system should be restarted. Use ``systemctl status mtda`` to
+confirm that the service was correctly (re-)started.

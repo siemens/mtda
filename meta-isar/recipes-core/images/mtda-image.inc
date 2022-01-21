@@ -29,7 +29,6 @@ IMAGE_PREINSTALL += "                    \
     isc-dhcp-client                      \
     mjpg-streamer                        \
     mtda                                 \
-    mtda-usb-functions                   \
     network-manager                      \
     pdudaemon-client                     \
     sd-mux-ctrl                          \

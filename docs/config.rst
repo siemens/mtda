@@ -336,12 +336,22 @@ The ``samsung`` driver supports both SD Mux and SD Wire and may used to share
 a SD card between the DUT and host. The following settings are supported:
 
 * ``device``: string [optional]
-  Block device for the shared SD card as seen on the host (defaults to
+  Block device for the shared storage as seen on the host (defaults to
   ``/dev/sda``)
 
 * ``serial``: string [optional]
   Identifier of the sdmux/sdwire device to use (defaults to ``sdmux``). Use
   ``sd-mux-ctrl`` to list available devices.
+
+``usbf`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``usbf`` driver adds a Mass Storage function to the USB composite
+configuration to expose either a file or a physical device or partition to
+the DUT as a Mass Storage device. The following settings are supported:
+
+* ``file``: string [optional]
+  File or block device for the shared storage as seen on the host.
 
 Timeout settings
 ----------------
