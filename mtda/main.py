@@ -1112,7 +1112,6 @@ class MultiTenantDeviceAccess:
             self.keyboard = factory(self)
             # Configure the keyboard controller
             self.keyboard.configure(dict(parser.items('keyboard')))
-            self.keyboard.probe()
         except configparser.NoOptionError:
             print('keyboard controller variant not defined!', file=sys.stderr)
         except ImportError:
@@ -1358,6 +1357,13 @@ class MultiTenantDeviceAccess:
             self.monitor_logger = ConsoleLogger(
                 self, self.monitor, socket, self.power_controller, b'MON')
             self.monitor_logger.start()
+
+        if self.keyboard is not None:
+            status = self.keyboard.probe()
+            if status is False:
+                print('Probe of the %s keyboard failed!' % (
+                      self.keyboard.variant), file=sys.stderr)
+                return False
 
         if self.assistant is not None:
             self.power_monitors.append(self.assistant)
