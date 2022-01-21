@@ -36,7 +36,9 @@ class Composite:
     def _configure(what, conf):
         result = True
         if what == 'console':
-            Composite.functions.append(Composite.acm_function)
+            Composite.functions.append(Composite.console_function)
+        elif what == 'monitor':
+            Composite.functions.append(Composite.monitor_function)
         elif what == 'keyboard':
             Composite.functions.append(Composite.hid_function)
         elif what == 'storage':
@@ -182,8 +184,12 @@ class Composite:
         ]
     }
 
-    acm_function = {
-        "name": "acm.usb0"
+    console_function = {
+        "name": "acm.GS0"
+    }
+
+    monitor_function = {
+        "name": "acm.GS1"
     }
 
     ms_function = {
