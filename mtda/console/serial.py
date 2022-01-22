@@ -34,16 +34,20 @@ class SerialConsole(ConsoleInterface):
             self.port = conf['port']
         if 'rate' in conf:
             self.rate = int(conf['rate'], 10)
-        self.ser = serial.Serial()
-        self.ser.port = self.port
-        self.ser.baudrate = self.rate
 
     def probe(self):
         self.mtda.debug(3, "console.serial.probe()")
 
         result = os.path.exists(self.port)
+        if result is True:
+            self.ser = serial.Serial()
+            self.ser.port = self.port
+            self.ser.baudrate = self.rate
+        else:
+            self.mtda.debug(1, "console.serial.probe(): "
+                            "{} does not exist".format(self.port))
 
-        self.mtda.debug(3, "console.serial.probe(): %s" % str(result))
+        self.mtda.debug(3, "console.serial.probe(): {}".format(result))
         return result
 
     def open(self):
