@@ -305,6 +305,14 @@ The following settings are supported:
     Path to the emulated machine storage. Use ``storage.0``, ``storage.1``,
     etc. if more than one system drive should be emulated.
 
+* ``storage.size``: integer [optional]
+    Size in GB for emulated machine storage. Use ``storage.0.size``,
+    ``storage.1.size``, etc. if more than one system drive should be emulated.
+
+    *Note* an existing storage device will not be recreated or deleted based
+    on a config change. To trigger recreation delete your storage devices
+    manualy.
+
 * ``swtpm``: string [optional]
     Path to the ``swtpm`` binary to support emulation of a TPM device.
 

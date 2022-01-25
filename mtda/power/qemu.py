@@ -70,6 +70,8 @@ class QemuController(PowerController):
             self.pflash_rw = os.path.realpath(conf['pflash_rw'])
         if 'storage' in conf and 'storage.0' not in conf:
             conf['storage.0'] = conf['storage']
+        if 'storage.size' in conf and 'storage.0.size' not in conf:
+            conf['storage.0.size'] = conf['storage.size']
         if 'swtpm' in conf:
             self.swtpm = os.path.realpath(conf['swtpm'])
         elif os.path.exists(self.swtpm) is False:
@@ -79,9 +81,11 @@ class QemuController(PowerController):
         n = 0
         while True:
             key = 'storage.{}'.format(n)
+            sizekey = 'storage.{}.size'.format(n)
             if key in conf:
                 path = os.path.realpath(conf[key])
-                self.drives.append(path)
+                size = int(conf[sizekey]) if sizekey in conf else 16
+                self.drives.append((path, size))
                 n = n + 1
             else:
                 break
@@ -188,12 +192,12 @@ class QemuController(PowerController):
                                  "or is not a file and cannot be created: "
                                  "%s" % (self.pflash_rw, e))
         if len(self.drives) > 0:
-            for drv in self.drives:
+            for drv, size in self.drives:
                 options += " -drive file={},media=disk,format=raw".format(drv)
                 if os.path.exists(drv) is False:
                     sparse = pathlib.Path(drv)
                     sparse.touch()
-                    os.truncate(str(sparse), 16*1024*1024*1024)
+                    os.truncate(str(sparse), size*1024*1024*1024)
         if self.watchdog is not None:
             options += " -watchdog %s" % self.watchdog
 
