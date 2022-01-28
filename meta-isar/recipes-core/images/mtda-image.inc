@@ -25,6 +25,7 @@ IMAGE_INSTALL += "                       \
 "
 
 IMAGE_PREINSTALL += "                    \
+    ifupdown                             \
     iproute2                             \
     isc-dhcp-client                      \
     mjpg-streamer                        \
