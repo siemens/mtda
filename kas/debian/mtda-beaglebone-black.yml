@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# Debian image to run MTDA on the BeagleBone Black
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2022 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+build_system: isar
+machine: beaglebone-black
+
+header:
+  version: 10
+  includes:
+    - kas/debian/bullseye-base.yml
+
+local_conf_header:
+  mtda: |
+    MTDA_MASS_STORAGE_FILE = "mmcblk0"
