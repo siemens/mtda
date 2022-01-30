@@ -1,0 +1,13 @@
+# ---------------------------------------------------------------------------
+# This OpenEmbedded Kickstart file is part of MTDA
+# Copyright (C) 2022 Siemens Digital Industries Software
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+part MLO --source rawcopy --sourceparams "file=/usr/lib/u-boot/am335x_boneblack/MLO" --no-table --align 128
+part u-boot --source rawcopy --sourceparams "file=/usr/lib/u-boot/am335x_boneblack/u-boot.img" --no-table --align 384
+
+part / --source rootfs-u-boot --use-uuid --fstype ext4 --mkfs-extraopts "-T default" --label platform --align 1024 --active
+
+bootloader --append "rw rootwait"
