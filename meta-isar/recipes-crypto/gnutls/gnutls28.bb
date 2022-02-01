@@ -27,3 +27,7 @@ do_prepare_build() {
         ${S}/debian/control \
         ${S}/debian/rules
 }
+
+dpkg_runbuild_prepend() {
+    export DEB_BUILD_OPTIONS=nocheck
+}
