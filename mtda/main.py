@@ -1381,6 +1381,10 @@ class MultiTenantDeviceAccess:
                                                          self._session_check)
             self._session_timer.start()
 
+        # Start from a known state
+        self._target_off()
+        self.storage_to_target()
+
         return True
 
     def stop(self):
