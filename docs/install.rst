@@ -38,3 +38,20 @@ You may check your installation with the ``help`` command::
 
     $ export PATH=$HOME/.local/bin:$PATH
     $ mtda-cli help
+
+Using apt for installing mtda-docker and mtda-kvm
+-------------------------------------------------
+
+Docker and KVM may be used as virtual platforms by respectively installing the mtda-docker and mtda-kvm packages from the Apt package feeds described above.
+
+`mtda-docker` may be installed as follows::
+
+    $ sudo apt-get install mtda-docker
+    $ sudo mkdir -p /etc/mtda/
+    $ sudo cp /usr/share/doc/mtda-docker/examples/docker.ini /etc/mtda/config
+
+`mtda-kvm` may be installed as follows::
+
+    $ sudo apt-get install mtda-kvm
+    $ sudo mkdir -p /etc/mtda/
+    $ sudo cp /usr/share/doc/mtda-kvm/examples/qemu.ini /etc/mtda/config
