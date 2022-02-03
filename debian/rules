@@ -23,11 +23,11 @@ override_dh_auto_install:
 	mv debian/mtda/usr/lib/python*/dist-packages/mtda/console/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/console/
 	mv debian/mtda/usr/lib/python*/dist-packages/mtda/power/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/power/
 	mv debian/mtda/usr/lib/python*/dist-packages/mtda/storage/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/storage/
-	install -m 0755 -d debian/mtda-docker/etc/mtda
-	install -m 0644 configs/docker.ini debian/mtda-docker/etc/mtda/config
+	install -m 0755 -d debian/mtda-docker/usr/share/doc/mtda-docker/examples/
+	install -m 0644 configs/docker.ini debian/mtda-docker/usr/share/doc/mtda-docker/examples/mtda.ini
 	:
-	install -m 0755 -d debian/mtda-kvm/etc/mtda
-	install -m 0644 configs/qemu.ini debian/mtda-kvm/etc/mtda/config
+	install -m 0755 -d debian/mtda-kvm/usr/share/doc/mtda-kvm/examples/
+	install -m 0644 configs/qemu.ini debian/mtda-kvm/usr/share/doc/mtda-kvm/examples/mtda.ini
 	install -m 0755 -d debian/mtda-kvm/var/lib/mtda
 	install -m 0644 configs/qemu-ovmf-vars.fd debian/mtda-kvm/var/lib/mtda/
 	:
