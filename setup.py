@@ -19,6 +19,7 @@ setup(
     version=__version__,
     scripts=['mtda-cli', 'mtda-ui'],
     packages=find_packages(exclude=["demos"]),
+    package_data={'mtda': ['templates/*.html']},
     author='Cedric Hombourger',
     author_email='cedric.hombourger@siemens.com',
 
@@ -46,6 +47,8 @@ and testers to remotely access and control hardware devices.
 
     install_requires=[
         "docker",
+        "flask_socketio",
+        "gevent-websocket",
         "pyserial>=2.6",
         "python-daemon>=2.0",
         "pyusb>=1.0",

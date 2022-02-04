@@ -1,0 +1,54 @@
+<!---
+Copyright (C) 2022 Siemens Digital Industries Software
+SPDX-License-Identifier: MIT
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Multi-Tenant Device Access</title>
+    <style>
+      html {
+        font-family: arial;
+      }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@4.11.0/css/xterm.css"/>
+  </head>
+  <body>
+    <span style="font-size: 1.4em">Multi-Tenant Device Access</span>
+    <div style="width: 80%; height: calc(100% - 50px)" id="console"></div>
+    <span style="font-size: small">status:
+      <span style="font-size: small" id="status">connecting...</span>
+    </span>
+    <script src="https://unpkg.com/xterm@4.11.0/lib/xterm.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+      const term = new Terminal({
+        cursorBlink: true,
+        macOptionIsMeta: true,
+        scrollback: true,
+      });
+      term.open(document.getElementById("console"));
+      term.resize(80, 25);
+      term.onData((data) => {
+        socket.emit("console-input", { input: data });
+      });
+
+      const socket = io.connect("/mtda");
+      const status = document.getElementById("status");
+
+      socket.on("console-output", function (data) {
+        term.write(data.output);
+      });
+
+      socket.on("connect", () => {
+        status.innerHTML =
+          '<span style="background-color: lightgreen;">connected</span>';
+      });
+
+      socket.on("disconnect", () => {
+        status.innerHTML =
+          '<span style="background-color: #ff8383;">disconnected</span>';
+      });
+    </script>
+  </body>
+</html>

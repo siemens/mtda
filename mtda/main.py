@@ -31,6 +31,7 @@ import mtda.keyboard.controller
 import mtda.power.controller
 import mtda.video.controller
 import mtda.utils
+import mtda.www
 from mtda import __version__
 
 _NOPRINT_TRANS_TABLE = {
@@ -95,6 +96,7 @@ class MultiTenantDeviceAccess:
         self._time_until_str = None
         self._uptime = 0
         self.version = __version__
+        self._www = None
 
         # Config file in $HOME/.mtda/config
         home = os.getenv('HOME', '')
@@ -1027,6 +1029,8 @@ class MultiTenantDeviceAccess:
                     scripts.get('power on', None))
                 self.power_off_script = self._parse_script(
                     scripts.get('power off', None))
+            if parser.has_section('www'):
+                self.load_www_config(parser)
 
     def load_main_config(self, parser):
         self.mtda.debug(3, "main.load_main_config()")
@@ -1288,6 +1292,12 @@ class MultiTenantDeviceAccess:
             print('video controller "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
 
+    def load_www_config(self, parser):
+        self.mtda.debug(3, "main.load_www_config()")
+
+        self._www = mtda.www.Service(self)
+        self._www.configure(dict(parser.items('www')))
+
     def notify(self, what):
         self.mtda.debug(3, "main.notify({})".format(what))
 
@@ -1337,7 +1347,8 @@ class MultiTenantDeviceAccess:
                       self.console.variant), file=sys.stderr)
                 return False
             self.console_logger = ConsoleLogger(
-                self, self.console, socket, self.power_controller, b'CON')
+                self, self.console, socket,
+                self.power_controller, b'CON', self._www)
             if self._time_from_str is not None:
                 self.console_logger.time_from = self._time_from_str
             if self._time_until_str is not None:
@@ -1376,6 +1387,9 @@ class MultiTenantDeviceAccess:
                 return False
             self.video.start()
 
+        if self._www is not None:
+            self._www.start()
+
         if self.is_server is True:
             self._session_timer = mtda.utils.RepeatTimer(60,
                                                          self._session_check)
@@ -1395,6 +1409,10 @@ class MultiTenantDeviceAccess:
 
         # stop sesssion timer
         self._session_timer.cancel()
+
+        # stop web service
+        if self._www is not None:
+            self._www.stop()
 
         # stop video
         if self.video is not None:

@@ -141,6 +141,18 @@ General settings
       Select a ``video`` variant: ``mjpg_streamer`` is the only supported
       driver at this time.
 
+* ``www``: section [optional]
+   A lightweight web server will be started when this section is present.
+   The following parameters may be customized:
+
+  * ``port``: integer [optional]
+      Port to run the HTTP service on (defaults to 5000).
+
+  * ``host``: string [optional]
+      Host address to listen on. This defaults to ``127.0.0.1`` to only
+      accept connections from the machine running the MTDA service.
+      Change to ``0.0.0.0`` to accept connections from anywhere.
+
 Console and Monitor settings
 ----------------------------
 
