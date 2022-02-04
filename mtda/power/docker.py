@@ -46,7 +46,7 @@ class DockerPowerController(PowerController):
         result = None
         atexit.register(self._stop)
         self._client = docker.from_env()
-        self._client.images.pull(self._image)
+        self._client.images.pull(self._image, all_tags=False)
         result = self._start()
 
         self.mtda.debug(3, "power.docker.probe(): {}".format(result))
