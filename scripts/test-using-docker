@@ -42,12 +42,13 @@ if [ -z "${TOX_WORK_DIR}" ]; then
 fi
 
 tmp_dir=$(mktemp -d)
-cp ${source_dir}/configs/docker.ini ${tmp_dir}/mtda.ini
+cp ${source_dir}/configs/docker.ini ${tmp_dir}/
+export MTDA_CONFIG=${tmp_dir}/docker.ini
 
-sed -i -e 's,debug = 2,debug = 1,g' ${tmp_dir}/mtda.ini
-sed -i -e 's,control = 5556,control = 55556,g' ${tmp_dir}/mtda.ini
-sed -i -e 's,console = 5557,console = 55557,g' ${tmp_dir}/mtda.ini
-sed -i -e 's,command=bash,command=sh,g' ${tmp_dir}/mtda.ini
+sed -i -e 's,debug = 2,debug = 1,g' ${tmp_dir}/docker.ini
+sed -i -e 's,control = 5556,control = 55556,g' ${tmp_dir}/docker.ini
+sed -i -e 's,console = 5557,console = 55557,g' ${tmp_dir}/docker.ini
+sed -i -e 's,command=bash,command=sh,g' ${tmp_dir}/docker.ini
 
 cd ${tmp_dir}
 
