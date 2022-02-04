@@ -726,9 +726,9 @@ class MultiTenantDeviceAccess:
 
     def _power_event(self, status):
         self._power_expiry = None
-        if status == self.power_controller.POWER_ON:
+        if status == CONSTS.POWER.ON:
             self._uptime = time.monotonic()
-        elif status == self.power_controller.POWER_OFF:
+        elif status == CONSTS.POWER.OFF:
             self._uptime = 0
 
         for m in self.power_monitors:
@@ -768,7 +768,7 @@ class MultiTenantDeviceAccess:
                 if self.console_logger is not None:
                     self.console_logger.resume()
                 self.exec_power_on_script()
-                self._power_event(self.power_controller.POWER_ON)
+                self._power_event(CONSTS.POWER.ON)
 
         self.mtda.debug(3, "main._target_on(): %s" % str(result))
         return result
@@ -780,7 +780,7 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
 
         status = self.target_status()
-        if status != self.power_controller.POWER_ON:
+        if status != CONSTS.POWER.ON:
             result = False
             if self.power_locked(session) is False:
                 result = self._target_on(session)
@@ -807,7 +807,7 @@ class MultiTenantDeviceAccess:
             if result is True:
                 self.console_logger.pause()
                 self.exec_power_off_script()
-                self._power_event(self.power_controller.POWER_OFF)
+                self._power_event(CONSTS.POWER.OFF)
 
         self.mtda.debug(3, "main._target_off(): %s" % str(result))
         return result
@@ -819,7 +819,7 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
 
         status = self.target_status()
-        if status != self.power_controller.POWER_OFF:
+        if status != CONSTS.POWER.OFF:
             result = False
             if self.power_locked(session) is False:
                 result = self._target_off(session)
@@ -832,7 +832,7 @@ class MultiTenantDeviceAccess:
 
         self._session_check(session)
         if self.power_controller is None:
-            result = "???"
+            result = CONSTS.POWER.UNSURE
         else:
             result = self.power_controller.status()
 
@@ -845,19 +845,19 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         if self.power_locked(session) is False:
             result = self.power_controller.toggle()
-            if result == self.power_controller.POWER_ON:
+            if result == CONSTS.POWER.ON:
                 if self.console_logger is not None:
                     self.console_logger.resume()
                 self.exec_power_on_script()
-                self._power_event(self.power_controller.POWER_ON)
-            elif result == self.power_controller.POWER_OFF:
+                self._power_event(CONSTS.POWER.ON)
+            elif result == CONSTS.POWER.OFF:
                 self.exec_power_off_script()
                 if self.console_logger is not None:
                     self.console_logger.pause()
                     self.console_logger.reset_timer()
-                self._power_event(self.power_controller.POWER_OFF)
+                self._power_event(CONSTS.POWER.OFF)
         else:
-            result = self.power_controller.POWER_LOCKED
+            result = CONSTS.POWER.LOCKED
 
         self.mtda.debug(3, "main.target_toggle(): %s" % str(result))
         return result

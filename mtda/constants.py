@@ -38,6 +38,13 @@ class MDNS:
     TYPE = '_MTDA._tcp.local.'
 
 
+class POWER:
+    OFF = "OFF"
+    ON = "ON"
+    UNSURE = "???"
+    LOCKED = "LOCKED"
+
+
 class RPC:
     HEARTBEAT = 20
     TIMEOUT = 2*60
