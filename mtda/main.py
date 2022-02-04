@@ -991,14 +991,20 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.video_url(): %s" % str(result))
         return result
 
-    def load_config(self, remote=None, is_server=False):
+    def load_config(self, remote=None, is_server=False, config_files=None):
         self.mtda.debug(3, "main.load_config()")
+
+        if config_files is None:
+            config_files = os.getenv('MTDA_CONFIG', self.config_files)
+
+        self.mtda.debug(2, "main.load_config(): "
+                           "config_files={}".format(config_files))
 
         self.remote = remote
         self.is_remote = remote is not None
         self.is_server = is_server
         parser = configparser.ConfigParser()
-        configs_found = parser.read(self.config_files)
+        configs_found = parser.read(config_files)
         if configs_found is False:
             return
 
