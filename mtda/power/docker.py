@@ -46,7 +46,12 @@ class DockerPowerController(PowerController):
         result = None
         atexit.register(self._stop)
         self._client = docker.from_env()
-        self._client.images.pull(self._image, all_tags=False)
+        # python3-docker version <= 4.4 pulls all tags by default.
+        # set tag explicitly to latest if none specified.
+        image = self._image.split(":")
+        distro = image[0]
+        version = image[1] if len(image) > 1 else "latest"
+        self._client.images.pull(distro, tag=version)
         result = self._start()
 
         self.mtda.debug(3, "power.docker.probe(): {}".format(result))
