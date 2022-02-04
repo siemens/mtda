@@ -22,6 +22,8 @@ class DEFAULTS:
     LOCK_TIMEOUT = 5
     POWER_TIMEOUT = 60
     SESSION_TIMEOUT = 5
+    WWW_HOST = '127.0.0.1'
+    WWW_PORT = 5000
 
 
 class IMAGE(Enum):
