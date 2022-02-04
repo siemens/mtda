@@ -206,3 +206,6 @@ class Target:
         if result is True and old_status != "ON":
             result = pytest.output.wait_power()
         return result
+
+    def uptime():
+        return pytest.mtda.target_uptime()
