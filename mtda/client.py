@@ -22,9 +22,9 @@ import mtda.constants as CONSTS
 
 class Client:
 
-    def __init__(self, host=None, session=None):
+    def __init__(self, host=None, session=None, config_files=None):
         agent = MultiTenantDeviceAccess()
-        agent.load_config(host)
+        agent.load_config(host, config_files=config_files)
         if agent.remote is not None:
             uri = "tcp://%s:%d" % (agent.remote, agent.ctrlport)
             self._impl = zerorpc.Client(heartbeat=CONSTS.RPC.HEARTBEAT,
