@@ -219,7 +219,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.console_lines()")
 
         self._session_check(session)
-        result = None
+        result = 0
         if self.console_logger is not None:
             result = self.console_logger.lines()
 
