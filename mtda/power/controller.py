@@ -3,22 +3,23 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
 import abc
+import mtda.constants as CONSTS
 
 
 class PowerController(object):
     __metaclass__ = abc.ABCMeta
 
-    POWER_OFF = "OFF"
-    POWER_ON = "ON"
-    POWER_UNSURE = "???"
-    POWER_LOCKED = "LOCKED"
+    POWER_OFF = CONSTS.POWER.OFF
+    POWER_ON = CONSTS.POWER.ON
+    POWER_UNSURE = CONSTS.POWER.UNSURE
+    POWER_LOCKED = CONSTS.POWER.LOCKED
 
     @abc.abstractmethod
     def configure(self, conf):
