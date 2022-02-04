@@ -797,7 +797,9 @@ class MultiTenantDeviceAccess:
     def _target_off(self, session=None):
         self.mtda.debug(3, "main._target_off()")
 
-        result = self.power_controller.off()
+        result = True
+        if self.power_controller is not None:
+            result = self.power_controller.off()
         if self.keyboard is not None:
             self.keyboard.idle()
         if self.console_logger is not None:
