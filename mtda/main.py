@@ -1239,6 +1239,10 @@ class MultiTenantDeviceAccess:
         self._session_timeout = int(parser.get(s, "session",
                                     fallback=CONSTS.DEFAULTS.SESSION_TIMEOUT))
 
+        self._lock_timeout = self._lock_timeout * 60
+        self._power_timeout = self._power_timeout * 60
+        self._session_timeout = self._session_timeout * 60
+
         self.mtda.debug(3, "main.load_timeouts_config: %s" % str(result))
         return result
 
@@ -1464,7 +1468,7 @@ class MultiTenantDeviceAccess:
             if session is not None:
                 if session not in self._sessions:
                     events.append("ACTIVE %s" % session)
-                self._sessions[session] = now + (self._session_timeout * 60)
+                self._sessions[session] = now + self._session_timeout
 
             # Check for inactive sessions
             inactive = []
@@ -1482,9 +1486,9 @@ class MultiTenantDeviceAccess:
                         self._power_timeout > 0 and
                         len(self._sessions) == 0):
 
-                    self.mtda.debug(2, "device will be powered down in %d "
-                                       "minutes" % self._power_timeout)
-                    self._power_expiry = now + (self._power_timeout * 60)
+                    self.mtda.debug(2, "device will be powered down in {} "
+                                       "seconds".format(self._power_timeout))
+                    self._power_expiry = now + self._power_timeout
 
             if len(self._sessions) == 0:
                 if self._power_expiry is not None and now > self._power_expiry:
@@ -1494,7 +1498,7 @@ class MultiTenantDeviceAccess:
             # Release device if the session owning the lock is idle
             if self._lock_owner is not None:
                 if session == self._lock_owner:
-                    self._lock_expiry = now + (self._lock_timeout * 60)
+                    self._lock_expiry = now + self._lock_timeout
                 elif now >= self._lock_expiry:
                     events.append("UNLOCKED %s" % self._lock_owner)
                     self._lock_owner = None
@@ -1506,8 +1510,8 @@ class MultiTenantDeviceAccess:
         # Check if we should auto power-off the device
         if power_off is True:
             self._target_off()
-            self.mtda.debug(2, "device powered down after %d minutes of "
-                               "inactivity" % self._power_timeout)
+            self.mtda.debug(2, "device powered down after {} seconds of "
+                               "inactivity".format(self._power_timeout))
 
         self.mtda.debug(3, "main._session_check: %s" % str(result))
         return result
