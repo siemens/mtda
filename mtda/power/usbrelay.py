@@ -43,7 +43,7 @@ class UsbRelayPowerController(PowerController):
         statuses = self._get_lines()
         for line in self.lines:
             if line not in statuses:
-                raise ValueError("usbrelay: {0} not detected!")
+                raise ValueError("usbrelay: {0} not detected!".format(line))
 
     def command(self, args):
         return False
