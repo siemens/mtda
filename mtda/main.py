@@ -122,6 +122,27 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.command(): %s" % str(result))
         return result
 
+    def config_set_session_timeout(self, timeout, session=None):
+        self.mtda.debug(3, "main.config_set_session_timeout()")
+
+        if timeout < CONSTS.SESSION.MIN_TIMEOUT:
+            timeout = CONSTS.SESSION.MIN_TIMEOUT
+
+        result = self._session_timeout
+        self._session_timeout = timeout
+
+        with self._session_lock:
+            now = time.monotonic()
+            for s in self._sessions:
+                left = self._sessions[s] - now
+                if left > timeout:
+                    self._sessions[s] = now + timeout
+        self._session_check()
+
+        self.mtda.debug(3, "main.config_set_session_timeout(): "
+                           "{}".format(result))
+        return result
+
     def console_prefix_key(self):
         self.mtda.debug(3, "main.console_prefix_key()")
         return self.prefix_key

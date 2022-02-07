@@ -50,6 +50,10 @@ class RPC:
     TIMEOUT = 2*60
 
 
+class SESSION:
+    MIN_TIMEOUT = 10
+
+
 class WRITER:
     QUEUE_SLOTS = 16
     QUEUE_TIMEOUT = 5
