@@ -91,6 +91,7 @@ class MultiTenantDeviceAccess:
         self._session_lock = threading.Lock()
         self._session_timer = None
         self._sessions = {}
+        self._socket_lock = threading.Lock()
         self._time_from_pwr = None
         self._time_from_str = None
         self._time_until_str = None
@@ -458,6 +459,12 @@ class MultiTenantDeviceAccess:
 
         self.mtda.debug(3, "main.power_locked(): %s" % str(result))
         return result
+
+    def publish(self, topic, data):
+        if self.socket is not None:
+            with self._socket_lock:
+                self.socket.send(topic, flags=zmq.SNDMORE)
+                self.socket.send(data)
 
     def _storage_event(self, status):
         self.notify("STORAGE %s" % status)
@@ -1303,8 +1310,9 @@ class MultiTenantDeviceAccess:
 
         result = None
         if self.socket is not None:
-            self.socket.send(CONSTS.CHANNEL.EVENTS, flags=zmq.SNDMORE)
-            self.socket.send_string(what)
+            with self._socket_lock:
+                self.socket.send(CONSTS.CHANNEL.EVENTS, flags=zmq.SNDMORE)
+                self.socket.send_string(what)
 
         self.mtda.debug(3, "main.notify: %s" % str(result))
         return result

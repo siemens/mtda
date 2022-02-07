@@ -15,7 +15,6 @@ from collections import deque
 import sys
 import threading
 import time
-import zmq
 
 
 class ConsoleLogger:
@@ -210,8 +209,7 @@ class ConsoleLogger:
     def _print(self, data):
         if self.prints is True:
             if self.socket is not None:
-                self.socket.send(self.topic, flags=zmq.SNDMORE)
-                self.socket.send(data)
+                self.mtda.publish(self.topic, data)
             else:
                 # Write to stdout if received are not pushed to the network
                 sys.stdout.buffer.write(data)
