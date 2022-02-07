@@ -9,9 +9,11 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 from flask_socketio import SocketIO
+import secrets
 import threading
+import uuid
 
 import mtda.constants as CONSTS
 
@@ -27,6 +29,7 @@ def index():
 
 @socket.on("connect", namespace="/mtda")
 def connect():
+    session['id'] = uuid.uuid4().hex
     mtda = app.config['mtda']
     if mtda is not None:
         data = mtda.console_dump()
@@ -35,9 +38,17 @@ def connect():
 
 @socket.on("console-input", namespace="/mtda")
 def console_input(data):
+    sid = session_id()
     mtda = app.config['mtda']
     if mtda is not None:
-        mtda.console_send(data['input'], raw=False, session=None)
+        mtda.console_send(data['input'], raw=False, session=sid)
+
+
+def session_id():
+    sid = None
+    if 'id' in session:
+        sid = session['id']
+    return sid
 
 
 class Service:
@@ -45,6 +56,7 @@ class Service:
         self.mtda = mtda
         self._host = CONSTS.DEFAULTS.WWW_HOST
         self._port = CONSTS.DEFAULTS.WWW_PORT
+        app.config['SECRET_KEY'] = secrets.token_hex(16)
         app.config['mtda'] = mtda
 
     def configure(self, conf):
