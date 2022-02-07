@@ -16,6 +16,19 @@ SPDX-License-Identifier: MIT
   <body>
     <span style="font-size: 1.4em">Multi-Tenant Device Access</span>
     <div style="width: 80%; height: calc(100% - 50px)" id="console"></div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <a href=# id=power-toggle><button class='btn btn-default'>Power</button></a>
+    <script type=text/javascript>
+      $(function() {
+        $('a#power-toggle').bind('click', function() {
+          $.getJSON('/power-toggle',
+              function(data) {
+            // do nothing
+          });
+          return false;
+        });
+      });
+    </script>
     <span style="font-size: small">status:
       <span style="font-size: small" id="status">connecting...</span>
     </span>
