@@ -1482,15 +1482,18 @@ class MultiTenantDeviceAccess:
                 self._sessions.pop(s, "")
 
                 # Check if we should arm the auto power-off timer
-                if (self._power_expiry is not None and
-                        self._power_timeout > 0 and
-                        len(self._sessions) == 0):
-
+                # i.e. when the last session is removed and a power timeout
+                # was set
+                if len(self._sessions) == 0 and self._power_timeout > 0:
+                    self._power_expiry = now + self._power_timeout
                     self.mtda.debug(2, "device will be powered down in {} "
                                        "seconds".format(self._power_timeout))
-                    self._power_expiry = now + self._power_timeout
 
-            if len(self._sessions) == 0:
+            if len(self._sessions) > 0:
+                # There are active sessions: reset power expiry
+                self._power_expiry = None
+            else:
+                # Otherwise check if we should auto-power off the target
                 if self._power_expiry is not None and now > self._power_expiry:
                     self._lock_expiry = 0
                     power_off = True
