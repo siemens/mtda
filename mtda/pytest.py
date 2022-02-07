@@ -17,6 +17,7 @@ import threading
 import time
 
 import mtda.client
+import mtda.constants as CONSTS
 from mtda.console.screen import ScreenOutput
 
 pytest.mtda = None
@@ -59,12 +60,18 @@ class Test:
 
         Console.clear()
         Console.unmute()
+        Config.set_session_timeout(CONSTS.DEFAULTS.SESSION_TIMEOUT)
 
     def teardown():
         assert Test.initialized() is True
 
         Console.mute()
         Console.clear()
+
+
+class Config:
+    def set_session_timeout(timeout):
+        return pytest.mtda.config_set_session_timeout(timeout)
 
 
 class Consts:
