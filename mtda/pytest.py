@@ -60,6 +60,7 @@ class Test:
 
         Console.clear()
         Console.unmute()
+        Config.set_power_timeout(CONSTS.DEFAULTS.POWER_TIMEOUT)
         Config.set_session_timeout(CONSTS.DEFAULTS.SESSION_TIMEOUT)
 
     def teardown():
@@ -70,6 +71,9 @@ class Test:
 
 
 class Config:
+    def set_power_timeout(timeout):
+        return pytest.mtda.config_set_power_timeout(timeout)
+
     def set_session_timeout(timeout):
         return pytest.mtda.config_set_session_timeout(timeout)
 

@@ -122,6 +122,19 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.command(): %s" % str(result))
         return result
 
+    def config_set_power_timeout(self, timeout, session=None):
+        self.mtda.debug(3, "main.config_set_power_timeout()")
+
+        result = self._power_timeout
+        self._power_timeout = timeout
+        if timeout == 0:
+            self._power_expiry = None
+        self._session_check()
+
+        self.mtda.debug(3, "main.config_set_power_timeout(): "
+                           "{}".format(result))
+        return result
+
     def config_set_session_timeout(self, timeout, session=None):
         self.mtda.debug(3, "main.config_set_session_timeout()")
 
