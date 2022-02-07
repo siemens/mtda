@@ -218,5 +218,8 @@ class Target:
             result = pytest.output.wait_power()
         return result
 
+    def status():
+        return pytest.mtda.target_status()
+
     def uptime():
         return pytest.mtda.target_uptime()
