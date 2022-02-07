@@ -830,7 +830,6 @@ class MultiTenantDeviceAccess:
     def target_status(self, session=None):
         self.mtda.debug(3, "main.target_status()")
 
-        self._session_check(session)
         if self.power_controller is None:
             result = CONSTS.POWER.UNSURE
         else:
