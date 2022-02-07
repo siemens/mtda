@@ -1411,8 +1411,8 @@ class MultiTenantDeviceAccess:
             self._www.start()
 
         if self.is_server is True:
-            self._session_timer = mtda.utils.RepeatTimer(60,
-                                                         self._session_check)
+            handler = self._session_check
+            self._session_timer = mtda.utils.RepeatTimer(10, handler)
             self._session_timer.start()
 
         # Start from a known state
@@ -1474,7 +1474,7 @@ class MultiTenantDeviceAccess:
             inactive = []
             for s in self._sessions:
                 left = self._sessions[s] - now
-                self.mtda.debug(2, "session %s: %d seconds" % (s, left))
+                self.mtda.debug(3, "session %s: %d seconds" % (s, left))
                 if left <= 0:
                     inactive.append(s)
             for s in inactive:
