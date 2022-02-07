@@ -54,6 +54,9 @@ class Client:
     def agent_version(self):
         return self._impl.agent_version()
 
+    def config_set_power_timeout(self, timeout):
+        return self._impl.config_set_power_timeout(timeout, self._session)
+
     def config_set_session_timeout(self, timeout):
         return self._impl.config_set_session_timeout(timeout, self._session)
 
