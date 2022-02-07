@@ -44,6 +44,15 @@ def console_input(data):
         mtda.console_send(data['input'], raw=False, session=sid)
 
 
+@app.route('/power-toggle')
+def power_toggle():
+    sid = session_id()
+    mtda = app.config['mtda']
+    if mtda is not None:
+        return mtda.target_toggle(session=sid)
+    return ''
+
+
 def session_id():
     sid = None
     if 'id' in session:
