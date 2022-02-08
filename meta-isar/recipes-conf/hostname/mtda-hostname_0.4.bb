@@ -4,7 +4,7 @@
 
 DESCRIPTION = "set system hostname to mtda"
 MAINTAINER = "Cedric Hombourger <chombourger@gmail.com>"
-DEBIAN_DEPENDS = "base-files"
+DEBIAN_DEPENDS = "base-files, netbase"
 DPKG_ARCH = "all"
 
 SRC_URI = "file://postinst"

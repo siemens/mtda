@@ -3,3 +3,6 @@
 set -e
 
 echo "mtda" > /etc/hostname
+
+# add hostname to /etc/hosts
+echo "127.0.1.1   mtda" >> /etc/hosts
