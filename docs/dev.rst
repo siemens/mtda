@@ -45,21 +45,58 @@ and required Python packages and MTDA may be installed with::
     $ pip3 install --user .
 
 A configuration file is then needed for MTDA to use the various ``docker``
-drivers we provide::
-
-    $ cp configs/docker.ini mtda.ini
+drivers using the ``MTDA_CONFIG`` environment variable.
 
 The agent may then be started with::
 
+    $ export MTDA_CONFIG=$PWD/configs/docker.ini
     $ export PYTHONPATH=$PWD
     $ ./mtda-cli -d -n
 
 Use a different shell to start a client session::
 
     $ cd mtda
+    $ export MTDA_CONFIG=$PWD/configs/docker.ini
     $ export PYTHONPATH=$PWD
     $ ./mtda-cli target on
     $ ./mtda-cli
 
 The container should be running. Hit return to get a shell prompt and run any
-shell commands available in the container selected in your ``mtda.ini`` file.
+shell commands available in the container selected in your ``MTDA_CONFIG``
+file.
+
+Release Process
+---------------
+
+There are certain steps that needs to be done when making a release. This
+checklist here serves as guidance to the one in charge of making a new release.
+Roughly start with this 2-3 weeks before the targeted release date.
+
++------+---------------------------------------------------+------------+
+| When | Action                                            | Example    |
++======+===================================================+============+
+| -3w  | Create -tc1 tag                                   | v0.16-tc1  |
++------+---------------------------------------------------+------------+
+| -3w  | Inform maintainers about upcoming release         |            |
++------+---------------------------------------------------+------------+
+| -1w  | Collect ``Tested-by:`` tags                       |            | 
++------+---------------------------------------------------+------------+
+| -1w  | Draft ``debian/changelog``                        |            |
++------+---------------------------------------------------+------------+
+| -1w  | Use a fixed ``SRCREV`` in ``mtda_git.bb``         |            |
++------+---------------------------------------------------+------------+
+| -1w  | Create -rc1 tag                                   | v0.16-rc1  |
++------+---------------------------------------------------+------------+
+|  0d  | Create release tag                                | v0.16      |
++------+---------------------------------------------------+------------+
+|  0d  | Move open issues to next milestone                |            |
++------+---------------------------------------------------+------------+
+|  0d  | Send release announcement                         |            |
++------+---------------------------------------------------+------------+
+|  0d  | Create PR for version bump in ``__version__.py``, |            |
+|      | use ``SRCREV = "${AUTOREV}"`` in mtda_git.bb and  |            |
+|      | create a new version in ``debian/changelog``      |            |
++------+---------------------------------------------------+------------+
+
+GitHub actions will build the final release tag and upload artifacts such as
+Debian packages to fury.io and Ubuntu packages to our PPA.
