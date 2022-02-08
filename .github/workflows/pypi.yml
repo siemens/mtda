@@ -45,7 +45,7 @@ jobs:
         --outdir dist/
         .
     - name: Publish distribution 📦 to PyPI
-      if: startsWith(github.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}

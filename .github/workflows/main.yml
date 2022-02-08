@@ -58,7 +58,7 @@ jobs:
       - name: Publish .deb to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
         run: |
           find build-nanopi/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
@@ -77,7 +77,7 @@ jobs:
       - name: Publish .deb to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
         run: |
           find build-amd64/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
