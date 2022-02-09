@@ -1,0 +1,21 @@
+# ---------------------------------------------------------------------------
+# CI workflows for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2022 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+name: 'Auto Assign'
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  add-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kentaro-m/auto-assign-action@v1.2.1
