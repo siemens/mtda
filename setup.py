@@ -19,7 +19,7 @@ setup(
     version=__version__,
     scripts=['mtda-cli', 'mtda-ui'],
     packages=find_packages(exclude=["demos"]),
-    package_data={'mtda': ['templates/*.html']},
+    package_data={'mtda': ['assets/*.js', 'templates/*.html']},
     author='Cedric Hombourger',
     author_email='cedric.hombourger@siemens.com',
 

@@ -9,8 +9,10 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-from flask import Flask, render_template, session
+from flask import Flask, render_template, request, session, send_from_directory
 from flask_socketio import SocketIO
+from urllib.parse import urlparse
+
 import secrets
 import threading
 import uuid
@@ -27,6 +29,16 @@ def index():
     return render_template("index.html")
 
 
+@app.route('/assets/<path:path>')
+def assets_dir(path):
+    return send_from_directory('assets', path)
+
+
+@app.route('/novnc/<path:path>')
+def novnc_dir(path):
+    return send_from_directory('/usr/share/novnc', path)
+
+
 @socket.on("connect", namespace="/mtda")
 def connect():
     session['id'] = uuid.uuid4().hex
@@ -37,6 +49,13 @@ def connect():
 
         data = mtda.console_dump()
         socket.emit("console-output", {"output": data}, namespace="/mtda")
+
+        if mtda.video is not None:
+            fmt = mtda.video.format
+            url = urlparse(request.base_url)
+            url = mtda.video.url(host=url.hostname)
+            info = {"format": fmt, "url": url}
+            socket.emit("video-info", info, namespace="/mtda")
 
 
 @socket.on("console-input", namespace="/mtda")
@@ -77,6 +96,10 @@ class Service:
         if 'port' in conf:
             self._port = int(conf['port'])
 
+    @property
+    def host(self):
+        return self._host
+
     def notify(self, what, event):
         if what == CONSTS.EVENTS.POWER:
             socket.emit("power-event", {"event": event}, namespace="/mtda")
@@ -84,6 +107,10 @@ class Service:
             socket.emit("session-event", {"event": event}, namespace="/mtda")
         elif what == CONSTS.EVENTS.STORAGE:
             socket.emit("storage-event", {"event": event}, namespace="/mtda")
+
+    @property
+    def port(self):
+        return self._port
 
     def run(self):
         return socket.run(app, debug=False, use_reloader=False,

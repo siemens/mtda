@@ -59,7 +59,7 @@ Description: a simple user-interface for MTDA
 Package: mtda-www
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda, python3-flask-socketio, python3-gevent-websocket
+Depends: mtda, python3-flask-socketio, python3-gevent-websocket, novnc, websockify
 Description: web-based user-interface for MTDA
  Provide a simple web-base user-interface to interact with
  devices under test.

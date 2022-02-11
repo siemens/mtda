@@ -40,12 +40,15 @@ class QemuController(PowerController):
         self.machine = None
         self.memory = 512
         self.mtda = mtda
+        self.novnc = "/usr/share/novnc"
         self.pflash_ro = None
         self.pflash_rw = None
         self.pidOfQemu = None
         self.pidOfSwTpm = None
+        self.pidOfWebsockify = None
         self.swtpm = "/usr/bin/swtpm"
         self.watchdog = None
+        self.websockify = "/usr/bin/websockify"
 
     def configure(self, conf):
         self.mtda.debug(3, "power.qemu.configure()")
@@ -113,6 +116,18 @@ class QemuController(PowerController):
             timeout = timeout - 1
         return result
 
+    def getproc(self, cmd):
+        for proc in psutil.process_iter():
+            try:
+                proccmd = " ".join(proc.cmdline())
+                if proccmd.endswith(cmd):
+                    return proc.pid
+            except (psutil.NoSuchProcess,
+                    psutil.AccessDenied,
+                    psutil.ZombieProcess):
+                pass
+        return None
+
     def start(self):
         self.mtda.debug(3, "power.qemu.start()")
 
@@ -142,7 +157,7 @@ class QemuController(PowerController):
         options += " -netdev user,id=net0,"
         options += "hostfwd=tcp::2222-:22,hostname={0}".format(self.hostname)
         options += " -usb"
-        options += " -vnc :0"
+        options += " -vnc :0,websocket"
 
         # extra options
         if self.bios is not None:
@@ -227,6 +242,19 @@ class QemuController(PowerController):
                 options += " -tpmdev emulator,id=tpm0,chardev=chrtpm"
                 options += " -device tpm-tis,tpmdev=tpm0"
 
+        # Create a WebSocket proxy to QEMU's VNC service to support noVNC
+        # when our web service is enabled and have websockify installed
+        if self.mtda.www is not None and os.path.exists(self.websockify):
+            # bind on the same address as our web service
+            host = self.mtda.www.host
+            cmd = self.websockify + " -D {}:5901 {}:5900".format(host, host)
+            result = os.system(cmd)
+            if result == 0:
+                self.pidOfWebsockify = self.getproc(cmd)
+                self.mtda.debug(2, "power.qemu.start(): "
+                                   "websockify process started "
+                                   "[{0}]".format(self.pidOfWebsockify))
+
         with tempfile.NamedTemporaryFile() as pidfile:
             options += " -pidfile {0}".format(pidfile.name)
             result = os.system("%s %s" % (self.executable, options))
@@ -281,6 +309,11 @@ class QemuController(PowerController):
             result = self.kill("swtpm", self.pidOfSwTpm, False)
             if result:
                 self.pidOfSwTpm = None
+
+        if self.pidOfWebsockify is not None:
+            result = self.kill("websockify", self.pidOfWebsockify, False)
+            if result:
+                self.pidOfWebsockify = None
 
         self.lock.release()
         return result
