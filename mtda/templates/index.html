@@ -5,6 +5,23 @@ SPDX-License-Identifier: MIT
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- Apple iOS Safari settings -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="novnc/app/styles/lite.css">
+    <script src="novnc/vendor/promise.js"></script>
+    <script type="module">
+        window._noVNC_has_module_support = true;
+    </script>
+    <script>
+        window.addEventListener("load", function() {
+            if (window._noVNC_has_module_support) return;
+            var loader = document.createElement("script");
+            loader.src = "novnc/vendor/browser-es-module-loader/dist/browser-es-module-loader.js";
+            document.head.appendChild(loader);
+        });
+    </script>
+    <script type="module" crossorigin="anonymous" src="scripts/vnc.js"></script>
     <title>Multi-Tenant Device Access</title>
     <link rel="stylesheet" href="https://unpkg.com/xterm@4.11.0/css/xterm.css"/>
     <style>
@@ -72,11 +89,17 @@ SPDX-License-Identifier: MIT
       <div class="title" id="mtda_title">MTDA</div>
         <ul class="nav">
           <li><a href="#" id=power-toggle>Power</a></li>
-          <li id="status">Connecting...</id>
-	  <li id="mtda_version">&nbsp;</li>
+          <li id="mtda_status">Connecting...</li>
+          <li id="vnc_status">Loading Video</li>
+          <li id="mtda_version">&nbsp;</li>
         </ul>
     </div>
-    <div style="width: 320px; height: 240px" id="console"></div>
+    <table>
+      <tr>
+        <td><div style="width: 640px; height: 480px" id="console"></div></td>
+        <td><div style="width: 640px; height: 480px" id="video"></div></td>
+      </tr>
+    </table>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script type=text/javascript>
       $(function() {
@@ -91,7 +114,8 @@ SPDX-License-Identifier: MIT
     </script>
     <script src="https://unpkg.com/xterm@4.11.0/lib/xterm.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
-    <script>
+    <script type="module" crossorigin="anonymous">
+      import {vnc_load} from './scripts/vnc.js'
       const term = new Terminal({
         cursorBlink: true,
         macOptionIsMeta: true,
@@ -104,8 +128,9 @@ SPDX-License-Identifier: MIT
       });
 
       const socket = io.connect("/mtda");
-      const status = document.getElementById("status");
+      const status = document.getElementById("mtda_status");
       const version = document.getElementById("mtda_version");
+      const video = document.getElementById("video");
 
       socket.on("console-output", function (data) {
         term.write(data.output);
@@ -113,6 +138,15 @@ SPDX-License-Identifier: MIT
 
       socket.on("mtda-version", function (data) {
         version.textContent = 'Version ' + data.version
+      });
+
+      socket.on("video-info", function (info) {
+	if (info.format == 'VNC') {
+          vnc_load()
+        }
+        else {
+          video.innerHTML = '<img src="' + info.url + '" />'
+        }
       });
 
       socket.on("connect", () => {

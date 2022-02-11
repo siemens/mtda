@@ -1582,3 +1582,7 @@ class MultiTenantDeviceAccess:
             return False
         status = False if session == owner else True
         return status
+
+    @property
+    def www(self):
+        return self._www
