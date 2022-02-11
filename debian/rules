@@ -36,6 +36,10 @@ override_dh_auto_install:
 	:
 	install -m 0755 -d debian/mtda-ui/usr/bin
 	mv debian/mtda/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
+	:
+	install -m 0755 -d debian/mtda-www/usr/lib/python3/dist-packages/mtda/
+	mv debian/mtda/usr/lib/python*/dist-packages/mtda/templates debian/mtda-www/usr/lib/python3/dist-packages/mtda/
+	mv debian/mtda/usr/lib/python*/dist-packages/mtda/www.py debian/mtda-www/usr/lib/python3/dist-packages/mtda/
 
 override_dh_systemd_enable:
 	dh_systemd_enable
