@@ -31,8 +31,14 @@ import mtda.keyboard.controller
 import mtda.power.controller
 import mtda.video.controller
 import mtda.utils
-import mtda.www
 from mtda import __version__
+
+try:
+    www_support = True
+    import mtda.www
+except ModuleNotFoundError:
+    www_support = False
+
 
 _NOPRINT_TRANS_TABLE = {
     i: '.' for i in range(0, sys.maxunicode + 1) if not chr(i).isprintable()
@@ -1077,8 +1083,12 @@ class MultiTenantDeviceAccess:
                     scripts.get('power on', None))
                 self.power_off_script = self._parse_script(
                     scripts.get('power off', None))
-            if parser.has_section('www'):
-                self.load_www_config(parser)
+
+            # web-base UI
+            if www_support is True:
+                self._www = mtda.www.Service(self)
+                if parser.has_section('www'):
+                    self.load_www_config(parser)
 
     def load_main_config(self, parser):
         self.mtda.debug(3, "main.load_main_config()")
@@ -1347,8 +1357,8 @@ class MultiTenantDeviceAccess:
     def load_www_config(self, parser):
         self.mtda.debug(3, "main.load_www_config()")
 
-        self._www = mtda.www.Service(self)
-        self._www.configure(dict(parser.items('www')))
+        if www_support is True:
+            self._www.configure(dict(parser.items('www')))
 
     def notify(self, what):
         self.mtda.debug(3, "main.notify({})".format(what))

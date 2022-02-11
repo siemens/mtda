@@ -55,3 +55,11 @@ Depends: mtda, python3-py3qterm, python3-pyqt5.qtmultimedia
 Description: a simple user-interface for MTDA
  Provide a simple client-side user-interface to interact with
  devices under test.
+
+Package: mtda-www
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda, python3-flask-socketio, python3-gevent-websocket
+Description: web-based user-interface for MTDA
+ Provide a simple web-base user-interface to interact with
+ devices under test.
