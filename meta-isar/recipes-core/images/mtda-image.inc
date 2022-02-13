@@ -5,6 +5,8 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
+ISAR_RELEASE_CMD = "git -C ${LAYERDIR_mtda} describe --tags --dirty --match 'v[0-9].[0-9]*'"
+
 # Default device/file to use for our USB Mass Storage Gadget
 MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
 
