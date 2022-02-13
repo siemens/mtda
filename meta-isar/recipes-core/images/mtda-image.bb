@@ -42,6 +42,7 @@ IMAGE_INSTALL_append_nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
 
 IMAGE_INSTALL += "                       \
     mtda-hostname                        \
+    local-settings                       \
     sshd-regen-keys                      \
     usb-ms-use-${MTDA_MASS_STORAGE_FILE} \
 "
