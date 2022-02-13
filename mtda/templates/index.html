@@ -69,10 +69,11 @@ SPDX-License-Identifier: MIT
   </head>
   <body>
     <div class="menu">
-      <div class="title">MTDA</div>
+      <div class="title" id="mtda_title">MTDA</div>
         <ul class="nav">
           <li><a href="#" id=power-toggle>Power</a></li>
           <li id="status">Connecting...</id>
+	  <li id="mtda_version">&nbsp;</li>
         </ul>
     </div>
     <div style="width: 320px; height: 240px" id="console"></div>
@@ -104,9 +105,14 @@ SPDX-License-Identifier: MIT
 
       const socket = io.connect("/mtda");
       const status = document.getElementById("status");
+      const version = document.getElementById("mtda_version");
 
       socket.on("console-output", function (data) {
         term.write(data.output);
+      });
+
+      socket.on("mtda-version", function (data) {
+        version.textContent = 'Version ' + data.version
       });
 
       socket.on("connect", () => {
