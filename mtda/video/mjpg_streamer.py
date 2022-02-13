@@ -52,6 +52,10 @@ class MJPGStreamerVideoController(VideoController):
         if 'www' in conf:
             self.www = conf['www']
 
+    @property
+    def format(self):
+        return "MJPG"
+
     def probe(self):
         self.mtda.debug(3, "video.mjpg_streamer.probe()")
 

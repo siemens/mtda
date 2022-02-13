@@ -33,6 +33,10 @@ class QemuVideoController(VideoController):
         self.mtda.debug(3, "video.qemu.configure(): " "%s" % str(result))
         return result
 
+    @property
+    def format(self):
+        return "VNC"
+
     def probe(self):
         self.mtda.debug(3, "video.qemu.probe()")
 
