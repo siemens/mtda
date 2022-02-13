@@ -7,3 +7,4 @@ build
 dist
 isar
 mtda.egg-info
+/meta-isar/recipes-conf/local-settings/local.inc
