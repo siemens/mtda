@@ -32,6 +32,9 @@ def connect():
     session['id'] = uuid.uuid4().hex
     mtda = app.config['mtda']
     if mtda is not None:
+        version = mtda.agent_version()
+        socket.emit("mtda-version", {"version": version}, namespace="/mtda")
+
         data = mtda.console_dump()
         socket.emit("console-output", {"output": data}, namespace="/mtda")
 
