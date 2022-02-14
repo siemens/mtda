@@ -74,6 +74,14 @@ class Service:
         if 'port' in conf:
             self._port = int(conf['port'])
 
+    def notify(self, what, event):
+        if what == CONSTS.EVENTS.POWER:
+            socket.emit("power-event", {"event": event}, namespace="/mtda")
+        elif what == CONSTS.EVENTS.SESSION:
+            socket.emit("session-event", {"event": event}, namespace="/mtda")
+        elif what == CONSTS.EVENTS.STORAGE:
+            socket.emit("storage-event", {"event": event}, namespace="/mtda")
+
     def run(self):
         return socket.run(app, debug=False, use_reloader=False,
                           port=self._port, host=self._host)

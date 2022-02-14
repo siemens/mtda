@@ -1368,6 +1368,8 @@ class MultiTenantDeviceAccess:
             with self._socket_lock:
                 self.socket.send(CONSTS.CHANNEL.EVENTS, flags=zmq.SNDMORE)
                 self.socket.send_string("{} {}".format(what, info))
+        if self._www is not None:
+            self._www.notify(what, info)
 
         self.mtda.debug(3, "main.notify: {}".format(result))
         return result
