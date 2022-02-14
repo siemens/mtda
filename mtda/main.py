@@ -507,7 +507,7 @@ class MultiTenantDeviceAccess:
                 self.socket.send(data)
 
     def _storage_event(self, status):
-        self.notify("STORAGE %s" % status)
+        self.notify(CONSTS.EVENTS.STORAGE, status)
 
     def storage_bytes_written(self, session=None):
         self.mtda.debug(3, "main.storage_bytes_written()")
@@ -773,7 +773,7 @@ class MultiTenantDeviceAccess:
 
         for m in self.power_monitors:
             m.power_changed(status)
-        self.notify("POWER %s" % status)
+        self.notify(CONSTS.EVENTS.POWER, status)
 
     def _parse_script(self, script):
         self.mtda.debug(3, "main._parse_script()")
@@ -1360,16 +1360,16 @@ class MultiTenantDeviceAccess:
         if www_support is True:
             self._www.configure(dict(parser.items('www')))
 
-    def notify(self, what):
-        self.mtda.debug(3, "main.notify({})".format(what))
+    def notify(self, what, info):
+        self.mtda.debug(3, "main.notify({},{})".format(what, info))
 
         result = None
         if self.socket is not None:
             with self._socket_lock:
                 self.socket.send(CONSTS.CHANNEL.EVENTS, flags=zmq.SNDMORE)
-                self.socket.send_string(what)
+                self.socket.send_string("{} {}".format(what, info))
 
-        self.mtda.debug(3, "main.notify: %s" % str(result))
+        self.mtda.debug(3, "main.notify: {}".format(result))
         return result
 
     def start(self):
@@ -1567,7 +1567,7 @@ class MultiTenantDeviceAccess:
 
         result = None
         if info is not None:
-            self.notify("SESSION %s" % info)
+            self.notify(CONSTS.EVENTS.SESSION, info)
 
         self.mtda.debug(3, "main._session_event: %s" % str(result))
         return result
