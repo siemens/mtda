@@ -26,6 +26,12 @@ class DEFAULTS:
     WWW_PORT = 5000
 
 
+class EVENTS:
+    POWER = "POWER"
+    SESSION = "SESSION"
+    STORAGE = "STORAGE"
+
+
 class IMAGE(Enum):
     RAW = 0
     BZ2 = 1
