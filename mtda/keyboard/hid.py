@@ -210,6 +210,11 @@ class HidKeyboardController(KeyboardController):
 
         return self.press(0x45, 0, repeat)
 
+    def tab(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.tab()")
+
+        return self.press(0x2b, 0, repeat)
+
     def write(self, str):
         self.mtda.debug(3, "keyboard.hid.write()")
 

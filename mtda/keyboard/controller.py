@@ -110,3 +110,7 @@ class KeyboardController(object):
     @abc.abstractmethod
     def f12(self, repeat=1):
         return False
+
+    @abc.abstractmethod
+    def tab(self, repeat=1):
+        return False
