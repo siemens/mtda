@@ -73,9 +73,6 @@ class QemuController(KeyboardController):
         self.mtda.debug(3, "keyboard.qemu.up()")
         return self.press("up", repeat)
 
-    def write(self, str):
-        self.mtda.debug(3, "keyboard.qemu.write()")
-
     def f1(self, repeat=1):
         self.mtda.debug(3, "keyboard.qemu.f1()")
         return self.press("f1", repeat)
@@ -123,6 +120,12 @@ class QemuController(KeyboardController):
     def f12(self, repeat=1):
         self.mtda.debug(3, "keyboard.qemu.f12()")
         return self.press("f12", repeat)
+
+    def write(self, str):
+        self.mtda.debug(3, "keyboard.qemu.write()")
+
+        for k in str:
+            self.press(k)
 
 
 def instantiate(mtda):
