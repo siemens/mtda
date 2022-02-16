@@ -156,62 +156,62 @@ class HidKeyboardController(KeyboardController):
         return self.press(0x52, 0, repeat)
 
     def f1(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf1()")
+        self.mtda.debug(3, "keyboard.hid.f1()")
 
         return self.press(0x3a, 0, repeat)
 
     def f2(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf2()")
+        self.mtda.debug(3, "keyboard.hid.f2()")
 
         return self.press(0x3b, 0, repeat)
 
     def f3(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf3()")
+        self.mtda.debug(3, "keyboard.hid.f3()")
 
         return self.press(0x3c, 0, repeat)
 
     def f4(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf4()")
+        self.mtda.debug(3, "keyboard.hid.f4()")
 
         return self.press(0x3d, 0, repeat)
 
     def f5(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf5()")
+        self.mtda.debug(3, "keyboard.hid.f5()")
 
         return self.press(0x3e, 0, repeat)
 
     def f6(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf6()")
+        self.mtda.debug(3, "keyboard.hid.f6()")
 
         return self.press(0x3f, 0, repeat)
 
     def f7(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf7()")
+        self.mtda.debug(3, "keyboard.hid.f7()")
 
         return self.press(0x40, 0, repeat)
 
     def f8(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf8()")
+        self.mtda.debug(3, "keyboard.hid.f8()")
 
         return self.press(0x41, 0, repeat)
 
     def f9(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf9()")
+        self.mtda.debug(3, "keyboard.hid.f9()")
 
         return self.press(0x42, 0, repeat)
 
     def f10(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf10())")
+        self.mtda.debug(3, "keyboard.hid.f10())")
 
         return self.press(0x43, 0, repeat)
 
     def f11(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf11()")
+        self.mtda.debug(3, "keyboard.hid.f11()")
 
         return self.press(0x44, 0, repeat)
 
     def f12(self, repeat=1):
-        self.mtda.debug(3, "keyboard.hid.keyf12()")
+        self.mtda.debug(3, "keyboard.hid.f12()")
 
         return self.press(0x45, 0, repeat)
 
