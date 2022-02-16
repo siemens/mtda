@@ -91,6 +91,7 @@ SPDX-License-Identifier: MIT
       <div class="title" id="mtda_title">MTDA</div>
         <ul class="nav">
           <li><a href="#" id=power-toggle><i class="large material-icons">power</i></a></li>
+          <li id=power_status>unknown</li>
           <li><a href="#" id=keyboard-show><i class="large material-icons">keyboard</i></a></li>
           <li id="mtda_status">Connecting...</li>
           <li id="vnc_status">Loading Video</li>
@@ -145,6 +146,7 @@ SPDX-License-Identifier: MIT
       const status = document.getElementById("mtda_status");
       const version = document.getElementById("mtda_version");
       const video = document.getElementById("video");
+      const power_status = document.getElementById("power_status")
 
       socket.on("console-output", function (data) {
         term.write(data.output);
@@ -161,6 +163,10 @@ SPDX-License-Identifier: MIT
         else {
           video.innerHTML = '<img src="' + info.url + '" />'
         }
+      });
+
+      socket.on("power-event", function (info) {
+        power_status.innerHTML = info["event"]
       });
 
       socket.on("connect", () => {
