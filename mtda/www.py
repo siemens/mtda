@@ -66,6 +66,43 @@ def console_input(data):
         mtda.console_send(data['input'], raw=False, session=sid)
 
 
+@app.route('/keyboard-input')
+def keyboard_input():
+    sid = session_id()
+    mtda = app.config['mtda']
+    map = {
+      "Esc": mtda.keyboard.esc,
+      "F1": mtda.keyboard.f1,
+      "F2": mtda.keyboard.f2,
+      "F3": mtda.keyboard.f3,
+      "F4": mtda.keyboard.f4,
+      "F5": mtda.keyboard.f5,
+      "F6": mtda.keyboard.f6,
+      "F7": mtda.keyboard.f7,
+      "F8": mtda.keyboard.f8,
+      "F9": mtda.keyboard.f9,
+      "F10": mtda.keyboard.f10,
+      "F11": mtda.keyboard.f11,
+      "F12": mtda.keyboard.f12,
+      "Backspace": mtda.keyboard.backspace,
+      "Tab": mtda.keyboard.tab,
+      "Caps Lock": mtda.keyboard.capsLock,
+      "Enter": mtda.keyboard.enter,
+      "Left": mtda.keyboard.left,
+      "Right": mtda.keyboard.right,
+      "Up": mtda.keyboard.up,
+      "Down": mtda.keyboard.down
+    }
+    if mtda is not None and mtda.keyboard is not None:
+        input = request.args.get('input', '', type=str)
+        if len(input) > 1:
+            if input in map:
+                map[input]()
+        else:
+            mtda.keyboard.write(input)
+    return ''
+
+
 @app.route('/power-toggle')
 def power_toggle():
     sid = session_id()
