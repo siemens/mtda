@@ -65,6 +65,10 @@ class QemuController(KeyboardController):
         self.mtda.debug(3, "keyboard.qemu.left()")
         return self.press("left", repeat)
 
+    def capsLock(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.capsLock()")
+        return self.press("caps_lock", repeat)
+
     def right(self, repeat=1):
         self.mtda.debug(3, "keyboard.qemu.right()")
         return self.press("right", repeat)
