@@ -125,6 +125,10 @@ class QemuController(KeyboardController):
         self.mtda.debug(3, "keyboard.qemu.f12()")
         return self.press("f12", repeat)
 
+    def tab(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.tab()")
+        return self.press("tab", repeat)
+
     def write(self, str):
         self.mtda.debug(3, "keyboard.qemu.write()")
 
