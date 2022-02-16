@@ -48,6 +48,10 @@ class KeyboardController(object):
         return False
 
     @abc.abstractmethod
+    def capsLock(self, repeat=1):
+        return False
+
+    @abc.abstractmethod
     def right(self, repeat=1):
         return False
 
