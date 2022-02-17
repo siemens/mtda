@@ -115,6 +115,11 @@ class HidKeyboardController(KeyboardController):
                 break
         return result
 
+    def backspace(self, repeat=1):
+        self.mtda.debug(3, "keyboard.hid.backspace()")
+
+        return self.press(0x2a, 0, repeat)
+
     def capsLock(self, repeat=1):
         self.mtda.debug(3, "keyboard.hid.capsLock()")
 

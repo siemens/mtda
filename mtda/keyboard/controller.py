@@ -32,6 +32,10 @@ class KeyboardController(object):
         return
 
     @abc.abstractmethod
+    def backspace(self, repeat=1):
+        return False
+
+    @abc.abstractmethod
     def esc(self, repeat=1):
         return False
 

@@ -49,6 +49,10 @@ class QemuController(KeyboardController):
             time.sleep(0.1)
         return result
 
+    def backspace(self, repeat=1):
+        self.mtda.debug(3, "keyboard.qemu.backspace()")
+        return self.press("backspace", repeat)
+
     def enter(self, repeat=1):
         self.mtda.debug(3, "keyboard.qemu.enter()")
         return self.press("ret", repeat)
