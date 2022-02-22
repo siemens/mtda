@@ -5,6 +5,15 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
+inherit image
+
+DESCRIPTION = "Debian image for MTDA assist boards"
+
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${LAYERDIR_core}/licenses/COPYING.MIT;md5=838c366f69b72c5df05c96dff79b35f2"
+
+PV = "1.0"
+
 ISAR_RELEASE_CMD = "git -C ${LAYERDIR_mtda} describe --tags --dirty --match 'v[0-9].[0-9]*'"
 
 # Default device/file to use for our USB Mass Storage Gadget

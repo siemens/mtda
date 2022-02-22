@@ -12,7 +12,7 @@
 header:
   version: 10
 
-target: isar-image-base
+target: mtda-image
 
 repos:
   mtda:
