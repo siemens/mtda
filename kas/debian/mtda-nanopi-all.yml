@@ -17,8 +17,8 @@ header:
     - kas/debian/bullseye-base.yml
 
 target:
-  - mc:nanopi-neo:isar-image-base
-  - mc:nanopi-r1:isar-image-base
+  - mc:nanopi-neo:mtda-image
+  - mc:nanopi-r1:mtda-image
 
 local_conf_header:
   mtda: |
