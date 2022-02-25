@@ -68,7 +68,6 @@ def console_input(data):
 
 @app.route('/keyboard-input')
 def keyboard_input():
-    sid = session_id()
     mtda = app.config['mtda']
     map = {
       "Esc": mtda.keyboard.esc,
