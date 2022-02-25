@@ -199,6 +199,136 @@ and install it::
 Before starting ``kvm``, MTDA checks for the ``swtpm`` tool and automatically
 enables QEMU's support for TPM devices.
 
+BeagleBone Black
+----------------
+
+The BeagleBone Black (abbreviated as BBB) is a low-cost, community-supported
+development platform for developers and hobbyists.
+
+It is powered by an AM335x Cortex-A8 processor, has a 4GiB eMMC, a microSD slot,
+a miniUSB OTG port, a USB-Host Type A port, an Ethernet port and GPIO pins.
+
+Debian (bookworm) will be loaded on the eMMC and will include the MTDA agent.
+It will communicate with its clients over Ethernet. An electric relay will
+be controlled via a GPIO line in order to drive power for our Device Under
+Test. Communication with that device will be achieved via the USB OTG port
+where the following functions will be exposed:
+
+ * ACM: provide a Serial over USB port. The Operating System running on the
+   Device Under Test may use this virtual serial port to provide a login
+   shell to MTDA clients.
+
+ * HID: the BeagleBone Black will be seen as a keyboard. This may be used by
+   e.g. ``power on`` scripts to enter the firmware of the Device Under Test
+   to select a boot media (SSD or USB).
+
+ * Mass Storage: a USB stick will be connected to the USB Host available on
+   the BeagleBone Black and will be exposed to the Device Under Test. MTDA
+   will allow clients to write a new OS image for the device it is connected
+   to.
+
+Building the system image
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``kas-container`` to build a Debian image for the BeagleBone Black with
+MTDA pre-installed::
+
+    $ ./kas-container build kas/debian/mtda-beaglebone-black.yml
+
+Insert a microSD card to your system and write the generated image::
+
+    # Check the microSD card device, /dev/mmcblk0 is used as an example
+    $ sudo dd if=build/tmp/deploy/images/nanopi-neo/mtda-*.wic.img \
+      of=/dev/mmcblk0 bs=8M
+
+(replace ``/dev/mmcblk0`` with the actual SD card device on your system).
+
+Booting the BeagleBone Black
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Insert the microSD card created above into the microSD card slot of your
+BeagleBone Black and connect the board to your network. Attach a formatted
+USB stick to the USB-Host port. Lastly, get a miniUSB cable, connect your
+system and the BeagleBone Black together. LEDs next to the Ethernet port
+should blink once Debian has booted.
+
+Configuring MTDA
+~~~~~~~~~~~~~~~~
+
+A configuration file should be created on the BeagleBone Black. Use ``ssh`` to
+connect with the ``mtda`` user and then ``sudo`` to get elevated privileges::
+
+    $ ssh mtda@172.17.0.2
+    The authenticity of host '172.17.0.2 (172.17.0.2)' can't be established.
+    ECDSA key fingerprint is SHA256:X4hTqfSmfG1bet2Bg/MfU1fNMgp30T+6SkAwLXZbJTQ.
+    Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+    Warning: Permanently added '172.17.0.2' (ECDSA) to the list of known hosts.
+    mtda@172.17.0.2's password: mtda
+    Linux mtda 5.15.0-0.bpo.3-armmp #1 SMP Debian 5.15.15-2~bpo11+1 (2022-02-03) armv7l GNU/Linux
+
+    The programs included with the Debian GNU/Linux system are free software;
+    the exact distribution terms for each program are described in the
+    individual files in /usr/share/doc/*/copyright.
+
+    Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+    permitted by applicable law.
+    Last login: Sun Sep 27 18:40:42 2020 from 172.17.0.100
+    $ sudo -s
+    [sudo] password for mtda: mtda
+    #
+
+Use ``vi`` to create an initial configuration::
+
+    # vi /etc/mtda/config
+
+Hit ``i`` to enter the input mode and type the following configuration::
+
+    [console]
+    variant=serial
+    port=/dev/ttyGS0
+    rate=9600
+
+    [power]
+    variant=gpio
+    pins=28
+
+    [keyboard]
+    variant=hid
+    device=/dev/hidg0
+
+    [storage]
+    variant=usbf
+    file=/dev/sda
+
+Hit ``ESC`` to leave the input mode and type ``:x`` to exit.
+
+The Device Under Test should detect a mass storage, new serial port and
+keyboard after a few seconds.
+
+Attaching an electric relay
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We will use a 5V relay such as the JQC3F-05VDC pictured below:
+
+.. image:: jqc3f-05vdc.jpg
+
+It requires a 5V line, ground and signal. Here is the pin-out of our BeagleBone
+Black:
+
+.. image:: bbb_pinout.jpg
+
+We will use pin #5 (``P9_VDD_5V``) to deliver 5V to the relay, pin #1
+(``P9_DGND``) to connect the relay to ground and pin #12 (``P9_GPIO_60``) to
+drive the relay. It should be noted that the signal GPIO pin is seen as GPIO
+``28`` in Linux.
+
+Stitching It All Together
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows the various connections described above:
+
+.. image:: bbb_block_diagram.png
+
 NanoPI R1
 ---------
 
@@ -310,6 +440,7 @@ Hit ``i`` to enter the input mode and type the following configuration::
 
     [storage]
     variant=usbf
+    file=/dev/sda
 
 Hit ``ESC`` to leave the input mode and type ``:x`` to exit. You should be back
 to the shell and may restart the agent::
