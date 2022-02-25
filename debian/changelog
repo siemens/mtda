@@ -1,8 +1,71 @@
-mtda (0.16-0) testing; urgency=medium
+mtda (0.16-1) testing; urgency=medium
 
-  * Development version
+  [ Cedric Hombourger ]
+  * ci: build release packages for Ubuntu using PPA
+  * ci: do not publish artifacts for -tc or -rc tags
+  * meta-isar/recipes-bsps: refactor u-boot recipes
+  * meta-isar/recipes-kernel: add kernel recipe for the beaglebone-black
+  * meta-isar: add beaglebone-black machine
+  * meta-isar/recipes-python: build HEAD of mtda
+  * keyboard/hid: make write_report() non-blocking
+  * console/serial: instantiate Serial object from probe()
+  * main: add config_set_session_timeout()
+  * main: add config_set_power_timeout()
+  * main: do not re-arm session timer from target_status()
+  * main: fix handling of power_expiry
+  * main: maintain all timeouts in seconds
+  * main: make console_lines() return 0 when there is no console
+  * main: check for power_controller in _target_off()
+  * main: check for inactive sessions every 10 seconds
+  * main: probe keyboard from start()
+  * main: start with board off and storage on target
+  * main: serialize sending of messages over the ZeroMQ socket
+  * power/controller: move constants
+  * power/usbrelay: print name of the line that cannot be found
+  * support/usb: integrate mtda-usb-functions with mtda itself
+  * console/*: add role to configure()
+  * console/usbf: use reasonable defaults depending on role
+  * storage/qemu: create backing file when 'file' is not set
+  * support/usb: create an extra ACM function as monitor interface
+  * power/docker: make sure we do not pull all images
+  * www: allow remote access to the console via web browsers
+  * mtda-cli: add -c, --config option for user-defined config file
+  * scripts/test-using-docker: use MTDA_CONFIG environment variable
+  * pytest: add Target.status()
+  * tests/target: test target_uptime()
+  * tests: new tests for power timeouts
+  * docs: add rough release process
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 04 Feb 2022 08:00:00 +0100
+  [ Vijai Kumar K ]
+  * kas/common/base.yml: uprev to ISAR v0.8
+  * meta-isar:  migrate to IMAGE_FSTYPES
+  * meta-isar: create our own target image
+  * gnutls28: disable dh_auto_test
+  * power/docker: Fix pulling all tags
+  * docs: remove transparent canvas r1 block diagram
+
+  [ Richa Bharti ]
+  * ci: auto-assign reviewers when PRs are raised
+
+  [ Gunther Birk ]
+  * power/qemu: qemu configuration for multiple cores
+  * power/qemu: make initial size of storage devices configurable
+
+  [ Bhargav Das ]
+  * debian: fix installing of both docker and kvm packages
+  * meta-isar/recipes-conf: add "mtda" to /etc/hosts
+  * docs: add mtda docker and kvm instructions
+
+  [ Badrikesh Prusty ]
+  * ci: fix no files found in the path for upload
+
+  [ Jan Kiszka ]
+  * meta-isar/recipes-core: Initialize ISAR_RELEASE_CMD
+
+  [ Sarath P T ]
+  * docs: describe how to use static IP addresses in the FAQ
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 25 Feb 2022 21:30:00 +0100
 
 mtda (0.15-1) testing; urgency=medium
 
