@@ -1,0 +1,423 @@
+#!/usr/bin/env python3
+# ---------------------------------------------------------------------------
+# Config generator for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2022 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+import argparse
+import logging
+import os
+import re
+import sys
+import urwid
+from kconfiglib import Kconfig, MENU, COMMENT
+
+__VERSION__ = "0.17"
+
+
+class Config:
+    def __init__(self, kconfig, oldconfig=None):
+        self.kconfig = Kconfig(filename=kconfig)
+        self.top_node = self.kconfig.top_node
+        self.config_list = self.get_all_config(self.top_node, [])
+        self.menu_list = self.get_all_menu(self.top_node, [])
+        self.oldconfig = oldconfig
+
+    def __save_as_config(self, config):
+        with open("./.config", "w") as config_file:
+            for key in config:
+                config_file.write("{}={}\n".format(key, config[key]))
+
+    def __save_as_ini(self, config, output_file=None):
+        if not output_file:
+            output_file = os.path.join(os.getcwd(), ".config.ini")
+        with open(output_file, "w") as config_file:
+            current_module = None
+            for key in sorted(config):
+                """
+                Skip saving options without values
+                """
+                if config[key] == "":
+                    continue
+                """
+                Some config names might have "_".
+                So parse all words without "_" and then \w+ which is [a-zA-Z0-9_]+
+                """
+                template = re.search(r"CONFIG_([a-zA-Z0-9]+)_(\w+)", key)
+                module_name = template.group(1).lower()
+                config_name = template.group(2).lower()
+                # Write the module_name
+                if module_name != current_module:
+                    config_file.write("\n[{}]\n".format(module_name))
+                    current_module = module_name
+                config_file.write("  {} = {}\n".format(config_name, config[key]))
+
+    def save_config(self, nodes=[], output_file=None):
+        config_entries = {}
+        for node in nodes:
+            config = "CONFIG_{}".format(node.item.name)
+            config_entries[config] = node.item.str_value
+            logging.debug("save_config: %s=%s", config, config_entries[config])
+
+        self.__save_as_ini(config_entries, output_file)
+
+    def load_config(self, skip_list=[]):
+        config_entries = {}
+        module_name = None
+        with open(self.oldconfig) as config_file:
+            for line in config_file:
+                # Skip empty lines
+                if line.strip() == "":
+                    continue
+                # Skip comments
+                # TODO: handle lines starting with spaces
+                if line.startswith("#"):
+                    continue
+                if line.startswith("["):
+                    module_name = re.search(r"\[(\w+)\]", line).group(1)
+                    continue
+                if not module_name in skip_list:
+                    # Handle invalid cases later
+                    (config, value) = line.split("=")
+                    config = "CONFIG_{}_{}".format(module_name, config.strip()).upper()
+                    config_entries[config] = value.strip()
+        return config_entries
+
+    """
+    Merge the config with old config
+    """
+
+    def merge_config(self, oldconfig_entries):
+        for key in sorted(oldconfig_entries):
+            config_name = key.replace("CONFIG_", "", 1)
+            logging.debug("merge_config: %s", config_name)
+            node = self.find_node_by_name(config_name)
+            if node:
+                self.set_value(node, oldconfig_entries[key])
+
+    def find_node_by_label(self, label):
+        for node in self.config_list + self.menu_list:
+            if node.prompt[0] == label:
+                return node
+        return None
+
+    def find_node_by_name(self, name):
+        for node in self.config_list:
+            if node.item.name == name:
+                return node
+        return None
+
+    def get_name(self, node):
+        return node.name
+
+    def get_help(self, node):
+        return node.help
+
+    def set_value(self, node, value):
+        node.item.set_value(value)
+
+    def get_value(self, node):
+        return node.item.str_value
+
+    def get_all_config(self, node, config_list):
+        while node:
+            if node.item != MENU and node.item != COMMENT:
+                config_list.append(node)
+            if node.list:
+                self.get_all_config(node.list, config_list)
+            node = node.next
+        return config_list
+
+    def get_all_menu(self, node, menu_list):
+        while node:
+            if node.item == MENU:
+                menu_list.append(node)
+            if node.list:
+                self.get_all_menu(node.list, menu_list)
+            node = node.next
+        return menu_list
+
+
+class ConfigApp:
+    def __init__(self, kconfig, oldconfig=None, output_file=None):
+        self.kconfig_file = os.path.abspath(kconfig)
+        self.output_file = output_file
+        self.config = Config(self.kconfig_file, oldconfig)
+        self.mainscreen = None
+        self.submenu = None
+        self.loop = None
+        self.palette = [
+            ("banner", "white", "dark red", "bold"),
+            ("body", "white", "dark blue", "standout"),
+            ("footer", "white", "dark red", "standout"),
+            ("normal", "white", "dark blue", "standout"),
+            ("focus", "black", "white", "bold"),
+            ("editbox", "light gray", "dark blue"),
+            ("editfocus", "white", "dark blue", "bold"),
+            ("editcaption", "black", "light gray", "standout"),
+            ("submenu", "black", "light gray", "standout"),
+            ("button", "white", "dark red", "standout"),
+        ]
+
+    def __confirm_exit(self):
+        # Question
+        confirm_text = urwid.Text("Save config ?\n", align="center")
+
+        # Yes/No Buttons
+        yes_button = urwid.Button("Yes", on_press=self.__save_and_quit)
+        yes_button = urwid.AttrMap(yes_button, "button")
+        no_button = urwid.Button("No", on_press=self.__save_and_quit)
+        no_button = urwid.AttrMap(no_button, "button")
+        buttons_gridflow = urwid.GridFlow([yes_button, no_button], 10, 3, 1, "center")
+
+        option_pile = urwid.Pile([confirm_text, buttons_gridflow])
+        option_linebox = urwid.LineBox(urwid.Filler(option_pile))
+        option_linebox = urwid.AttrMap(option_linebox, "submenu")
+
+        optionscreen = urwid.Overlay(
+            option_linebox,
+            self.mainscreen,
+            "center",
+            ("relative", 25),
+            "middle",
+            ("relative", 25),
+        )
+        self.loop.widget = optionscreen
+
+    def __handle_keypress(self, key):
+        if key == "esc":
+            if self.loop.widget == self.mainscreen:
+                self.__confirm_exit()
+            elif self.loop.widget == self.submenu:
+                self.loop.widget = self.mainscreen
+            else:
+                self.loop.widget = self.submenu
+
+        if key in ("Q", "q"):
+            self.__confirm_exit()
+
+    def __show_submenu(self, button):
+        node = self.config.find_node_by_label(button.label)
+        if node is None:
+            return
+        listbox_contents = []
+        subnode = node.list
+        while subnode:
+            if subnode.item != MENU and subnode.item != COMMENT:
+                listbox_contents.append(
+                    self.__create_menu_entry(subnode, self.__show_popup)
+                )
+            subnode = subnode.next
+        listbox_walker = urwid.SimpleFocusListWalker(listbox_contents)
+        body_listbox = urwid.ListBox(listbox_walker)
+        body_listbox = urwid.AttrMap(body_listbox, "body")
+        option_linebox = urwid.LineBox(body_listbox)
+        option_linebox = urwid.AttrMap(option_linebox, "submenu")
+        self.submenu = urwid.Overlay(
+            option_linebox,
+            self.mainscreen,
+            "center",
+            ("relative", 70),
+            "middle",
+            ("relative", 70),
+        )
+        self.loop.widget = self.submenu
+
+    def __show_popup(self, button):
+        node = self.config.find_node_by_label(button.label)
+        if node is None:
+            return
+
+        if self.loop.widget == self.submenu:
+            info = self.config.get_help(node)
+            if info is None:
+                info = "N/A"
+
+            config_value = self.config.get_value(node)
+            config_value = config_value or ""
+
+            value_edit = urwid.Edit(
+                caption=("editcaption", "Value : "), edit_text=config_value
+            )
+            value_edit_attr = urwid.AttrMap(value_edit, "editbox", "editfocus")
+
+            help_text = urwid.Text(info)
+            help_linebox = urwid.LineBox(help_text)
+
+            save_button = urwid.Button(
+                "save", on_press=self.__save_config_value, user_data=(value_edit, node)
+            )
+            save_button = urwid.AttrMap(save_button, "button")
+            cancel_button = urwid.Button("cancel", on_press=self.__save_config_value)
+            cancel_button = urwid.AttrMap(cancel_button, "button")
+
+            buttons_gridflow = urwid.GridFlow(
+                [save_button, cancel_button], 10, 3, 1, "center"
+            )
+            option_pile = urwid.Pile(
+                [
+                    ("weight", 10, value_edit_attr),
+                    ("weight", 85, help_linebox),
+                    ("weight", 5, buttons_gridflow),
+                ]
+            )
+            option_linebox = urwid.LineBox(urwid.Filler(option_pile))
+            option_linebox = urwid.AttrMap(option_linebox, "submenu")
+            option_widget = urwid.Overlay(
+                option_linebox,
+                self.submenu,
+                "center",
+                ("relative", 30),
+                "middle",
+                ("relative", 30),
+            )
+            self.loop.widget = option_widget
+        else:
+            self.loop.widget = self.submenu
+
+    def __create_menu_entry(self, entry, callback=None):
+        entry = urwid.Button(entry.prompt[0])
+        if callback is not None:
+            urwid.connect_signal(entry, "click", callback)
+        return urwid.AttrMap(entry, "normal", "focus")
+
+    def __save_config_value(self, button, user_data=None):
+        if button.label == "save":
+            new_value = user_data[0].get_edit_text()
+            self.config.set_value(user_data[1], new_value)
+        self.loop.widget = self.submenu
+
+    def __save_and_quit(self, button):
+        if button.label == "Yes":
+            self.save()
+        else:
+            raise urwid.ExitMainLoop()
+
+    def save(self):
+        save_nodes = []
+        for node in self.config.config_list:
+            if node.parent and node.parent.prompt[0] == "General Settings":
+                continue
+            save_nodes.append(node)
+
+        self.config.save_config(save_nodes, output_file=self.output_file)
+
+        raise urwid.ExitMainLoop()
+
+    def start(self):
+        # Update based on configs loaded
+        # We don't support scripts section yet
+        if self.config.oldconfig:
+            oldconfig_entries = self.config.load_config(skip_list=["scripts"])
+            self.config.merge_config(oldconfig_entries)
+            logging.debug(self.config.config_list)
+            logging.debug(self.config.menu_list)
+
+        # Header of the main display
+        header_text = urwid.Text("MTDA Config Generator", align="center")
+        header_text = urwid.AttrMap(header_text, "banner")
+
+        # Body of the main display
+        listbox_contents = []
+        for menu in self.config.menu_list:
+            # Hack. Drop Main menu entry
+            if menu.prompt[0] == "Main menu":
+                continue
+            listbox_contents.append(self.__create_menu_entry(menu, self.__show_submenu))
+        listbox_walker = urwid.SimpleFocusListWalker(listbox_contents)
+        body_listbox = urwid.ListBox(listbox_walker)
+        body_listbox = urwid.AttrMap(body_listbox, "body")
+
+        # Footer of the main display
+        footer_left_text = urwid.Text(
+            "Q/q - quit | Esc - previous screen | Arrow keys - navigation"
+        )
+        footer_right_text = urwid.Text(
+            "Kconfig: {}".format(self.kconfig_file), align="right"
+        )
+        footer_column = urwid.Columns([footer_left_text, footer_right_text])
+        footer_column = urwid.AttrMap(footer_column, "footer")
+
+        # Compose a frame with all header body and footer
+        self.mainscreen = urwid.Frame(
+            body_listbox, header=header_text, footer=footer_column
+        )
+
+        self.loop = urwid.MainLoop(
+            self.mainscreen, self.palette, unhandled_input=self.__handle_keypress
+        )
+        self.loop.run()
+
+
+def start_config():
+    parser = argparse.ArgumentParser(description="MTDA config generator")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="mtda config generator {}".format(__VERSION__),
+    )
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        help="debug mtda config",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output_file",
+        help="Output file location",
+        metavar="OUTPUT FILE",
+    )
+    parser.add_argument(
+        "-k",
+        "--kconfig-file",
+        dest="kconfig_file",
+        help="path to kconfig file",
+        metavar="KCONFIG",
+    )
+    parser.add_argument(
+        "config",
+        nargs="?",
+        default=None,
+        help="path to existing mtda config file",
+    )
+    args = parser.parse_args()
+    kconfig_file = args.kconfig_file
+
+    if kconfig_file is None:
+        kconfig_file = "/var/lib/mtda/Kconfig"
+
+    if args.config:
+        if not os.path.exists(args.config):
+            print("Cannot access config file [ {} ]\n".format(args.config))
+            parser.print_help()
+            sys.exit(1)
+
+    if not os.path.exists(kconfig_file):
+        print("Cannot access Kconfig file [ {} ]\n".format(kconfig_file))
+        parser.print_help()
+        sys.exit(1)
+
+    if args.debug:
+        logging.basicConfig(
+            filename="mtda-config.debug", encoding="utf-8", level=logging.DEBUG
+        )
+
+    app = ConfigApp(
+        kconfig=kconfig_file,
+        oldconfig=args.config,
+        output_file=args.output_file,
+    )
+    app.start()
+
+
+if __name__ == "__main__":
+    start_config()

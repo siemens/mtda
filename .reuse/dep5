@@ -130,3 +130,7 @@ License: MIT
 Files: meta-isar/recipes-python/kconfiglib/files/kconfiglib-14.1.0/debian/*
 Copyright: 2022 Siemens Digital Industries Software
 License: MIT
+
+Files: Kconfig
+Copyright: 2022 Siemens Digital Industries Software
+License: MIT
