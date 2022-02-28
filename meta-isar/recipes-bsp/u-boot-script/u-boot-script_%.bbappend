@@ -5,11 +5,5 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-DISTRO_ARCH ?= "armhf"
-
-KERNEL_NAME ?= "armmp"
-
-IMAGE_FSTYPES ?= "wic-img"
-WKS_FILE ?= "beaglebone-black.wks.in"
-
-IMAGER_INSTALL += "u-boot-omap"
+# Suffix the u-boot-script package to get unique packages in our binary feeds
+PN .= "-${DISTRO}-${MACHINE}"
