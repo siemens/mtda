@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # This Isar layer is part of MTDA
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2022 Siemens Digital Industries Software
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
@@ -26,8 +26,19 @@ MTDA_APT_URI ??= "https://apt.fury.io/mtda/"
 DEPENDS += "mtda-packages"
 do_build[deptask] += "do_deploy_deb"
 
-# Custom u-boot for the nanopi-r1
+# We suffix u-boot-script with DISTRO and MACHINE, remove the non-suffixed
+# version of the package
+IMAGE_INSTALL_remove = "u-boot-script"
+
+# Custom u-boot script for the beaglebone-black
+IMAGE_INSTALL_append_beaglebone-black = " u-boot-script-${DISTRO}-${MACHINE}"
+
+# Custom u-boot script for the nanopi-neo
+IMAGE_INSTALL_append_nanopi-neo = " u-boot-script-${DISTRO}-${MACHINE}"
+
+# Custom u-boot and script for the nanopi-r1
 DEPENDS_append_nanopi-r1 = " u-boot-nanopi-r1"
+IMAGE_INSTALL_append_nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
 
 IMAGE_INSTALL += "                       \
     mtda-hostname                        \
