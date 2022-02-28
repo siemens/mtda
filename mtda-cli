@@ -35,7 +35,7 @@ class Application:
 
     def __init__(self):
         self.agent = None
-        self.remote = None
+        self.remote = "localhost"
         self.logfile = "/var/log/mtda.log"
         self.pidfile = "/var/run/mtda.pid"
         self.exiting = False
