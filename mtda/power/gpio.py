@@ -24,7 +24,9 @@ class GpioPowerController(PowerController):
         self.pins = []
 
     def configure(self, conf):
-        """ Configure this power controller from the provided configuration"""
+        self.mtda.debug(3, "power.gpio.configure()")
+
+        result = None
         if 'pin' in conf:
             self.pins = [int(conf['pin'], 10)]
         if 'pins' in conf:
@@ -33,7 +35,13 @@ class GpioPowerController(PowerController):
             for v in values:
                 self.pins.append(int(v, 10))
 
+        self.mtda.debug(3, "power.gpio.configure(): {}".format(result))
+        return result
+
     def probe(self):
+        self.mtda.debug(3, "power.gpio.probe()")
+
+        result = False
         if self.pins is None:
             raise ValueError("GPIO pin(s) not configured!")
 
@@ -49,28 +57,48 @@ class GpioPowerController(PowerController):
             f = open("/sys/class/gpio/gpio%d/direction" % pin, "w")
             f.write("out")
             f.close()
+            result = True
+
+        self.mtda.debug(3, "power.gpio.probe(): {}".format(result))
+        return result
 
     def command(self, args):
-        return False
+        self.mtda.debug(3, "power.gpio.command()")
+
+        result = False
+
+        self.mtda.debug(3, "power.gpio.command(): {}".format(result))
+        return result
 
     def on(self):
-        """ Power on the attached device"""
+        self.mtda.debug(3, "power.gpio.on()")
+
+        result = False
         for pin in self.pins:
             f = open("/sys/class/gpio/gpio%d/value" % pin, "w")
             f.write("1")
             f.close()
-        return self.status() == self.POWER_ON
+        result = self.status() == self.POWER_ON
+
+        self.mtda.debug(3, "power.gpio.on(): {}".format(result))
+        return result
 
     def off(self):
-        """ Power off the attached device"""
+        self.mtda.debug(3, "power.gpio.off()")
+
+        result = False
         for pin in self.pins:
             f = open("/sys/class/gpio/gpio%d/value" % pin, "w")
             f.write("0")
             f.close()
-        return self.status() == self.POWER_OFF
+        result = self.status() == self.POWER_OFF
+
+        self.mtda.debug(3, "power.gpio.off(): {}".format(result))
+        return result
 
     def status(self):
-        """ Determine the current power state of the attached device"""
+        self.mtda.debug(3, "power.gpio.status()")
+
         first = True
         result = self.POWER_UNSURE
         for pin in self.pins:
@@ -88,6 +116,8 @@ class GpioPowerController(PowerController):
                 result = value
             elif value != result:
                 result = self.POWER_UNSURE
+
+        self.mtda.debug(3, "power.gpio.status(): {}".format(result))
         return result
 
     def toggle(self):
