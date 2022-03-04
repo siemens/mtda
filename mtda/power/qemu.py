@@ -422,16 +422,6 @@ class QemuController(PowerController):
         self.mtda.debug(3, "power.qemu.status(): %s" % str(result))
         return result
 
-    def toggle(self):
-        self.mtda.debug(3, "power.qemu.toggle()")
-
-        s = self.status()
-        if s == self.POWER_OFF:
-            self.on()
-        else:
-            self.off()
-        return self.status()
-
     def usb_ids(self):
         info = self._cmd("info usb")
         lines = info.splitlines()

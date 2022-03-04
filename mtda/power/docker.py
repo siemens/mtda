@@ -240,18 +240,6 @@ class DockerPowerController(PowerController):
         with self._lock:
             return self._status()
 
-    def _toggle(self):
-        s = self._status()
-        if s == self.POWER_OFF:
-            self._on()
-        else:
-            self._off()
-        return self._status()
-
-    def toggle(self):
-        with self._lock:
-            return self._toggle()
-
 
 def instantiate(mtda):
     return DockerPowerController(mtda)

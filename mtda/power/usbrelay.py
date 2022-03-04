@@ -75,14 +75,6 @@ class UsbRelayPowerController(PowerController):
                 result = self.POWER_UNSURE
         return result
 
-    def toggle(self):
-        s = self.status()
-        if s == self.POWER_OFF:
-            self.on()
-        else:
-            self.off()
-        return self.status()
-
     def _get_lines(self):
         result = {}
         try:

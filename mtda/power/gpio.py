@@ -120,15 +120,6 @@ class GpioPowerController(PowerController):
         self.mtda.debug(3, "power.gpio.status(): {}".format(result))
         return result
 
-    def toggle(self):
-        """ Toggle power for the attached device"""
-        s = self.status()
-        if s == self.POWER_OFF:
-            self.on()
-        else:
-            self.off()
-        return self.status()
-
 
 def instantiate(mtda):
     return GpioPowerController(mtda)

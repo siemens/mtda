@@ -74,15 +74,6 @@ class PduClientPowerController(PowerController):
         """ Determine the current power state of the attached device"""
         return self.state
 
-    def toggle(self):
-        """ Toggle power for the attached device"""
-        s = self.status()
-        if s == self.POWER_OFF:
-            self.on()
-        else:
-            self.off()
-        return self.state
-
 
 def instantiate(mtda):
     return PduClientPowerController(mtda)

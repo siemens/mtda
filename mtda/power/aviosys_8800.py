@@ -59,15 +59,6 @@ class Aviosys8800PowerController(PowerController):
             return self.POWER_ON
         return self.POWER_OFF
 
-    def toggle(self):
-        """ Toggle power for the attached device"""
-        s = self.status()
-        if s == self.POWER_OFF:
-            self.on()
-        else:
-            self.off()
-        return self.status()
-
 
 def instantiate(mtda):
     return Aviosys8800PowerController(mtda)

@@ -94,6 +94,7 @@ class MultiTenantDeviceAccess:
         self._lock_owner = None
         self._lock_expiry = None
         self._power_expiry = None
+        self._power_lock = threading.Lock()
         self._session_lock = threading.Lock()
         self._session_timer = None
         self._sessions = {}
@@ -810,7 +811,7 @@ class MultiTenantDeviceAccess:
                 self.exec_power_on_script()
                 self._power_event(CONSTS.POWER.ON)
 
-        self.mtda.debug(3, "main._target_on(): %s" % str(result))
+        self.mtda.debug(3, "main._target_on(): {}".format(result))
         return result
 
     def target_on(self, session=None):
@@ -818,14 +819,14 @@ class MultiTenantDeviceAccess:
 
         result = True
         self._session_check(session)
+        with self._power_lock:
+            status = self._target_status()
+            if status != CONSTS.POWER.ON:
+                result = False
+                if self.power_locked(session) is False:
+                    result = self._target_on(session)
 
-        status = self.target_status()
-        if status != CONSTS.POWER.ON:
-            result = False
-            if self.power_locked(session) is False:
-                result = self._target_on(session)
-
-        self.mtda.debug(3, "main.target_on(): %s" % str(result))
+        self.mtda.debug(3, "main.target_on(): {}".format(result))
         return result
 
     def exec_power_off_script(self):
@@ -849,7 +850,7 @@ class MultiTenantDeviceAccess:
                 self.exec_power_off_script()
                 self._power_event(CONSTS.POWER.OFF)
 
-        self.mtda.debug(3, "main._target_off(): %s" % str(result))
+        self.mtda.debug(3, "main._target_off(): {}".format(result))
         return result
 
     def target_off(self, session=None):
@@ -857,48 +858,54 @@ class MultiTenantDeviceAccess:
 
         result = True
         self._session_check(session)
+        with self._power_lock:
+            status = self._target_status()
+            if status != CONSTS.POWER.OFF:
+                result = False
+                if self.power_locked(session) is False:
+                    result = self._target_off(session)
 
-        status = self.target_status()
-        if status != CONSTS.POWER.OFF:
-            result = False
-            if self.power_locked(session) is False:
-                result = self._target_off(session)
-
-        self.mtda.debug(3, "main.target_off(): %s" % str(result))
+        self.mtda.debug(3, "main.target_off(): {}".format(result))
         return result
 
-    def target_status(self, session=None):
-        self.mtda.debug(3, "main.target_status()")
+    def _target_status(self, session=None):
+        self.mtda.debug(3, "main._target_status()")
 
         if self.power_controller is None:
             result = CONSTS.POWER.UNSURE
         else:
             result = self.power_controller.status()
 
-        self.mtda.debug(3, "main.target_status(): %s" % str(result))
+        self.mtda.debug(3, "main._target_status(): {}".format(result))
+        return result
+
+    def target_status(self, session=None):
+        self.mtda.debug(3, "main.target_status()")
+
+        with self._power_lock:
+            result = self._target_status(session)
+
+        self.mtda.debug(3, "main.target_status(): {}".format(result))
         return result
 
     def target_toggle(self, session=None):
         self.mtda.debug(3, "main.target_toggle()")
 
+        result = CONSTS.POWER.UNSURE
         self._session_check(session)
-        if self.power_locked(session) is False:
-            result = self.power_controller.toggle()
-            if result == CONSTS.POWER.ON:
-                if self.console_logger is not None:
-                    self.console_logger.resume()
-                self.exec_power_on_script()
-                self._power_event(CONSTS.POWER.ON)
-            elif result == CONSTS.POWER.OFF:
-                self.exec_power_off_script()
-                if self.console_logger is not None:
-                    self.console_logger.pause()
-                    self.console_logger.reset_timer()
-                self._power_event(CONSTS.POWER.OFF)
-        else:
-            result = CONSTS.POWER.LOCKED
+        with self._power_lock:
+            if self.power_locked(session) is False:
+                status = self._target_status(session)
+                if status == CONSTS.POWER.OFF:
+                    if self._target_on() is True:
+                        result = CONSTS.POWER.ON
+                elif status == CONSTS.POWER.ON:
+                    if self._target_off() is True:
+                        result = CONSTS.POWER.OFF
+            else:
+                result = CONSTS.POWER.LOCKED
 
-        self.mtda.debug(3, "main.target_toggle(): %s" % str(result))
+        self.mtda.debug(3, "main.target_toggle(): {}".format(result))
         return result
 
     def target_unlock(self, session):
