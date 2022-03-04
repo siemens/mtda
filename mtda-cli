@@ -773,7 +773,7 @@ class Application:
         # Start our server
         if daemonize is True:
             self.agent = MultiTenantDeviceAccess()
-            self.agent.load_config(self.remote, daemonize, config)
+            self.agent.load_config(None, daemonize, config)
             self.remote = self.agent.remote
             if detach is True:
                 status = self.daemonize()
