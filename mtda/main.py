@@ -830,7 +830,21 @@ class MultiTenantDeviceAccess:
             if result is True:
                 if self.console_logger is not None:
                     self.console_logger.resume()
+                if self.monitor_logger is not None:
+                    self.monitor_logger.resume()
+
+                # user-provided power-on script may now be executed
+                # (target is up and logging running)
+                #
+                # power sequence:
+                #   <power-on>
+                #     <power-on-script>
+                #       <runtime>
+                #     <power-off-script>
+                #   <power-off>
+                #
                 self.exec_power_on_script()
+
                 self._power_event(CONSTS.POWER.ON)
 
         self.mtda.debug(3, "main._target_on(): {}".format(result))
@@ -860,17 +874,35 @@ class MultiTenantDeviceAccess:
     def _target_off(self, session=None):
         self.mtda.debug(3, "main._target_off()")
 
+        # call power-off script before anything else
+        #
+        # power sequence:
+        #   <power-on>
+        #     <power-on-script>
+        #       <runtime>
+        #     <power-off-script>
+        #   <power-off>
+        #
+        self.exec_power_off_script()
+
+        # pause console
+        if self.console_logger is not None:
+            self.console_logger.reset_timer()
+            self.console_logger.pause()
+
+        # and monitor
+        if self.monitor_logger is not None:
+            self.monitor_logger.reset_timer()
+            self.monitor_logger.pause()
+
+        # release keyboard
+        if self.keyboard is not None:
+            self.keyboard.idle()
+
         result = True
         if self.power_controller is not None:
             result = self.power_controller.off()
-        if self.keyboard is not None:
-            self.keyboard.idle()
-        if self.console_logger is not None:
-            self.console_logger.reset_timer()
-            if result is True:
-                self.console_logger.pause()
-                self.exec_power_off_script()
-                self._power_event(CONSTS.POWER.OFF)
+        self._power_event(CONSTS.POWER.OFF)
 
         self.mtda.debug(3, "main._target_off(): {}".format(result))
         return result
