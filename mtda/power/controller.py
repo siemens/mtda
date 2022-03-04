@@ -52,11 +52,6 @@ class PowerController(object):
         return self.POWER_OFF
 
     @abc.abstractmethod
-    def toggle(self):
-        """ Toggle power for the attached device"""
-        return self.POWER_UNSURE
-
-    @abc.abstractmethod
     def wait(self):
         """ Wait for the target to be powered on"""
         return
