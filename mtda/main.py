@@ -81,6 +81,7 @@ class MultiTenantDeviceAccess:
         self._pastebin_endpoint = None
         self._storage_mounted = False
         self._storage_opened = False
+        self._storage_owner = None
         self._writer = None
         self._writer_data = None
         self.blksz = CONSTS.WRITER.READ_SIZE
@@ -542,6 +543,7 @@ class MultiTenantDeviceAccess:
             self._writer.stop()
             self._writer_data = None
             self._storage_opened = not self.storage_controller.close()
+            self._storage_owner = None
             result = (self._storage_opened is False)
 
         self.mtda.debug(3, "main.storage_close(): %s" % str(result))
@@ -622,13 +624,23 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_open()")
 
         self._session_check(session)
+        owner = self._storage_owner
+        status, _, _ = self.storage_status()
+
         if self.storage_controller is None:
             self.mtda.debug(1, "storage_open(): no shared storage device")
+            result = False
+        elif status != self.storage_controller.SD_ON_HOST:
+            self.mtda.debug(1, "storage_open(): not attached to host")
+            result = False
+        elif owner is not None and owner != session:
+            self.mtda.debug(1, "storage_open(): in use")
             result = False
         else:
             self.storage_close()
             result = self.storage_controller.open()
             if result is True:
+                self._storage_owner = session
                 self._writer.start()
             self._storage_opened = result
 
@@ -702,7 +714,17 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_write()")
 
         self._session_check(session)
-        if self.storage_controller is None or self._writer.failed is True:
+        if self.storage_controller is None:
+            self.mtda.debug(1, "main.storage_write(): no storage")
+            result = -1
+        elif self._storage_opened is False:
+            self.mtda.debug(1, "main.storage_write(): not opened")
+            result = -1
+        elif self._writer.failed is True:
+            self.mtda.debug(1, "main.storage_write(): write error")
+            result = -1
+        elif session != self._storage_owner:
+            self.mtda.debug(1, "main.storage_write(): in use")
             result = -1
         else:
             try:
