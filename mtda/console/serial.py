@@ -88,7 +88,7 @@ class SerialConsole(ConsoleInterface):
         self.mtda.debug(3, "console.serial.pending()")
 
         result = 0
-        if self.ser is not None:
+        if self.ser is not None and self.opened is True:
             result = self.ser.inWaiting()
 
         self.mtda.debug(3, "console.serial.pending(): %s" % str(result))
@@ -99,7 +99,7 @@ class SerialConsole(ConsoleInterface):
         self.mtda.debug(3, "console.serial.read()")
 
         result = None
-        if self.ser is not None:
+        if self.ser is not None and self.opened is True:
             result = self.ser.read(n)
 
         self.mtda.debug(3, "console.serial.read(): %s" % str(result))
@@ -110,7 +110,7 @@ class SerialConsole(ConsoleInterface):
         self.mtda.debug(3, "console.serial.write(data=%s)" % str(data))
 
         result = None
-        if self.ser is not None:
+        if self.ser is not None and self.opened is True:
             result = self.ser.write(data)
 
         self.mtda.debug(3, "console.serial.write(): %s" % str(result))
