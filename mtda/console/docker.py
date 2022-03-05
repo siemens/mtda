@@ -93,7 +93,7 @@ class DockerConsole(ConsoleInterface):
             inputs = [self._socket]
             outputs = []
             readable, writable, error = select.select(inputs, outputs, inputs)
-            if len(readable) > 0:
+            if len(readable) > 0 and self._fd is not None:
                 result = os.read(self._fd, n)
         else:
             self.mtda.debug(1, "console.docker.read(): not opened!")
