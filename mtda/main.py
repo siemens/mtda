@@ -1461,8 +1461,16 @@ class MultiTenantDeviceAccess:
             self._session_timer.start()
 
         # Start from a known state
-        self._target_off()
-        self.storage_to_target()
+        if self.power_controller is not None:
+            self._target_off()
+            self.storage_to_target()
+        else:
+            # Assume the target is ON if we cannot control power delivery
+            # and start logging on available console(s)
+            if self.console_logger is not None:
+                self.console_logger.resume()
+            if self.monitor_logger is not None:
+                self.monitor_logger.resume()
 
         return True
 

@@ -10,7 +10,6 @@
 # ---------------------------------------------------------------------------
 
 # System imports
-import threading
 import usb.core
 
 # Local imports
@@ -24,7 +23,6 @@ class Aviosys8800PowerController(PowerController):
 
     def __init__(self, mtda):
         self.dev = None
-        self.ev = threading.Event()
         self.mtda = mtda
         self.vid = Aviosys8800PowerController.DEFAULT_USB_VID
         self.pid = Aviosys8800PowerController.DEFAULT_USB_PID
@@ -47,15 +45,11 @@ class Aviosys8800PowerController(PowerController):
     def on(self):
         """ Power on the attached device"""
         status = self.dev.ctrl_transfer(0x40, 0x01, 0x0001, 0xa0, [])
-        if status == 0:
-            self.ev.set()
         return (status == 0)
 
     def off(self):
         """ Power off the attached device"""
         status = self.dev.ctrl_transfer(0x40, 0x01, 0x0001, 0x20, [])
-        if status == 0:
-            self.ev.clear()
         return (status == 0)
 
     def status(self):
@@ -73,10 +67,6 @@ class Aviosys8800PowerController(PowerController):
         else:
             self.off()
         return self.status()
-
-    def wait(self):
-        while self.status() != self.POWER_ON:
-            self.ev.wait()
 
 
 def instantiate(mtda):

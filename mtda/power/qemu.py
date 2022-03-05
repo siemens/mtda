@@ -29,7 +29,6 @@ class QemuController(PowerController):
 
     def __init__(self, mtda):
         self.dev = None
-        self.ev = threading.Event()
         self.bios = None
         self.cpu = None
         self.smp = None
@@ -390,11 +389,7 @@ class QemuController(PowerController):
             return True
         self.cmd("system_reset")
         self.cmd("cont")
-        s = self.status()
-        if s == self.POWER_ON:
-            self.ev.set()
-            return True
-        return False
+        return self.status() == self.POWER_ON
 
     def off(self):
         self.mtda.debug(3, "power.qemu.off()")
@@ -404,11 +399,7 @@ class QemuController(PowerController):
             return True
         self.cmd("stop")
         self.cmd("system_reset")
-        s = self.status()
-        if s == self.POWER_OFF:
-            self.ev.clear()
-            return True
-        return False
+        return self.status() == self.POWER_OFF
 
     def status(self):
         self.mtda.debug(3, "power.qemu.status()")
@@ -510,12 +501,6 @@ class QemuController(PowerController):
         self.mtda.debug(3, "power.qemu.usb_rm(): %s" % str(result))
         self.lock.release()
         return result
-
-    def wait(self):
-        self.mtda.debug(3, "power.qemu.wait()")
-
-        while self.status() != self.POWER_ON:
-            self.ev.wait()
 
 
 def instantiate(mtda):

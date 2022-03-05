@@ -11,7 +11,6 @@
 
 # System imports
 import os
-import threading
 
 # Local imports
 from mtda.power.controller import PowerController
@@ -21,7 +20,6 @@ class GpioPowerController(PowerController):
 
     def __init__(self, mtda):
         self.dev = None
-        self.ev = threading.Event()
         self.mtda = mtda
         self.pins = []
 
@@ -61,11 +59,7 @@ class GpioPowerController(PowerController):
             f = open("/sys/class/gpio/gpio%d/value" % pin, "w")
             f.write("1")
             f.close()
-        status = self.status()
-        if status == self.POWER_ON:
-            self.ev.set()
-            return True
-        return False
+        return self.status() == self.POWER_ON
 
     def off(self):
         """ Power off the attached device"""
@@ -73,11 +67,7 @@ class GpioPowerController(PowerController):
             f = open("/sys/class/gpio/gpio%d/value" % pin, "w")
             f.write("0")
             f.close()
-        status = self.status()
-        if status == self.POWER_OFF:
-            self.ev.clear()
-            return True
-        return False
+        return self.status() == self.POWER_OFF
 
     def status(self):
         """ Determine the current power state of the attached device"""
@@ -108,10 +98,6 @@ class GpioPowerController(PowerController):
         else:
             self.off()
         return self.status()
-
-    def wait(self):
-        while self.status() != self.POWER_ON:
-            self.ev.wait()
 
 
 def instantiate(mtda):

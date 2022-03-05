@@ -27,6 +27,7 @@ class ConsoleLogger:
         self._prompt = "=> "
         self.power_controller = power_controller
         self.prints = True
+        self.rx_active = threading.Event()
         self.rx_alive = False
         self.rx_thread = None
         self.rx_queue = bytearray()
@@ -301,15 +302,8 @@ class ConsoleLogger:
         error = None
         retries = 3
 
-        if self.power_controller is not None:
-            self.power_controller.wait()
-
-        with self.rx_lock:
-            con.open()
-
         while self.rx_alive is True:
-            if self.power_controller is not None:
-                self.power_controller.wait()
+            self.rx_active.wait()
 
             try:
                 data = con.read(con.pending() or 1)
@@ -337,6 +331,7 @@ class ConsoleLogger:
         self.mtda.debug(3, "console.logger.resume()")
 
         with self.rx_lock:
+            self.rx_active.clear()
             result = self.console.close()
 
         self.mtda.debug(3, "console.logger.pause(): "
@@ -348,6 +343,8 @@ class ConsoleLogger:
 
         with self.rx_lock:
             result = self.console.open()
+            if result is True:
+                self.rx_active.set()
 
         self.mtda.debug(3, "console.logger.resume(): "
                            "{}".format(result))
