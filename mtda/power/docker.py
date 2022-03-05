@@ -26,7 +26,6 @@ class DockerPowerController(PowerController):
         self._client = None
         self._command = "sh"
         self._container = None
-        self._ev = threading.Event()
         self._image = "alpine"
         self._name = "mtda-docker"
         self._lock = threading.Lock()
@@ -164,8 +163,6 @@ class DockerPowerController(PowerController):
         try:
             self._container.start()
             self._container = self._client.containers.get(cid)
-            if self._status() == self.POWER_ON:
-                self._ev.set()
         except docker.errors.NotFound:
             self.mtda.debug(1, "power.docker._on(): "
                             "container {} has vanished".format(cid))
@@ -190,8 +187,6 @@ class DockerPowerController(PowerController):
         try:
             self._container.stop()
             self._container = self._client.containers.get(cid)
-            if self._status() == self.POWER_OFF:
-                self._ev.clear()
         except docker.errors.NotFound:
             self.mtda.debug(1, "power.docker._off(): "
                             "container {} has vanished".format(cid))
@@ -256,10 +251,6 @@ class DockerPowerController(PowerController):
     def toggle(self):
         with self._lock:
             return self._toggle()
-
-    def wait(self):
-        while self.status() != self.POWER_ON:
-            self._ev.wait()
 
 
 def instantiate(mtda):

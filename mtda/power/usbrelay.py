@@ -13,7 +13,6 @@
 import os
 import re
 import subprocess
-import threading
 
 # Local imports
 from mtda.power.controller import PowerController
@@ -23,7 +22,6 @@ class UsbRelayPowerController(PowerController):
 
     def __init__(self, mtda):
         self.dev = None
-        self.ev = threading.Event()
         self.exe = "/usr/bin/usbrelay"
         self.mtda = mtda
         self.lines = []
@@ -51,20 +49,12 @@ class UsbRelayPowerController(PowerController):
     def on(self):
         if self._set_lines("1") is False:
             return False
-        status = self.status()
-        if status == self.POWER_ON:
-            self.ev.set()
-            return True
-        return False
+        return self.status() == self.POWER_ON
 
     def off(self):
         if self._set_lines("0") is False:
             return False
-        status = self.status()
-        if status == self.POWER_OFF:
-            self.ev.clear()
-            return True
-        return False
+        return self.status() == self.POWER_OFF
 
     def status(self):
         statuses = self._get_lines()
@@ -92,10 +82,6 @@ class UsbRelayPowerController(PowerController):
         else:
             self.off()
         return self.status()
-
-    def wait(self):
-        while self.status() != self.POWER_ON:
-            self.ev.wait()
 
     def _get_lines(self):
         result = {}

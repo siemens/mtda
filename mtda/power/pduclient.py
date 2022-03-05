@@ -11,7 +11,6 @@
 
 # System imports
 import os
-import threading
 
 # Local imports
 from mtda.power.controller import PowerController
@@ -21,7 +20,6 @@ class PduClientPowerController(PowerController):
 
     def __init__(self, mtda):
         self.dev = None
-        self.ev = threading.Event()
         self.daemon = None
         self.hostname = None
         self.mtda = mtda
@@ -61,7 +59,6 @@ class PduClientPowerController(PowerController):
         status = self.cmd('on')
         if status == 0:
             self.state = self.POWER_ON
-            self.ev.set()
             return True
         return False
 
@@ -70,7 +67,6 @@ class PduClientPowerController(PowerController):
         status = self.cmd('off')
         if status == 0:
             self.state = self.POWER_OFF
-            self.ev.clear()
             return True
         return False
 
@@ -86,10 +82,6 @@ class PduClientPowerController(PowerController):
         else:
             self.off()
         return self.state
-
-    def wait(self):
-        while self.status() != self.POWER_ON:
-            self.ev.wait()
 
 
 def instantiate(mtda):
