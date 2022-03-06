@@ -303,8 +303,9 @@ class ConsoleLogger:
 
         if self.power_controller is not None:
             self.power_controller.wait()
-            with self.rx_lock:
-                con.open()
+
+        with self.rx_lock:
+            con.open()
 
         while self.rx_alive is True:
             if self.power_controller is not None:
