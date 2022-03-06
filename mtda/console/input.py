@@ -11,6 +11,7 @@
 
 # System imports
 import atexit
+import codecs
 import fcntl
 import termios
 import sys
@@ -20,7 +21,10 @@ import tty
 class ConsoleInput:
 
     def __init__(self):
-        sys.stdin.reconfigure(encoding='utf-8', errors='ignore')
+        if sys.version_info.major >= 3 and sys.version_info.minor >= 7:
+            sys.stdin.reconfigure(encoding='utf-8', errors='ignore')
+        else:
+            sys.stdin = codecs.getreader('utf-8')(sys.stdin.detach())
         if sys.stdin.isatty():
             self.fd = sys.stdin.fileno()
             self.old = termios.tcgetattr(self.fd)
