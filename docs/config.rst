@@ -80,7 +80,7 @@ General settings
 
   * ``variant``: string [required]
       Select a power variant from ``aviosys_8800``, ``gpio``, ``pduclient``, 
-      ``qemu`` and ``usbrelay``.
+      ``qemu``, ``shellcmd`` and ``usbrelay``.
 
 * ``remote``: section [optional]
     Specify the host and ports to connect to when using a MTDA client (such as
@@ -330,6 +330,22 @@ The following settings are supported:
 
 * ``watchdog``: string [optional]
     Name of the watchdog driver provided by QEMU/KVM for the selected machine.
+
+``shellcmd`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``shellcmd`` driver may be used to control power switch with custom shell
+commands, e.g. curl requests:
+
+* ``on-cmd``: string [required]
+    Power-on shell command. The return code should be 1 on success.
+
+* ``off-cmd``: string [required]
+    Power-off shell command. The return code should be 1 on success.
+
+* ``check-on``: string [required]
+    Shell command to check the power state. Should return 0 if power is on, 1
+    if it is off. Any other return code is interpreted as error.
 
 ``usbrelay`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~
