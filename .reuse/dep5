@@ -122,3 +122,7 @@ License: MIT
 Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/source/*
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
+
+Files: meta-isar/recipes-bsp/rpi-firmware/files/*
+Copyright: Siemens AG, 2022
+License: MIT
