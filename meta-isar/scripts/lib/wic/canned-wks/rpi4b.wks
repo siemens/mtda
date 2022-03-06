@@ -1,0 +1,13 @@
+# ---------------------------------------------------------------------------
+# This OpenEmbedded Kickstart file is part of MTDA
+# Copyright (c) Siemens AG, 2022
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+part --source bootimg-partition --ondisk mmcblk0 --fstype vfat --label boot --align 1 --size 128 --overhead-factor 1 --extra-space 0
+
+part / --source rootfs --fstype ext4 --mkfs-extraopts "-T default" --label platform --align 1024 --active
+
+# silence wic
+bootloader
