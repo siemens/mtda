@@ -328,7 +328,7 @@ class ConsoleLogger:
                 retries = retries - 1
 
     def pause(self):
-        self.mtda.debug(3, "console.logger.resume()")
+        self.mtda.debug(3, "console.logger.pause()")
 
         with self.rx_lock:
             self.rx_active.clear()
