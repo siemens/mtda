@@ -52,6 +52,14 @@ class MJPGStreamerVideoController(VideoController):
         if 'www' in conf:
             self.www = conf['www']
 
+    def configure_systemd(self, dir):
+        device = os.path.basename(self.dev)
+        dropin = os.path.join(dir, 'auto-dep-video.conf')
+        with open(dropin, 'w') as f:
+            f.write('[Unit]\n')
+            f.write('Wants=dev-{}.device\n'.format(device))
+            f.write('After=dev-{}.device\n'.format(device))
+
     @property
     def format(self):
         return "MJPG"
