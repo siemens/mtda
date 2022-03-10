@@ -16,9 +16,6 @@ PV = "1.0"
 
 ISAR_RELEASE_CMD = "git -C ${LAYERDIR_mtda} describe --tags --dirty --match 'v[0-9].[0-9]*'"
 
-# Default device/file to use for our USB Mass Storage Gadget
-MTDA_MASS_STORAGE_FILE ??= "mmcblk0"
-
 # MTDA Package Feeds
 MTDA_APT_URI ??= "https://apt.fury.io/mtda/"
 
@@ -44,7 +41,6 @@ IMAGE_INSTALL += "                       \
     mtda-hostname                        \
     local-settings                       \
     sshd-regen-keys                      \
-    usb-ms-use-${MTDA_MASS_STORAGE_FILE} \
 "
 
 IMAGE_PREINSTALL += "                    \

@@ -18,7 +18,3 @@ header:
 
 machine: qemuamd64
 distro: ubuntu-focal
-
-local_conf_header:
-  mtda: |
-    MTDA_MASS_STORAGE_FILE = "sda"
