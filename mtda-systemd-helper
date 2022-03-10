@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+# ---------------------------------------------------------------------------
+# Command Line Interface for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2022 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+# System imports
+import getopt
+import os
+import sys
+
+# Local imports
+from mtda.main import MultiTenantDeviceAccess
+import mtda.constants as CONSTS
+
+
+class Application:
+
+    def __init__(self):
+        self.agent = None
+
+    def print_help(self):
+        return None
+
+    def print_version(self):
+        return None
+
+    def main(self):
+        config = None
+
+        options, stuff = getopt.getopt(
+            sys.argv[1:], 'c:hv',
+            ['config', 'help', 'version'])
+        for opt, arg in options:
+            if opt in ('-c', '--config'):
+                config = arg
+            if opt in ('-h', '--help'):
+                self.print_help()
+                sys.exit(0)
+            if opt in ('-v', '--version'):
+                self.print_version()
+                sys.exit(0)
+
+        if config is not None and os.path.exists(config) is False:
+            print('could not find config file: '
+                  '{}'.format(config), file=sys.stderr)
+            return 1
+
+        self.agent = MultiTenantDeviceAccess()
+        self.agent.load_config(None, True, config)
+        try:
+            self.agent.systemd_configure()
+        except PermissionError:
+            print('could not reconfigure systemd: '
+                  'permission denied!', file=sys.stderr)
+            return 1
+        return 0
+
+
+if __name__ == '__main__':
+    app = Application()
+    sys.exit(app.main())
