@@ -16,7 +16,3 @@ header:
   version: 10
   includes:
     - kas/debian/bullseye-base.yml
-
-local_conf_header:
-  mtda: |
-    MTDA_MASS_STORAGE_FILE = "mmcblk0"

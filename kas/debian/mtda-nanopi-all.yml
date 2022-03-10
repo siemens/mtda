@@ -19,8 +19,3 @@ header:
 target:
   - mc:nanopi-neo:mtda-image
   - mc:nanopi-r1:mtda-image
-
-local_conf_header:
-  mtda: |
-    MTDA_MASS_STORAGE_FILE_nanopi-neo = "sda"
-    MTDA_MASS_STORAGE_FILE_nanopi-r1 = "sda"
