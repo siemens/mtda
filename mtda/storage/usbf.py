@@ -11,6 +11,7 @@
 
 # System imports
 import os
+import stat
 
 # Local imports
 from mtda.storage.helpers.image import Image
@@ -35,6 +36,19 @@ class UsbFunctionController(Image):
 
         self.mtda.debug(3, "storage.usbf.configure(): {}".format(result))
         return result
+
+    def configure_systemd(self, dir):
+        if self.file is None or os.path.exists(self.file) is False:
+            return
+        mode = os.stat(self.file).st_mode
+        if stat.S_ISBLK(mode) is False:
+            return
+        device = os.path.basename(self.file)
+        dropin = os.path.join(dir, 'auto-dep-storage.conf')
+        with open(dropin, 'w') as f:
+            f.write('[Unit]\n')
+            f.write('Wants=dev-{}.device\n'.format(device))
+            f.write('After=dev-{}.device\n'.format(device))
 
     """ Get file used by the USB Function driver"""
     def probe(self):
