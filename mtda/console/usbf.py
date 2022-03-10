@@ -32,6 +32,9 @@ class UsbFunctionConsole(SerialConsole):
         self.mtda.debug(3, "console.usbf.configure(): {}".format(result))
         return result
 
+    def configure_systemd(self, dir):
+        return None
+
     def probe(self):
         self.mtda.debug(3, "console.usbf.probe()")
 
