@@ -54,13 +54,3 @@ agent to enable the functions listed above::
     [keyboard]
     variant=hid
     device=/dev/hidg0
-
-Since the ``mtda`` service should only be started after the specified device was
-detected, a dependency should be added to the service using a systemd drop-in unit::
-
-    mkdir /lib/systemd/system/mtda.service.d
-    printf "[Unit]\nWants=dev-sda.device\nAfter=dev-sda.device" \
-        > /lib/systemd/system/mtda.service.d/10-wait-dev.conf
-
-The system should be restarted. Use ``systemctl status mtda`` to
-confirm that the service was correctly (re-)started.
