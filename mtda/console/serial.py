@@ -25,6 +25,7 @@ class SerialConsole(ConsoleInterface):
         self.port = "/dev/ttyUSB0"
         self.rate = 115200
         self.opened = False
+        self.role = 'console'
 
     """ Configure this console from the provided configuration"""
     def configure(self, conf, role='console'):
@@ -34,6 +35,17 @@ class SerialConsole(ConsoleInterface):
             self.port = conf['port']
         if 'rate' in conf:
             self.rate = int(conf['rate'], 10)
+        self.role = role
+
+    def configure_systemd(self, dir):
+        if self.port is None or os.path.exists(self.port) is False:
+            return
+        device = os.path.basename(self.port)
+        dropin = os.path.join(dir, 'auto-dep-{}.conf'.format(self.role))
+        with open(dropin, 'w') as f:
+            f.write('[Unit]\n')
+            f.write('Wants=dev-{}.device\n'.format(device))
+            f.write('After=dev-{}.device\n'.format(device))
 
     def probe(self):
         self.mtda.debug(3, "console.serial.probe()")
