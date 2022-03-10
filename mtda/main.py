@@ -11,6 +11,7 @@
 
 # System imports
 import configparser
+import glob
 import importlib
 import os
 import queue
@@ -747,6 +748,25 @@ class MultiTenantDeviceAccess:
 
         self.mtda.debug(3, "main.storage_write(): %s" % str(result))
         return result
+
+    def systemd_configure(self):
+        console = self.console
+        storage = self.storage_controller
+        video = self.video
+        dir = '/lib/systemd/system/mtda.service.d/'
+        self.systemd_reset(dir)
+        if console is not None and hasattr(console, 'configure_systemd'):
+            console.configure_systemd(dir)
+        if storage is not None and hasattr(storage, 'configure_systemd'):
+            storage.configure_systemd(dir)
+        if video is not None and hasattr(video, 'configure_systemd'):
+            video.configure_systemd(dir)
+
+    def systemd_reset(self, dir):
+        os.makedirs(dir, exist_ok=True)
+        deps = glob.glob(os.path.join(dir, 'auto-dep-*.conf'))
+        for d in deps:
+            os.unlink(d)
 
     def toggle_timestamps(self):
         self.mtda.debug(3, "main.toggle_timestamps()")
