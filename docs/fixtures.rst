@@ -50,6 +50,7 @@ agent to enable the functions listed above::
 
     [storage]
     variant=usbf
+    file=/dev/sda
 
     [keyboard]
     variant=hid
