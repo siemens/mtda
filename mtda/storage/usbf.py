@@ -22,6 +22,7 @@ class UsbFunctionController(Image):
 
     def __init__(self, mtda):
         super().__init__(mtda)
+        self.device = None
         self.file = None
         self.mode = self.SD_ON_HOST
 
@@ -30,8 +31,21 @@ class UsbFunctionController(Image):
         self.mtda.debug(3, "storage.usbf.configure()")
 
         result = False
+        if 'device' in conf:
+            self.device = conf['device']
         if 'file' in conf:
             self.file = conf['file']
+
+        if self.device is not None and self.file is not None:
+            self.mtda.debug(1, "storage.usbf.configure(): "
+                               "both 'file' ({}) and 'device' ({}) are set, "
+                               "using 'file'".format(self.file, self.device))
+            self.device = None
+
+        if self.file is None and self.device is not None:
+            self.file = self.device
+
+        if self.file is not None:
             result = Composite.configure('storage', conf)
 
         self.mtda.debug(3, "storage.usbf.configure(): {}".format(result))
@@ -55,6 +69,13 @@ class UsbFunctionController(Image):
         self.mtda.debug(3, "storage.usbf.probe()")
 
         result = False
+        if self.device is not None:
+            if os.path.exists(self.device) is True:
+                mode = os.stat(self.device).st_mode
+                if stat.S_ISBLK(mode) is False:
+                    self.mtda.debug(1, "storage.usbf.probe(): "
+                                       "{} is not a block "
+                                       "device!".format(self.device))
         if self.file is not None:
             if os.path.exists(self.file) is True:
                 result = Composite.install()

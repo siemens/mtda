@@ -386,6 +386,12 @@ The ``usbf`` driver adds a Mass Storage function to the USB composite
 configuration to expose either a file or a physical device or partition to
 the DUT as a Mass Storage device. The following settings are supported:
 
+* ``device``: string [optional]
+  Block device for the shared storage as seen on the host. This is the
+  same as ``file`` but a warning will be issued if the specified file
+  is not a block device. When both ``device`` and ``file`` are set,
+  ``file`` will be used.
+
 * ``file``: string [optional]
   File or block device for the shared storage as seen on the host.
 
