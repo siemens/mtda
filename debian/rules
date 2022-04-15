@@ -18,6 +18,9 @@ override_dh_auto_install:
 	mv debian/tmp/usr debian/mtda/
 	install -m 0755 -d debian/mtda/usr/sbin
 	mv debian/mtda/usr/bin/mtda-systemd-helper debian/mtda/usr/sbin/
+	mv debian/mtda/usr/bin/mtda-config debian/mtda/usr/sbin/
+	install -m 0755 -d debian/mtda/var/lib/mtda/
+	install -m 0644 Kconfig  debian/mtda/var/lib/mtda/Kconfig
 	:
 	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/console
 	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/power
