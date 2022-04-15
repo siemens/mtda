@@ -17,7 +17,7 @@ from mtda import __version__
 setup(
     name='mtda',
     version=__version__,
-    scripts=['mtda-cli', 'mtda-systemd-helper', 'mtda-ui'],
+    scripts=['mtda-cli', 'mtda-systemd-helper', 'mtda-ui', 'mtda-config'],
     packages=find_packages(exclude=["demos"]),
     package_data={'mtda': ['assets/*.*', 'templates/*.html']},
     author='Cedric Hombourger',
@@ -49,12 +49,14 @@ and testers to remotely access and control hardware devices.
         "docker",
         "flask_socketio",
         "gevent-websocket",
+        "kconfiglib",
         "pyserial>=2.6",
         "python-daemon>=2.0",
         "pyusb>=1.0",
         "pyzmq>=15.0,<23.0.0",
         "psutil",
         "requests",
+        "urwid",
         "zerorpc>=0.6.0",
         "zstandard>=0.14",
         "zeroconf>=0.28.6"
