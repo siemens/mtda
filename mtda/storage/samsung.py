@@ -13,6 +13,7 @@
 import subprocess
 
 # Local imports
+import mtda.constants as CONSTS
 from mtda.storage.helpers.image import Image
 
 
@@ -94,17 +95,17 @@ class SamsungSdMuxStorageController(Image):
             status = subprocess.check_output([
                 "sd-mux-ctrl", "-e", self.serial, "-u"
             ]).decode("utf-8").splitlines()
-            result = self.SD_ON_UNSURE
+            result = CONSTS.STORAGE.UNKNOWN
             for s in status:
                 if s == "SD connected to: TS":
-                    result = self.SD_ON_HOST
+                    result = CONSTS.STORAGE.ON_HOST
                     break
                 elif s == "SD connected to: DUT":
-                    result = self.SD_ON_TARGET
+                    result = CONSTS.STORAGE.ON_TARGET
                     break
         except subprocess.CalledProcessError:
             self.mtda.debug(1, "storage.samsung.status(): sd-mux-ctrl failed!")
-            result = self.SD_ON_UNSURE
+            result = CONSTS.STORAGE.UNKNOWN
 
         self.mtda.debug(3, "storage.samsung.status(): %s" % str(result))
         return result

@@ -14,6 +14,7 @@ import os
 import stat
 
 # Local imports
+import mtda.constants as CONSTS
 from mtda.storage.helpers.image import Image
 from mtda.support.usb import Composite
 
@@ -24,7 +25,7 @@ class UsbFunctionController(Image):
         super().__init__(mtda)
         self.device = None
         self.file = None
-        self.mode = self.SD_ON_HOST
+        self.mode = CONSTS.STORAGE.ON_HOST
 
     """ Configure this storage controller from the provided configuration"""
     def configure(self, conf):
@@ -96,7 +97,7 @@ class UsbFunctionController(Image):
 
         Composite.remove()
 
-        self.mode = self.SD_ON_HOST
+        self.mode = CONSTS.STORAGE.ON_HOST
         result = True
 
         self.mtda.debug(3, "storage.usbf.to_host(): {}".format(result))
@@ -113,7 +114,7 @@ class UsbFunctionController(Image):
             result = self._umount()
 
         if result is True:
-            self.mode = self.SD_ON_TARGET
+            self.mode = CONSTS.STORAGE.ON_TARGET
 
         if self.file is not None:
             if os.path.exists(self.file) is True:
