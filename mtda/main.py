@@ -631,7 +631,7 @@ class MultiTenantDeviceAccess:
         if self.storage_controller is None:
             self.mtda.debug(1, "storage_open(): no shared storage device")
             result = False
-        elif status != self.storage_controller.SD_ON_HOST:
+        elif status != CONSTS.STORAGE.ON_HOST:
             self.mtda.debug(1, "storage_open(): not attached to host")
             result = False
         elif owner is not None and owner != session:
@@ -654,7 +654,7 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         if self.storage_controller is None:
             self.mtda.debug(4, "storage_status(): no shared storage device")
-            result = "???", False, 0
+            result = CONSTS.STORAGE.UNKNOWN, False, 0
         else:
             status = self.storage_controller.status()
             result = status, self._writer.writing, self._writer.written
@@ -669,7 +669,7 @@ class MultiTenantDeviceAccess:
         if self.storage_locked(session) is False:
             result = self.storage_controller.to_host()
             if result is True:
-                self._storage_event(self.storage_controller.SD_ON_HOST)
+                self._storage_event(CONSTS.STORAGE.ON_HOST)
         else:
             self.mtda.debug(1, "storage_to_host(): shared storage is locked")
             result = False
@@ -685,7 +685,7 @@ class MultiTenantDeviceAccess:
             self.storage_close()
             result = self.storage_controller.to_target()
             if result is True:
-                self._storage_event(self.storage_controller.SD_ON_TARGET)
+                self._storage_event(CONSTS.STORAGE.ON_TARGET)
         else:
             self.mtda.debug(1, "storage_to_target(): shared storage is locked")
             result = False
@@ -699,12 +699,12 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         if self.storage_locked(session) is False:
             result, writing, written = self.storage_status(session)
-            if result == self.storage_controller.SD_ON_HOST:
+            if result == CONSTS.STORAGE.ON_HOST:
                 if self.storage_controller.to_target() is True:
-                    self._storage_event(self.storage_controller.SD_ON_TARGET)
-            elif result == self.storage_controller.SD_ON_TARGET:
+                    self._storage_event(CONSTS.STORAGE.ON_TARGET)
+            elif result == CONSTS.STORAGE.ON_TARGET:
                 if self.storage_controller.to_host() is True:
-                    self._storage_event(self.storage_controller.SD_ON_HOST)
+                    self._storage_event(CONSTS.STORAGE.ON_HOST)
         result, writing, written = self.storage_status(session)
         return result
 

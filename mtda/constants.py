@@ -60,6 +60,12 @@ class SESSION:
     MIN_TIMEOUT = 10
 
 
+class STORAGE:
+    ON_HOST = "HOST"
+    ON_TARGET = "TARGET"
+    UNKNOWN = "???"
+
+
 class WRITER:
     QUEUE_SLOTS = 16
     QUEUE_TIMEOUT = 5

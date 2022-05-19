@@ -18,6 +18,7 @@ import subprocess
 import threading
 
 # Local imports
+import mtda.constants as CONSTS
 from mtda.storage.controller import StorageController
 
 
@@ -69,7 +70,7 @@ class Image(StorageController):
         self.mtda.debug(3, "storage.helpers.image._umount()")
 
         result = True
-        if self._status() == self.SD_ON_HOST:
+        if self._status() == CONSTS.STORAGE.ON_HOST:
             basedir = self._mountpoint()
             if os.path.exists(basedir):
                 mounts = [
@@ -214,7 +215,7 @@ class Image(StorageController):
         self.lock.acquire()
 
         result = True
-        if self._status() == self.SD_ON_HOST:
+        if self._status() == CONSTS.STORAGE.ON_HOST:
             result = self._get_partitions()
             if result:
                 self.mtda.debug(2, "storage.helpers.image.mount(): "
@@ -246,7 +247,7 @@ class Image(StorageController):
         self.lock.acquire()
 
         result = True
-        if self._status() == self.SD_ON_HOST:
+        if self._status() == CONSTS.STORAGE.ON_HOST:
             if self.handle is None:
                 try:
                     self.handle = open(self.file, "r+b")

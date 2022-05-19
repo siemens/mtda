@@ -10,14 +10,11 @@
 # ---------------------------------------------------------------------------
 
 import abc
+import mtda.constants as CONSTS
 
 
 class StorageController(object):
     __metaclass__ = abc.ABCMeta
-
-    SD_ON_UNSURE = "???"
-    SD_ON_HOST = "HOST"
-    SD_ON_TARGET = "TARGET"
 
     @abc.abstractmethod
     def close(self):
@@ -62,7 +59,7 @@ class StorageController(object):
     @abc.abstractmethod
     def status(self):
         """ Determine where the shared storage device is attached"""
-        return self.SD_ON_UNSURE
+        return CONSTS.STORAGE.UNKNOWN
 
     @abc.abstractmethod
     def update(self, dst, offset):

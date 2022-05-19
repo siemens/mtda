@@ -14,6 +14,7 @@ import os
 import pathlib
 
 # Local imports
+import mtda.constants as CONSTS
 from mtda.storage.helpers.image import Image
 
 
@@ -24,7 +25,7 @@ class QemuController(Image):
         self.file = "usb-storage.img"
         self.id = None
         self.name = "usb-storage"
-        self.mode = self.SD_ON_TARGET
+        self.mode = CONSTS.STORAGE.ON_TARGET
         self.qemu = mtda.power_controller
 
     """ Configure this storage controller from the provided configuration"""
@@ -101,7 +102,7 @@ class QemuController(Image):
 
         result = self._rm()
         if result is True:
-            self.mode = self.SD_ON_HOST
+            self.mode = CONSTS.STORAGE.ON_HOST
 
         self.mtda.debug(3, "storage.qemu.to_host(): %s" % str(result))
         self.lock.release()
@@ -118,7 +119,7 @@ class QemuController(Image):
         if result is True:
             result = self._add()
             if result is True:
-                self.mode = self.SD_ON_TARGET
+                self.mode = CONSTS.STORAGE.ON_TARGET
 
         self.mtda.debug(3, "storage.qemu.to_target(): %s" % str(result))
         self.lock.release()

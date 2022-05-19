@@ -12,6 +12,7 @@
 import threading
 
 # Local imports
+import mtda.constants as CONSTS
 from mtda.storage.controller import StorageController
 
 
@@ -21,7 +22,7 @@ class DockerController(StorageController):
         self.mtda = mtda
         self._docker = mtda.power_controller
         self._lock = threading.Lock()
-        self._mode = self.SD_ON_TARGET
+        self._mode = CONSTS.STORAGE.ON_TARGET
         self._handle = None
 
     def close(self):
@@ -47,7 +48,7 @@ class DockerController(StorageController):
 
         with self._lock:
             result = False
-            if self._mode == self.SD_ON_HOST:
+            if self._mode == CONSTS.STORAGE.ON_HOST:
                 self._handle = self._docker.import_open()
                 result = self._handle is not None
 
@@ -71,11 +72,11 @@ class DockerController(StorageController):
         return False
 
     def to_host(self):
-        self._mode = self.SD_ON_HOST
+        self._mode = CONSTS.STORAGE.ON_HOST
         return True
 
     def to_target(self):
-        self._mode = self.SD_ON_TARGET
+        self._mode = CONSTS.STORAGE.ON_TARGET
         return True
 
     def status(self):
