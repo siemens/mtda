@@ -52,7 +52,7 @@ and testers to remotely access and control hardware devices.
         "pyserial>=2.6",
         "python-daemon>=2.0",
         "pyusb>=1.0",
-        "pyzmq>=15.0",
+        "pyzmq>=15.0,<23.0.0",
         "psutil",
         "requests",
         "zerorpc>=0.6.0",
