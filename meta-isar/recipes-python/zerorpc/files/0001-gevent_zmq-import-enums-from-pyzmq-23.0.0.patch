@@ -1,0 +1,41 @@
+License and copyright for files modified by this patch:
+
+SPDX-License-Identifier: MIT
+Copyright (c) 2015 François-Xavier Bourlet (bombela+zerorpc@gmail.com)
+
+From dd6843c114e9bfd6e81abf68f6a2eb3c598d1c2f Mon Sep 17 00:00:00 2001
+From: Cedric Hombourger <cedric.hombourger@siemens.com>
+Date: Thu, 19 May 2022 22:54:27 +0200
+Subject: [PATCH] gevent_zmq: import enums from pyzmq >= 23.0.0
+
+With pyzmq 23.0.0, constants were changed to enums and moved to the
+constants module. Attempt to import all globals from it into our zmq
+wrapper.
+
+Closes: #251
+Signed-off-by: Cedric Hombourger <cedric.hombourger@siemens.com>
+---
+ zerorpc/gevent_zmq.py | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/zerorpc/gevent_zmq.py b/zerorpc/gevent_zmq.py
+index 9430695..54420ae 100644
+--- a/zerorpc/gevent_zmq.py
++++ b/zerorpc/gevent_zmq.py
+@@ -27,6 +27,13 @@
+ # We want to act like zmq
+ from zmq import *  # noqa
+ 
++try:
++    # Try to import enums for pyzmq >= 23.0.0
++    from zmq.constants import *  # noqa
++except ImportError:
++    pass
++
++
+ # Explicit import to please flake8
+ from zmq import ZMQError
+ 
+-- 
+2.30.2
+
