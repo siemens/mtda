@@ -16,7 +16,9 @@ MTDA_FILES = " \
     configs/ \
     debian/ \
     docs/ \
+    Kconfig \
     mtda-cli \
+    mtda-config \
     mtda-systemd-helper \
     mtda-ui \
     mtda.ini \
