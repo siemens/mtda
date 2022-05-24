@@ -33,7 +33,7 @@ SRC_URI += "${@' '.join(['file://' + d.getVar('LAYERDIR_mtda') + '/../' + file f
 
 S = "${WORKDIR}/working-repo"
 
-DEPENDS += "zerorpc-python zstandard"
+DEPENDS += "zerorpc-python zstandard kconfiglib"
 
 do_gen_working_repo() {
 	for file in ${MTDA_FILES}; do
