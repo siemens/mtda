@@ -126,3 +126,7 @@ License: MIT
 Files: meta-isar/recipes-bsp/rpi-firmware/files/*
 Copyright: Siemens AG, 2022
 License: MIT
+
+Files: meta-isar/recipes-python/kconfiglib/files/kconfiglib-14.1.0/debian/*
+Copyright: 2022 Siemens Digital Industries Software
+License: MIT
