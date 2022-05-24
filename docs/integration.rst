@@ -98,29 +98,61 @@ The web interface should be enabled with::
     $ sudo service apache2 restart
     $ sudo service lava-server-gunicorn restart
 
+Check whether lava-server is running::
+
+    $ sudo systemctl status lava-server-gunicorn
+
+Access the web interface with the following URL in the browser::
+
+    http://infra-lava.lan
+
+Sign in to your account with the created superuser. Login should be successful.
+
 Attach to lava-server
 ~~~~~~~~~~~~~~~~~~~~~
 
 The sample NanoPI NEO image comes with the ``lava-dispatcher`` package
-pre-installed. It however needs to be configured to connect to the LAVA master
+pre-installed. It however needs to be configured to connect to the LAVA server
 and logger installed as noted above. You may connect to the MTDA agent using
-``ssh`` (default credentials are ``mdta``/``mtda``)::
+``ssh`` (default credentials are ``mtda``/``mtda``)::
 
     $ ssh mtda@mtda-for-de0-nano-soc.lan
 
-Use ``vi`` to edit ``/etc/lava-dispatcher/lava-slave``::
+Create a worker on the lava-server web interface through::
+    
+    Administration -> Lava Scheduler App -> Worker (Add)
 
-    $ sudo vi /etc/lava-dispatcher/lava-slave
+Add hostname and dispatcher version details as shown below:
+
+.. image:: lava_worker_create.png
+
+It should be noted that token value is automatically generated when adding the
+worker. You need to copy this token key and add it to worker configuration. 
+
+Use ``vi`` to edit ``/etc/lava-dispatcher/lava-worker``::
+
+    $ sudo vi /etc/lava-dispatcher/lava-worker
 
 and set the following variables to match your network::
 
-    MASTER_URL="tcp://infra-lava.lan:5556"
-    LOGGER_URL="tcp://infra-lava.lan:5555"
+    URL="http://infra-lava.lan"
+    LOGLEVEL="DEBUG"
     HOSTNAME="--hostname mtda-for-de0-nano-soc.lan"
+    TOKEN="--token mqrJzYw3ZiXrsHbdQgbqOgIZwozdlF8x"
+
+Replace ``mtda-for-de0-nano-soc.lan`` with the network name of the worker, along
+with token ``mqrJzYw3ZiXrsHbdQgbqOgIZwozdlF8x`` with the generated token.
 
 The service should be restarted::
 
-    $ sudo systemctl restart lava-slave
+    $ sudo systemctl restart lava-worker
+
+Check whether lava-worker is running::
+
+    $ sudo systemctl status lava-worker
+
+Verify in the lava-server web interface UI whether the created lava-worker is 
+status is listed as online.
 
 Device support
 ~~~~~~~~~~~~~~
