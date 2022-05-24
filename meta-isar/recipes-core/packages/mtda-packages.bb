@@ -8,6 +8,7 @@
 # Here's our list of custom packages
 DEPENDS = "                              \
     hap-python                           \
+    kconfiglib                           \
     mjpg-streamer                        \
     mtda                                 \
     py3qterm                             \
