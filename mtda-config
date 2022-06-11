@@ -210,9 +210,11 @@ class ConfigApp:
         subnode = node.list
         while subnode:
             if subnode.item != MENU and subnode.item != COMMENT:
-                listbox_contents.append(
-                    self.__create_menu_entry(subnode, self.__show_popup)
-                )
+                logging.debug("visibility of %s=%s", subnode.prompt[0], subnode.item.visibility)
+                if subnode.item.visibility:
+                    listbox_contents.append(
+                        self.__create_menu_entry(subnode, self.__show_popup)
+                    )
             subnode = subnode.next
         listbox_walker = urwid.SimpleFocusListWalker(listbox_contents)
         body_listbox = urwid.ListBox(listbox_walker)
