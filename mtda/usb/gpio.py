@@ -10,7 +10,8 @@
 # ---------------------------------------------------------------------------
 
 # System imports
-import os
+import gpiod
+from operator import itemgetter
 
 # Local imports
 from mtda.usb.switch import UsbSwitch
@@ -24,6 +25,8 @@ class GpioUsbSwitch(UsbSwitch):
         self.enable = 1
         self.disable = 0
         self.mtda = mtda
+        self.lines = []
+        self.gpiopair = []
 
     def configure(self, conf):
         """ Configure this USB switch from the provided configuration"""
@@ -39,6 +42,9 @@ class GpioUsbSwitch(UsbSwitch):
                 self.disable = 1
             else:
                 raise ValueError("'enable' shall be either 'high' or 'low'!")
+        if 'gpio' in conf:
+            for gpio in conf['gpio'].split(','):
+                self.gpiopair.append(itemgetter(0, 1)(gpio.split('@')))
 
         result = True
         self.mtda.debug(3, "usb.gpio.configure(): %s" % str(result))
@@ -46,57 +52,64 @@ class GpioUsbSwitch(UsbSwitch):
 
     def probe(self):
         self.mtda.debug(3, "usb.gpio.probe()")
-        if self.pin is None:
-            raise ValueError("GPIO pin not configured!")
+        if not self.gpiopair:
+            raise ValueError("GPIO chip(s) and pin(s) pair not configured")
 
-        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) is False:
-            f = open("/sys/class/gpio/export", "w")
-            f.write("%d" % self.pin)
-            f.close()
+        for chip, pin in self.gpiopair:
+            pin = int(pin)
+            chip = gpiod.Chip(chip, gpiod.Chip.OPEN_BY_NAME)
+            self.mtda.debug(3, "this is chip {} and pin is {} "
+                               "power.gpio.configure(): ".format(chip, pin))
+            self.lines.append(chip.get_line(pin))
 
-        if os.path.islink("/sys/class/gpio/gpio%d" % self.pin) is False:
-            raise ValueError("GPIO %d not found in sysfs!" % self.pin)
-
-        f = open("/sys/class/gpio/gpio%d/direction" % self.pin, "w")
-        f.write("out")
-        f.close()
+        for line in self.lines:
+            try:
+                if line.is_used() is False:
+                    self.mtda.debug(3, "power.gpiochip{}@pin{} is free for "
+                                       "use" .format(chip, pin))
+                    line.request(consumer='mtda', type=gpiod.LINE_REQ_DIR_OUT)
+                else:
+                    raise ValueError("gpiochip{}@pin{} is in use by other "
+                                     "service" .format(chip, pin))
+            except OSError:
+                self.mtda.debug(3, "line {} is not configured correctly"
+                                   .format(line))
 
         result = True
-        self.mtda.debug(3, "usb.gpio.probe(): %s" % str(result))
+        self.mtda.debug(3, "usb.gpio.probe(): {}" .format(result))
         return result
 
     def on(self):
         """ Power on the target USB port"""
         self.mtda.debug(3, "usb.gpio.on()")
-        f = open("/sys/class/gpio/gpio%d/value" % self.pin, "w")
-        f.write("%d" % self.enable)
-        f.close()
+        for line in self.lines:
+            line.set_value(self.enable)
         result = self.status() == self.POWERED_ON
-        self.mtda.debug(3, "usb.gpio.on(): %s" % str(result))
+        self.mtda.debug(3, "usb.gpio.on(): {}" .format(result))
         return result
 
     def off(self):
         """ Power off the target USB port"""
         self.mtda.debug(3, "usb.gpio.off()")
-        f = open("/sys/class/gpio/gpio%d/value" % self.pin, "w")
-        f.write("%d" % self.disable)
-        f.close()
+        for line in self.lines:
+            line.set_value(self.disable)
         result = self.status() == self.POWERED_OFF
-        self.mtda.debug(3, "usb.gpio.off(): %s" % str(result))
+        self.mtda.debug(3, "usb.gpio.off(): {}" .format(result))
         return result
 
     def status(self):
         """ Determine the current power state of the USB port"""
         self.mtda.debug(3, "usb.gpio.status()")
-        f = open("/sys/class/gpio/gpio%d/value" % self.pin, "r")
-        value = f.read().strip()
-        f.close()
-        if value == str(self.enable):
-            result = self.POWERED_ON
-        else:
-            result = self.POWERED_OFF
+        value = self.line.get_value()
+        for line in self.lines:
+            value = line.get_value()
+            if value == self.enable:
+                result = self.POWERED_ON
+            else:
+                result = self.POWERED_OFF
 
-        self.mtda.debug(3, "usb.gpio.status(): %s" % str(result))
+            self.mtda.debug(3, "usb.gpio.status():"
+                               "line {} is {}" .format(line, value))
         return result
 
     def toggle(self):
