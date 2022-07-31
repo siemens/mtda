@@ -57,6 +57,7 @@ IMAGE_PREINSTALL += "                    \
     wireless-regdb                       \
     wireless-tools                       \
     bluetooth                            \
+    python3-libgpiod                     \
 "
 
 # HomeKit support
