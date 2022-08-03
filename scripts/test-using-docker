@@ -54,7 +54,7 @@ cd ${tmp_dir}
 
 echo "# getting various docker images"
 docker stop mtda-docker >/dev/null 2>&1 || true
-for image in alpine debian ubuntu archlinux rockylinux
+for image in alpine debian ubuntu archlinux almalinux
 do
     docker pull ${image} >/dev/null || exit ${?}
     docker rm mtda-docker >/dev/null 2>&1 || true
@@ -66,7 +66,7 @@ echo "# compressing docker images using various methods"
 gzip -f debian.tar || exit ${?}
 zstd --rm -f ubuntu.tar || exit ${?}
 bzip2 -f archlinux.tar || exit ${?}
-xz -f rockylinux.tar || exit ${?}
+xz -f almalinux.tar || exit ${?}
 du -sh *.tar*
 
 echo "# starting mtda in the background"
