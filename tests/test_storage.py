@@ -51,12 +51,12 @@ def test_write_gz(powered_off):
 
 def test_write_xz(powered_off):
     assert Storage.to_host() is True
-    Storage.write("rockylinux.tar.xz")
+    Storage.write("almalinux.tar.xz")
     assert Storage.to_target() is True
 
     assert Target.on() is True
     Console.send("cat /etc/os-release\r")
-    assert Console.wait_for("Rocky Linux") is not None
+    assert Console.wait_for("AlmaLinux") is not None
 
 
 def test_write_zst(powered_off):
