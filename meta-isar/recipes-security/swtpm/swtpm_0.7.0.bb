@@ -12,7 +12,4 @@ SRC_URI = "https://github.com/stefanberger/${PN}/archive/refs/tags/v${PV}.tar.gz
 SRC_URI[sha256sum] = "bed41871ad42ec852c450f5764be36b6c16456b943b912351eca9c29ce382976"
 
 DEPENDS = "libtpms"
-
-dpkg_runbuild_prepend() {
-    export DEB_BUILD_OPTIONS=nocheck
-}
+DEB_BUILD_OPTIONS += "nocheck"
