@@ -10,6 +10,8 @@ inherit dpkg
 SRC_URI = "apt://${PN} \
            file://changelog.tmpl"
 
+DEB_BUILD_OPTIONS += "nocheck"
+
 do_prepare_build() {
     cd ${S}
     grep -q libtspi-dev debian/control || \
@@ -26,8 +28,4 @@ do_prepare_build() {
         ${S}/debian/changelog \
         ${S}/debian/control \
         ${S}/debian/rules
-}
-
-dpkg_runbuild_prepend() {
-    export DEB_BUILD_OPTIONS=nocheck
 }
