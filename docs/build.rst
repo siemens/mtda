@@ -298,9 +298,7 @@ Use ``vi`` to create an initial configuration::
 Hit ``i`` to enter the input mode and type the following configuration::
 
     [console]
-    variant=serial
-    port=/dev/ttyGS0
-    rate=9600
+    variant=usbf
 
     [power]
     variant=usbrelay
@@ -440,9 +438,7 @@ Use ``vi`` to create an initial configuration::
 Hit ``i`` to enter the input mode and type the following configuration::
 
     [console]
-    variant=serial
-    port=/dev/ttyGS0
-    rate=9600
+    variant=usbf
 
     [power]
     variant=gpio
