@@ -82,17 +82,17 @@ class SerialConsole(ConsoleInterface):
     def close(self):
         self.mtda.debug(3, "console.serial.close()")
 
-        if self.ser is not None:
-            if self.opened is True:
+        if self.opened is True:
+            if self.ser is not None:
                 self.ser.close()
                 self.opened = False
             else:
-                self.mtda.debug(4, "console.serial.close(): already closed")
+                self.mtda.debug(0, "lost handle of opened serial console!")
         else:
-            self.mtda.debug(0, "serial console not setup!")
-        result = self.opened is False
+            self.mtda.debug(4, "console.serial.close(): already closed")
 
-        self.mtda.debug(3, "console.serial.close(): %s" % str(result))
+        result = self.opened is False
+        self.mtda.debug(3, "console.serial.close(): {}".format(result))
         return result
 
     """ Return number of pending bytes to read"""
