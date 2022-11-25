@@ -84,6 +84,7 @@ class SerialConsole(ConsoleInterface):
 
         if self.opened is True:
             if self.ser is not None:
+                self.ser.cancel_read()
                 self.ser.close()
                 self.opened = False
             else:
