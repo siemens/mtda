@@ -16,6 +16,7 @@ import threading
 
 class Composite:
 
+    mtda = None
     lock = threading.Lock()
     vendor_id = "0x1d6b"  # Linux Foundation
     product_id = "0x0104"  # Multifunction Composite Gadget
@@ -29,9 +30,18 @@ class Composite:
     functions = []
     path = "/sys/kernel/config/usb_gadget/" + product.lower().replace(" ", "_")
 
+    def debug(level, msg):
+        if Composite.mtda is not None:
+            Composite.mtda.debug(level, msg)
+
     def configure(what, conf):
+        Composite.debug(3, "composite.configure()")
+
         with Composite.lock:
-            return Composite._configure(what, conf)
+            result = Composite._configure(what, conf)
+
+        Composite.debug(3, "composite.configure(): {}".format(result))
+        return result
 
     def _configure(what, conf):
         result = True
@@ -62,8 +72,13 @@ class Composite:
         return True
 
     def install():
+        Composite.debug(3, "composite.install()")
+
         with Composite.lock:
-            return Composite._install()
+            result = Composite._install()
+
+        Composite.debug(3, "composite.install(): {}".format(result))
+        return result
 
     def _install():
         if Composite._installed is True:
@@ -100,8 +115,13 @@ class Composite:
         Composite._installed = Composite._enable()
 
     def remove():
+        Composite.debug(3, "composite.remove()")
+
         with Composite.lock:
-            return Composite._remove()
+            result = Composite._remove()
+
+        Composite.debug(3, "composite.remove(): {}".format(result))
+        return result
 
     def _remove():
         lang = Composite.lang
@@ -128,6 +148,8 @@ class Composite:
         functions = Composite.functions
         for function in functions:
             name = function['name']
+            Composite.debug(2, "composite._create_functions: "
+                               "registering {}".format(name))
             path = Composite.path + "/functions/" + name
             if not os.path.exists(path):
                 os.makedirs(path)

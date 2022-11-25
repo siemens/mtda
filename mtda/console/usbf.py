@@ -20,6 +20,7 @@ class UsbFunctionConsole(SerialConsole):
         super().__init__(mtda)
         self.port = None
         self.rate = 9600
+        Composite.mtda = mtda
 
     def configure(self, conf, role='console'):
         self.mtda.debug(3, "console.usbf.configure()")
