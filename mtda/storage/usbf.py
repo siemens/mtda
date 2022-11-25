@@ -95,8 +95,6 @@ class UsbFunctionController(Image):
         self.mtda.debug(3, "storage.usbf.to_host()")
         self.lock.acquire()
 
-        Composite.remove()
-
         self.mode = CONSTS.STORAGE.ON_HOST
         result = True
 
@@ -115,13 +113,6 @@ class UsbFunctionController(Image):
 
         if result is True:
             self.mode = CONSTS.STORAGE.ON_TARGET
-
-        if self.file is not None:
-            if os.path.exists(self.file) is True:
-                result = Composite.install()
-            else:
-                self.mtda.debug(1, "storage.usbf.to_target(): "
-                                   "{} not found!".format(self.file))
 
         self.lock.release()
         self.mtda.debug(3, "storage.usbf.to_target(): {}".format(result))
