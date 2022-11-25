@@ -26,6 +26,7 @@ class UsbFunctionController(Image):
         self.device = None
         self.file = None
         self.mode = CONSTS.STORAGE.ON_HOST
+        Composite.mtda = mtda
 
     """ Configure this storage controller from the provided configuration"""
     def configure(self, conf):

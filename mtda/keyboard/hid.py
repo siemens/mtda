@@ -28,6 +28,7 @@ class HidKeyboardController(KeyboardController):
         self.dev = None
         self.fd = None
         self.mtda = mtda
+        Composite.mtda = mtda
 
     def configure(self, conf):
         self.mtda.debug(3, "keyboard.hid.configure()")
