@@ -309,7 +309,7 @@ class ConsoleLogger:
                 data = con.read(con.pending() or 1)
                 self.process_rx(data)
                 continue
-            except IOError:
+            except (IOError, TypeError):
                 error = sys.exc_info()[0]
 
             try:
