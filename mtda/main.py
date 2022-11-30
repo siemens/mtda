@@ -33,6 +33,7 @@ import mtda.power.controller
 import mtda.video.controller
 import mtda.utils
 from mtda import __version__
+from mtda.support.usb import Composite
 
 try:
     www_support = True
@@ -129,6 +130,33 @@ class MultiTenantDeviceAccess:
             result = self.power_controller.command(args)
 
         self.mtda.debug(3, "main.command(): %s" % str(result))
+        return result
+
+    def _composite_start(self):
+        self.mtda.debug(3, "main._composite_start()")
+
+        result = True
+        storage = self.storage_controller
+        if storage is not None and storage.variant == 'usbf':
+            status, _, _ = self.storage_status()
+            enabled = status == CONSTS.STORAGE.ON_TARGET
+            self.mtda.debug(3, "main._composite_start(): "
+                               "with storage? {}".format(enabled))
+            Composite.storage_toggle(enabled)
+            result = Composite.install()
+
+        self.mtda.debug(3, "main._composite_start(): {}".format(result))
+        return result
+
+    def _composite_stop(self):
+        self.mtda.debug(3, "main._composite_stop()")
+
+        result = None
+        storage = self.storage_controller
+        if storage is not None and storage.variant == 'usbf':
+            Composite.remove()
+
+        self.mtda.debug(3, "main._composite_stop(): {}".format(result))
         return result
 
     def config_set_power_timeout(self, timeout, session=None):
@@ -846,7 +874,14 @@ class MultiTenantDeviceAccess:
 
         result = False
         if self.power_locked(session) is False:
-            result = self.power_controller.on()
+            # Toggle the mass storage functions of the usbf controller
+            result = self._composite_start()
+
+            # Turn the DUT on
+            if result is True:
+                result = self.power_controller.on()
+
+            # Resume logging
             if result is True:
                 if self.console_logger is not None:
                     self.console_logger.resume()
@@ -922,6 +957,7 @@ class MultiTenantDeviceAccess:
         result = True
         if self.power_controller is not None:
             result = self.power_controller.off()
+        self._composite_stop()
         self._power_event(CONSTS.POWER.OFF)
 
         self.mtda.debug(3, "main._target_off(): {}".format(result))
@@ -1315,6 +1351,7 @@ class MultiTenantDeviceAccess:
             mod = importlib.import_module("mtda.storage." + variant)
             factory = getattr(mod, 'instantiate')
             self.storage_controller = factory(self)
+            self.storage_controller.variant = variant
             self._writer = AsyncImageWriter(self, self.storage_controller)
             # Configure the storage controller
             self.storage_controller.configure(dict(parser.items('storage')))
