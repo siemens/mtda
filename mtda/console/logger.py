@@ -316,9 +316,9 @@ class ConsoleLogger:
                 if retries > 0:
                     print("resetting console to recover from read error "
                           "({0})...".format(error), file=sys.stderr)
-                    with self.rx_lock:
-                        con.close()
-                        con.open()
+                    con.close()
+                    self.rx_active.wait()
+                    con.open()
                     error = None
                 else:
                     print("failed to reset the console, "
