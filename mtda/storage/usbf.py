@@ -80,7 +80,7 @@ class UsbFunctionController(Image):
                                        "device!".format(self.device))
         if self.file is not None:
             if os.path.exists(self.file) is True:
-                result = Composite.install()
+                result = True
             else:
                 self.mtda.debug(1, "storage.usbf.probe(): "
                                    "{} not found!".format(self.file))
