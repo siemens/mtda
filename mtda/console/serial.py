@@ -26,6 +26,7 @@ class SerialConsole(ConsoleInterface):
         self.rate = 115200
         self.opened = False
         self.role = 'console'
+        self.hotplug = False
 
     """ Configure this console from the provided configuration"""
     def configure(self, conf, role='console'):
@@ -50,7 +51,9 @@ class SerialConsole(ConsoleInterface):
     def probe(self):
         self.mtda.debug(3, "console.serial.probe()")
 
-        result = os.path.exists(self.port)
+        result = True
+        if self.hotplug is False:
+            result = os.path.exists(self.port)
         if result is True:
             self.ser = serial.Serial()
             self.ser.port = self.port

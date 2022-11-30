@@ -18,6 +18,7 @@ class UsbFunctionConsole(SerialConsole):
 
     def __init__(self, mtda):
         super().__init__(mtda)
+        self.hotplug = True
         self.port = None
         self.rate = 9600
         Composite.mtda = mtda
@@ -35,16 +36,6 @@ class UsbFunctionConsole(SerialConsole):
 
     def configure_systemd(self, dir):
         return None
-
-    def probe(self):
-        self.mtda.debug(3, "console.usbf.probe()")
-
-        result = Composite.install()
-        if result is True:
-            result = super().probe()
-
-        self.mtda.debug(3, "console.usbf.probe(): {}".format(result))
-        return result
 
 
 def instantiate(mtda):
