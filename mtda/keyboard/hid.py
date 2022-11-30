@@ -45,16 +45,11 @@ class HidKeyboardController(KeyboardController):
     def probe(self):
         self.mtda.debug(3, "keyboard.hid.probe()")
 
-        result = False
+        result = True
         if self.dev is None:
+            result = False
             self.mtda.debug(1, "keyboard.hid.probe(): "
                                "{} not configured".format(self.dev))
-        else:
-            result = Composite.install()
-            if result is True and os.path.exists(self.dev) is False:
-                self.mtda.debug(1, "keyboard.hid.probe(): "
-                                   "{} not found".format(self.dev))
-                result = False
 
         self.mtda.debug(3, "keyboard.hid.probe(): {}".format(result))
         return result
@@ -86,17 +81,17 @@ class HidKeyboardController(KeyboardController):
     def press(self, key, mod=0x00, repeat=1):
         self.mtda.debug(3, "keyboard.hid.press()")
 
-        NULL_CHAR = chr(0)
-        try:
-            if self.fd is None:
-                self.mtda.debug(4, "keyboard.hid.press(): "
-                                   "opening {}".format(self.dev))
-                self.fd = open(self.dev, mode="r+b", buffering=0)
-        except FileNotFoundError:
-            self.mtda.debug(0, "keyboard.hid.press(): "
-                               "failed to open {}".format(self.dev))
+        if os.path.exists(self.dev) is False:
+            self.mtda.debug(1, "keyboard.hid.press(): "
+                               "{} not found".format(self.dev))
             return False
 
+        if self.fd is None:
+            self.mtda.debug(4, "keyboard.hid.press(): "
+                               "opening {}".format(self.dev))
+            self.fd = open(self.dev, mode="r+b", buffering=0)
+
+        NULL_CHAR = chr(0)
         result = True
         while repeat > 0:
             repeat = repeat - 1
