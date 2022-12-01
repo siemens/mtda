@@ -11,6 +11,7 @@
 
 # System imports
 import configparser
+import gevent
 import glob
 import importlib
 import os
@@ -30,6 +31,7 @@ import mtda.constants as CONSTS
 import mtda.discovery
 import mtda.keyboard.controller
 import mtda.power.controller
+import mtda.scripts
 import mtda.video.controller
 import mtda.utils
 from mtda import __version__
@@ -424,11 +426,10 @@ class MultiTenantDeviceAccess:
                 sys.stderr.buffer.write(b"\n")
                 sys.stderr.buffer.flush()
 
-    def env_get(self, name, session=None):
+    def env_get(self, name, default=None, session=None):
         self.mtda.debug(3, "env_get()")
 
-        self._session_check(session)
-        result = None
+        result = default
         if name in self.env:
             result = self.env[name]
 
@@ -438,7 +439,6 @@ class MultiTenantDeviceAccess:
     def env_set(self, name, value, session=None):
         self.mtda.debug(3, "env_set()")
 
-        self._session_check(session)
         result = None
 
         if name in self.env:
@@ -846,6 +846,24 @@ class MultiTenantDeviceAccess:
             m.power_changed(status)
         self.notify(CONSTS.EVENTS.POWER, status)
 
+    def _env_for_script(self):
+        variant = 'unknown'
+        if 'variant' in self.env:
+            variant = self.env['variant']
+        return {
+            "env": self.env,
+            "mtda": self,
+            "scripts": mtda.scripts,
+            "sleep": gevent.sleep,
+            "variant": variant
+        }
+
+    def _load_device_scripts(self):
+        env = self._env_for_script()
+        mtda.scripts.load_device_scripts(env['variant'], env)
+        for e in env.keys():
+            setattr(mtda.scripts, e, env[e])
+
     def _parse_script(self, script):
         self.mtda.debug(3, "main._parse_script()")
 
@@ -863,8 +881,8 @@ class MultiTenantDeviceAccess:
         if self.power_on_script:
             self.mtda.debug(4, "exec_power_on_script(): "
                                "%s" % self.power_on_script)
-            result = exec(self.power_on_script,
-                          {"env": self.env, "mtda": self})
+            env = self._env_for_script()
+            result = exec(self.power_on_script, env)
 
         self.mtda.debug(3, "main.exec_power_on_script(): %s" % str(result))
         return result
@@ -924,7 +942,8 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.exec_power_off_script()")
 
         if self.power_off_script:
-            exec(self.power_off_script, {"env": self.env, "mtda": self})
+            env = self._env_for_script()
+            exec(self.power_off_script, env)
 
     def _target_off(self, session=None):
         self.mtda.debug(3, "main._target_off()")
@@ -1200,6 +1219,12 @@ class MultiTenantDeviceAccess:
                     scripts.get('power on', None))
                 self.power_off_script = self._parse_script(
                     scripts.get('power off', None))
+            else:
+                self.power_on_script = self._parse_script(
+                    "scripts.power_on()")
+                self.power_off_script = self._parse_script(
+                    "scripts.power_off()")
+            self._load_device_scripts()
 
             # web-base UI
             if www_support is True:
