@@ -48,6 +48,7 @@ and testers to remotely access and control hardware devices.
     install_requires=[
         "docker",
         "flask_socketio",
+        "gevent",
         "gevent-websocket",
         "pyserial>=2.6",
         "python-daemon>=2.0",

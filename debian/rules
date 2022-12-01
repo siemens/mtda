@@ -5,6 +5,8 @@ DESTDIR=$(CURDIR)/debian/mtda
 %:
 	dh $@ --with python3 --with=systemd --buildsystem=pybuild
 
+override_dh_auto_test:
+
 override_dh_auto_install:
 	dh_auto_install
 	:
