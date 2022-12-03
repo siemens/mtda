@@ -12,13 +12,12 @@
 
 import argparse
 import logging
+import mtda
 import os
 import re
 import sys
 import urwid
 from kconfiglib import Kconfig, MENU, COMMENT
-
-__VERSION__ = "0.17"
 
 
 class Config:
@@ -363,7 +362,7 @@ def start_config():
         "-v",
         "--version",
         action="version",
-        version="mtda config generator {}".format(__VERSION__),
+        version="mtda config generator {}".format(mtda.__version__),
     )
     parser.add_argument(
         "-d",
