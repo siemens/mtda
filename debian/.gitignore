@@ -4,6 +4,7 @@
 debhelper-build-stamp
 files
 mtda
+mtda-config
 mtda-docker
 mtda-kvm
 mtda-pytest

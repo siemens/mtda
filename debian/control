@@ -24,6 +24,14 @@ Description: Multi-Tenant Device Access
  plug USB devices in or out (also requiring special hardware) or
  simply access its console (in most cases serial).
 
+Package: mtda-config
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda, ${misc:Depends}, ${python3:Depends}
+Description: Tool to configure MTDA
+ Kconfig-based tool for configuring MTDA
+
+
 Package: mtda-docker
 Architecture: all
 Multi-Arch: foreign

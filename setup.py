@@ -45,6 +45,8 @@ and testers to remotely access and control hardware devices.
         "Topic :: Software Development :: Embedded Systems",
     ],
 
+    include_package_data=True,
+
     install_requires=[
         "docker",
         "flask_socketio",

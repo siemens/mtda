@@ -12,6 +12,7 @@ MTDA_FILES = " \
     COPYING \
     LICENSES/ \
     MAINTAINERS.md \
+    MANIFEST.in \
     README.md \
     configs/ \
     debian/ \
