@@ -216,7 +216,7 @@ class HidKeyboardController(KeyboardController):
 
         return self.press(0x2b, 0, repeat)
 
-    def write(self, str):
+    def write(self, what):
         self.mtda.debug(3, "keyboard.hid.write()")
 
         ret = '\n'
@@ -231,7 +231,31 @@ class HidKeyboardController(KeyboardController):
             '&': 0x24, '*': 0x25, '(': 0x26, ')': 0x27, ret: 0x28, ' ': 0x2c,
             '-': 0x2d, '_': 0x2d, '+': 0x2e, '=': 0x2e
         }
-        for k in str:
+        special_keys = {
+            '<down>': 0x51,
+            '<enter>': 0x28,
+            '<esc>': 0x29,
+            '<f1>': 0x3a,
+            '<f2>': 0x3b,
+            '<f3>': 0x3c,
+            '<f4>': 0x3d,
+            '<f5>': 0x3e,
+            '<f6>': 0x3f,
+            '<f7>': 0x40,
+            '<f8>': 0x41,
+            '<f9>': 0x42,
+            '<f10>': 0x43,
+            '<f11>': 0x44,
+            '<f12>': 0x45,
+            '<left>': 0x50,
+            '<right>': 0x4f,
+            '<up>': 0x52
+        }
+
+        if what in special_keys:
+            return self.press(special_keys[what])
+
+        for k in what:
             if k in lower_keys:
                 self.press(lower_keys[k])
 
