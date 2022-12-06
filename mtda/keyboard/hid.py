@@ -21,6 +21,8 @@ from mtda.support.usb import Composite
 
 class HidKeyboardController(KeyboardController):
 
+    KEY_MOD_LSHIFT = 0x02
+
     # Timeout (seconds) for writes
     TIMEOUT = 1
 
@@ -227,9 +229,11 @@ class HidKeyboardController(KeyboardController):
             's': 0x16, 't': 0x17, 'u': 0x18, 'v': 0x19, 'w': 0x1a, 'x': 0x1b,
             'y': 0x1c, 'z': 0x1d, '1': 0x1e, '2': 0x1f, '3': 0x20, '4': 0x21,
             '5': 0x22, '6': 0x23, '7': 0x24, '8': 0x25, '9': 0x26, '0': 0x27,
+            ret: 0x28, ' ': 0x2c, '-': 0x2d, '=': 0x2e
+        }
+        shift_keys = {
             '!': 0x1e, '@': 0x1f, '#': 0x20, '$': 0x21, '%': 0x22, '^': 0x23,
-            '&': 0x24, '*': 0x25, '(': 0x26, ')': 0x27, ret: 0x28, ' ': 0x2c,
-            '-': 0x2d, '_': 0x2d, '+': 0x2e, '=': 0x2e
+            '&': 0x24, '*': 0x25, '(': 0x26, ')': 0x27, '_': 0x2d, '+': 0x2e
         }
         special_keys = {
             '<down>': 0x51,
@@ -258,6 +262,8 @@ class HidKeyboardController(KeyboardController):
         for k in what:
             if k in lower_keys:
                 self.press(lower_keys[k])
+            elif k in shift_keys:
+                self.press(shift_keys[k], mod=self.KEY_MOD_LSHIFT)
 
 
 def instantiate(mtda):
