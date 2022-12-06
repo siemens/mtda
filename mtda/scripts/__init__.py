@@ -55,6 +55,10 @@ def check_reset_tpm():
     return check_op_handler('reset-tpm')
 
 
+def check_reset_tpm_factory():
+    return check_op_handler('reset-tpm-factory')
+
+
 def check_disable_secureboot():
     return check_op_handler('disable-secureboot')
 
@@ -84,5 +88,6 @@ ops = {
     'disable-secureboot': {},
     'enable-secureboot': {},
     'power-on': {},
-    'reset-tpm': {}
+    'reset-tpm': {},
+    'reset-tpm-factory': {}
 }
