@@ -40,6 +40,16 @@ config MAIN_HOSTNAME
       Name of this agent on the network (defaults to hostname).
 endmenu
 
+menu "Environment Settings"
+config ENVIRONMENT_VARIANT
+    string "Custom device scripts variant"
+    help
+      Ease sharing of device scripts that are used to boot from USB,
+      reset the TPM, enable Secure Boot, etc. by having MTDA load
+      them from mtda.script.<ENVIRONMENT_VARIANT>.
+
+endmenu
+
 menu "Pastebin Settings"
 
 config PASTEBIN_API
