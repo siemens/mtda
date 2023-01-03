@@ -1,8 +1,62 @@
-mtda (0.17-0) testing; urgency=medium
+mtda (0.17-1) testing; urgency=medium
 
-  * Development version
+  [ Cedric Hombourger ]
+  * www: add a virtual keyboard and a mtda-www package
+  * keyboard: add several keys
+  * video: add a "format" property
+  * main: modify notify() to take an event-type argument
+  * mtda-cli: use 'localhost' as default remote, do not specify remote when starting the daemon
+  * meta-isar/recipes-bsp: suffix u-boot-script with DISTRO and MACHINE
+  * console: add various runtime checks
+  * console/logger: synchronize rx_reader() with pause() and resume()
+  * power: remove toggle(), implement it in main
+  * main: add several checks to storage_open()/storage_write()
+  * main: correct power on/off sequences
+  * mtda-systemd-helper: introduce helper to generate systemd dependencies
+  * console/storage/video: implement configure_systemd()
+  * meta-isar/recipes-conf: remove usb-ms-use packages
+  * console/logger: correct entry debug print for pause()
+  * docs/fixtures: add a sample "file" setting to the storage/usbf example
+  * storage/usbf: support for "device" in the configuration
+  * meta-isar/recipes-python: make zerorpc-python work with pyzmq 23.0.0
+  * console/serial: close() shouldn't warn if not opened
+  * docs/build: suggest use of the usbf console driver
+  * storage/usbf: keep composite functions installed
+  * console/logger: retry read() on TypeError
+  * console/serial: attempt to abort read() upon close()
+  * console/logger: check whether console needs to be active in reset
+  * console/keyboard: do check whether the device exists in probe()
+  * support/usb: enable/disable USB functions on power events
+  * keyboard/hid: add support for linefeeds to write()
+  * scripts: add support for loading device scripts
+  * debian: move mtda-config to its own package
+  * debian: rework package dependencies
+  * keyboard/hid: add handling of special keys to write()
+  * keyboard/hid: use shift modifier for special characters
+  * scripts: add reset-tpm-factory
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 25 Feb 2022 22:00:00 +0100
+  [ Vijai Kumar K ]
+  * update to the latest isar
+  * add a kconfig-based UI to configure MTDA
+
+  [ Jan Kiszka ]
+  * console/input: Restore Python 3.6 compatibility
+  * console/logger: Open console unconditionally
+  * meta-isar/recipes-python: Build local version
+  * power: Add shellcmd driver
+  * meta-isar: Add Raspberry Pi 4 model B
+  * meta-isar/recipes-conf: Add local-settings recipe
+  * storage/usbf: Remove and re-install storage when switching between host and target
+
+  [ Bhargav Das ]
+  * tests: switch to almalinux instead of rockylinux
+  * meta-isar/recipes-core: add python3-libgpiod package in the image
+  * power/usb: replace gpio sysfs operations with libgpiod
+
+  [ Badrikesh Prusty ]
+  * docs/integration.rst: Update readme for lava integration as per latest release
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 3 Jan 2022 18:30:00 +0100
 
 mtda (0.16-1) testing; urgency=medium
 
