@@ -96,6 +96,6 @@ USERS_remove  = "isar"
 # Add mtda package feeds to /etc/apt/sources.list.d/
 ROOTFS_POSTPROCESS_COMMAND += "mtda_add_apt_sources"
 mtda_add_apt_sources() {
-    echo "deb [trusted=yes] ${MTDA_APT_URI} /" \
+    echo "deb ${MTDA_APT_URI} * *" \
         | sudo tee -a ${IMAGE_ROOTFS}/etc/apt/sources.list.d/mtda.list
 }
