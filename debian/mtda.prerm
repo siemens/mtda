@@ -2,6 +2,6 @@
 
 set -e
 
-rm -f /lib/systemd/system/mtda.service.d/auto-dep-*.conf
+rm -f /etc/systemd/system/mtda.service.d/auto-dep-*.conf
 
 #DEBHELPER#
