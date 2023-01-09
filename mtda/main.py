@@ -781,7 +781,7 @@ class MultiTenantDeviceAccess:
         console = self.console
         storage = self.storage_controller
         video = self.video
-        dir = '/lib/systemd/system/mtda.service.d/'
+        dir = '/etc/systemd/system/mtda.service.d/'
         self.systemd_reset(dir)
         if console is not None and hasattr(console, 'configure_systemd'):
             console.configure_systemd(dir)
