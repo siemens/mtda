@@ -39,14 +39,20 @@ class SerialConsole(ConsoleInterface):
         self.role = role
 
     def configure_systemd(self, dir):
-        if self.port is None or os.path.exists(self.port) is False:
-            return
-        device = os.path.basename(self.port)
-        dropin = os.path.join(dir, 'auto-dep-{}.conf'.format(self.role))
-        with open(dropin, 'w') as f:
-            f.write('[Unit]\n')
-            f.write('Wants=dev-{}.device\n'.format(device))
-            f.write('After=dev-{}.device\n'.format(device))
+        self.mtda.debug(3, "console.serial.configure_systemd()")
+
+        result = None
+        if self.port is not None:
+            device = os.path.basename(self.port)
+            dropin = os.path.join(dir, 'auto-dep-{}.conf'.format(self.role))
+            with open(dropin, 'w') as f:
+                f.write('[Unit]\n')
+                f.write('Wants=dev-{}.device\n'.format(device))
+                f.write('After=dev-{}.device\n'.format(device))
+
+        self.mtda.debug(3, "console.serial.configure_systemd(): "
+                           "{}".format(result))
+        return result
 
     def probe(self):
         self.mtda.debug(3, "console.serial.probe()")
