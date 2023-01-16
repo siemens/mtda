@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
 
 DESTDIR=$(CURDIR)/debian/mtda
+PY_TARGET=$(shell python3 -c "import sysconfig; print(sysconfig.get_path('stdlib'))")
+MTDA_DIST=$(PY_TARGET)/dist-packages/mtda
 
 %:
 	dh $@ --with python3 --with=systemd --buildsystem=pybuild
@@ -27,12 +29,12 @@ override_dh_auto_install:
 	mv debian/mtda/usr/bin/mtda-config debian/mtda-config/usr/sbin/
 	install -m 0644 Kconfig debian/mtda-config/var/lib/mtda/Kconfig
 	:
-	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/console
-	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/power
-	install -m 0755 -d debian/mtda-docker/usr/lib/python3/dist-packages/mtda/storage
-	mv debian/mtda/usr/lib/python*/dist-packages/mtda/console/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/console/
-	mv debian/mtda/usr/lib/python*/dist-packages/mtda/power/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/power/
-	mv debian/mtda/usr/lib/python*/dist-packages/mtda/storage/docker.py debian/mtda-docker/usr/lib/python3/dist-packages/mtda/storage/
+	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/console
+	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/power
+	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/storage
+	mv debian/mtda$(MTDA_DIST)/console/docker.py debian/mtda-docker$(MTDA_DIST)/console/
+	mv debian/mtda$(MTDA_DIST)/power/docker.py debian/mtda-docker$(MTDA_DIST)/power/
+	mv debian/mtda$(MTDA_DIST)/storage/docker.py debian/mtda-docker$(MTDA_DIST)/storage/
 	install -m 0755 -d debian/mtda-docker/usr/share/doc/mtda-docker/examples/
 	install -m 0644 configs/docker.ini debian/mtda-docker/usr/share/doc/mtda-docker/examples/mtda.ini
 	:
@@ -41,16 +43,16 @@ override_dh_auto_install:
 	install -m 0755 -d debian/mtda-kvm/var/lib/mtda
 	install -m 0644 configs/qemu-ovmf-vars.fd debian/mtda-kvm/var/lib/mtda/
 	:
-	install -m 0755 -d debian/mtda-pytest/usr/lib/python3/dist-packages/mtda/
-	mv debian/mtda/usr/lib/python*/dist-packages/mtda/pytest.py debian/mtda-pytest/usr/lib/python3/dist-packages/mtda/
+	install -m 0755 -d debian/mtda-pytest$(MTDA_DIST)/
+	mv debian/mtda$(MTDA_DIST)/pytest.py debian/mtda-pytest$(MTDA_DIST)/
 	:
 	install -m 0755 -d debian/mtda-ui/usr/bin
 	mv debian/mtda/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
 	:
-	install -m 0755 -d debian/mtda-www/usr/lib/python3/dist-packages/mtda/
-	mv debian/mtda/usr/lib/python*/dist-packages/mtda/assets debian/mtda-www/usr/lib/python3/dist-packages/mtda/
-	mv debian/mtda/usr/lib/python*/dist-packages/mtda/templates debian/mtda-www/usr/lib/python3/dist-packages/mtda/
-	mv debian/mtda/usr/lib/python*/dist-packages/mtda/www.py debian/mtda-www/usr/lib/python3/dist-packages/mtda/
+	install -m 0755 -d debian/mtda-www$(MTDA_DIST)/
+	mv debian/mtda$(MTDA_DIST)/assets debian/mtda-www$(MTDA_DIST)/
+	mv debian/mtda$(MTDA_DIST)/templates debian/mtda-www$(MTDA_DIST)/
+	mv debian/mtda$(MTDA_DIST)/www.py debian/mtda-www$(MTDA_DIST)/
 
 override_dh_systemd_enable:
 	dh_systemd_enable
