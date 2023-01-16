@@ -442,7 +442,7 @@ Hit ``i`` to enter the input mode and type the following configuration::
 
     [power]
     variant=gpio
-    pins=203
+    gpio=gpiochip0@203
 
     [keyboard]
     variant=hid
@@ -488,7 +488,7 @@ The following configuration file may be used for the DE0-Nano-SoC::
 
     [power]
     variant=gpio
-    pins=203
+    gpio=gpiochip0@203
 
     [storage]
     variant=samsung
