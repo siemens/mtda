@@ -35,7 +35,7 @@ class Application:
 
     def __init__(self):
         self.agent = None
-        self.remote = "localhost"
+        self.remote = None
         self.logfile = "/var/log/mtda.log"
         self.pidfile = "/var/run/mtda.pid"
         self.exiting = False
@@ -772,6 +772,11 @@ class Application:
 
         # Start our server
         if daemonize is True:
+
+            if self.remote is not None:
+                print("-d and -r may not be used together", file=sys.stderr)
+                sys.exit(1)
+
             self.agent = MultiTenantDeviceAccess()
             self.agent.load_config(None, daemonize, config)
             self.remote = self.agent.remote
@@ -783,6 +788,11 @@ class Application:
                 print('Failed to start the MTDA server!', file=sys.stderr)
                 return False
             return True
+
+        # Client mode
+        else:
+            if self.remote is None:
+                self.remote = "localhost"
 
         # Assume we want an interactive console if called without a command
         if len(stuff) == 0:
