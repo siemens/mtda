@@ -1,8 +1,23 @@
-mtda (0.18-0) testing; urgency=medium
+mtda (0.18-1) testing; urgency=medium
 
-  * Development version
+  [ Cedric Hombourger ]
+  * meta-isar: images: add GPG key to the apt keyring
+  * main: place systemd drop-ins in /etc/systemd
+  * console/serial: do not check for device in configure_systemd()
+  * debian: install to /usr/lib/pythonX.Y/dist-packages/mtda
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 4 Jan 2022 20:30:00 +0100
+  [ Daniel Bovensiepen Li ]
+  * docs/build: remove .img from ISAR image name
+  * docs/build: power configuration example adapted to libgpiod
+
+  [ Vijai Kumar K ]
+  * Kconfig: add entry for environment section
+  * Update to the latest kas
+
+  [ Shivaschandra KL ]
+  * Prohibit user from daemonizing client
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 20 Jan 2022 12:00:00 +0100
 
 mtda (0.17-1) testing; urgency=medium
 
