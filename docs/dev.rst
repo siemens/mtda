@@ -83,8 +83,6 @@ Roughly start with this 2-3 weeks before the targeted release date.
 +------+---------------------------------------------------+------------+
 | -1w  | Draft ``debian/changelog``                        |            |
 +------+---------------------------------------------------+------------+
-| -1w  | Use a fixed ``SRCREV`` in ``mtda_git.bb``         |            |
-+------+---------------------------------------------------+------------+
 | -1w  | Create -rc1 tag                                   | v0.16-rc1  |
 +------+---------------------------------------------------+------------+
 |  0d  | Create release tag                                | v0.16      |
@@ -93,9 +91,8 @@ Roughly start with this 2-3 weeks before the targeted release date.
 +------+---------------------------------------------------+------------+
 |  0d  | Send release announcement                         |            |
 +------+---------------------------------------------------+------------+
-|  0d  | Create PR for version bump in ``__version__.py``, |            |
-|      | use ``SRCREV = "${AUTOREV}"`` in mtda_git.bb and  |            |
-|      | create a new version in ``debian/changelog``      |            |
+|  0d  | Create new version in ``debian/changelog``        |            |
+|      | suffixed with "-0" (e.g. 0.18-0)                  |            |
 +------+---------------------------------------------------+------------+
 
 GitHub actions will build the final release tag and upload artifacts such as
