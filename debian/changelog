@@ -2,7 +2,7 @@ mtda (0.19-0) testing; urgency=medium
 
   * Development version
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 23 Jan 2022 17:00:00 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 23 Jan 2023 17:00:00 +0100
 
 mtda (0.18-1) testing; urgency=medium
 
@@ -23,7 +23,7 @@ mtda (0.18-1) testing; urgency=medium
   [ Shivaschandra KL ]
   * Prohibit user from daemonizing client
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 20 Jan 2022 12:00:00 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 20 Jan 2023 12:00:00 +0100
 
 mtda (0.17-1) testing; urgency=medium
 
@@ -83,7 +83,7 @@ mtda (0.17-1) testing; urgency=medium
   [ Badrikesh Prusty ]
   * docs/integration.rst: Update readme for lava integration as per latest release
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 3 Jan 2022 18:30:00 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 3 Jan 2023 18:30:00 +0100
 
 mtda (0.16-1) testing; urgency=medium
 
