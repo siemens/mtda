@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+# ---------------------------------------------------------------------------
+# MTDA Service
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2023 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+# System imports
+import argparse
+import daemon
+import lockfile
+import os
+import os.path
+import signal
+import sys
+import zerorpc
+import socket
+import zeroconf
+
+# Local imports
+from mtda.main import MultiTenantDeviceAccess
+import mtda.constants as CONSTS
+
+
+class Application:
+
+    def __init__(self):
+        self.agent = None
+        self.remote = None
+        self.logfile = "/var/log/mtda.log"
+        self.pidfile = "/var/run/mtda.pid"
+
+    def daemonize(self):
+        context = daemon.DaemonContext(
+            working_directory=os.getcwd(),
+            stdout=open(self.logfile, 'w+'),
+            stderr=open(self.logfile, 'w+'),
+            umask=0o002,
+            pidfile=lockfile.FileLock(self.pidfile)
+        )
+
+        context.signal_map = {
+            signal.SIGTERM: 'terminate',
+            signal.SIGHUP:  'terminate',
+        }
+
+        with context:
+            status = self.server()
+            return status
+
+    def _ip(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('192.0.2.0', 0))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+
+    def server(self):
+        # Start our agent
+        status = self.agent.start()
+        if status is False:
+            return False
+
+        # Start our RPC server
+        uri = "tcp://*:%d" % (self.agent.ctrlport)
+        s = zerorpc.Server(self.agent, heartbeat=20)
+        s.bind(uri)
+
+        # Initialize ZeroConf
+        interfaces = zeroconf.InterfaceChoice.All
+        zc = zeroconf.Zeroconf(interfaces=interfaces)
+        props = {
+            'description': 'Multi-Tenant Device Access'
+        }
+        deviceType = CONSTS.MDNS.TYPE
+        name = self.agent.name
+        info = zeroconf.ServiceInfo(
+                type_=deviceType,
+                name='{}.{}'.format(name, deviceType),
+                addresses=[socket.inet_aton(self._ip())],
+                port=int(self.agent.ctrlport),
+                properties=props,
+                server='{}.local.'.format(name))
+
+        zc.register_service(info)
+        try:
+            s.run()
+        except KeyboardInterrupt:
+            s.stop()
+            self.agent.stop()
+        finally:
+            zc.unregister_service(info)
+
+        return True
+
+    def print_version(self):
+        agent = MultiTenantDeviceAccess()
+        print("MTDA version: %s" % agent.version)
+
+    def main(self):
+        config = None
+
+        parser = argparse.ArgumentParser(
+                description='service process for MTDA')
+
+        parser.add_argument('-c', '--config',
+                            nargs=1,
+                            help='alternate configuration file')
+        parser.add_argument('-n', '--no-detach',
+                            action='store_true',
+                            help='do not detach from the calling process')
+        parser.add_argument('-v', '--version',
+                            action='store_true',
+                            help='print version of this program and exit')
+
+        args = parser.parse_args()
+
+        if args.version is True:
+            self.print_version()
+            sys.exit(0)
+
+        if args.config is not None:
+            config = args.config[0]
+
+        # Start our server
+        self.agent = MultiTenantDeviceAccess()
+        self.agent.load_config(None, True, config)
+        self.remote = self.agent.remote
+        if args.no_detach is False:
+            status = self.daemonize()
+        else:
+            status = self.server()
+        if status is False:
+            print('Failed to start the MTDA server!', file=sys.stderr)
+            return False
+        return True
+
+
+if __name__ == '__main__':
+    app = Application()
+    app.main()

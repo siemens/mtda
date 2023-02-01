@@ -17,7 +17,13 @@ from mtda import __version__
 setup(
     name='mtda',
     version=__version__,
-    scripts=['mtda-cli', 'mtda-systemd-helper', 'mtda-ui', 'mtda-config'],
+    scripts=[
+        'mtda-cli',
+        'mtda-config',
+        'mtda-service',
+        'mtda-systemd-helper',
+        'mtda-ui'
+    ],
     packages=find_packages(exclude=["demos"]),
     package_data={'mtda': ['assets/*.*', 'templates/*.html']},
     author='Cedric Hombourger',

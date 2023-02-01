@@ -50,7 +50,7 @@ Running the agent
 The agent may be manually started after installing required packages and
 configuration files as follows::
 
-    $ sudo mtda-cli -d -n
+    $ sudo mtda-service -n
 
 If prebuilt packages were installed (see above), it may be started as a
 systemd service instead::

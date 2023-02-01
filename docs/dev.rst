@@ -51,7 +51,7 @@ The agent may then be started with::
 
     $ export MTDA_CONFIG=$PWD/configs/docker.ini
     $ export PYTHONPATH=$PWD
-    $ ./mtda-cli -d -n
+    $ ./mtda-service -n
 
 Use a different shell to start a client session::
 

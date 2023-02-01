@@ -20,6 +20,7 @@ MTDA_FILES = " \
     Kconfig \
     mtda-cli \
     mtda-config \
+    mtda-service \
     mtda-systemd-helper \
     mtda-ui \
     mtda.ini \
