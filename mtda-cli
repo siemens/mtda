@@ -11,24 +11,17 @@
 # ---------------------------------------------------------------------------
 
 # System imports
-import daemon
 import getopt
-import lockfile
-import os
-import os.path
 import requests
-import signal
 import time
 import sys
 import zerorpc
 import socket
-import zeroconf
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
 from mtda.client import Client
 from mtda.console.screen import ScreenOutput
-import mtda.constants as CONSTS
 
 
 class Application:
@@ -36,74 +29,9 @@ class Application:
     def __init__(self):
         self.agent = None
         self.remote = None
-        self.logfile = "/var/log/mtda.log"
-        self.pidfile = "/var/run/mtda.pid"
         self.exiting = False
         self.channel = "console"
         self.screen = ScreenOutput(self)
-
-    def daemonize(self):
-        context = daemon.DaemonContext(
-            working_directory=os.getcwd(),
-            stdout=open(self.logfile, 'w+'),
-            stderr=open(self.logfile, 'w+'),
-            umask=0o002,
-            pidfile=lockfile.FileLock(self.pidfile)
-        )
-
-        context.signal_map = {
-            signal.SIGTERM: 'terminate',
-            signal.SIGHUP:  'terminate',
-        }
-
-        with context:
-            status = self.server()
-            return status
-
-    def _ip(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('192.0.2.0', 0))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-
-    def server(self):
-        # Start our agent
-        status = self.agent.start()
-        if status is False:
-            return False
-
-        # Start our RPC server
-        uri = "tcp://*:%d" % (self.agent.ctrlport)
-        s = zerorpc.Server(self.agent, heartbeat=20)
-        s.bind(uri)
-
-        # Initialize ZeroConf
-        interfaces = zeroconf.InterfaceChoice.All
-        zc = zeroconf.Zeroconf(interfaces=interfaces)
-        props = {
-            'description': 'Multi-Tenant Device Access'
-        }
-        deviceType = CONSTS.MDNS.TYPE
-        name = self.agent.name
-        info = zeroconf.ServiceInfo(
-                type_=deviceType,
-                name='{}.{}'.format(name, deviceType),
-                addresses=[socket.inet_aton(self._ip())],
-                port=int(self.agent.ctrlport),
-                properties=props,
-                server='{}.local.'.format(name))
-
-        zc.register_service(info)
-        try:
-            s.run()
-        except KeyboardInterrupt:
-            s.stop()
-            self.agent.stop()
-        finally:
-            zc.unregister_service(info)
-
-        return True
 
     def client(self):
         return self.agent
@@ -753,17 +681,13 @@ class Application:
 
         options, stuff = getopt.getopt(
             sys.argv[1:], 'c:dhnr:v',
-            ['daemon', 'help', 'no-detach', 'remote=', 'version'])
+            ['help', 'remote=', 'version'])
         for opt, arg in options:
             if opt in ('-c', '--config'):
                 config = arg
-            if opt in ('-d', '--daemon'):
-                daemonize = True
             if opt in ('-h', '--help'):
                 self.help_cmd()
                 sys.exit(0)
-            if opt in ('-n', '--no-detach'):
-                detach = False
             if opt in ('-r', '--remote'):
                 self.remote = arg
             if opt in ('-v', '--version'):

@@ -70,7 +70,7 @@ xz -f almalinux.tar || exit ${?}
 du -sh *.tar*
 
 echo "# starting mtda in the background"
-${source_dir}/mtda-cli -d -n 2>debug.log &
+${source_dir}/mtda-service -n 2>debug.log &
 service_pid=${!}
 
 sleep 30
