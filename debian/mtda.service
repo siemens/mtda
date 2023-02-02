@@ -1,5 +1,7 @@
 [Unit]
 Description=Multi-Tenant Device Access
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
