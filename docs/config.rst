@@ -3,8 +3,9 @@ Configuration
 
 MTDA will reads it configuration from:
 
- * $HOME/.mdta/config
- * /etc/mtda/config
+ * ``$HOME/.mtda/config``
+ * ``/etc/mtda/config``
+ * ``/etc/mtda/config.d/*.conf``
 
 Configuration files are similar to what’s found in Microsoft Windows INI
 files (Python's `configparser` module is used to parse them).
