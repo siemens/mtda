@@ -124,7 +124,7 @@ class MultiTenantDeviceAccess:
         if os.path.exists('/etc/mtda/config.d'):
             fragments = glob.glob('/etc/mtda/config.d/*.conf')
             if len(fragments) > 0:
-                self.config_files.extend(fragments)
+                self.config_files.extend(sorted(fragments))
 
     def agent_version(self):
         return self.version
