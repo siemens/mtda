@@ -111,11 +111,6 @@ class MultiTenantDeviceAccess:
         self.version = __version__
         self._www = None
 
-        # Config file in $HOME/.mtda/config
-        home = os.getenv('HOME', '')
-        if home != '':
-            self.config_files.append(os.path.join(home, '.mtda', 'config'))
-
         # Config file in /etc/mtda/config
         if os.path.exists('/etc/mtda'):
             self.config_files.append(os.path.join('/etc', 'mtda', 'config'))
@@ -125,6 +120,11 @@ class MultiTenantDeviceAccess:
             fragments = glob.glob('/etc/mtda/config.d/*.conf')
             if len(fragments) > 0:
                 self.config_files.extend(sorted(fragments))
+
+        # Config file in $HOME/.mtda/config
+        home = os.getenv('HOME', '')
+        if home != '':
+            self.config_files.append(os.path.join(home, '.mtda', 'config'))
 
     def agent_version(self):
         return self.version

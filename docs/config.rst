@@ -1,11 +1,15 @@
 Configuration
 =============
 
-MTDA will reads it configuration from:
+MTDA will attempt to read the following configuration files (and in that
+order):
 
- * ``$HOME/.mtda/config``
  * ``/etc/mtda/config``
  * ``/etc/mtda/config.d/*.conf``
+ * ``$HOME/.mtda/config``
+
+Most recently loaded configuration items take precedence over others. This
+allows a regular user to override system defaults.
 
 Configuration files are similar to what’s found in Microsoft Windows INI
 files (Python's `configparser` module is used to parse them).
