@@ -46,7 +46,8 @@ class Config:
                     continue
                 """
                 Some config names might have "_".
-                So parse all words without "_" and then \w+ which is [a-zA-Z0-9_]+
+                So parse all words without "_" and then \\w+ which is
+                [a-zA-Z0-9_]+
                 """
                 template = re.search(r"CONFIG_([a-zA-Z0-9]+)_(\w+)", key)
                 module_name = template.group(1).lower()
@@ -55,7 +56,8 @@ class Config:
                 if module_name != current_module:
                     config_file.write("\n[{}]\n".format(module_name))
                     current_module = module_name
-                config_file.write("  {} = {}\n".format(config_name, config[key]))
+                config_file.write("  {} = {}\n"
+                                  .format(config_name, config[key]))
 
     def save_config(self, nodes=[], output_file=None):
         config_entries = {}
@@ -81,10 +83,11 @@ class Config:
                 if line.startswith("["):
                     module_name = re.search(r"\[(\w+)\]", line).group(1)
                     continue
-                if not module_name in skip_list:
+                if module_name not in skip_list:
                     # Handle invalid cases later
                     (config, value) = line.split("=")
-                    config = "CONFIG_{}_{}".format(module_name, config.strip()).upper()
+                    config = "CONFIG_{}_{}".format(module_name,
+                                                   config.strip()).upper()
                     config_entries[config] = value.strip()
         return config_entries
 
@@ -173,7 +176,8 @@ class ConfigApp:
         yes_button = urwid.AttrMap(yes_button, "button")
         no_button = urwid.Button("No", on_press=self.__save_and_quit)
         no_button = urwid.AttrMap(no_button, "button")
-        buttons_gridflow = urwid.GridFlow([yes_button, no_button], 10, 3, 1, "center")
+        buttons_gridflow = urwid.GridFlow([yes_button, no_button],
+                                          10, 3, 1, "center")
 
         option_pile = urwid.Pile([confirm_text, buttons_gridflow])
         option_linebox = urwid.LineBox(urwid.Filler(option_pile))
@@ -209,7 +213,11 @@ class ConfigApp:
         subnode = node.list
         while subnode:
             if subnode.item != MENU and subnode.item != COMMENT:
-                logging.debug("visibility of %s=%s", subnode.prompt[0], subnode.item.visibility)
+                logging.debug(
+                    "visibility of %s=%s",
+                    subnode.prompt[0],
+                    subnode.item.visibility
+                )
                 if subnode.item.visibility:
                     listbox_contents.append(
                         self.__create_menu_entry(subnode, self.__show_popup)
@@ -252,10 +260,13 @@ class ConfigApp:
             help_linebox = urwid.LineBox(help_text)
 
             save_button = urwid.Button(
-                "save", on_press=self.__save_config_value, user_data=(value_edit, node)
+                "save",
+                on_press=self.__save_config_value,
+                user_data=(value_edit, node)
             )
             save_button = urwid.AttrMap(save_button, "button")
-            cancel_button = urwid.Button("cancel", on_press=self.__save_config_value)
+            cancel_button = urwid.Button("cancel",
+                                         on_press=self.__save_config_value)
             cancel_button = urwid.AttrMap(cancel_button, "button")
 
             buttons_gridflow = urwid.GridFlow(
@@ -330,7 +341,9 @@ class ConfigApp:
             # Hack. Drop Main menu entry
             if menu.prompt[0] == "Main menu":
                 continue
-            listbox_contents.append(self.__create_menu_entry(menu, self.__show_submenu))
+            listbox_contents.append(
+                    self.__create_menu_entry(menu, self.__show_submenu)
+                    )
         listbox_walker = urwid.SimpleFocusListWalker(listbox_contents)
         body_listbox = urwid.ListBox(listbox_walker)
         body_listbox = urwid.AttrMap(body_listbox, "body")
@@ -351,7 +364,9 @@ class ConfigApp:
         )
 
         self.loop = urwid.MainLoop(
-            self.mainscreen, self.palette, unhandled_input=self.__handle_keypress
+            self.mainscreen,
+            self.palette,
+            unhandled_input=self.__handle_keypress
         )
         self.loop.run()
 
