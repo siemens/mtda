@@ -69,14 +69,6 @@ IMAGE_PREINSTALL += "lava-dispatcher"
 # Expand root file-system
 IMAGE_INSTALL:append = " expand-on-first-boot "
 
-# Remove meta-isar examples if they are there...
-IMAGE_INSTALL:remove = "          \
-    example-module-${KERNEL_NAME} \
-    example-raw                   \
-    hello-isar                    \
-    samefile                      \
-"
-
 # Create a "mtda" user account with "mtda" as the default password
 # hash created with: python3 -c 'import crypt; print(crypt.crypt("mtda", crypt.mksalt(crypt.METHOD_SHA512)))'
 USERS += "mtda"
@@ -88,10 +80,6 @@ USER_mtda[flags] = "system create-home"
 USER_mtda[groups] = "mtda sudo"
 USER_mtda[password] ??= "$6$uaP1WXXu/joK8zxJ$LONexagmcWBKkY/HRQe0fVjY7n06FkX1qJUjigQ.4JVYxC9/OfBu3iJrF8hugMo2CaIh1sIOxDdpXvWWIjhfQ1"
 USER_mtda[shell] = "/bin/bash"
-
-# Remove the "isar" accounts
-GROUPS:remove = "isar"
-USERS:remove  = "isar"
 
 # Add mtda package feeds to /etc/apt/sources.list.d/
 ROOTFS_POSTPROCESS_COMMAND += "mtda_add_apt_sources"
