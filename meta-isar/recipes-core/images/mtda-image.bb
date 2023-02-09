@@ -25,17 +25,17 @@ do_build[deptask] += "do_deploy_deb"
 
 # We suffix u-boot-script with DISTRO and MACHINE, remove the non-suffixed
 # version of the package
-IMAGE_INSTALL_remove = "u-boot-script"
+IMAGE_INSTALL:remove = "u-boot-script"
 
 # Custom u-boot script for the beaglebone-black
-IMAGE_INSTALL_append_beaglebone-black = " u-boot-script-${DISTRO}-${MACHINE}"
+IMAGE_INSTALL:append:beaglebone-black = " u-boot-script-${DISTRO}-${MACHINE}"
 
 # Custom u-boot script for the nanopi-neo
-IMAGE_INSTALL_append_nanopi-neo = " u-boot-script-${DISTRO}-${MACHINE}"
+IMAGE_INSTALL:append:nanopi-neo = " u-boot-script-${DISTRO}-${MACHINE}"
 
 # Custom u-boot and script for the nanopi-r1
-DEPENDS_append_nanopi-r1 = " u-boot-nanopi-r1"
-IMAGE_INSTALL_append_nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
+DEPENDS:append:nanopi-r1 = " u-boot-nanopi-r1"
+IMAGE_INSTALL:append:nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
 
 IMAGE_INSTALL += "                       \
     mtda-hostname                        \
@@ -67,10 +67,10 @@ IMAGE_PREINSTALL += "python3-hap-python"
 IMAGE_PREINSTALL += "lava-dispatcher"
 
 # Expand root file-system
-IMAGE_INSTALL_append = " expand-on-first-boot "
+IMAGE_INSTALL:append = " expand-on-first-boot "
 
 # Remove meta-isar examples if they are there...
-IMAGE_INSTALL_remove = "          \
+IMAGE_INSTALL:remove = "          \
     example-module-${KERNEL_NAME} \
     example-raw                   \
     hello-isar                    \
@@ -90,8 +90,8 @@ USER_mtda[password] ??= "$6$uaP1WXXu/joK8zxJ$LONexagmcWBKkY/HRQe0fVjY7n06FkX1qJU
 USER_mtda[shell] = "/bin/bash"
 
 # Remove the "isar" accounts
-GROUPS_remove = "isar"
-USERS_remove  = "isar"
+GROUPS:remove = "isar"
+USERS:remove  = "isar"
 
 # Add mtda package feeds to /etc/apt/sources.list.d/
 ROOTFS_POSTPROCESS_COMMAND += "mtda_add_apt_sources"

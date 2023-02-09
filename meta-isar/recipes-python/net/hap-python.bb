@@ -10,7 +10,7 @@ inherit dpkg
 PV = "3.0"
 
 SRC_URI = " \
-    git://github.com/ikalchev/HAP-python.git;protocol=https;destsuffix=${PN}-${PV}/ \
+    git://github.com/ikalchev/HAP-python.git;protocol=https;branch=master;destsuffix=${PN}-${PV}/ \
     file://${PN}-${PV} \
 "
 

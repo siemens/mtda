@@ -17,9 +17,3 @@ SRC_URI = " \
 
 S = "${WORKDIR}/${PN}-${PV}"
 SRC_URI[sha256sum] = "88379580d5d155361e072520bae62e047ab3741eaeb8b07867ab4588ea7a5031"
-
-dpkg_runbuild_prepend() {
-    cd ${S}
-    export QUILT_PATCHES=debian/patches
-    quilt push -a
-}
