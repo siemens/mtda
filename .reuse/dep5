@@ -130,3 +130,28 @@ License: MIT
 Files: meta-isar/recipes-python/kconfiglib/files/kconfiglib-14.1.0/debian/*
 Copyright: 2022 Siemens Digital Industries Software
 License: MIT
+
+Files: mtda/assets/jquery.min.js
+Copyright: 2005, 2013 jQuery Foundation and other contributors
+License: MIT
+
+Files: mtda/assets/material_icons.css
+Copyright: 2016-2023 Google
+License: Apache
+
+Files: mtda/assets/material_icons.ttf
+Copyright: 2016-2023 Google
+License: Apache
+
+Files: mtda/assets/socket.io.min.js
+Copyright: 2014-2021 Guillermo Rauch
+License: MIT
+
+Files: mtda/assets/xterm.css
+Copyright: 2014 The xterm.js authors.
+License: MIT
+
+Files: mtda/assets/xterm.js
+Copyright: 2014 The xterm.js authors.
+License: MIT
+
