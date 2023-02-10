@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <!-- Apple iOS Safari settings -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/material_icons.css">
     <link rel="stylesheet" href="./assets/keyboard.css">
     <link rel="stylesheet" href="novnc/app/styles/lite.css">
     <script src="novnc/vendor/promise.js"></script>
@@ -25,7 +25,7 @@ SPDX-License-Identifier: MIT
     </script>
     <script type="module" crossorigin="anonymous" src="./assets/vnc.js"></script>
     <title>Multi-Tenant Device Access</title>
-    <link rel="stylesheet" href="https://unpkg.com/xterm@4.11.0/css/xterm.css"/>
+    <link rel="stylesheet" href="./assets/xterm.css"/>
     <style>
       body {
         margin: 0;
@@ -103,8 +103,8 @@ SPDX-License-Identifier: MIT
         <td><div style="width: 640px; height: 480px" id="video"></div></td>
       </tr>
     </table>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script src="assets/keyboard.js"></script>
+    <script src="./assets/jquery.min.js"></script>
+    <script src="./assets/keyboard.js"></script>
     <script type=text/javascript>
       $(function() {
         $('a#power-toggle').bind('click', function() {
@@ -126,8 +126,8 @@ SPDX-License-Identifier: MIT
         });
       });
     </script>
-    <script src="https://unpkg.com/xterm@4.11.0/lib/xterm.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="./assets/xterm.js"></script>
+    <script src="./assets/socket.io.min.js"></script>
     <script type="module" crossorigin="anonymous">
       import {vnc_load} from './assets/vnc.js'
       const term = new Terminal({
