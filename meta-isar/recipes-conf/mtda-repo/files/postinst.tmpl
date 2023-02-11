@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# This Isar layer is part of MTDA
+# Copyright (c) 2023 Siemens AG
+# SPDX-License-Identifier: MIT
+
+set -e
+
+echo "deb ${MTDA_APT_URI} * *" > /etc/apt/sources.list.d/mtda.list

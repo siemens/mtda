@@ -16,9 +16,6 @@ PV = "1.0"
 
 ISAR_RELEASE_CMD = "git -C ${LAYERDIR_mtda} describe --tags --dirty --match 'v[0-9].[0-9]*'"
 
-# MTDA Package Feeds
-MTDA_APT_URI ??= "https://apt.fury.io/mtda/"
-
 # Build and deploy our MTDA packages
 DEPENDS += "mtda-packages"
 do_build[deptask] += "do_deploy_deb"
@@ -39,6 +36,7 @@ IMAGE_INSTALL:append:nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
 
 IMAGE_INSTALL += "                       \
     mtda-hostname                        \
+    mtda-repo                            \
     local-settings                       \
     sshd-regen-keys                      \
 "
@@ -80,10 +78,3 @@ USER_mtda[flags] = "system create-home"
 USER_mtda[groups] = "mtda sudo"
 USER_mtda[password] ??= "$6$uaP1WXXu/joK8zxJ$LONexagmcWBKkY/HRQe0fVjY7n06FkX1qJUjigQ.4JVYxC9/OfBu3iJrF8hugMo2CaIh1sIOxDdpXvWWIjhfQ1"
 USER_mtda[shell] = "/bin/bash"
-
-# Add mtda package feeds to /etc/apt/sources.list.d/
-ROOTFS_POSTPROCESS_COMMAND += "mtda_add_apt_sources"
-mtda_add_apt_sources() {
-    echo "deb ${MTDA_APT_URI} * *" \
-        | sudo tee -a ${IMAGE_ROOTFS}/etc/apt/sources.list.d/mtda.list
-}
