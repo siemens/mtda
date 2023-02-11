@@ -59,7 +59,7 @@ IMAGE_PREINSTALL += "                    \
 "
 
 # HomeKit support
-IMAGE_PREINSTALL += "python3-hap-python"
+IMAGE_INSTALL += "python3-hap-python"
 
 # LAVA support
 IMAGE_PREINSTALL += "lava-dispatcher"
