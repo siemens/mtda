@@ -7,7 +7,7 @@
 
 # Here's our list of custom packages
 DEPENDS = "                              \
-    hap-python                           \
+    python3-hap-python                   \
     kconfiglib                           \
     mjpg-streamer                        \
     mtda                                 \
