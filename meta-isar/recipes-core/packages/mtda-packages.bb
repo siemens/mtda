@@ -8,12 +8,9 @@
 # Here's our list of custom packages
 DEPENDS = "                              \
     python3-hap-python                   \
-    kconfiglib                           \
     mjpg-streamer                        \
     mtda                                 \
-    py3qterm                             \
     sd-mux-ctrl                          \
-    zstandard                            \
 "
 
 # Make sure packages we built were added to the isar-apt repository
