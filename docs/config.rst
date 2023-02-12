@@ -261,7 +261,7 @@ supported:
 * ``gpio``: string [required]
     Specify the GPIO line(chip) and pin number which will be used to control the relay.
     Format: <gpiochipx>@<pin>
-    If multiple GPIO lines and pins are used seperate the entries using ','.
+    If multiple GPIO lines and pins are used separate the entries using ','.
 
     eg:::
 
@@ -314,7 +314,7 @@ The following settings are supported:
     The QEMU/KVM machine to emulate.
 
 * ``memory``: integer [optional]
-    The amount of memory (in mega-bytes) for the emulated machime (defaults to
+    The amount of memory (in mega-bytes) for the emulated machine (defaults to
     512 MiB).
 
 * ``pflash_ro``: string [optional]
@@ -333,7 +333,7 @@ The following settings are supported:
 
     *Note* an existing storage device will not be recreated or deleted based
     on a config change. To trigger recreation delete your storage devices
-    manualy.
+    manually.
 
 * ``swtpm``: string [optional]
     Path to the ``swtpm`` binary to support emulation of a TPM device.
