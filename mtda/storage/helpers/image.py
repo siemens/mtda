@@ -272,6 +272,18 @@ class Image(StorageController):
     def supports_hotplug(self):
         return False
 
+    def tell(self):
+        self.mtda.debug(3, "storage.helpers.image.tell()")
+        self.lock.acquire()
+
+        result = None
+        if self.handle is not None:
+            result = self.handle.tell()
+
+        self.mtda.debug(3, "storage.helpers.image.tell(): %s" % str(result))
+        self.lock.release()
+        return result
+
     def _locate(self, dst):
         self.mtda.debug(3, "storage.helpers.image._locate()")
 
