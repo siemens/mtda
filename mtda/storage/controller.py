@@ -62,6 +62,11 @@ class StorageController(object):
         return CONSTS.STORAGE.UNKNOWN
 
     @abc.abstractmethod
+    def tell(self):
+        """ Return position within the storage"""
+        return None
+
+    @abc.abstractmethod
     def update(self, dst, offset):
         """ Update specified file"""
         return False

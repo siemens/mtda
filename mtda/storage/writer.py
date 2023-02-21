@@ -140,7 +140,6 @@ class AsyncImageWriter(queue.Queue):
         result = None
         try:
             result = self.storage.write(data)
-            self._written += result if result is not None else 0
         except OSError as e:
             self.mtda.debug(1, "storage.writer.write_raw(): "
                                "%s" % str(e.args[0]))
@@ -164,7 +163,6 @@ class AsyncImageWriter(queue.Queue):
                 data = self._zdec.unconsumed_tail
                 cont = len(data) > 0
                 result = self.storage.write(uncompressed)
-                self._written += result if result is not None else 0
         except (OSError, zlib.error) as e:
             self.mtda.debug(1, "storage.writer.write_gz(): "
                                "%s" % str(e.args[0]))
@@ -186,7 +184,6 @@ class AsyncImageWriter(queue.Queue):
             while cont is True:
                 uncompressed = self._zdec.decompress(data, self._blksz)
                 result = self.storage.write(uncompressed)
-                self._written += result if result is not None else 0
                 cont = self._zdec.needs_input is False
                 data = b''
         except EOFError:
@@ -208,7 +205,6 @@ class AsyncImageWriter(queue.Queue):
             self._zdec = dctx.stream_writer(self.storage)
         try:
             result = self._zdec.write(data)
-            self._written += result if result is not None else 0
         except OSError:
             self.mtda.debug(1, "storage.writer.write_zst(): write error!")
             self._failed = True
@@ -229,7 +225,6 @@ class AsyncImageWriter(queue.Queue):
             while cont is True:
                 uncompressed = self._zdec.decompress(data, self._blksz)
                 result = self.storage.write(uncompressed)
-                self._written += result if result is not None else 0
                 cont = self._zdec.needs_input is False
                 data = b''
         except EOFError:
@@ -248,4 +243,7 @@ class AsyncImageWriter(queue.Queue):
 
     @property
     def written(self):
+        written = self.storage.tell()
+        if written is not None:
+            self._written = written
         return self._written
