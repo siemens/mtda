@@ -1,8 +1,37 @@
-mtda (0.19-0) testing; urgency=medium
+mtda (0.19-1) testing; urgency=medium
 
-  * Development version
+  [ Cedric Hombourger ]
+  * ci: upgrade actions/checkout from v2 to v3
+  * debian: make the service run after network-online.target
+  * debian: make service start only if /etc/mtda/config exists
+  * config/www: add sample config fragment to the mtda-www package
+  * keyboard/hid: add several symbol keys that were missing
+  * mtda-service: move service code from mtda-cli to its own module
+  * main: add support for configuration fragments
+  * main: review load order for configuration files/fragments
+  * storage: use tell() to report how many writes were completed
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 23 Jan 2023 17:00:00 +0100
+  [ Daniel Bovensiepen Li ]
+  * debian: changelog date typo fix
+  * mtda-www: make remote assets local
+  * docs/config: fix spelling
+
+  [ Jan Kiszka ]
+  * meta-isar: Update to latest revision
+  * meta-isar: Clean up mtda-image recipe
+  * meta-isar: Convert image postprocess hook into proper conf package
+  * meta-isar: Model python3-hap-python properly
+  * meta-isar: Avoid self-built zstandard after bullseye
+  * meta-isar: Properly model mtda dependencies
+
+  [ Srinuvasan A ]
+  * Update to the latest kas
+
+  [ Vijai Kumar K ]
+  * mtda-config: fix flake8 warnings
+  * tox: add mtda-config to tox screen
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 28 Feb 2023 12:00:00 +0100
 
 mtda (0.18-1) testing; urgency=medium
 
