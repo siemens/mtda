@@ -102,6 +102,16 @@ jobs:
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
           done
   mtda-yocto-build:
+    name: mtda yocto package build for poky qemu arm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build image
+        run: |
+          export KAS_BUILD_DIR=${PWD}/build-yocto
+          ./kas-container build --target mtda kas/yocto/mtda-qemu-yocto.yml
+  mtda-image-yocto-build:
     name: Yocto image build for MTDA on poky qemu arm
     runs-on: ubuntu-latest
     steps:
