@@ -11,12 +11,12 @@
 # ---------------------------------------------------------------------------
 
 # System imports
-import getopt
 import requests
 import time
 import sys
 import zerorpc
 import socket
+from argparse import ArgumentParser, RawTextHelpFormatter
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
@@ -40,7 +40,7 @@ class Application:
         self.client().debug(level, msg)
 
     def command_cmd(self, args):
-        result = self.client().command(args)
+        result = self.client().command(args.cmd_command)
         if isinstance(result, str):
             print(result)
         else:
@@ -182,10 +182,7 @@ class Application:
             "\r\n*** console buffer posted to %s ***\r\n" % (r.text))
 
     def console_prompt(self, args):
-        prompt = None
-        if len(args) > 0:
-            prompt = args[0]
-        data = self.client().console_prompt(prompt)
+        data = self.client().console_prompt(args.prompt)
         if data is not None:
             sys.stdout.write(data)
             sys.stdout.flush()
@@ -205,13 +202,13 @@ class Application:
             server.console_send(c, True)
 
     def console_run(self, args):
-        data = self.client().console_run(args[0])
+        data = self.client().console_run(args.console_command)
         if data is not None:
             sys.stdout.write(data)
             sys.stdout.flush()
 
     def console_send(self, args):
-        self.client().console_send(args[0])
+        self.client().console_send(args.send_string)
 
     def console_tail(self, args):
         line = self.client().console_tail()
@@ -220,198 +217,72 @@ class Application:
             sys.stdout.flush()
 
     def console_wait(self, args):
-        timeout = None
-        if len(args) == 2:
-            timeout = int(args[1])
-        result = self.client().console_wait(args[0], timeout)
+        result = self.client().console_wait(args.wait_string, args.timeout)
         return 0 if result is True else 1
 
-    def console_help(self, args=None):
-        print("The 'console' command accepts the following sub-commands:")
-        print("   clear         Clear any data present in the console buffer")
-        print("   dump          Dump content of the console buffer")
-        print("   flush         Flush content of the console buffer")
-        print("   head          Fetch and print the first line from the"
-              " console buffer")
-        print("   interactive   Open the device console for interactive use")
-        print("   lines         Print number of lines present in the console"
-              " buffer")
-        print("   prompt        Configure or print the target shell prompt")
-        print("   raw           Open the console for use from scripts")
-        print("   run           Run the specified command via the device"
-              " console")
-        print("   send          Send characters to the device console")
-        print("   tail          Fetch and print the last line from the console"
-              " buffer")
-        print("   wait          Wait for the specified string on the console")
-
     def console_cmd(self, args):
-        if len(args) > 0:
-            cmd = args[0]
-            args.pop(0)
+        cmds = {
+           'clear': self.console_clear,
+           'dump': self.console_dump,
+           'flush': self.console_flush,
+           'head': self.console_head,
+           'interactive': self.console_interactive,
+           'lines': self.console_lines,
+           'prompt': self.console_prompt,
+           'raw': self.console_raw,
+           'run': self.console_run,
+           'send': self.console_send,
+           'tail': self.console_tail,
+           'wait': self.console_wait
+        }
 
-            cmds = {
-               'help': self.console_help,
-               'clear': self.console_clear,
-               'dump': self.console_dump,
-               'flush': self.console_flush,
-               'head': self.console_head,
-               'interactive': self.console_interactive,
-               'lines': self.console_lines,
-               'prompt': self.console_prompt,
-               'raw': self.console_raw,
-               'run': self.console_run,
-               'send': self.console_send,
-               'tail': self.console_tail,
-               'wait': self.console_wait
-            }
-
-            if cmd in cmds:
-                return cmds[cmd](args)
-            else:
-                print("unknown console command '%s'!" % (cmd), file=sys.stderr)
+        return cmds[args.subcommand](args)
 
     def getenv_cmd(self, args=None):
-        if len(args) == 0:
-            print("'getenv' expects a key argument!", file=sys.stderr)
-            return 1
-
-        name = args[0]
-        value = self.agent.env_get(name)
+        value = self.agent.env_get(args.name)
         if value is not None:
             print(str(value))
         return 0
 
-    def help_cmd(self, args=None):
-        status = 0
-        if args is not None and len(args) > 0:
-            cmd = args[0]
-            args.pop(0)
-
-            cmds = {
-               'console': self.console_help,
-               'storage': self.storage_help,
-               'target': self.target_help,
-               'usb': self.usb_help
-            }
-
-            if cmd in cmds:
-                cmds[cmd](args)
-            else:
-                print("no help found for command '%s'!" % (cmd),
-                      file=sys.stderr)
-                status = 1
-        else:
-            print("usage: mtda [options] <command> [<args>]")
-            print("")
-            print("The most commonly used mtda commands are:")
-            print("   command   Send a command (string) to the device")
-            print("   console   Interact with the device console")
-            print("   getenv    Get named variable from the environment")
-            print("   monitor   Interact with the device monitor console"
-                  " (if any)")
-            print("   target    Power control the device")
-            print("   setenv    Set named variable to specified value in the"
-                  " environment")
-            print("   storage   Interact with the shared storage device")
-            print("   usb       Control USB devices attached to the device")
-            print("")
-        return status
-
-    def keyboard_help(self, args=None):
-        print("The 'keyboard' command accepts the following sub-commands:")
-        print("   write         Write a string of characters via the keyboard")
-
     def keyboard_write(self, args):
-        self.client().keyboard_write(args[0])
+        self.client().keyboard_write(args.write_key)
 
     def keyboard_cmd(self, args):
-        if len(args) > 0:
-            cmd = args[0]
-            args.pop(0)
+        cmds = {
+           'write': self.keyboard_write
+        }
 
-            cmds = {
-               'help': self.keyboard_help,
-               'write': self.keyboard_write
-            }
-
-            if cmd in cmds:
-                cmds[cmd](args)
-            else:
-                print("unknown keyboard command '%s'!" % (cmd),
-                      file=sys.stderr)
+        cmds[args.subcommand](args)
 
     def monitor_cmd(self, args):
-        if len(args) > 0:
-            cmd = args[0]
-            args.pop(0)
+        cmds = {
+           'send': self.monitor_send,
+           'wait': self.monitor_wait
+        }
 
-            cmds = {
-               'help': self.monitor_help,
-               'send': self.monitor_send,
-               'wait': self.monitor_wait
-            }
-
-            if cmd in cmds:
-                return cmds[cmd](args)
-            else:
-                print("unknown monitor command '%s'!" % (cmd), file=sys.stderr)
-
-    def monitor_help(self, args=None):
-        print("The 'monitor' command accepts the following sub-commands:")
-        print("   send          Send characters to the device monitor")
-        print("   wait          Wait for the specified string on the monitor")
+        return cmds[args.subcommand](args)
 
     def monitor_send(self, args):
-        self.client().monitor_send(args[0])
+        self.client().monitor_send(args.send_string)
 
     def monitor_wait(self, args):
-        timeout = None
-        if len(args) == 2:
-            timeout = int(args[1])
-        result = self.client().monitor_wait(args[0], timeout)
+        result = self.client().monitor_wait(args.wait_string, args.timeout)
         return 0 if result is True else 1
 
     def setenv_cmd(self, args=None):
-        if len(args) == 0:
-            print("'setenv' expects a key argument!", file=sys.stderr)
-            return 1
-
-        name = args[0]
-        value = args[1] if len(args) > 1 else None
-
-        self.agent.env_set(name, value)
+        self.agent.env_set(args.name, args.value)
         return 0
 
     def storage_cmd(self, args):
-        if len(args) > 0:
-            cmd = args[0]
-            args.pop(0)
+        cmds = {
+           'host': self.storage_host,
+           'mount': self.storage_mount,
+           'target': self.storage_target,
+           'update': self.storage_update,
+           'write': self.storage_write
+        }
 
-            cmds = {
-               'help': self.storage_help,
-               'host': self.storage_host,
-               'mount': self.storage_mount,
-               'target': self.storage_target,
-               'update': self.storage_update,
-               'write': self.storage_write
-            }
-
-            if cmd in cmds:
-                return cmds[cmd](args)
-            else:
-                print("unknown 'storage' command '%s'!" % (cmd),
-                      file=sys.stderr)
-                return 1
-
-    def storage_help(self, args=None):
-        print("The 'storage' command accepts the following sub-commands:")
-        print("   host      Attach the shared storage device to the host")
-        print("   mount     Mount the shared storage device on the host")
-        print("   target    Attach the shared storage device to the target")
-        print("   update    Update the specified file on the shared storage"
-              " device")
-        print("   write     Write an image to the shared storage device")
+        return cmds[args.subcommand](args)
 
     def storage_host(self, args=None):
         status = self.client().storage_to_host()
@@ -425,8 +296,7 @@ class Application:
         status = self.storage_host()
         if status != 0:
             return 1
-        part = args[0] if len(args) > 0 else None
-        status = self.agent.storage_mount(part)
+        status = self.agent.storage_mount(args.partnum)
         if status is False:
             print("'storage mount' failed!", file=sys.stderr)
             return 1
@@ -465,15 +335,10 @@ class Application:
         sys.stdout.flush()
 
     def storage_update(self, args=None):
-        if len(args) == 0:
-            print("'storage update' expects a file argument!", file=sys.stderr)
-            return 1
-
-        dest = args[0]
-        src = args[1] if len(args) > 1 else None
-
         self.start_time = time.monotonic()
-        status = self.agent.storage_update(dest, src, self._storage_write_cb)
+        status = self.agent.storage_update(
+            args.destination, args.source, self._storage_write_cb
+        )
         sys.stdout.write("\n")
         sys.stdout.flush()
 
@@ -483,13 +348,10 @@ class Application:
         return 0
 
     def storage_write(self, args=None):
-        if len(args) == 0:
-            print("'storage write' expects a file argument!", file=sys.stderr)
-            return 1
-
         self.start_time = time.monotonic()
         status = self.agent.storage_write_image(
-            args[0], self._storage_write_cb)
+            args.image, self._storage_write_cb
+        )
         sys.stdout.write("\n")
         sys.stdout.flush()
 
@@ -497,14 +359,6 @@ class Application:
             print("'storage write' failed!", file=sys.stderr)
             return 1
         return 0
-
-    def target_help(self, args=None):
-        print("The 'target' command accepts the following sub-commands:")
-        print("   on      Power on the device")
-        print("   off     Power off the device")
-        print("   reset   Power cycle the device")
-        print("   toggle  Toggle target power")
-        print("   uptime  Print target uptime")
 
     def target_uptime(self):
         result = ""
@@ -605,130 +459,302 @@ class Application:
         return 0
 
     def target_cmd(self, args):
-        if len(args) > 0:
-            cmd = args[0]
-            args.pop(0)
+        cmds = {
+           'off': self.target_off,
+           'on': self.target_on,
+           'reset': self.target_reset,
+           'toggle': self.target_toggle,
+           'uptime': self.target_uptime_cmd
+        }
 
-            cmds = {
-               'help': self.target_help,
-               'off': self.target_off,
-               'on': self.target_on,
-               'reset': self.target_reset,
-               'toggle': self.target_toggle,
-               'uptime': self.target_uptime_cmd
-            }
-
-            if cmd in cmds:
-                return cmds[cmd](args)
-            else:
-                print("unknown target command '%s'!" % (cmd), file=sys.stderr)
-                return 1
+        return cmds[args.subcommand](args)
 
     def usb_cmd(self, args):
-        if len(args) > 0:
-            cmd = args[0]
-            args.pop(0)
+        cmds = {
+           'off': self.usb_off,
+           'on': self.usb_on
+        }
 
-            cmds = {
-               'help': self.usb_help,
-               'off': self.usb_off,
-               'on': self.usb_on
-            }
-
-            if cmd in cmds:
-                return cmds[cmd](args)
-            else:
-                print("unknown usb command '%s'!" % (cmd), file=sys.stderr)
-                return 1
-
-    def usb_help(self, args=None):
-        print("The 'usb' command accepts the following sub-commands:")
-        print("   on      Power on the specified USB device")
-        print("   off     Power off the specified USB device")
+        return cmds[args.subcommand](args)
 
     def usb_off(self, args):
-        if len(args) > 0:
-            klass = args[0]
-            args.pop(0)
-            client = self.client()
-            result = client.usb_off_by_class(klass)
-            return 0 if result else 1
-        else:
-            print("missing class argument to 'usb off' command!",
-                  file=sys.stderr)
-            return 1
+        klass = args.option
+        client = self.client()
+        result = client.usb_off_by_class(klass)
+        return 0 if result else 1
 
     def usb_on(self, args):
-        if len(args) > 0:
-            klass = args[0]
-            args.pop(0)
-            client = self.client()
-            result = client.usb_on_by_class(klass)
-            return 0 if result else 1
-        else:
-            print("missing class argument to 'usb on' command!",
-                  file=sys.stderr)
-            return 1
+        klass = args.option
+        client = self.client()
+        result = client.usb_on_by_class(klass)
+        return 0 if result else 1
 
     def print_version(self):
         agent = MultiTenantDeviceAccess()
         print("MTDA version: %s" % agent.version)
 
     def main(self):
-        config = None
+        parser = ArgumentParser(
+            allow_abbrev=False,
+            formatter_class=RawTextHelpFormatter,
+        )
+        parser.add_argument("-v", "--version", action="store_true")
+        parser.add_argument(
+            "-c", "--config", metavar="", required=False, help="config file"
+        )
+        parser.add_argument(
+            "-r",
+            "--remote",
+            metavar="",
+            default="localhost",
+            required=False,
+            help="remote",
+        )
 
-        options, stuff = getopt.getopt(
-            sys.argv[1:], 'c:hr:v',
-            ['help', 'remote=', 'version'])
-        for opt, arg in options:
-            if opt in ('-c', '--config'):
-                config = arg
-            if opt in ('-h', '--help'):
-                self.help_cmd()
-                sys.exit(0)
-            if opt in ('-r', '--remote'):
-                self.remote = arg
-            if opt in ('-v', '--version'):
-                self.print_version()
-                sys.exit(0)
+        # subcommand: command
+        subparsers = parser.add_subparsers(dest="command")
+        subparsers.required = False
+        cmd = self.command_cmd
+        p = subparsers.add_parser(
+            "command",
+            help="Send a command (string) to the device",
+        )
+        p.add_argument(
+            "cmd_command", metavar="cmd", type=str, help="Command to send"
+        )
+        p.set_defaults(func=cmd)
 
-        if self.remote is None:
-            self.remote = "localhost"
+        # subcommand: console
+        cmd = self.console_cmd
+        p = subparsers.add_parser(
+            "console",
+            help="Interact with the device console",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser(
+            "clear",
+            help="Clear any data present in the console buffer",
+        )
+        s = subsub.add_parser(
+            "dump",
+            help="Dump content of the console buffer",
+        )
+        s = subsub.add_parser(
+            "flush",
+            help="Flush content of the console buffer",
+        )
+        s = subsub.add_parser(
+            "head",
+            help="Fetch and print the first line from the console buffer",
+        )
+        s = subsub.add_parser(
+            "interactive",
+            help="Open the device console for interactive use",
+        )
+        s = subsub.add_parser(
+            "lines",
+            help="Print number of lines present in the console buffer",
+        )
+        s = subsub.add_parser(
+            "prompt",
+            help="Configure or print the target shell prompt",
+        )
+        s.add_argument(
+            "prompt_str",
+            metavar="string",
+            nargs="?",
+            type=str,
+            help="Console prompt string to set",
+        )
+        s = subsub.add_parser(
+            "raw",
+            help="Open the console for use from scripts",
+        )
+        s = subsub.add_parser(
+            "run",
+            help="Run the specified command via the device console",
+        )
+        s.add_argument(
+            "console_command",
+            metavar="command",
+            type=str,
+            help="Command to run"
+        )
+        s = subsub.add_parser(
+            "send",
+            help="Send characters to the device console",
+        )
+        s.add_argument("send_string", type=str, help="String to send")
+        s = subsub.add_parser(
+            "tail",
+            help="Fetch and print the last line from the console buffer",
+        )
+        s = subsub.add_parser(
+            "wait",
+            help="Wait for the specified string on the console",
+        )
+        s.add_argument("wait_string", type=str, help="String to wait")
+        s.add_argument("timeout", type=int, nargs="?", help="Timeout")
 
+        # subcommand: getenv
+        cmd = self.getenv_cmd
+        p = subparsers.add_parser(
+            "getenv",
+            help="Get named variable from the environment",
+        )
+        p.add_argument("name", type=str, help="Key")
+        p.set_defaults(func=cmd)
+
+        # subcommand: keyboard
+        cmd = self.keyboard_cmd
+        p = subparsers.add_parser(
+            "keyboard",
+            help="Write a string of characters via the keyboard",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser(
+            "write", help="Write a string of characters via the keyboard"
+        )
+        s.add_argument(
+            "write_key",
+            metavar="key",
+            type=str,
+            help="Keyboard Key"
+        )
+
+        # subcommand: monitor
+        cmd = self.monitor_cmd
+        p = subparsers.add_parser(
+            "monitor",
+            help="Interact with the device monitor console (if any)",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser(
+            "send",
+            help="Send characters to the device monitor"
+        )
+        s.add_argument("send_string", type=str, help="String to send")
+        s = subsub.add_parser(
+            "wait", help="Wait for the specified string on the monitor"
+        )
+        s.add_argument("wait_string", type=str, help="String to wait")
+        s.add_argument("timeout", type=int, nargs="?", help="Timeout")
+
+        # subcommand: setenv
+        cmd = self.setenv_cmd
+        p = subparsers.add_parser(
+            "setenv",
+            help="Set named variable to specified value in the environment",
+        )
+        p.add_argument("name", type=str, help="Key")
+        p.add_argument("value", type=str, nargs="?", help="Value")
+        p.set_defaults(func=cmd)
+
+        # subcommand: storage
+        cmd = self.storage_cmd
+        p = subparsers.add_parser(
+            "storage",
+            help="Interact with the shared storage device",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser(
+            "host", help="Attach the shared storage device to the host"
+        )
+        s = subsub.add_parser(
+            "mount", help="Mount the shared storage device on the host"
+        )
+        s.add_argument(
+            "partnum",
+            metavar="partition number",
+            type=int,
+            nargs="?",
+            help="Parititon number to mount",
+        )
+        s = subsub.add_parser(
+            "target", help="Attach the shared storage device to the target"
+        )
+        s = subsub.add_parser(
+            "update",
+            help="Update the specified file on the shared storage device"
+        )
+        s.add_argument(
+            "destination",
+            type=str,
+            help="Location in mounted partition"
+        )
+        s.add_argument(
+            "source",
+            metavar="filename",
+            type=str, nargs="?",
+            help="Path to file"
+        )
+        s = subsub.add_parser(
+            "write",
+            help="Write an image to the shared storage device"
+        )
+        s.add_argument(
+            "image",
+            metavar="image",
+            type=str,
+            help="Path to image file"
+        )
+
+        # subcommand: target
+        cmd = self.target_cmd
+        p = subparsers.add_parser(
+            "target",
+            help="Power control the device",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser("on", help="Power on the device")
+        s = subsub.add_parser("off", help="Power off the device")
+        s = subsub.add_parser("reset", help="Power cycle the device")
+        s = subsub.add_parser("toggle", help="Toggle target power")
+        s = subsub.add_parser("uptime", help="Print target uptime")
+
+        # subcommand: usb
+        cmd = self.usb_cmd
+        p = subparsers.add_parser(
+            "usb",
+            help="Control USB devices attached to the device",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        p.add_argument(
+            "option",
+            metavar="class",
+            type=str,
+            help="usb class type"
+        )
+        s = subsub.add_parser("on", help="Power on the specified USB device")
+        s = subsub.add_parser(
+            "off", help="Power off the specified USB device"
+        )
+
+        args = parser.parse_args()
+        if args.version:
+            self.print_version()
+            sys.exit(0)
+        config = args.config
+        self.remote = args.remote
+        self.agent = Client(self.remote, config_files=config)
+        self.remote = self.agent.remote()
+        self.agent.start()
         # Assume we want an interactive console if called without a command
-        if len(stuff) == 0:
-            stuff = ['console', 'interactive']
-
-        # Check for non-option arguments
-        cmd = stuff[0]
-        stuff.pop(0)
-
-        cmds = {
-            'command': self.command_cmd,
-            'console': self.console_cmd,
-            'getenv': self.getenv_cmd,
-            'help': self.help_cmd,
-            'keyboard': self.keyboard_cmd,
-            'monitor': self.monitor_cmd,
-            'setenv': self.setenv_cmd,
-            'storage': self.storage_cmd,
-            'target': self.target_cmd,
-            'usb': self.usb_cmd
-        }
-
-        if cmd in cmds:
-            if cmd != 'help':
-                # Start our agent
-                self.agent = Client(self.remote, config_files=config)
-                self.remote = self.agent.remote()
-                self.agent.start()
-            status = cmds[cmd](stuff)
-            sys.exit(status)
-        else:
-            print("unknown command '%s'!" % (cmd), file=sys.stderr)
-            self.help_cmd()
-            sys.exit(1)
-        return True
+        if args.command is None:
+            args = parser.parse_args(['console', 'interactive'])
+        status = args.func(args)
+        sys.exit(status)
 
 
 if __name__ == '__main__':
