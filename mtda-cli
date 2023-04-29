@@ -676,11 +676,9 @@ class Application:
 
     def main(self):
         config = None
-        daemonize = False
-        detach = True
 
         options, stuff = getopt.getopt(
-            sys.argv[1:], 'c:dhnr:v',
+            sys.argv[1:], 'c:hr:v',
             ['help', 'remote=', 'version'])
         for opt, arg in options:
             if opt in ('-c', '--config'):
@@ -694,29 +692,8 @@ class Application:
                 self.print_version()
                 sys.exit(0)
 
-        # Start our server
-        if daemonize is True:
-
-            if self.remote is not None:
-                print("-d and -r may not be used together", file=sys.stderr)
-                sys.exit(1)
-
-            self.agent = MultiTenantDeviceAccess()
-            self.agent.load_config(None, daemonize, config)
-            self.remote = self.agent.remote
-            if detach is True:
-                status = self.daemonize()
-            else:
-                status = self.server()
-            if status is False:
-                print('Failed to start the MTDA server!', file=sys.stderr)
-                return False
-            return True
-
-        # Client mode
-        else:
-            if self.remote is None:
-                self.remote = "localhost"
+        if self.remote is None:
+            self.remote = "localhost"
 
         # Assume we want an interactive console if called without a command
         if len(stuff) == 0:
