@@ -19,7 +19,6 @@ addAssignees: false
 reviewers:
   - chombourger
   - vj-kumar
-  - bikrambhola
 
 # A number of reviewers added to the pull request
 # Set 0 to add all the reviewers (default: 0)
