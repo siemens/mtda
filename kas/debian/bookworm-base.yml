@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on the NanoPI NEO
+# Base kas file for all configurations based on Debian bookworm
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -9,10 +9,9 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-build_system: isar
-machine: nanopi-neo
-
 header:
   version: 10
   includes:
-    - kas/debian/bookworm-base.yml
+    - kas/common/base.yml
+
+distro: mtda-bookworm
