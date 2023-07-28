@@ -9,8 +9,8 @@
 // SPDX-License-Identifier: MIT
 // --------------------------------------------------------------------------
 
-import * as WebUtil from '/novnc/app/webutil.js';
-import RFB from '/novnc/core/rfb.js';
+import * as WebUtil from '../novnc/app/webutil.js';
+import RFB from '../novnc/core/rfb.js';
 
 var rfb;
 var desktopName;
