@@ -108,7 +108,7 @@ SPDX-License-Identifier: MIT
     <script type=text/javascript>
       $(function() {
         $('a#power-toggle').bind('click', function() {
-          $.getJSON('/power-toggle', function(data) {
+          $.getJSON('./power-toggle', function(data) {
             // do nothing
           });
           return false;
@@ -118,7 +118,7 @@ SPDX-License-Identifier: MIT
         $('a#keyboard-show').bind('click', function() {
           Keyboard.open('', function(data) {
             console.log("#### <KEY> " + data);
-            $.getJSON('/keyboard-input', {input: data}, function(data) {
+            $.getJSON('./keyboard-input', {input: data}, function(data) {
               // do nothing
             });
           }, '');
@@ -141,7 +141,7 @@ SPDX-License-Identifier: MIT
         socket.emit("console-input", { input: data });
       });
 
-      const socket = io.connect("/mtda");
+      const socket = io.connect("/mtda", {path: window.location.pathname + "socket.io/"});
       const status = document.getElementById("mtda_status");
       const version = document.getElementById("mtda_version");
       const video = document.getElementById("video");
