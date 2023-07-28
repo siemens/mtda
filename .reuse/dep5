@@ -155,3 +155,6 @@ Files: mtda/assets/xterm.js
 Copyright: 2014 The xterm.js authors.
 License: MIT
 
+Files: mtda/share/nginx-multi-mtda.conf
+Copyright: 2023 Siemens AG
+License: MIT
