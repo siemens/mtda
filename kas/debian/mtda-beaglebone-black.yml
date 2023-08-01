@@ -15,4 +15,4 @@ machine: beaglebone-black
 header:
   version: 10
   includes:
-    - kas/debian/bullseye-base.yml
+    - kas/debian/bookworm-base.yml
