@@ -35,7 +35,7 @@ function disconnected(e) {
     }
 }
 
-WebUtil.init_logging(WebUtil.getConfigVar('logging', 'warn'));
+WebUtil.initLogging(WebUtil.getConfigVar('logging', 'warn'));
 var host = WebUtil.getConfigVar('host', window.location.hostname);
 var port = 5901
 var password = ''
