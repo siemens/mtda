@@ -259,9 +259,9 @@ class Composite:
 
 def write(filename, content, mode="w"):
     with open(filename, mode) as fp:
-        if type(content) == str:
+        if type(content) is str:
             return fp.write(content)
-        if type(content) == list:
+        if type(content) is list:
             return fp.write(bytearray(content))
 
 
