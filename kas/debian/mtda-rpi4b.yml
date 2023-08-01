@@ -15,4 +15,4 @@ machine: rpi4b
 header:
   version: 10
   includes:
-    - kas/debian/bullseye-base.yml
+    - kas/debian/bookworm-base.yml
