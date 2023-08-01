@@ -10,19 +10,7 @@ SPDX-License-Identifier: MIT
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="./assets/material_icons.css">
     <link rel="stylesheet" href="./assets/keyboard.css">
-    <link rel="stylesheet" href="novnc/app/styles/lite.css">
-    <script src="novnc/vendor/promise.js"></script>
-    <script type="module">
-        window._noVNC_has_module_support = true;
-    </script>
-    <script>
-        window.addEventListener("load", function() {
-            if (window._noVNC_has_module_support) return;
-            var loader = document.createElement("script");
-            loader.src = "novnc/vendor/browser-es-module-loader/dist/browser-es-module-loader.js";
-            document.head.appendChild(loader);
-        });
-    </script>
+    <link rel="stylesheet" href="novnc/app/styles/base.css">
     <script type="module" crossorigin="anonymous" src="./assets/vnc.js"></script>
     <title>Multi-Tenant Device Access</title>
     <link rel="stylesheet" href="./assets/xterm.css"/>
