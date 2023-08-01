@@ -53,8 +53,8 @@ jobs:
         with:
           name: mtda-nanopi-images
           path: |
-            build-nanopi/tmp/deploy/images/nanopi-*/mtda-image-mtda-bullseye-nanopi-*.wic.img
-            build-nanopi/tmp/deploy/images/nanopi-*/mtda-image-mtda-bullseye-nanopi-*.wic.img.bmap
+            build-nanopi/tmp/deploy/images/nanopi-*/mtda-image-mtda-bullseye-nanopi-*.wic
+            build-nanopi/tmp/deploy/images/nanopi-*/mtda-image-mtda-bullseye-nanopi-*.wic.bmap
       - name: Publish .deb to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
@@ -80,8 +80,8 @@ jobs:
         with:
           name: mtda-nanopi-images
           path: |
-            build-bbb/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic.img
-            build-bbb/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic.img.bmap
+            build-bbb/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic
+            build-bbb/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic.bmap
   mtda-debian-qemu-amd64-packages:
     name: Debian packages for running MTDA on amd64
     runs-on: ubuntu-latest
