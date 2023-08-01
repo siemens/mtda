@@ -57,7 +57,8 @@ usage()
 	printf "%b" "--runtime-args\t\tAdditional arguments to pass to the " \
 			"container runtime\n"
 	printf "%b" "\t\t\tfor running the build.\n"
-	printf "%b" "-d\t\t\tPrint debug output.\n"
+	printf "%b" "-d\t\t\tPrint debug output (deprecated, use -l debug).\n"
+	printf "%b" "-l, --log-level\t\tSet log level (default=info).\n"
 	printf "%b" "-v\t\t\tSame as -d (deprecated).\n"
 	printf "%b" "--version\t\tprint program version.\n"
 	printf "%b" "--ssh-dir\t\tDirectory containing SSH configurations.\n"
@@ -120,7 +121,7 @@ run_clean() {
 				${KAS_CONTAINER_IMAGE} \
 				sudo rm -rf tmp
 	else
-		trace rm -rf "${KAS_BUILD_DIR}/tmp"
+		trace rm -rf "${KAS_BUILD_DIR}"/tmp*
 	fi
 
 	if [ "$1" != "clean" ]; then
@@ -134,7 +135,7 @@ run_clean() {
 	fi
 }
 
-KAS_IMAGE_VERSION_DEFAULT="3.2.3"
+KAS_IMAGE_VERSION_DEFAULT="4.0"
 KAS_CONTAINER_IMAGE_PATH_DEFAULT="ghcr.io/siemens/kas"
 KAS_CONTAINER_IMAGE_NAME_DEFAULT="kas"
 
@@ -146,10 +147,10 @@ set_container_image_var() {
 	KAS_CONTAINER_IMAGE="${KAS_CONTAINER_IMAGE:-${KAS_CONTAINER_IMAGE_DEFAULT}}"
 }
 
-KAS_WORK_DIR=$(readlink -f "${KAS_WORK_DIR:-$(pwd)}")
+KAS_WORK_DIR=$(readlink -fv "${KAS_WORK_DIR:-$(pwd)}")
 # KAS_WORK_DIR needs to exist for the subsequent code
 trace mkdir -p "${KAS_WORK_DIR}"
-KAS_BUILD_DIR=$(readlink -f "${KAS_BUILD_DIR:-${KAS_WORK_DIR}/build}")
+KAS_BUILD_DIR=$(readlink -fv "${KAS_BUILD_DIR:-${KAS_WORK_DIR}/build}")
 trace mkdir -p "${KAS_BUILD_DIR}"
 
 KAS_CONTAINER_ENGINE="${KAS_CONTAINER_ENGINE:-${KAS_DOCKER_ENGINE}}"
@@ -235,7 +236,7 @@ while [ $# -gt 0 ]; do
 		shift 2
 		;;
 	--ssh-agent)
-		KAS_SSH_AUTH_SOCK=$(readlink -f "$SSH_AUTH_SOCK")
+		KAS_SSH_AUTH_SOCK=$(readlink -fv "$SSH_AUTH_SOCK")
 		shift 1
 		;;
 	--aws-dir)
@@ -265,6 +266,13 @@ while [ $# -gt 0 ]; do
 		KAS_OPTIONS_DIRECT="${KAS_OPTIONS_DIRECT} -d"
 		shift 1
 		;;
+	-l | --log-level)
+		if [ "$2" = "debug" ]; then
+			KAS_VERBOSE=1
+		fi
+		KAS_OPTIONS_DIRECT="${KAS_OPTIONS_DIRECT} -l $2"
+		shift 2
+		;;
 	--version)
 		echo "$(basename "$0") $KAS_IMAGE_VERSION_DEFAULT"
 		exit 0
@@ -283,8 +291,18 @@ while [ $# -gt 0 ]; do
 		shift 1
 		break
 		;;
-	build|checkout|dump|for-all-repos|menu)
+	build|checkout|for-all-repos|menu)
 		KAS_REPO_MOUNT_OPT_DEFAULT="ro"
+		KAS_CMD=$1
+		shift 1
+		break
+		;;
+	dump)
+		if printf '%s\0' "$@" | grep -xqz -- '--inplace\|-i'; then
+			KAS_REPO_MOUNT_OPT_DEFAULT="rw"
+		else
+			KAS_REPO_MOUNT_OPT_DEFAULT="ro"
+		fi
 		KAS_CMD=$1
 		shift 1
 		break
@@ -302,13 +320,6 @@ KAS_EXTRA_BITBAKE_ARGS=0
 # parse kas sub-command options
 while [ $# -gt 0 ] && [ $KAS_EXTRA_BITBAKE_ARGS -eq 0 ]; do
 	case "$1" in
-	-h|--help)
-		set_container_image_var
-		# SC2086: Double quote to prevent globbing and word splitting.
-		# shellcheck disable=2086
-		trace ${KAS_CONTAINER_COMMAND} run ${KAS_CONTAINER_IMAGE} ${KAS_CMD} --help
-		exit 0
-		;;
 	--skip|--target|--task)
 		KAS_OPTIONS="${KAS_OPTIONS} $1 $2"
 		shift 2
@@ -362,9 +373,26 @@ else
 	KAS_REPO_DIR=$(pwd)
 fi
 
+SOURCE_DIR_HOST=$(
+	grep -e "^_source_dir_host: " "${KAS_WORK_DIR}/.config.yaml" 2>/dev/null | \
+	sed 's/_source_dir_host:[ ]\+//')
+if [ -n "${SOURCE_DIR_HOST}" ]; then
+	KAS_REPO_DIR="${SOURCE_DIR_HOST}"
+fi
+
 if [ "${KAS_CMD}" = "menu" ]; then
 	if [ -z "${KAS_FIRST_FILE}" ]; then
 		KAS_FIRST_FILE="Kconfig"
+	fi
+
+	# When using the menu plugin, we need to track the KAS_REPO_DIR outside
+	# of the container to later allow a simple `kas-container build`. For
+	# that, we tell the kas menu plugin via an env-var about the location
+	# on the host. This data is then added to the .config.yaml where it can
+	# be evaluated by the next invocation of kas-container.
+
+	if ! [ "$(realpath -qe "${KAS_REPO_DIR}")" = "$(realpath -qe "${KAS_WORK_DIR}")" ]; then
+		set -- "$@" -e _KAS_REPO_DIR_HOST="$(readlink -fv "${KAS_REPO_DIR}")"
 	fi
 
 	BUILD_SYSTEM=$(tr '\n' '\f' 2>/dev/null < ${KAS_FIRST_FILE} | \
@@ -382,7 +410,7 @@ fi
 
 if [ "${BUILD_SYSTEM}" = "isar" ]; then
 	enable_isar_mode
-else
+elif [ -z "${ISAR_MODE}" ]; then
 	enable_oe_mode
 fi
 
@@ -411,7 +439,7 @@ if [ -n "${KAS_SSH_DIR}" ] ; then
 		echo "Passed KAS_SSH_DIR '${KAS_SSH_DIR}' is not a directory"
 		exit 1
 	fi
-	set -- "$@" -v "$(readlink -f "${KAS_SSH_DIR}")":/var/kas/userdata/.ssh:ro
+	set -- "$@" -v "$(readlink -fv "${KAS_SSH_DIR}")":/var/kas/userdata/.ssh:ro
 fi
 
 if [ -n "${KAS_SSH_AUTH_SOCK}" ]; then
@@ -428,7 +456,7 @@ if [ -n "${KAS_AWS_DIR}" ] ; then
 		echo "Passed KAS_AWS_DIR '${KAS_AWS_DIR}' is not a directory"
 		exit 1
 	fi
-	set -- "$@" -v "$(readlink -f "${KAS_AWS_DIR}")":/var/kas/userdata/.aws:ro \
+	set -- "$@" -v "$(readlink -fv "${KAS_AWS_DIR}")":/var/kas/userdata/.aws:ro \
 		-e AWS_CONFIG_FILE="${AWS_CONFIG_FILE:-/var/kas/userdata/.aws/config}" \
 		-e AWS_SHARED_CREDENTIALS_FILE="${AWS_SHARED_CREDENTIALS_FILE:-/var/kas/userdata/.aws/credentials}"
 fi
@@ -441,7 +469,7 @@ if [ -n "${KAS_GIT_CREDENTIAL_STORE}" ] ; then
 		exit 1
 	fi
 	KAS_GIT_CREDENTIAL_HELPER_DEFAULT="store --file=/var/kas/userdata/.git-credentials"
-	set -- "$@" -v "$(readlink -f "${KAS_GIT_CREDENTIAL_STORE}")":/var/kas/userdata/.git-credentials:ro
+	set -- "$@" -v "$(readlink -fv "${KAS_GIT_CREDENTIAL_STORE}")":/var/kas/userdata/.git-credentials:ro
 fi
 
 GIT_CREDENTIAL_HELPER="${GIT_CREDENTIAL_HELPER:-${KAS_GIT_CREDENTIAL_HELPER_DEFAULT}}"
@@ -451,7 +479,7 @@ if [ -n "${GIT_CREDENTIAL_HELPER}" ] ; then
 fi
 
 if [ -f "${NETRC_FILE}" ]; then
-	set -- "$@" -v "$(readlink -f "${NETRC_FILE}")":/var/kas/userdata/.netrc:ro \
+	set -- "$@" -v "$(readlink -fv "${NETRC_FILE}")":/var/kas/userdata/.netrc:ro \
 		-e NETRC_FILE="/var/kas/userdata/.netrc"
 fi
 
@@ -462,14 +490,14 @@ fi
 if [ -n "${DL_DIR}" ]; then
 	trace mkdir -p "${DL_DIR}"
 	set -- "$@" \
-		-v "$(readlink -f "${DL_DIR}")":/downloads:rw \
+		-v "$(readlink -fv "${DL_DIR}")":/downloads:rw \
 		-e DL_DIR=/downloads
 fi
 
 if [ -n "${SSTATE_DIR}" ]; then
 	trace mkdir -p "${SSTATE_DIR}"
 	set -- "$@" \
-		-v "$(readlink -f "${SSTATE_DIR}")":/sstate:rw \
+		-v "$(readlink -fv "${SSTATE_DIR}")":/sstate:rw \
 		-e SSTATE_DIR=/sstate
 fi
 
@@ -479,12 +507,13 @@ if [ -n "${KAS_REPO_REF_DIR}" ]; then
 		exit 1
 	fi
 	set -- "$@" \
-		-v "$(readlink -f "${KAS_REPO_REF_DIR}")":/repo-ref:rw \
+		-v "$(readlink -fv "${KAS_REPO_REF_DIR}")":/repo-ref:rw \
 		-e KAS_REPO_REF_DIR=/repo-ref
 fi
 
 for var in TERM KAS_DISTRO KAS_MACHINE KAS_TARGET KAS_TASK \
-           KAS_PREMIRRORS DISTRO_APT_PREMIRRORS BB_NUMBER_THREADS PARALLEL_MAKE; do
+           KAS_PREMIRRORS DISTRO_APT_PREMIRRORS BB_NUMBER_THREADS PARALLEL_MAKE \
+           GIT_CREDENTIAL_USEHTTPPATH; do
 	if [ -n "$(eval echo \$${var})" ]; then
 		set -- "$@" -e "${var}=$(eval echo \"\$${var}\")"
 	fi
