@@ -17,4 +17,4 @@ header:
     - kas/common/base.yml
 
 machine: qemuamd64
-distro: ubuntu-focal
+distro: ubuntu-jammy

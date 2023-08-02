@@ -11,7 +11,7 @@
 # ---------------------------------------------------------------------------
 
 build_dir=${1:-build}
-distro=${2:-focal}
+distro=${2:-jammy}
 signer=${3:-D26CC6417E10F45C61C83B38FA5C9FECC03529BF}
 tmp_dir=""
 
