@@ -1,10 +1,10 @@
 Installation
 ============
 
-Using apt on Debian 11
+Using apt on Debian 12
 ----------------------
 
-Packages for Debian 11 (bullseye) may be installed as follows::
+Packages for Debian 12 (bookworm) may be installed as follows::
 
    $ echo 'deb [trusted=yes] https://apt.fury.io/mtda/ /' | \
      sudo tee /etc/apt/sources.list.d/mtda.list
