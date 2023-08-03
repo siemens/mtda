@@ -1183,7 +1183,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(2, "main.load_config(): "
                            "config_files={}".format(config_files))
 
-        self.remote = remote
+        self.remote = os.getenv('MTDA_REMOTE', remote)
         self.is_remote = remote is not None
         self.is_server = is_server
         parser = configparser.ConfigParser()
@@ -1404,8 +1404,6 @@ class MultiTenantDeviceAccess:
                 # Load remote setting from the configuration
                 self.remote = parser.get(
                     'remote', 'host', fallback=self.remote)
-                # Allow override from the environment
-                self.remote = os.getenv('MTDA_REMOTE', self.remote)
 
             # Attempt to resolve remote using Zeroconf
             watcher = mtda.discovery.Watcher(CONSTS.MDNS.TYPE)
