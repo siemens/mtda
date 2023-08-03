@@ -450,6 +450,7 @@ Hit ``i`` to enter the input mode and type the following configuration::
 
     [storage]
     variant=usbf
+    file=/dev/sda
 
 Hit ``ESC`` to leave the input mode and type ``:x`` to exit. You should be back
 to the shell and may restart the agent::
@@ -493,6 +494,7 @@ The following configuration file may be used for the DE0-Nano-SoC::
     [storage]
     variant=samsung
     serial=sdwire1
+    device=/dev/sda
 
 where ``sdwire1`` is the serial number programmed into the SDWire EEPROM. Use
 ``sd-mux-ctrl -l`` to list SDWire devices connected to your NanoPI NEO and
