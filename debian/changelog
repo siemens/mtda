@@ -1,8 +1,33 @@
 mtda (0.20-0) testing; urgency=medium
- 
-  * Development version
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 01 Mar 2023 15:00:00 +0100
+  [ Bhargav Das ]
+  * docs/neo_block_diagram.png: Update wiring diagram
+
+  [ Cedric Hombourger ]
+  * kas/debian: switch to bookworm
+  * support/usb: fix flake8 error about type comparisons
+  * ci: correct path to wic images
+  * main: load MTDA_REMOTE from the environment even without config files
+  * docs/build: add "file" setting to the [storage] section
+
+  [ Felix Moessbauer ]
+  * improve caching of mtda isar layer
+  * fix path to material icons
+  * vnc: allow path-relative imports
+  * mtda: allow running behind a reverse proxy
+  * add sample nginx config to proxy access to mtda
+
+  [ Manuel Josef Matzinger ]
+  * added mtda-www package to mtda-image.bb
+  * fixed website for bookworm noVNC package
+
+  [ Vijai Kumar K ]
+  * ci: update reviewers list
+  * mtda-cli: cleanup stale code
+  * kas-container: update to latest kas 3.2.3
+  * mtda-cli: use argparse
+ 
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 04 Aug 2023 10:00:00 +0100
 
 mtda (0.19-1) testing; urgency=medium
 
