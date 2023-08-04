@@ -37,15 +37,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Cache downloads and sstate
+        uses: actions/cache@v3
+        with:
+          key: ${{ hashFiles('debian/changelog') }}
+          path: |
+            build/downloads
+            build/sstate-cache
       - name: Build packages
         run: |
-          export KAS_BUILD_DIR=${PWD}/build-nanopi
           ./kas-container build --target mc:nanopi-neo:mtda-packages kas/debian/mtda-nanopi-all.yml
           ./kas-container build --target mc:nanopi-r1:mtda-packages kas/debian/mtda-nanopi-all.yml
       - name: Build image
         if: github.ref == 'refs/heads/master'
         run: |
-          export KAS_BUILD_DIR=${PWD}/build-nanopi
           ./kas-container build kas/debian/mtda-nanopi-all.yml
       - name: Upload image
         uses: actions/upload-artifact@v2
@@ -53,14 +58,14 @@ jobs:
         with:
           name: mtda-nanopi-images
           path: |
-            build-nanopi/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic
-            build-nanopi/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic.bmap
+            build/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic
+            build/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic.bmap
       - name: Publish .deb to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
         run: |
-          find build-nanopi/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
+          find build/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
           done
   mtda-bbb-images:
@@ -69,10 +74,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Cache downloads and sstate
+        uses: actions/cache@v3
+        with:
+          key: ${{ hashFiles('debian/changelog') }}
+          path: |
+            build/downloads
+            build/sstate-cache
       - name: Build image
         if: github.ref == 'refs/heads/master'
         run: |
-          export KAS_BUILD_DIR=${PWD}/build-bbb
           ./kas-container build kas/debian/mtda-beaglebone-black.yml
       - name: Upload image
         uses: actions/upload-artifact@v2
@@ -80,17 +91,23 @@ jobs:
         with:
           name: mtda-nanopi-images
           path: |
-            build-bbb/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic
-            build-bbb/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic.bmap
+            build/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic
+            build/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic.bmap
   mtda-debian-qemu-amd64-packages:
     name: Debian packages for running MTDA on amd64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Cache downloads and sstate
+        uses: actions/cache@v3
+        with:
+          key: ${{ hashFiles('debian/changelog') }}
+          path: |
+            build/downloads
+            build/sstate-cache
       - name: Build packages
         run: |
-          export KAS_BUILD_DIR=${PWD}/build-amd64
           ./kas-container build --target mtda-packages kas/debian/mtda-qemu-amd64.yml
           ./kas-container build --target qemu-packages kas/debian/mtda-qemu-amd64.yml
       - name: Publish .deb to Gemfury
@@ -98,6 +115,6 @@ jobs:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
         run: |
-          find build-amd64/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
+          find build/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
           done
