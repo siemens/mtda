@@ -46,6 +46,10 @@ jobs:
             build/sstate-cache
       - name: Build packages
         run: |
+          pwd
+          ls
+          mkdir -p build
+          du -sh build/*
           ./kas-container build --target mc:nanopi-neo:mtda-packages kas/debian/mtda-nanopi-all.yml
           ./kas-container build --target mc:nanopi-r1:mtda-packages kas/debian/mtda-nanopi-all.yml
       - name: Build image
