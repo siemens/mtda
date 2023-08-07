@@ -12,6 +12,7 @@
 header:
   version: 10
 
+machine: qemuamd64
 target: mtda-image
 
 repos:
