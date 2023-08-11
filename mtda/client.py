@@ -18,6 +18,7 @@ import zerorpc
 
 from mtda.main import MultiTenantDeviceAccess
 import mtda.constants as CONSTS
+import xml.etree.ElementTree as ET
 
 
 class Client:
@@ -260,6 +261,24 @@ class Client:
         except FileNotFoundError:
             return False
 
+        # Automatically discover the bmap file
+        image_path = path
+        bmapDict = None
+        while True:
+            bmap_path = image_path + ".bmap"
+            try:
+                bmap = ET.parse(bmap_path)
+                print("discovered bmap file '%s'" % bmap_path)
+                bmapDict = self.parseBmap(bmap, bmap_path)
+                self._impl.storage_bmap_dict(bmapDict, self._session)
+                break
+            except Exception:
+                pass
+            image_path, ext = os.path.splitext(image_path)
+            if ext == "":
+                print("No bmap file found at location of image")
+                break
+
         # Open the shared storage device
         status = self.storage_open()
         if status is False:
@@ -267,6 +286,32 @@ class Client:
             return False
 
         return self._storage_write(image, imgname, imgsize, callback)
+
+    def parseBmap(self, bmap, bmap_path):
+        try:
+            bmapDict = {}
+            broot = bmap.getroot()
+            bmapDict["BlockSize"] = int(
+                broot.find("BlockSize").text.strip())
+            bmapDict["BlocksCount"] = int(
+                bmap.find("BlocksCount").text.strip())
+            bmapDict["MappedBlocksCount"] = int(
+                bmap.find("MappedBlocksCount").text.strip())
+            bmapDict["ImageSize"] = int(
+                bmap.find("ImageSize").text.strip())
+            bmapDict["BlockMap"] = []
+            for child in broot.find("BlockMap").findall("Range"):
+                first, last = child.text.strip().split("-")
+                bmapDict["BlockMap"].append({
+                    "first": int(first),
+                    "last": int(last),
+                    "chksum": child.attrib["chksum"]
+                })
+        except Exception:
+            print("Error parsing '%s', probably not a bmap 2.0 file"
+                  % bmap_path)
+            return None
+        return bmapDict
 
     def storage_to_host(self):
         return self._impl.storage_to_host(self._session)
