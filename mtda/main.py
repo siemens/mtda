@@ -568,6 +568,17 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_compression(): %s" % str(result))
         return result
 
+    def storage_bmap_dict(self, bmapDict, session=None):
+        self.mtda.debug(3, "main.storage_bmap_dict()")
+
+        self._session_check(session)
+        if self.storage_controller is None:
+            result = None
+        else:
+            self.storage_controller.setBmap(bmapDict)
+            result = True
+        self.mtda.debug(3, "main.storage_bmap_dict()(): %s" % str(result))
+
     def storage_close(self, session=None):
         self.mtda.debug(3, "main.storage_close()")
 

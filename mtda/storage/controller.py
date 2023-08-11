@@ -42,6 +42,11 @@ class StorageController(object):
         return False
 
     @abc.abstractmethod
+    def setBmap(self, bmapDict):
+        """ set up the bmapDict for writing the image faster"""
+        return False
+
+    @abc.abstractmethod
     def supports_hotplug(self):
         """ Whether the shared storage device may be hot-plugged"""
         return False
