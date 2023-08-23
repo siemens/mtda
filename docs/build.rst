@@ -158,47 +158,6 @@ and install the updated packages::
     Processing triggers for man-db (2.9.1-1) ...
     Processing triggers for libc-bin (2.31-0ubuntu9) ...
 
-Get and build libtpms
-^^^^^^^^^^^^^^^^^^^^^
-
-Fetch the latest release from GitHub::
-
-    $ git clone https://github.com/stefanberger/libtpms.git
-    $ cd libtpms
-    $ git checkout v0.9.1
-
-and build it as follows::
-
-    $ sudo mk-build-deps -i -r
-    $ dpkg-buildpackage -b -uc -us
-
-and install it::
-
-    $ cd ..
-    $ sudo dpkg -i libtpms-dev_*_amd64.deb libtpms0_*_amd64.deb
-
-Get and build swtpm
-^^^^^^^^^^^^^^^^^^^
-
-Fetch the latest release from GitHub::
-
-    $ git clone https://github.com/stefanberger/swtpm.git
-    $ cd swtpm
-    $ git checkout v0.7.0
-
-and build it as follows::
-
-    $ sudo mk-build-deps -i -r
-    $ dpkg-buildpackage -b -uc -us
-
-and install it::
-
-    $ cd ..
-    $ sudo dpkg -i swtpm_*_amd64.deb swtpm-libs_*_amd64.deb
-
-Before starting ``kvm``, MTDA checks for the ``swtpm`` tool and automatically
-enables QEMU's support for TPM devices.
-
 NanoPI R1
 ---------
 

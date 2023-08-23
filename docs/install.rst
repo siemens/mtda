@@ -11,12 +11,12 @@ Packages for Debian 12 (bookworm) may be installed as follows::
    $ sudo apt-get update
    $ sudo apt-get install -y mtda
 
-Using apt on Ubuntu 20.04
+Using apt on Ubuntu 22.04
 -------------------------
 
-Packages for Ubuntu 20.04 (Focal Fossa) may be installed as follows::
+Packages for Ubuntu 22.04 (Jammy Jellyfish) may be installed as follows::
 
-   $ sudo add-apt-repository ppa:chombourger/mtda-focal
+   $ sudo add-apt-repository ppa:chombourger/mtda-jammy
    $ sudo apt-get update
    $ sudo apt-get install -y mtda
 

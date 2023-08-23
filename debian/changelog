@@ -1,10 +1,33 @@
-mtda (0.20-0) testing; urgency=medium
+mtda (0.21-0) testing; urgency=medium
+ 
+  * Development version
+
+  [ Cedric Hombourger ]
+  * meta-isar/recipes-python: upgrade python-zstandard from 0.14 to 0.21
+  * meta-isar/recipes-security: remove swtpm packages
+  * ci: rework to use multiconfig and kas
+
+  [ Manuel Josef Matzinger ]
+  * Added algorithm to auto-parse .bmap 2.0 files and write accordingly
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 23 Aug 2023 18:00:00 +0100
+
+mtda (0.20-2) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * correct version
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 13 Aug 2023 12:00:00 +0100
+
+mtda (0.20-1) testing; urgency=medium
 
   [ Bhargav Das ]
-  * docs/neo_block_diagram.png: Update wiring diagram
+  * docs: update wiring diagram for the NanoPI NEO
 
   [ Cedric Hombourger ]
   * kas/debian: switch to bookworm
+  * kas/ubuntu: switch from focal to jammy
+  * kas: update to kas-container 4.0
   * support/usb: fix flake8 error about type comparisons
   * ci: correct path to wic images
   * main: load MTDA_REMOTE from the environment even without config files
@@ -22,12 +45,12 @@ mtda (0.20-0) testing; urgency=medium
   * fixed website for bookworm noVNC package
 
   [ Vijai Kumar K ]
+  * kas: update to the latest ISAR
   * ci: update reviewers list
   * mtda-cli: cleanup stale code
-  * kas-container: update to latest kas 3.2.3
   * mtda-cli: use argparse
  
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 04 Aug 2023 10:00:00 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 13 Aug 2023 11:00:00 +0100
 
 mtda (0.19-1) testing; urgency=medium
 

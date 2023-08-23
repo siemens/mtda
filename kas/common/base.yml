@@ -12,6 +12,7 @@
 header:
   version: 10
 
+machine: qemuamd64
 target: mtda-image
 
 repos:
@@ -20,7 +21,7 @@ repos:
       meta-isar:
   isar:
     url: https://github.com/ilbers/isar.git
-    refspec: 70c3dec0ea1d96dedc1b0aa96b5b7e64bec3939e
+    commit: 1f500d59b02c34549f96b5ece93cd99884ab52bb
     layers:
       meta:
       meta-isar:

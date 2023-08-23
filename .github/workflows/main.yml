@@ -31,12 +31,14 @@ jobs:
         run: |
           pip3 install --user tox
           tox -s
-  mtda-nanopi-images:
-    name: Debian image for running MTDA on NanoPI boards
+  kas-ci:
+    name: Build kas/ci targets
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Free Disk Space
+        uses: ./.github/workflows/free-disk-space
       - name: Cache downloads and sstate
         uses: actions/cache@v3
         with:
@@ -44,19 +46,19 @@ jobs:
           path: |
             build/downloads
             build/sstate-cache
-      - name: Build packages
+      - name: Build Fast CI targets
+        if: github.ref != 'refs/heads/master'
         run: |
           pwd
           ls
           mkdir -p build
           du -sh build/*
-          ./kas-container build --target mc:nanopi-neo:mtda-packages kas/debian/mtda-nanopi-all.yml
-          ./kas-container build --target mc:nanopi-r1:mtda-packages kas/debian/mtda-nanopi-all.yml
-      - name: Build image
+          ./kas-container build kas/ci/fast.yml
+      - name: Build Full CI targets
         if: github.ref == 'refs/heads/master'
         run: |
-          ./kas-container build kas/debian/mtda-nanopi-all.yml
-      - name: Upload image
+          ./kas-container build kas/ci/full.yml
+      - name: Upload NanoPI images
         uses: actions/upload-artifact@v2
         if: github.ref == 'refs/heads/master'
         with:
@@ -64,61 +66,31 @@ jobs:
           path: |
             build/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic
             build/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic.bmap
-      - name: Publish .deb to Gemfury
-        env:
-          GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
-        run: |
-          find build/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
-            curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
-          done
-  mtda-bbb-images:
-    name: Debian image for running MTDA on BeagleBone Black boards
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Cache downloads and sstate
-        uses: actions/cache@v3
-        with:
-          key: ${{ hashFiles('debian/changelog') }}
-          path: |
-            build/downloads
-            build/sstate-cache
-      - name: Build image
-        if: github.ref == 'refs/heads/master'
-        run: |
-          ./kas-container build kas/debian/mtda-beaglebone-black.yml
-      - name: Upload image
+      - name: Upload BeagleBone Black images
         uses: actions/upload-artifact@v2
         if: github.ref == 'refs/heads/master'
         with:
-          name: mtda-nanopi-images
+          name: mtda-bbb-images
           path: |
             build/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic
             build/tmp/deploy/images/beaglebone-*/mtda-image-mtda-*-beaglebone-*.wic.bmap
-  mtda-debian-qemu-amd64-packages:
-    name: Debian packages for running MTDA on amd64
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Cache downloads and sstate
-        uses: actions/cache@v3
-        with:
-          key: ${{ hashFiles('debian/changelog') }}
-          path: |
-            build/downloads
-            build/sstate-cache
-      - name: Build packages
-        run: |
-          ./kas-container build --target mtda-packages kas/debian/mtda-qemu-amd64.yml
-          ./kas-container build --target qemu-packages kas/debian/mtda-qemu-amd64.yml
-      - name: Publish .deb to Gemfury
+      - name: Publish Debian packages to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
         run: |
-          find build/tmp/deploy/isar-apt -name '*.deb' -print | while read p; do
+          find build/tmp/deploy/isar-apt/mtda-bookworm-* -name '*.deb' -print | while read p; do
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
           done
+      - name: Import GPG key
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Upload source packages to PPA
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
+        run: |
+          sudo apt install -y devscripts dh-python equivs
+          ./scripts/build-using-ppa ${PWD}/build jammy

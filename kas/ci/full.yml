@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Ubuntu focal image to run MTDA on x86_64
+# Debian image to run MTDA on NanoPI variants
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -14,7 +14,14 @@ build_system: isar
 header:
   version: 10
   includes:
-    - kas/common/base.yml
+    - kas/debian/bookworm-base.yml
 
-machine: qemuamd64
-distro: ubuntu-jammy
+target:
+  - mc:beaglebone-black:mtda-image
+  - mc:nanopi-neo:mtda-image
+  - mc:nanopi-r1:mtda-image
+  - mc:rpi4b:mtda-image
+  - mc:debian-qemu-amd64:mtda-packages
+  - mc:debian-qemu-amd64:qemu-packages
+  - mc:ubuntu-qemu-amd64:mtda-packages
+  - mc:ubuntu-qemu-amd64:qemu-packages

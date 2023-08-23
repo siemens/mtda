@@ -8,8 +8,6 @@
 # Here's our list of custom packages for qemu
 DEPENDS = "  \
     gnutls28 \
-    libtpms  \
-    swtpm    \
 "
 
 # Make sure packages we built were added to the isar-apt repository
