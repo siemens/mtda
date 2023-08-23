@@ -1,0 +1,26 @@
+#
+# Copyright (c) Siemens AG, 2022
+#
+# Authors:
+#  Quirin Gylstorff <quirin.gylstorff@siemens.com>
+#  Felix Moessbauer <felix.moessbauer@siemens.com>
+#
+# This file is subject to the terms and conditions of the MIT License.
+# See COPYING file in the top-level directory.
+#
+# SPDX-License-Identifier: MIT
+
+name: 'Free Disk Space'
+description: 'Remove content of the provided image to free disk space for the build'
+runs:
+  using: "composite"
+  steps:
+      - name:  Free disk space
+        run: |
+          sudo apt-get update
+          sudo apt-get purge 'dotnet*' google-chrome-stable 'temurin*' google-cloud-sdk azure-cli 'mongodb*' powershell firefox chromium 'llvm*' 'libllvm*' 'default-jre-headless' 'mysql*' libgl1-mesa-dri apache2 'mono*'
+          sudo rm -rf /usr/local/* /opt/hostedtoolcache /opt/pipx* /opt/az
+        shell: bash
+      - name: Show disk space usage
+        run:  df -h
+        shell: bash
