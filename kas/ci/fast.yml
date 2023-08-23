@@ -1,0 +1,23 @@
+# ---------------------------------------------------------------------------
+# Debian image to run MTDA on NanoPI variants
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2023 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+build_system: isar
+
+header:
+  version: 10
+  includes:
+    - kas/debian/bookworm-base.yml
+
+target:
+  - mc:nanopi-neo:mtda-image
+  - mc:rpi4b:mtda-image
+  - mc:debian-qemu-amd64:mtda-packages
+  - mc:debian-qemu-amd64:qemu-packages
