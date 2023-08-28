@@ -1,7 +1,5 @@
-mtda (0.21-0) testing; urgency=medium
+mtda (0.21-1) testing; urgency=medium
  
-  * Development version
-
   [ Cedric Hombourger ]
   * meta-isar/recipes-python: upgrade python-zstandard from 0.14 to 0.21
   * meta-isar/recipes-security: remove swtpm packages
@@ -10,7 +8,7 @@ mtda (0.21-0) testing; urgency=medium
   [ Manuel Josef Matzinger ]
   * Added algorithm to auto-parse .bmap 2.0 files and write accordingly
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 23 Aug 2023 18:00:00 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 28 Aug 2023 11:00:00 +0100
 
 mtda (0.20-2) testing; urgency=medium
 
