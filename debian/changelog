@@ -1,3 +1,10 @@
+mtda (0.21-2) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * ci: ci: run full CI when version tags are pushed
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 28 Aug 2023 18:00:00 +0100
+
 mtda (0.21-1) testing; urgency=medium
  
   [ Cedric Hombourger ]
