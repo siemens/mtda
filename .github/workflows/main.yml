@@ -47,11 +47,11 @@ jobs:
             build/downloads
             build/sstate-cache
       - name: Build Fast CI targets
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/v')
         run: |
           ./kas-container build kas/ci/fast.yml
       - name: Build Full CI targets
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
         run: |
           ./kas-container build kas/ci/full.yml
       - name: Upload NanoPI images
@@ -73,20 +73,20 @@ jobs:
       - name: Publish Debian packages to Gemfury
         env:
           GEMFURY_PUSH_TOKEN: ${{ secrets.GEMFURY_PUSH_TOKEN }}
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           find build/tmp/deploy/isar-apt/mtda-bookworm-* -name '*.deb' -print | while read p; do
             curl -F package=@${p} https://{$GEMFURY_PUSH_TOKEN}@push.fury.io/mtda/;
           done
       - name: Import GPG key
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
+        if: startsWith(github.ref, 'refs/tags/v')
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v4
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
       - name: Upload source packages to PPA
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-tc') && !contains(github.ref, '-rc')
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           sudo apt install -y devscripts dh-python equivs
           ./scripts/build-using-ppa ${PWD}/build jammy
