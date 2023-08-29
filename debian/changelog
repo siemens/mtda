@@ -1,7 +1,14 @@
+mtda (0.21-3) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * meta-isar/recipes-python: fix build warnings/errors for python-zstandard
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 29 Aug 2023 08:00:00 +0100
+
 mtda (0.21-2) testing; urgency=medium
 
   [ Cedric Hombourger ]
-  * ci: ci: run full CI when version tags are pushed
+  * ci: run full CI when version tags are pushed
 
  -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 28 Aug 2023 18:00:00 +0100
 
