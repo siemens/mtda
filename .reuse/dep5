@@ -71,6 +71,10 @@ Files: meta-isar/recipes-crypto/gnutls/files/changelog.tmpl
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
+Files: meta-isar/recipes-python/compression/python-zstandard/*.patch
+Copyright: 2023 Siemens Digital Industries Software
+License: MIT
+
 Files: meta-isar/recipes-python/crypto/files/curve25519-donna-1.3/debian/*
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
