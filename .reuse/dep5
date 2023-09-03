@@ -39,7 +39,7 @@ Files: docs/jqc3f-05vdc.jpg
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
-Files: docs/neo_pinout.jpg
+Files: docs/*_pinout.jpg
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
