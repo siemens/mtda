@@ -17,5 +17,5 @@ SRC_URI = " \
 SRCREV = "d3c576c4d6cc8af4516a99c30042bb01dbd0a100"
 
 PROVIDES += "python3-hap-python"
-DEPENDS = "curve25519-donna ed25519 zeroconf"
+DEPENDS = "curve25519-donna ed25519"
 do_build[deptask] += "do_deploy_deb"
