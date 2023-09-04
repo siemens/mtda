@@ -1,3 +1,13 @@
+mtda (0.21-4) testing; urgency=medium
+
+  [ Bhargav Das ]
+  * doc/build: Add BBB diagrams and minor typo correction
+
+  [ Cedric Hombourger ]
+  * meta-isar/recipes-python: remove zeroconf
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 04 Sep 2023 08:30:00 +0100
+
 mtda (0.21-3) testing; urgency=medium
 
   [ Cedric Hombourger ]
