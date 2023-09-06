@@ -52,6 +52,7 @@ IMAGE_PREINSTALL += "                    \
     sd-mux-ctrl                          \
     ssh                                  \
     sudo                                 \
+    systemd-timesyncd                    \
     vim                                  \
     wireless-regdb                       \
     wireless-tools                       \
