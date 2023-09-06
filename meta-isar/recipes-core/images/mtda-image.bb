@@ -36,6 +36,7 @@ IMAGE_INSTALL:append:nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
 
 IMAGE_INSTALL += "                       \
     mtda-hostname                        \
+    mtda-network                         \
     mtda-repo                            \
     local-settings                       \
     sshd-regen-keys                      \
@@ -47,7 +48,6 @@ IMAGE_PREINSTALL += "                    \
     mjpg-streamer                        \
     mtda                                 \
     mtda-www                             \
-    network-manager                      \
     pdudaemon-client                     \
     sd-mux-ctrl                          \
     ssh                                  \

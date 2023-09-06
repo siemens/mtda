@@ -55,6 +55,10 @@ Files: meta-isar/recipes-conf/mass-storage/usb-ms-use-sda/usb-functions
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
+Files: meta-isar/recipes-conf/network/files/90-systemd-networkd-disabled.preset
+Copyright: 2023 Siemens AG
+License: MIT
+
 Files: meta-isar/recipes-core/usb-otg/mtda-usb-functions/postinst
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
