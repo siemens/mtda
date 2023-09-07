@@ -304,7 +304,9 @@ class Client:
                 bmap.find("ImageSize").text.strip())
             bmapDict["BlockMap"] = []
             for child in broot.find("BlockMap").findall("Range"):
-                first, last = child.text.strip().split("-")
+                range = child.text.strip().split("-")
+                first = range[0]
+                last = range[0] if len(range) == 1 else range[1]
                 bmapDict["BlockMap"].append({
                     "first": int(first),
                     "last": int(last),
