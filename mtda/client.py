@@ -167,7 +167,8 @@ class Client:
     def storage_status(self):
         return self._impl.storage_status(self._session)
 
-    def _storage_write(self, image, imgname, inputsize, callback=None):
+    def _storage_write(self, image, imgname,
+                       inputsize, imagesize, callback=None):
         # Copy loop
         bytes_wanted = 0
         data = image.read(self._agent.blksz)
@@ -178,7 +179,8 @@ class Client:
 
             # Report progress via callback
             if callback is not None:
-                callback(imgname, totalread, inputsize)
+                _, _, written = self._impl.storage_status(self._session)
+                callback(imgname, totalread, inputsize, written, imagesize)
 
             # Write block to shared storage device
             bytes_wanted = self._impl.storage_write(data, self._session)
@@ -201,18 +203,14 @@ class Client:
         # Wait for background writes to complete
         while True:
             status, writing, written = self._impl.storage_status(self._session)
+            if callback is not None:
+                callback(imgname, totalread, inputsize, written, imagesize)
             if writing is False:
                 break
-            if callback is not None:
-                callback(imgname, totalread, inputsize)
             time.sleep(0.5)
 
         # Storage may be closed now
         status = self.storage_close()
-
-        # Provide final update to specified callback
-        if status is True and callback is not None:
-            callback(imgname, totalread, inputsize)
 
         # Make sure an error is reported if a write error was received
         if bytes_wanted < 0:
@@ -241,6 +239,8 @@ class Client:
     def storage_write_image(self, path, callback=None):
         # Get size of the (compressed) image
         imgname = os.path.basename(path)
+        # size of extracted image (or none if not available)
+        imagesize = None
 
         # Open the specified image
         try:
@@ -256,6 +256,7 @@ class Client:
                 compression = CONSTS.IMAGE.XZ.value
             else:
                 compression = CONSTS.IMAGE.RAW.value
+                imagesize = inputsize
             self._impl.storage_compression(compression, self._session)
             image = open(path, "rb")
         except FileNotFoundError:
@@ -271,6 +272,7 @@ class Client:
                 print("discovered bmap file '%s'" % bmap_path)
                 bmapDict = self.parseBmap(bmap, bmap_path)
                 self._impl.storage_bmap_dict(bmapDict, self._session)
+                imagesize = bmapDict['ImageSize']
                 break
             except Exception:
                 pass
@@ -285,7 +287,8 @@ class Client:
             image.close()
             return False
 
-        return self._storage_write(image, imgname, inputsize, callback)
+        return self._storage_write(
+            image, imgname, inputsize, imagesize, callback)
 
     def parseBmap(self, bmap, bmap_path):
         try:

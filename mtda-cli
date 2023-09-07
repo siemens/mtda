@@ -318,9 +318,13 @@ class Application:
         else:
             return "{:.2f} GiB".format(size/1024/1024/1024)
 
-    def _storage_write_cb(self, imgname, totalread, inputsize):
-        totalwritten = self.agent.storage_bytes_written()
-        progress = int((float(totalread) / float(inputsize)) * float(100))
+    def _storage_write_cb(self, imgname, totalread,
+                          inputsize, totalwritten, imagesize):
+        if imagesize:
+            progress = \
+                int((float(totalwritten) / float(imagesize)) * float(100))
+        else:
+            progress = int((float(totalread) / float(inputsize)) * float(100))
         blocks = int(round((20 * progress) / 100))
         spaces = ' ' * (20 - blocks)
         blocks = '#' * blocks
