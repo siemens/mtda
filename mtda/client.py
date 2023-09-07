@@ -167,18 +167,18 @@ class Client:
     def storage_status(self):
         return self._impl.storage_status(self._session)
 
-    def _storage_write(self, image, imgname, imgsize, callback=None):
+    def _storage_write(self, image, imgname, inputsize, callback=None):
         # Copy loop
         bytes_wanted = 0
         data = image.read(self._agent.blksz)
         dataread = len(data)
         totalread = 0
-        while totalread < imgsize:
+        while totalread < inputsize:
             totalread += dataread
 
             # Report progress via callback
             if callback is not None:
-                callback(imgname, totalread, imgsize)
+                callback(imgname, totalread, inputsize)
 
             # Write block to shared storage device
             bytes_wanted = self._impl.storage_write(data, self._session)
@@ -204,7 +204,7 @@ class Client:
             if writing is False:
                 break
             if callback is not None:
-                callback(imgname, totalread, imgsize)
+                callback(imgname, totalread, inputsize)
             time.sleep(0.5)
 
         # Storage may be closed now
@@ -212,7 +212,7 @@ class Client:
 
         # Provide final update to specified callback
         if status is True and callback is not None:
-            callback(imgname, totalread, imgsize)
+            callback(imgname, totalread, inputsize)
 
         # Make sure an error is reported if a write error was received
         if bytes_wanted < 0:
@@ -245,7 +245,7 @@ class Client:
         # Open the specified image
         try:
             st = os.stat(path)
-            imgsize = st.st_size
+            inputsize = st.st_size
             if path.endswith(".bz2"):
                 compression = CONSTS.IMAGE.BZ2.value
             elif path.endswith(".gz"):
@@ -285,7 +285,7 @@ class Client:
             image.close()
             return False
 
-        return self._storage_write(image, imgname, imgsize, callback)
+        return self._storage_write(image, imgname, inputsize, callback)
 
     def parseBmap(self, bmap, bmap_path):
         try:
