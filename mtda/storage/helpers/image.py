@@ -17,6 +17,7 @@ import psutil
 import subprocess
 import threading
 import io
+import hashlib
 
 # Local imports
 import mtda.constants as CONSTS
@@ -34,6 +35,7 @@ class Image(StorageController):
         self.lastBlockIdx = 0
         self.crtBlockRange = 0
         self.overlap = 0
+        self.rangeChkSum = None
         self.lock = threading.Lock()
         atexit.register(self._umount)
 
@@ -274,11 +276,23 @@ class Image(StorageController):
         self.lock.release()
         return result
 
+    def _get_hasher_by_name(self):
+        algo = self.bmapDict["ChecksumType"]
+        if algo == 'sha256':
+            return hashlib.sha256()
+        elif algo == 'md5':
+            return hashlib.md5()
+        else:
+            self.mtda.debug(1, "storage.helpers.image._get_hasher_by_name(): "
+                               "unknown hash algorithm %s" % algo)
+            return None
+
     def setBmap(self, bmapDict):
         self.bmapDict = bmapDict
         self.crtBlockRange = 0
         self.lastBlockIdx = 0
         self.overlap = 0
+        self.rangeChkSum = self._get_hasher_by_name()
 
     def supports_hotplug(self):
         return False
@@ -432,3 +446,20 @@ class Image(StorageController):
         self.mtda.debug(3, "storage.helpers.image.write(): %s" % str(result))
         self.lock.release()
         return result
+
+    def _validate_and_reset_range(self):
+        if not self.rangeChkSum:
+            return
+        obs_chksum = self.rangeChkSum.hexdigest()
+        exp_chksum = self.bmapDict["BlockMap"][self.crtBlockRange]['chksum']
+        if exp_chksum == obs_chksum:
+            self.rangeChkSum = self._get_hasher_by_name()
+            return
+        raise RuntimeError(
+            f'checksum of range {self.crtBlockRange} '
+            'does not match ({obs_chksum} != {exp_chksum})')
+
+    def _write_with_chksum(self, data):
+        if self.rangeChkSum:
+            self.rangeChkSum.update(data)
+        return self.handle.write(data)
