@@ -32,8 +32,9 @@ class Image(StorageController):
         self.isfuse = False
         self.isloop = False
         self.bmapDict = None
-        self.lastBlockIdx = 0
         self.crtBlockRange = 0
+        self.writtenBlocks = 0
+        self.writtenBytes = 0
         self.overlap = 0
         self.rangeChkSum = None
         self.lock = threading.Lock()
@@ -290,7 +291,6 @@ class Image(StorageController):
     def setBmap(self, bmapDict):
         self.bmapDict = bmapDict
         self.crtBlockRange = 0
-        self.lastBlockIdx = 0
         self.overlap = 0
         self.rangeChkSum = self._get_hasher_by_name()
 
@@ -357,95 +357,49 @@ class Image(StorageController):
         if self.handle is not None:
             # Check if there is a valid bmapDict, write all data otherwise
             if self.bmapDict is not None:
-                result = 0
-                datalen = len(data)
-                blksz = self.bmapDict["BlockSize"]
-                cRange = self.bmapDict["BlockMap"][self.crtBlockRange]
-                # This happens at xz,bz2 and gz compression
-                # since the decompressed chunk can be smaller than a block
-                if datalen < blksz:
-                    # If there is overlap and the new data is enough
-                    # to form a block, write it
-                    if self.overlap + datalen >= blksz:
-                        dataBlockWritten = \
-                            self.handle.write(data[0:(blksz-self.overlap)])
-                        result += dataBlockWritten
-                        self.lastBlockIdx += 1
-                        # Write the rest of the data
-                        rest = self.handle.write(data[dataBlockWritten:])
-                        result += rest
-                        self.overlap = rest
-                        self.mtda.debug(3, "storage.helpers.image.write(): %s"
-                                        % str(result))
-                        self.lock.release()
-                        return result
-                    else:
-                        # Not enough data to even write a block
-                        # write it and add to the overlap
-                        subBlockWritten = self.handle.write(data)
-                        result += subBlockWritten
-                        self.overlap += subBlockWritten
-                        self.mtda.debug(3, "storage.helpers.image.write(): %s"
-                                        % str(result))
-                        self.lock.release()
-                        return result
-                # Complete partially written last block,
-                # start blockpointer depending on this
-                if self.overlap:
-                    result += self.handle.write(data[0:(blksz-self.overlap)])
-                    self.lastBlockIdx += 1
-                    b = blksz-self.overlap
-                else:
-                    b = 0
-
-                while b < datalen:
-                    if self.lastBlockIdx > cRange['last']:
-                        self.crtBlockRange += 1
-                        cRange = \
-                            self.bmapDict["BlockMap"][self.crtBlockRange]
-                    flBlks2Write = 1
-                    advanceBlocks = 1
-                    if self.lastBlockIdx >= cRange['first']:
-                        flBlks2Write = int((datalen-b)/blksz)
-                        # Write multiple blocks if possible in that range
-                        if (self.lastBlockIdx + flBlks2Write) < cRange['last']:
-                            # Check if it is a full Block
-                            if flBlks2Write:
-                                result += self.handle.write(
-                                    data[b:b+flBlks2Write*blksz])
-                                advanceBlocks = flBlks2Write
-                            else:
-                                result += self.handle.write(data[b:b+blksz])
-                                # Needed for incrementing dynamic blockpointer
-                                flBlks2Write = 1
-                        else:
-                            result += self.handle.write(data[b:b+blksz])
-                            flBlks2Write = 1
-                    else:
-                        # If there is a block to skip use the opportunity
-                        # to also drop the overlap, skip the subBlock
-                        # This allows for faster write-times
-                        # since the time consuming self.handle.write()
-                        # does not need to be called at the start
-                        # when there is no overlap anymore
-                        if self.overlap:
-                            b += self.overlap
-                            self.handle.seek(self.overlap, io.SEEK_CUR)
-                            self.overlap = 0
-                        self.handle.seek(min(datalen-b, blksz), io.SEEK_CUR)
-                    # Only increment block index in case we wrote full blocks
-                    if b + blksz*flBlks2Write <= datalen:
-                        self.lastBlockIdx += advanceBlocks
-                    else:
-                        self.overlap = datalen - b
-                    # Increase blockpointer
-                    b += flBlks2Write * blksz
+                result = self._write_with_bmap(data)
             else:
                 # No bmap
                 result = self.handle.write(data)
         self.mtda.debug(3, "storage.helpers.image.write(): %s" % str(result))
         self.lock.release()
         return result
+
+    def _write_with_bmap(self, data):
+        cur_range = self.bmapDict["BlockMap"][self.crtBlockRange]
+        blksize = self.bmapDict["BlockSize"]
+        # offset within the data buffer
+        offset = 0
+        # remaining bytes in data buffer
+        remaining = len(data) - offset
+        while remaining:
+            if self.writtenBlocks > cur_range["last"]:
+                self._validate_and_reset_range()
+                self.crtBlockRange += 1
+                cur_range = self.bmapDict["BlockMap"][self.crtBlockRange]
+
+            if self.writtenBlocks >= cur_range["first"]:
+                # bmap ranges are inclusive. Exclusive ranges like [from, to)
+                # are easier to handle, hence add one block
+                end = min(remaining,
+                          (cur_range["last"] - self.writtenBlocks + 1)
+                          * blksize - self.overlap)
+                nbytes = self._write_with_chksum(data[offset:offset + end])
+            else:
+                # the range already got incremented, hence we need to iterate
+                # until the begin of the current range
+                nbytes = min(remaining,
+                             (cur_range["first"] - self.writtenBlocks)
+                             * blksize - self.overlap)
+                self.handle.seek(nbytes, io.SEEK_CUR)
+            self.overlap -= min(self.overlap, nbytes)
+            self.writtenBytes += nbytes
+            self.writtenBlocks = self.writtenBytes // blksize
+            offset += nbytes
+            remaining -= nbytes
+
+        self.overlap = self.writtenBytes % blksize
+        return offset
 
     def _validate_and_reset_range(self):
         if not self.rangeChkSum:
