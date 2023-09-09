@@ -302,6 +302,10 @@ class Client:
                 bmap.find("MappedBlocksCount").text.strip())
             bmapDict["ImageSize"] = int(
                 bmap.find("ImageSize").text.strip())
+            bmapDict["ChecksumType"] = \
+                bmap.find("ChecksumType").text.strip()
+            bmapDict["BmapFileChecksum"] = \
+                bmap.find("BmapFileChecksum").text.strip()
             bmapDict["BlockMap"] = []
             for child in broot.find("BlockMap").findall("Range"):
                 range = child.text.strip().split("-")
