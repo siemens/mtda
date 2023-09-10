@@ -33,7 +33,6 @@ class Image(StorageController):
         self.isloop = False
         self.bmapDict = None
         self.crtBlockRange = 0
-        self.writtenBlocks = 0
         self.writtenBytes = 0
         self.overlap = 0
         self.rangeChkSum = None
@@ -291,6 +290,7 @@ class Image(StorageController):
     def setBmap(self, bmapDict):
         self.bmapDict = bmapDict
         self.crtBlockRange = 0
+        self.writtenBytes = 0
         self.overlap = 0
         self.rangeChkSum = self._get_hasher_by_name()
 
@@ -373,28 +373,28 @@ class Image(StorageController):
         # remaining bytes in data buffer
         remaining = len(data) - offset
         while remaining:
-            if self.writtenBlocks > cur_range["last"]:
+            writtenBlocks = self.writtenBytes // blksize
+            if writtenBlocks > cur_range["last"]:
                 self._validate_and_reset_range()
                 self.crtBlockRange += 1
                 cur_range = self.bmapDict["BlockMap"][self.crtBlockRange]
 
-            if self.writtenBlocks >= cur_range["first"]:
+            if writtenBlocks >= cur_range["first"]:
                 # bmap ranges are inclusive. Exclusive ranges like [from, to)
                 # are easier to handle, hence add one block
                 end = min(remaining,
-                          (cur_range["last"] - self.writtenBlocks + 1)
+                          (cur_range["last"] - writtenBlocks + 1)
                           * blksize - self.overlap)
                 nbytes = self._write_with_chksum(data[offset:offset + end])
             else:
                 # the range already got incremented, hence we need to iterate
                 # until the begin of the current range
                 nbytes = min(remaining,
-                             (cur_range["first"] - self.writtenBlocks)
+                             (cur_range["first"] - writtenBlocks)
                              * blksize - self.overlap)
                 self.handle.seek(nbytes, io.SEEK_CUR)
             self.overlap -= min(self.overlap, nbytes)
             self.writtenBytes += nbytes
-            self.writtenBlocks = self.writtenBytes // blksize
             offset += nbytes
             remaining -= nbytes
 
