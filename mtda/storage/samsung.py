@@ -22,18 +22,26 @@ class SamsungSdMuxStorageController(Image):
     def __init__(self, mtda):
         super().__init__(mtda)
         self.file = "/dev/sda"
-        self.serial = "sdmux"
+        self.serial = None
 
     """ Configure this storage controller from the provided configuration"""
     def configure(self, conf):
         self.mtda.debug(3, "storage.samsung.configure()")
 
-        result = None
+        result = True
         if 'device' in conf:
             self.file = conf['device']
         if 'serial' in conf:
             self.serial = conf['serial']
-
+        else:
+            try:
+                self.serial = subprocess.check_output([
+                    "sd-mux-ctrl", "--device-id", "0", "--show-serial"
+                ])
+            except subprocess.CalledProcessError:
+                result = False
+        self.mtda.debug(2, "storage.samsung.configure(): serial: %s" %
+                        self.serial)
         self.mtda.debug(3, "storage.samsung.configure(): %s" % str(result))
         return result
 

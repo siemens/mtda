@@ -386,8 +386,8 @@ a SD card between the DUT and host. The following settings are supported:
   ``/dev/sda``)
 
 * ``serial``: string [optional]
-  Identifier of the sdmux/sdwire device to use (defaults to ``sdmux``). Use
-  ``sd-mux-ctrl`` to list available devices.
+  Identifier of the sdmux/sdwire device to use. Use ``sd-mux-ctrl`` to list
+  available devices. When not specified, the first device is auto-detected.
 
 ``usbf`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
