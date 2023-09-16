@@ -156,7 +156,7 @@ class QemuController(PowerController):
         options += " -netdev user,id=net0,"
         options += "hostfwd=tcp::2222-:22,hostname={0}".format(self.hostname)
         options += " -usb"
-        options += " -vnc :0,websocket"
+        options += " -vnc :0,websocket=on"
 
         # extra options
         if self.bios is not None:
@@ -174,7 +174,7 @@ class QemuController(PowerController):
             if pathlib.Path(self.pflash_ro).is_file():
                 if os.access(self.pflash_ro, os.R_OK):
                     options += " -drive if=pflash,format=raw,"
-                    options += "readonly,file=%s" % self.pflash_ro
+                    options += "readonly=on,file=%s" % self.pflash_ro
                 else:
                     raise ValueError("Read-only pflash file (%s) "
                                      "cannot be read." % self.pflash_ro)
@@ -213,7 +213,7 @@ class QemuController(PowerController):
                     sparse.touch()
                     os.truncate(str(sparse), size*1024*1024*1024)
         if self.watchdog is not None:
-            options += " -watchdog %s" % self.watchdog
+            options += " -device {},id=watchdog0".format(self.watchdog)
 
         # swtpm options
         if self.swtpm is not None:
