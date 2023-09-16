@@ -87,14 +87,19 @@ class Application:
                 properties=props,
                 server='{}.local.'.format(name))
 
-        zc.register_service(info)
+        try:
+            zc.register_service(info)
+        except zeroconf.NonUniqueNameException:
+            info = None
+
         try:
             s.run()
         except KeyboardInterrupt:
             s.stop()
             self.agent.stop()
         finally:
-            zc.unregister_service(info)
+            if info is not None:
+                zc.unregister_service(info)
 
         return True
 
