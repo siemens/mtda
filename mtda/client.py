@@ -174,13 +174,15 @@ class Client:
         data = image.read(self._agent.blksz)
         dataread = len(data)
         totalread = 0
+        lastreport = time.time()
         while totalread < inputsize:
             totalread += dataread
 
             # Report progress via callback
-            if callback is not None:
+            if callback is not None and time.time() - lastreport > 0.5:
                 _, _, written = self._impl.storage_status(self._session)
                 callback(imgname, totalread, inputsize, written, imagesize)
+                lastreport = time.time()
 
             # Write block to shared storage device
             bytes_wanted = self._impl.storage_write(data, self._session)
