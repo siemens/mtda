@@ -24,6 +24,13 @@ import mtda.constants as CONSTS
 from mtda.storage.controller import StorageController
 
 
+class BmapWriteError(OSError):
+    """
+    base-class for all bmap-related errors
+    """
+    pass
+
+
 class Image(StorageController):
 
     def __init__(self, mtda):
@@ -408,7 +415,7 @@ class Image(StorageController):
         if exp_chksum == obs_chksum:
             self.rangeChkSum = self._get_hasher_by_name()
             return
-        raise RuntimeError(
+        raise BmapWriteError(
             "checksum mismatch for blocks range %d-%d: "
             "calculated %s, should be %s"
             % (cur_range['first'], cur_range['last'],
