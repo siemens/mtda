@@ -129,7 +129,6 @@ class AsyncImageWriter(queue.Queue):
             if self._failed is True:
                 self.mtda.debug(1, "storage.writer.worker(): "
                                    "write or decompression error!")
-                break
 
         self.mtda.debug(3, "storage.writer.worker(): %s" % str(result))
         return result
