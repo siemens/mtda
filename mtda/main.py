@@ -702,7 +702,9 @@ class MultiTenantDeviceAccess:
             self.mtda.debug(4, "storage_status(): no shared storage device")
             result = CONSTS.STORAGE.UNKNOWN, False, 0
         else:
-            status = self.storage_controller.status()
+            # avoid costly query of storage state when we know it anyways
+            status = CONSTS.STORAGE.ON_HOST \
+                if self._writer.writing else self.storage_controller.status()
             result = status, self._writer.writing, self._writer.written
 
         self.mtda.debug(3, "main.storage_status(): %s" % str(result))
