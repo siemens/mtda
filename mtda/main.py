@@ -17,6 +17,7 @@ import importlib
 import os
 import queue
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -806,6 +807,7 @@ class MultiTenantDeviceAccess:
             storage.configure_systemd(dir)
         if video is not None and hasattr(video, 'configure_systemd'):
             video.configure_systemd(dir)
+        subprocess.call(['systemctl', 'daemon-reload'])
 
     def systemd_reset(self, dir):
         os.makedirs(dir, exist_ok=True)
