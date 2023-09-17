@@ -402,14 +402,17 @@ class Image(StorageController):
     def _validate_and_reset_range(self):
         if not self.rangeChkSum:
             return
+        cur_range = self.bmapDict["BlockMap"][self.crtBlockRange]
         obs_chksum = self.rangeChkSum.hexdigest()
-        exp_chksum = self.bmapDict["BlockMap"][self.crtBlockRange]['chksum']
+        exp_chksum = cur_range['chksum']
         if exp_chksum == obs_chksum:
             self.rangeChkSum = self._get_hasher_by_name()
             return
         raise RuntimeError(
-            f'checksum of range {self.crtBlockRange} '
-            'does not match ({obs_chksum} != {exp_chksum})')
+            "checksum mismatch for blocks range %d-%d: "
+            "calculated %s, should be %s"
+            % (cur_range['first'], cur_range['last'],
+               obs_chksum, exp_chksum))
 
     def _write_with_chksum(self, data):
         if self.rangeChkSum:
