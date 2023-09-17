@@ -199,14 +199,16 @@ class AsyncImageWriter(queue.Queue):
     def write_zst(self, data):
         self.mtda.debug(3, "storage.writer.write_zst()")
 
+        result = None
         # Create a decompressor when called for the first time
         if self._zdec is None:
             dctx = zstd.ZstdDecompressor()
             self._zdec = dctx.stream_writer(self.storage)
         try:
             result = self._zdec.write(data)
-        except OSError:
-            self.mtda.debug(1, "storage.writer.write_zst(): write error!")
+        except OSError as e:
+            self.mtda.debug(1, "storage.writer.write_zst(): "
+                               "%s" % str(e.args[0]))
             self._failed = True
 
         self.mtda.debug(3, "storage.writer.write_zst(): %s" % str(result))
