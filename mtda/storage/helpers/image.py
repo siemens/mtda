@@ -56,12 +56,11 @@ class Image(StorageController):
 
     def close(self):
         self.mtda.debug(3, "storage.helpers.image.close()")
-        self.lock.acquire()
 
-        result = self._close()
+        with self.lock:
+            result = self._close()
 
         self.mtda.debug(3, "storage.helpers.image.close(): %s" % str(result))
-        self.lock.release()
         return result
 
     def _mountpoint(self, path=""):
@@ -120,12 +119,11 @@ class Image(StorageController):
 
     def umount(self):
         self.mtda.debug(3, "storage.helpers.image.umount()")
-        self.lock.acquire()
 
-        result = self._umount()
+        with self.lock:
+            result = self._umount()
 
         self.mtda.debug(3, "storage.helpers.image.umount(): %s" % str(result))
-        self.lock.release()
         return result
 
     def _get_partitions(self):
@@ -219,8 +217,12 @@ class Image(StorageController):
 
     def mount(self, part=None):
         self.mtda.debug(3, "storage.helpers.image.mount()")
-        self.lock.acquire()
+        with self.lock:
+            result = self._mount_impl(part)
+        self.mtda.debug(3, "storage.helpers.image.mount(): %s" % str(result))
+        return result
 
+    def _mount_impl(self, part=None):
         result = True
         if self._status() == CONSTS.STORAGE.ON_HOST:
             result = self._get_partitions()
@@ -245,14 +247,16 @@ class Image(StorageController):
                                "storage attached to target!")
             result = False
 
-        self.mtda.debug(3, "storage.helpers.image.mount(): %s" % str(result))
-        self.lock.release()
         return result
 
     def open(self):
         self.mtda.debug(3, "storage.helpers.image.open()")
-        self.lock.acquire()
+        with self.lock:
+            result = self._open_impl()
+        self.mtda.debug(3, "storage.helpers.image.open(): %s" % str(result))
+        return result
 
+    def _open_impl(self):
         result = True
         if self._status() == CONSTS.STORAGE.ON_HOST:
             if self.handle is None:
@@ -262,18 +266,14 @@ class Image(StorageController):
                 except FileNotFoundError:
                     result = False
 
-        self.mtda.debug(3, "storage.helpers.image.open(): %s" % str(result))
-        self.lock.release()
         return result
 
     def status(self):
         self.mtda.debug(3, "storage.helpers.image.status()")
-        self.lock.acquire()
-
-        result = self._status()
+        with self.lock:
+            result = self._status()
 
         self.mtda.debug(3, "storage.helpers.image.status(): %s" % str(result))
-        self.lock.release()
         return result
 
     def _get_hasher_by_name(self):
@@ -299,14 +299,12 @@ class Image(StorageController):
 
     def tell(self):
         self.mtda.debug(3, "storage.helpers.image.tell()")
-        self.lock.acquire()
-
         result = None
-        if self.handle is not None:
-            result = self.handle.tell()
+        with self.lock:
+            if self.handle is not None:
+                result = self.handle.tell()
 
         self.mtda.debug(3, "storage.helpers.image.tell(): %s" % str(result))
-        self.lock.release()
         return result
 
     def _locate(self, dst):
@@ -351,18 +349,18 @@ class Image(StorageController):
 
     def write(self, data):
         self.mtda.debug(3, "storage.helpers.image.write()")
-        self.lock.acquire()
 
-        result = None
-        if self.handle is not None:
-            # Check if there is a valid bmapDict, write all data otherwise
-            if self.bmapDict is not None:
-                result = self._write_with_bmap(data)
-            else:
-                # No bmap
-                result = self.handle.write(data)
+        with self.lock:
+            result = None
+            if self.handle is not None:
+                # Check if there is a valid bmapDict, write all data otherwise
+                if self.bmapDict is not None:
+                    result = self._write_with_bmap(data)
+                else:
+                    # No bmap
+                    result = self.handle.write(data)
+
         self.mtda.debug(3, "storage.helpers.image.write(): %s" % str(result))
-        self.lock.release()
         return result
 
     def _write_with_bmap(self, data):
