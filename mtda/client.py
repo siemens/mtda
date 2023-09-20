@@ -23,13 +23,21 @@ import xml.etree.ElementTree as ET
 
 class Client:
 
-    def __init__(self, host=None, session=None, config_files=None):
+    def __init__(self, host=None, session=None, config_files=None,
+                 timeout=CONSTS.RPC.TIMEOUT):
+        """
+        Client to control mtda device
+        :param host:    hostname or ip of mtda device
+        :param session: mtda session id
+        :param config_files: configuration filenames
+        :param timeout: RPC timeout in seconds
+        """
         agent = MultiTenantDeviceAccess()
         agent.load_config(host, config_files=config_files)
         if agent.remote is not None:
             uri = "tcp://%s:%d" % (agent.remote, agent.ctrlport)
             self._impl = zerorpc.Client(heartbeat=CONSTS.RPC.HEARTBEAT,
-                                        timeout=CONSTS.RPC.TIMEOUT)
+                                        timeout=timeout)
             self._impl.connect(uri)
         else:
             self._impl = agent
