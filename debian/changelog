@@ -1,8 +1,29 @@
-mtda (0.22-0) testing; urgency=medium
+mtda (0.22-1) testing; urgency=medium
 
-  * Development version
+  [ Felix Moessbauer ]
+  * meta-isar: add systemd-timesyncd for NTP
+  * fix: disable systemd-networkd when using nm
+  * refactor: replace ambigous imagesize variable
+  * feat: let progressbar report write progress
+  * fix(bmap): support single-block ranges in bmap
+  * feat(bmap): add infrastructure to validate against chksums
+  * fix(bmap): replace bmap writing algorithm with complete on
+  * fix(bmap): reset internal state before writing
+  * feat: auto-detect serial interface of sdwire
+  * fix(mtda-config): reload systemd after changes
+  * fix(mtda): use scoped lock in image helper
+  * fix(bmap): make checksum exception python3.5 compatible
+  * fix(mtda): zstd writer error handling
+  * fix(bmap): derive bmap exceptions from OSError
+  * fix(mtda): do not stop writer-worker on error
+  * perf(mtda): reduce costly calls to storage.status
+  * feat(mtda-client): make timeout configurable
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sat, 09 Aug 2023 13:00:00 +0100
+  [ Cedric Hombourger ]
+  * mtda-service: do not die if ZeroConf fails to register the service
+  * power: qemu: use -device option to instantiate the watchdog driver
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 22 Sep 2023 22:00:00 +0100
 
 mtda (0.21-4) testing; urgency=medium
 
