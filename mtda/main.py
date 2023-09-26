@@ -16,10 +16,12 @@ import glob
 import importlib
 import os
 import queue
+import shutil
 import socket
 import subprocess
 import sys
 import threading
+import tempfile
 import time
 import zmq
 
@@ -798,24 +800,43 @@ class MultiTenantDeviceAccess:
         return result
 
     def systemd_configure(self):
+        from filecmp import dircmp
+
         console = self.console
         storage = self.storage_controller
         video = self.video
-        dir = '/etc/systemd/system/mtda.service.d/'
-        self.systemd_reset(dir)
-        if console is not None and hasattr(console, 'configure_systemd'):
-            console.configure_systemd(dir)
-        if storage is not None and hasattr(storage, 'configure_systemd'):
-            storage.configure_systemd(dir)
-        if video is not None and hasattr(video, 'configure_systemd'):
-            video.configure_systemd(dir)
-        subprocess.call(['systemctl', 'daemon-reload'])
 
-    def systemd_reset(self, dir):
-        os.makedirs(dir, exist_ok=True)
-        deps = glob.glob(os.path.join(dir, 'auto-dep-*.conf'))
-        for d in deps:
-            os.unlink(d)
+        with tempfile.TemporaryDirectory() as newdir:
+
+            # make drivers generate their systemd dropins in a temporary
+            # directory
+            if console is not None and hasattr(console, 'configure_systemd'):
+                console.configure_systemd(newdir)
+            if storage is not None and hasattr(storage, 'configure_systemd'):
+                storage.configure_systemd(newdir)
+            if video is not None and hasattr(video, 'configure_systemd'):
+                video.configure_systemd(newdir)
+
+            # make sure target directory exists
+            etcdir = '/etc/systemd/system/mtda.service.d/'
+            os.makedirs(etcdir, exist_ok=True)
+
+            # check for changes between the target directory and the
+            # temporary directory to determine if systemd should be
+            # reloaded
+            dcmp = dircmp(etcdir, newdir)
+            diffs = len(dcmp.left_only)    # files that were removed
+            diffs += len(dcmp.right_only)  # files that were added
+            diffs += len(dcmp.diff_files)  # files that were changed
+            if diffs > 0:
+                self.mtda.debug(1, "main.systemd_configure(): "
+                                   "installing new systemd dropins")
+                shutil.rmtree(etcdir)
+                shutil.copytree(newdir, etcdir)
+                subprocess.call(['systemctl', 'daemon-reload'])
+            else:
+                self.mtda.debug(2, "main.systemd_configure(): "
+                                   "no changes to systemd dropins")
 
     def toggle_timestamps(self):
         self.mtda.debug(3, "main.toggle_timestamps()")
