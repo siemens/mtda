@@ -3,6 +3,7 @@ Wants=mtda.service
 
 [Path]
 PathChanged=/etc/mtda/config
+PathChanged=/etc/mtda/config.d
 
 [Install]
 WantedBy=multi-user.target
