@@ -55,7 +55,7 @@ override_dh_auto_install:
 	mv debian/mtda$(MTDA_DIST)/assets debian/mtda-www$(MTDA_DIST)/
 	mv debian/mtda$(MTDA_DIST)/templates debian/mtda-www$(MTDA_DIST)/
 	mv debian/mtda$(MTDA_DIST)/www.py debian/mtda-www$(MTDA_DIST)/
-	install -m 0644 configs/www.conf debian/mtda-www/etc/mtda/config.d/
+	install -m 0644 configs/10-www.conf debian/mtda-www/etc/mtda/config.d/
 
 override_dh_systemd_enable:
 	dh_systemd_enable
