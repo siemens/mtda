@@ -4,7 +4,7 @@ Description=Service to monitor changes to mtda config file
 [Service]
 Type=oneshot
 ExecStartPre=/usr/sbin/mtda-systemd-helper
-ExecStart=systemctl restart mtda
+ExecStart=systemctl --no-block restart mtda
 
 [Install]
 WantedBy=multi-user.target
