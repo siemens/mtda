@@ -65,6 +65,7 @@ and testers to remotely access and control hardware devices.
         "pyzmq>=15.0,<25.0.0",
         "psutil",
         "requests",
+        "systemd-python",
         "urwid",
         "zerorpc>=0.6.0",
         "zstandard>=0.14",
