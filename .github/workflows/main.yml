@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@v3
       - name: tox
         run: |
+          sudo apt install -y build-essential libsystemd-dev
           pip3 install --user tox
           tox -s
   kas-ci:

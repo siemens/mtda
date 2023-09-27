@@ -21,6 +21,7 @@ import sys
 import zerorpc
 import socket
 import zeroconf
+from systemd import daemon as sd
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
@@ -93,6 +94,7 @@ class Application:
             info = None
 
         try:
+            sd.notify('READY=1')
             s.run()
         except KeyboardInterrupt:
             s.stop()
