@@ -2,7 +2,7 @@
 Description=Service to monitor changes to mtda config file
 
 [Service]
-Type=simple
+Type=oneshot
 ExecStartPre=/usr/sbin/mtda-systemd-helper
 ExecStart=systemctl restart mtda
 
