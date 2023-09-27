@@ -5,7 +5,7 @@ Wants=network-online.target
 ConditionPathExists=/etc/mtda/config
 
 [Service]
-Type=simple
+Type=notify
 ExecStart=/usr/sbin/mtda-service -n
 
 [Install]
