@@ -18,7 +18,7 @@ runs:
       - name:  Free disk space
         run: |
           sudo apt-get update
-          sudo apt-get purge 'dotnet*' google-chrome-stable 'temurin*' google-cloud-sdk azure-cli 'mongodb*' powershell firefox chromium 'llvm*' 'libllvm*' 'default-jre-headless' 'mysql*' libgl1-mesa-dri apache2 'mono*'
+          sudo apt-get purge 'dotnet*' google-chrome-stable 'temurin*' azure-cli 'mongodb*' powershell firefox chromium 'llvm*' 'libllvm*' 'default-jre-headless' 'mysql*' libgl1-mesa-dri apache2 'mono*'
           sudo rm -rf /usr/local/* /opt/hostedtoolcache /opt/pipx* /opt/az
         shell: bash
       - name: Show disk space usage
