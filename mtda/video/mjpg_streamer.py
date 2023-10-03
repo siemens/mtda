@@ -53,12 +53,27 @@ class MJPGStreamerVideoController(VideoController):
             self.www = conf['www']
 
     def configure_systemd(self, dir):
-        device = os.path.basename(self.dev)
+        # we have been provided a path to a symlink, make sure it is resolved
+        device = os.path.realpath(self.dev)
+        # we now assume we have something like /dev/videoX, we only need
+        # the name of the node (i.e. videoX)
+        device = os.path.basename(device)
+        # that node should be found in the video4linux sysfs
+        sysfs = '/sys/class/video4linux/{}'.format(device)
+        if os.path.exists(sysfs) is False:
+            self.mtda.debug(1, '{} could not be found in sysfs!'.format(device))
+            return
+        # convert sysfs path to systemd unit
+        device = os.path.realpath(sysfs)
+        device = device[1:].replace('-', '\\x2d')
+        device = device.replace('/', '-') + '.device'
+
+        # and write our dropin
         dropin = os.path.join(dir, 'auto-dep-video.conf')
         with open(dropin, 'w') as f:
             f.write('[Unit]\n')
-            f.write('Wants=dev-{}.device\n'.format(device))
-            f.write('After=dev-{}.device\n'.format(device))
+            f.write('Wants={}\n'.format(device))
+            f.write('After={}\n'.format(device))
 
     @property
     def format(self):
