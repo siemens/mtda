@@ -54,6 +54,9 @@ class MJPGStreamerVideoController(VideoController):
 
     def configure_systemd(self, dir):
         device = os.path.basename(self.dev)
+        # the device is already there and might not be managed by systemd
+        if os.path.exists(device):
+            return
         dropin = os.path.join(dir, 'auto-dep-video.conf')
         with open(dropin, 'w') as f:
             f.write('[Unit]\n')
