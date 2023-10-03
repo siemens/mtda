@@ -147,7 +147,13 @@ SPDX-License-Identifier: MIT
           vnc_load()
         }
         else {
-          video.innerHTML = '<img src="' + info.url + '" />'
+          const selfpath = window.location.pathname
+          var url = info.url
+          // running behind a reverse proxy (assuming /device subpath)
+          if(selfpath.startsWith('/device')){
+            url = selfpath + url.match('(?:http|https)://.*?/(.*)')[1]
+          }
+          video.innerHTML = '<img src="' + url + '" />'
         }
       });
 
