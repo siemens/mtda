@@ -36,8 +36,9 @@ class Client:
         agent.load_config(host, config_files=config_files)
         if agent.remote is not None:
             uri = "tcp://%s:%d" % (agent.remote, agent.ctrlport)
-            self._impl = zerorpc.Client(heartbeat=CONSTS.RPC.HEARTBEAT,
-                                        timeout=timeout)
+            self._impl = zerorpc.Client(
+                heartbeat=min(timeout, CONSTS.RPC.HEARTBEAT),
+                timeout=timeout)
             self._impl.connect(uri)
         else:
             self._impl = agent
