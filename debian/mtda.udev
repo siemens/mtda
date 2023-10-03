@@ -1,0 +1,2 @@
+KERNEL=="video*", TAG+="systemd"
+KERNEL=="video*", SUBSYSTEM=="video4linux", SUBSYSTEMS=="usb", SYMLINK="usb-video$attr{index}"
