@@ -155,6 +155,8 @@ class MultiTenantDeviceAccess:
                                "with storage? {}".format(enabled))
             Composite.storage_toggle(enabled)
             result = Composite.install()
+        elif self.keyboard is not None:
+            result = Composite.install()
 
         self.mtda.debug(3, "main._composite_start(): {}".format(result))
         return result
