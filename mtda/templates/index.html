@@ -154,6 +154,7 @@ SPDX-License-Identifier: MIT
             url = selfpath + url.match('(?:http|https)://.*?/(.*)')[1]
           }
           video.innerHTML = '<img src="' + url + '" />'
+          document.getElementById('vnc_status').innerHTML = '<span style="color: green;"><b>Video</b></span>';
         }
       });
 
