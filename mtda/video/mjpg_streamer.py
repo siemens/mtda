@@ -38,6 +38,8 @@ class MJPGStreamerVideoController(VideoController):
 
     def configure(self, conf):
         self.mtda.debug(3, "video.mjpg_streamer.configure()")
+        self.mtda.debug(2, "video.mjpg_streamer is deprecated. "
+                           "Use video.ustreamer instead")
 
         if 'device' in conf:
             self.dev = conf['device']
