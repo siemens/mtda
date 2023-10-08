@@ -46,6 +46,7 @@ IMAGE_PREINSTALL += "                    \
     iproute2                             \
     isc-dhcp-client                      \
     mjpg-streamer                        \
+    ustreamer                            \
     mtda                                 \
     mtda-www                             \
     pdudaemon-client                     \

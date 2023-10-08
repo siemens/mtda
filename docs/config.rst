@@ -143,8 +143,7 @@ General settings
     Device Under Test. The driver will be selected with ``variant``.
 
   * ``variant``: string [required]
-      Select a ``video`` variant: ``mjpg_streamer`` is the only supported
-      driver at this time.
+      Select a ``video`` variant: ``mjpg_streamer`` or ``ustreamer``
 
 * ``www``: section [optional]
    A lightweight web server will be started when this section is present.
