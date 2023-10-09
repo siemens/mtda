@@ -20,6 +20,7 @@ import time
 
 # Local imports
 from mtda.video.controller import VideoController
+from mtda.utils import SystemdDeviceUnit
 
 
 class MJPGStreamerVideoController(VideoController):
@@ -55,12 +56,8 @@ class MJPGStreamerVideoController(VideoController):
             self.www = conf['www']
 
     def configure_systemd(self, dir):
-        device = os.path.basename(self.dev)
         dropin = os.path.join(dir, 'auto-dep-video.conf')
-        with open(dropin, 'w') as f:
-            f.write('[Unit]\n')
-            f.write('Wants=dev-{}.device\n'.format(device))
-            f.write('After=dev-{}.device\n'.format(device))
+        SystemdDeviceUnit.create_device_dependency(dropin, self.dev)
 
     @property
     def format(self):

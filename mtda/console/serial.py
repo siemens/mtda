@@ -15,6 +15,7 @@ import serial
 
 # Local imports
 from mtda.console.interface import ConsoleInterface
+from mtda.utils import SystemdDeviceUnit
 
 
 class SerialConsole(ConsoleInterface):
@@ -43,12 +44,8 @@ class SerialConsole(ConsoleInterface):
 
         result = None
         if self.port is not None:
-            device = os.path.basename(self.port)
             dropin = os.path.join(dir, 'auto-dep-{}.conf'.format(self.role))
-            with open(dropin, 'w') as f:
-                f.write('[Unit]\n')
-                f.write('Wants=dev-{}.device\n'.format(device))
-                f.write('After=dev-{}.device\n'.format(device))
+            SystemdDeviceUnit.create_device_dependency(dropin, self.port)
 
         self.mtda.debug(3, "console.serial.configure_systemd(): "
                            "{}".format(result))
