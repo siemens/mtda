@@ -17,6 +17,7 @@ import stat
 import mtda.constants as CONSTS
 from mtda.storage.helpers.image import Image
 from mtda.support.usb import Composite
+from mtda.utils import SystemdDeviceUnit
 
 
 class UsbFunctionController(Image):
@@ -59,12 +60,8 @@ class UsbFunctionController(Image):
         mode = os.stat(self.file).st_mode
         if stat.S_ISBLK(mode) is False:
             return
-        device = os.path.basename(self.file)
         dropin = os.path.join(dir, 'auto-dep-storage.conf')
-        with open(dropin, 'w') as f:
-            f.write('[Unit]\n')
-            f.write('Wants=dev-{}.device\n'.format(device))
-            f.write('After=dev-{}.device\n'.format(device))
+        SystemdDeviceUnit.create_device_dependency(dropin, self.file)
 
     """ Get file used by the USB Function driver"""
     def probe(self):

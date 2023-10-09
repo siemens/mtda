@@ -16,3 +16,17 @@ class RepeatTimer(threading.Timer):
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
+
+
+class SystemdDeviceUnit():
+    def create_device_dependency(dropin_path: str, device_path: str):
+        """
+        Create a systemd drop-in file to wait for a specific device
+        to become available.
+        """
+        # escape device name according to systemd.unit requirements
+        device = device_path[1:].replace('-', '\\x2d').replace('/', '-')
+        with open(dropin_path, 'w') as f:
+            f.write('[Unit]\n')
+            f.write('Wants={}.device\n'.format(device))
+            f.write('After={}.device\n'.format(device))
