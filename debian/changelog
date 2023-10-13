@@ -1,8 +1,26 @@
-mtda (0.23-0) testing; urgency=medium
+mtda (0.23-1) testing; urgency=medium
 
-  * development version
+  [ Felix Moessbauer ]
+  * deps: bump pyzmq max version to 25
+  * mtda: signal startup completion to systemd
+  * mtda-config: rework restart of mtda service
+  * fix: avoid races during startup of mtda
+  * config: prefix www.conf with number
+  * feat(www): support mjpeg streamer via reverse proxy
+  * fix(usbf): setup usb-gadget with block device
+  * fix(hid): install hid also without storage
+  * fix(client): clamp heartbeat to timeout value
+  * feat(video): add support for ustreamer
+  * feat(video): deprecate mjpeg_streamer source
+  * fix(www): notify on video connection
+  * fix(mtda): correctly escape systemd device names
+  * refactor(mtda): use upstream packages on bookworm
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 26 Sep 2023 05:30:00 +0100
+  [ Cedric Hombourger ]
+  * feat(main): check for changes to systemd dropins
+  * fix(video): use udev rules to wait for the video device
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 13 Oct 2023 06:30:00 +0100
 
 mtda (0.22-1) testing; urgency=medium
 
