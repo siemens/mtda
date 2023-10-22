@@ -47,16 +47,12 @@ except ModuleNotFoundError:
     www_support = False
 
 
-_NOPRINT_TRANS_TABLE = {
-    i: '.' for i in range(0, sys.maxunicode + 1) if not chr(i).isprintable()
-}
-
 DEFAULT_PREFIX_KEY = 'ctrl-a'
 DEFAULT_PASTEBIN_EP = "http://pastebin.com/api/api_post.php"
 
 
 def _make_printable(s):
-    return s.translate(_NOPRINT_TRANS_TABLE)
+    return s.encode('ascii', 'replace').decode()
 
 
 class MultiTenantDeviceAccess:
