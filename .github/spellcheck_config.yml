@@ -1,0 +1,30 @@
+# ---------------------------------------------------------------------------
+# CI workflows for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2023 Siemens Digital Industries Software
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+matrix:
+- name: Markdown
+  aspell:
+    lang: en
+  dictionary:
+    wordlists:
+    - .github/wordlist.txt
+    encoding: utf-8
+  pipeline:
+  - pyspelling.filters.markdown:
+  - pyspelling.filters.html:
+      comments: false
+      ignores:
+      - code
+      - pre
+  sources:
+  - '**/*.md'
+  - 'docs/*.rst'
+  default_encoding: utf-8
