@@ -7,7 +7,7 @@ Multi-function test fixtures
 USB Function
 ~~~~~~~~~~~~
 
-When the MTDA agent is running on devices such as the NanoPI NEO, it may
+When the MTDA agent is running on devices such as the NanoPi NEO, it may
 provide the following USB functions to the DUT:
 
  * USB Mass Storage
