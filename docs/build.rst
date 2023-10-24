@@ -8,7 +8,7 @@ with additional electronic gadgets.
 KVM
 ---
 
-If you do not have a Single Board Computer (SBC) such as the NanoPI NEO-LTS, you
+If you do not have a Single Board Computer (SBC) such as the NanoPi NEO-LTS, you
 may start with KVM. Instead of controlling a physical device, MTDA will spawn a
 virtual machine. It will provide a virtual hard disk for the operating system,
 a virtual USB drive to install the system from and a virtual serial port to
@@ -158,7 +158,7 @@ and install the updated packages::
     Processing triggers for man-db (2.9.1-1) ...
     Processing triggers for libc-bin (2.31-0ubuntu9) ...
 
-NanoPI R1
+NanoPi R1
 ---------
 
 The NanoPi R1 ("R1") is a complete open source board developed by FriendlyElec
@@ -177,19 +177,19 @@ following functions will be exposed:
    Device Under Test may use this virtual serial port to provide a login
    shell to MTDA clients.
 
- * HID: the NanoPI R1 will be seen as a keyboard. This may be used by e.g.
+ * HID: the NanoPi R1 will be seen as a keyboard. This may be used by e.g.
    ``power on`` scripts to enter the firmware of the Device Under Test to
    select a boot media (SSD or USB).
 
  * Mass Storage: a USB stick will be connected to the USB Host available on the
-   NanoPI R1 and will be exposed to the Device Under Test. MTDA will allow
+   NanoPi R1 and will be exposed to the Device Under Test. MTDA will allow
    clients to write a new OS image for the device it is connected to.
 
 Building the microSD card image
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use ``kas-container`` to build a Debian image for the nanoPI R1 with MTDA
-pre-installed::
+Use ``kas-container`` to build a Debian image for the NanoPi R1 with MTDA
+preinstalled::
 
     $ ./kas-container build kas/debian/mtda-nanopi-r1.yml
 
@@ -201,10 +201,10 @@ Insert a microSD card to your system and write the generated image::
 
 (replace ``/dev/mmcblk0`` with the actual SD card device on your system).
 
-Booting the NanoPI R1
+Booting the NanoPi R1
 ~~~~~~~~~~~~~~~~~~~~~
 
-Insert the microSD card created above into the microSD card slot of your NanoPI
+Insert the microSD card created above into the microSD card slot of your NanoPi
 R1 and connect the board to your network. Attach a formatted USB stick to
 the USB-Host port. Lastly, get a USB Y cable with one end connected to a fixed
 USB power source (2A) and the other end connected to the Device Under Test. The
@@ -228,7 +228,7 @@ The following diagram shows the various connections described above:
 Configuring MTDA
 ~~~~~~~~~~~~~~~~
 
-A configuration file should be created on the NanoPI R1. Use ``ssh`` to connect
+A configuration file should be created on the NanoPi R1. Use ``ssh`` to connect
 with the ``mtda`` user and then ``sudo`` to get elevated privileges::
 
     $ ssh mtda@172.17.0.50
@@ -279,7 +279,7 @@ to the shell and may restart the agent::
 Clients may now connect to the MTDA agent, control the power input of the Device
 Under Test and remotely access its console.
 
-NanoPI NEO-LTS
+NanoPi NEO-LTS
 --------------
 
 The NanoPi NEO (abbreviated as NEO) is another fun board developed by
@@ -298,19 +298,19 @@ where the following functions will be exposed:
    Device Under Test may use this virtual serial port to provide a login
    shell to MTDA clients.
 
- * HID: the NanoPI NEO-LTS will be seen as a keyboard. This may be used by e.g.
+ * HID: the NanoPi NEO-LTS will be seen as a keyboard. This may be used by e.g.
    ``power on`` scripts to enter the firmware of the Device Under Test to
    select a boot media (SSD or USB).
 
  * Mass Storage: a USB stick will be connected to the USB Host available on the
-   NanoPI NEO-LTS and will be exposed to the Device Under Test. MTDA will allow
+   NanoPi NEO-LTS and will be exposed to the Device Under Test. MTDA will allow
    clients to write a new OS image for the device it is connected to.
 
 Building the microSD card image
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use ``kas-container`` to build a Debian image for the nanoPI NEO-LTS with MTDA
-pre-installed::
+Use ``kas-container`` to build a Debian image for the NanoPi NEO-LTS with MTDA
+preinstalled::
 
     $ ./kas-container build kas/debian/mtda-nanopi-neo.yml
 
@@ -325,15 +325,15 @@ Insert a microSD card to your system and write the generated image::
 Applying external power
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The NanoPI NEO-LTS usually gets powered over its USB-OTG interface. Since we
+The NanoPi NEO-LTS usually gets powered over its USB-OTG interface. Since we
 will attach this port to the Device Under Test, we need to apply external
 power instead. Re-purpose a USB cable and connect its red wire to #2 (5V IN)
 and its black wire to #6 (GND).
 
-Booting the NanoPI NEO-LTS
+Booting the NanoPi NEO-LTS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Insert the microSD card created above into the microSD card slot of your NanoPI
+Insert the microSD card created above into the microSD card slot of your NanoPi
 NEO-LTS and connect the board to your network. Attach a formatted USB stick to
 the USB-Host port. Lastly, get a microUSB cable, connect your system and the
 NEO together. The red LED of the NEO should light up as well as the LEDs from
@@ -349,7 +349,7 @@ We will use a 5V relay such as the JQC3F-05VDC pictured below:
 
 .. image:: jqc3f-05vdc.jpg
 
-It requires a 5V line, ground and signal. Here is the pin-out of our NanoPI
+It requires a 5V line, ground and signal. Here is the pin-out of our NanoPi
 NEO-LTS:
 
 .. image:: neo_pinout.jpg
@@ -368,7 +368,7 @@ The following diagram shows the various connections described above:
 Configuring MTDA
 ~~~~~~~~~~~~~~~~
 
-A configuration file should be created on the NanoPI NEO-LTS. Use ``ssh`` to
+A configuration file should be created on the NanoPi NEO-LTS. Use ``ssh`` to
 connect with the ``mtda`` user and then ``sudo`` to get elevated privileges::
 
     $ ssh mtda@172.17.0.2
@@ -456,5 +456,5 @@ The following configuration file may be used for the DE0-Nano-SoC::
     device=/dev/sda
 
 where ``sdwire1`` is the serial number programmed into the SDWire EEPROM. Use
-``sd-mux-ctrl -l`` to list SDWire devices connected to your NanoPI NEO and
+``sd-mux-ctrl -l`` to list SDWire devices connected to your NanoPi NEO and
 obtain their serial number.

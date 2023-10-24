@@ -248,7 +248,7 @@ physical device. The following settings are supported:
 
 * ``command``: string [optional]
     The command to execute when the container is started. The default
-    commmand is ``sh``.
+    command is ``sh``.
 
 ``gpio`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -262,7 +262,7 @@ supported:
     Format: <gpiochipx>@<pin>
     If multiple GPIO lines and pins are used separate the entries using ','.
 
-    eg:::
+    Example::
 
         # For single GPIO line
         gpio = gpiochip0@201

@@ -111,8 +111,8 @@ Sign in to your account with the created superuser. Login should be successful.
 Attach to lava-server
 ~~~~~~~~~~~~~~~~~~~~~
 
-The sample NanoPI NEO image comes with the ``lava-dispatcher`` package
-pre-installed. It however needs to be configured to connect to the LAVA server
+The sample NanoPi NEO image comes with the ``lava-dispatcher`` package
+preinstalled. It however needs to be configured to connect to the LAVA server
 and logger installed as noted above. You may connect to the MTDA agent using
 ``ssh`` (default credentials are ``mtda``/``mtda``)::
 
