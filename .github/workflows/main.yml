@@ -56,7 +56,7 @@ jobs:
         run: |
           ./kas-container build kas/ci/full.yml
       - name: Upload NanoPI images
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/master'
         with:
           name: mtda-nanopi-images
@@ -64,7 +64,7 @@ jobs:
             build/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic
             build/tmp/deploy/images/nanopi-*/mtda-image-mtda-*-nanopi-*.wic.bmap
       - name: Upload BeagleBone Black images
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/master'
         with:
           name: mtda-bbb-images
