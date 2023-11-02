@@ -155,7 +155,7 @@ class QemuController(PowerController):
         options += " -device e1000,netdev=net0"
         options += " -netdev user,id=net0,"
         options += "hostfwd=tcp::2222-:22,hostname={0}".format(self.hostname)
-        options += " -usb"
+        options += " -device qemu-xhci"
         options += " -vnc :0,websocket=on"
 
         # extra options
