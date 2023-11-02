@@ -1,8 +1,21 @@
-mtda (0.24-0) testing; urgency=medium
+mtda (0.24-1) testing; urgency=medium
 
-  * development version
+  [ Badrikesh Prusty ]
+  * ci: update auto-assign-action to v1.2.5 (vs 1.2.1)
+  * ci: update actions/setup-python to v4 (vs v1)
+  * ci: bump actions/upload-artifact version to v3
+  * ci: support spellcheck of markdown and rst files
+  * kas: update to kas-container 4.1
+  * kas/common/base: update isar to latest revision
+  * docs/install.rst: do GPG key setup before setting sources for debian
+  * docs: fix typos in rst files
+  * recipes-conf/mtda-repo: append source list with ' /' (vs ' * *')
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 23 Oct 2023 10:00:00 +0100
+  [ Felix Moessbauer ]
+  * perf: make make_printable more efficient
+  * do not install __pycache__
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 02 Nov 2023 11:30:00 +0100
 
 mtda (0.23-1) testing; urgency=medium
 
