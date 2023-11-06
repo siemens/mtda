@@ -15,6 +15,7 @@ Package: mtda
 Architecture: all
 Multi-Arch: foreign
 Depends: python3:any (>= 3.7~),
+         python3-boto3,
          python3-daemon,
          python3-gevent,
          python3-libgpiod,
