@@ -108,7 +108,14 @@ command::
 
     $ mtda-cli storage write console-image.wic.bz2
 
-It should be noted that MTDA supports ``.gz``, ``.bz2`` and raw images.
+Images may also be downloaded from a S3 bucket::
+
+    $ export AWS_ACCESS_KEY_ID=my-access-key
+    $ export AWS_SECRET_ACCESS_KEY=my-secret-access-key
+    $ mtda-cli storage write s3://example.org/console-image.wic.zst
+
+It should be noted that MTDA supports ``.gz``, ``.bz2``, ``.zst`` and
+raw images.
 
 Partitions may be mounted on the MTDA host using the ``storage mount``
 command::

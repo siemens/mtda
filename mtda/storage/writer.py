@@ -123,8 +123,14 @@ class AsyncImageWriter(queue.Queue):
             chunk = self.get()
             if self._exiting is False:
                 self._writing = True
-                self._write(chunk)
-                self._writing = False
+                try:
+                    self._write(chunk)
+                except Exception as e:
+                    self.mtda.debug(1, "storage.writer.worker(): {}".format(e))
+                    self._failed = True
+                    pass
+                finally:
+                    self._writing = False
             self.task_done()
             if self._failed is True:
                 self.mtda.debug(1, "storage.writer.worker(): "
@@ -140,9 +146,8 @@ class AsyncImageWriter(queue.Queue):
         try:
             result = self.storage.write(data)
         except OSError as e:
-            self.mtda.debug(1, "storage.writer.write_raw(): "
-                               "%s" % str(e.args[0]))
-            self._failed = True
+            self.mtda.debug(1, "storage.writer.write_raw(): {}".format(e))
+            raise
 
         self.mtda.debug(3, "storage.writer.write_raw(): %s" % str(result))
         return result
@@ -163,9 +168,8 @@ class AsyncImageWriter(queue.Queue):
                 cont = len(data) > 0
                 result = self.storage.write(uncompressed)
         except (OSError, zlib.error) as e:
-            self.mtda.debug(1, "storage.writer.write_gz(): "
-                               "%s" % str(e.args[0]))
-            self._failed = True
+            self.mtda.debug(1, "storage.writer.write_gz(): {}".format(e))
+            raise
 
         self.mtda.debug(3, "storage.writer.write_gz(): %s" % str(result))
         return result
@@ -188,9 +192,8 @@ class AsyncImageWriter(queue.Queue):
         except EOFError:
             result = 0
         except OSError as e:
-            self.mtda.debug(1, "storage.writer.write_bz2(): "
-                               "%s" % str(e.args[0]))
-            self._failed = True
+            self.mtda.debug(1, "storage.writer.write_bz2(): {}".format(e))
+            raise
 
         self.mtda.debug(3, "storage.writer.write_bz2(): %s" % str(result))
         return result
@@ -206,9 +209,8 @@ class AsyncImageWriter(queue.Queue):
         try:
             result = self._zdec.write(data)
         except OSError as e:
-            self.mtda.debug(1, "storage.writer.write_zst(): "
-                               "%s" % str(e.args[0]))
-            self._failed = True
+            self.mtda.debug(1, "storage.writer.write_zst(): {}".format(e))
+            raise
 
         self.mtda.debug(3, "storage.writer.write_zst(): %s" % str(result))
         return result
@@ -231,9 +233,8 @@ class AsyncImageWriter(queue.Queue):
         except EOFError:
             result = 0
         except OSError as e:
-            self.mtda.debug(1, "storage.writer.write_xz(): "
-                               "%s" % str(e.args[0]))
-            self._failed = True
+            self.mtda.debug(1, "storage.writer.write_xz(): {}".format(e))
+            raise
 
         self.mtda.debug(3, "storage.writer.write_xz(): %s" % str(result))
         return result

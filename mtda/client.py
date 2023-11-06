@@ -13,12 +13,12 @@
 import os
 import random
 import socket
+import tempfile
 import time
 import zerorpc
 
 from mtda.main import MultiTenantDeviceAccess
 import mtda.constants as CONSTS
-import xml.etree.ElementTree as ET
 
 
 class Client:
@@ -169,65 +169,12 @@ class Client:
             tries = tries - 1
             status = self._impl.storage_open(self._session)
             if status is True:
-                return True
+                return
             time.sleep(1)
-        return False
+        raise IOError('shared storage could not be opened')
 
     def storage_status(self):
         return self._impl.storage_status(self._session)
-
-    def _storage_write(self, image, imgname,
-                       inputsize, imagesize, callback=None):
-        # Copy loop
-        bytes_wanted = 0
-        data = image.read(self._agent.blksz)
-        dataread = len(data)
-        totalread = 0
-        lastreport = time.time()
-        while totalread < inputsize:
-            totalread += dataread
-
-            # Report progress via callback
-            if callback is not None and time.time() - lastreport > 0.5:
-                _, _, written = self._impl.storage_status(self._session)
-                callback(imgname, totalread, inputsize, written, imagesize)
-                lastreport = time.time()
-
-            # Write block to shared storage device
-            bytes_wanted = self._impl.storage_write(data, self._session)
-
-            # Check what to do next
-            if bytes_wanted < 0:
-                break
-            elif bytes_wanted > 0:
-                # Read next block
-                data = image.read(bytes_wanted)
-                dataread = len(data)
-            else:
-                # Agent may continue without further data
-                data = b''
-                dataread = 0
-
-        # Close the local image
-        image.close()
-
-        # Wait for background writes to complete
-        while True:
-            status, writing, written = self._impl.storage_status(self._session)
-            if callback is not None:
-                callback(imgname, totalread, inputsize, written, imagesize)
-            if writing is False:
-                break
-            time.sleep(0.5)
-
-        # Storage may be closed now
-        status = self.storage_close()
-
-        # Make sure an error is reported if a write error was received
-        if bytes_wanted < 0:
-            status = False
-
-        return status
 
     def storage_update(self, dest, src=None, callback=None):
         path = dest if src is None else src
@@ -248,43 +195,32 @@ class Client:
         return self._storage_write(image, imgname, imgsize, callback)
 
     def storage_write_image(self, path, callback=None):
-        # Get size of the (compressed) image
-        imgname = os.path.basename(path)
-        # size of extracted image (or none if not available)
-        imagesize = None
+        blksz = self._agent.blksz
+        impl = self._impl
+        session = self._session
 
-        # Open the specified image
-        try:
-            st = os.stat(path)
-            inputsize = st.st_size
-            if path.endswith(".bz2"):
-                compression = CONSTS.IMAGE.BZ2.value
-            elif path.endswith(".gz"):
-                compression = CONSTS.IMAGE.GZ.value
-            elif path.endswith(".zst"):
-                compression = CONSTS.IMAGE.ZST.value
-            elif path.endswith(".xz"):
-                compression = CONSTS.IMAGE.XZ.value
-            else:
-                compression = CONSTS.IMAGE.RAW.value
-                imagesize = inputsize
-            self._impl.storage_compression(compression, self._session)
-            image = open(path, "rb")
-        except FileNotFoundError:
-            return False
+        if path.startswith('s3:'):
+            file = ImageS3(path, impl, session, blksz, callback)
+        else:
+            file = ImageLocal(path, impl, session, blksz, callback)
 
         # Automatically discover the bmap file
-        image_path = path
-        bmapDict = None
+        bmap = None
+        image_path = file.path()
+        image_size = None
         while True:
-            bmap_path = image_path + ".bmap"
+            bmap_path = image_path + '.bmap'
             try:
-                bmap = ET.parse(bmap_path)
-                print("discovered bmap file '%s'" % bmap_path)
-                bmapDict = self.parseBmap(bmap, bmap_path)
-                self._impl.storage_bmap_dict(bmapDict, self._session)
-                imagesize = bmapDict['ImageSize']
-                break
+                bmap = file.bmap(bmap_path)
+                if bmap is not None:
+                    import xml.etree.ElementTree as ET
+
+                    bmap = ET.fromstring(bmap)
+                    print("discovered bmap file '{}'".format(bmap_path))
+                    bmapDict = self.parseBmap(bmap, bmap_path)
+                    self._impl.storage_bmap_dict(bmapDict, self._session)
+                    image_size = bmapDict['ImageSize']
+                    break
             except Exception:
                 pass
             image_path, ext = os.path.splitext(image_path)
@@ -295,18 +231,31 @@ class Client:
         # Open the shared storage device
         status = self.storage_open()
         if status is False:
-            image.close()
             return False
 
-        return self._storage_write(
-            image, imgname, inputsize, imagesize, callback)
+        try:
+            # Prepare for download/copy
+            file.prepare(image_size)
+
+            # Copy image to shared storage
+            file.copy()
+
+            # Wait for background writes to complete
+            file.flush()
+
+        except Exception:
+            status = False
+        finally:
+            # Storage may be closed now
+            self.storage_close()
+
+        return status
 
     def parseBmap(self, bmap, bmap_path):
         try:
             bmapDict = {}
-            broot = bmap.getroot()
             bmapDict["BlockSize"] = int(
-                broot.find("BlockSize").text.strip())
+                bmap.find("BlockSize").text.strip())
             bmapDict["BlocksCount"] = int(
                 bmap.find("BlocksCount").text.strip())
             bmapDict["MappedBlocksCount"] = int(
@@ -318,7 +267,7 @@ class Client:
             bmapDict["BmapFileChecksum"] = \
                 bmap.find("BmapFileChecksum").text.strip()
             bmapDict["BlockMap"] = []
-            for child in broot.find("BlockMap").findall("Range"):
+            for child in bmap.find("BlockMap").findall("Range"):
                 range = child.text.strip().split("-")
                 first = range[0]
                 last = range[0] if len(range) == 1 else range[1]
@@ -425,3 +374,215 @@ class Client:
         if host == "":
             host = os.getenv("MTDA_REMOTE", "")
         return self._impl.video_url(host, opts)
+
+
+class ImageFile:
+    """ Base class for image files (local or remote) """
+
+    def __init__(self, path, agent, session, blksz, callback=None):
+        self._agent = agent
+        self._blksz = blksz
+        self._callback = callback
+        self._imgname = os.path.basename(path)
+        self._inputsize = 0
+        self._path = path
+        self._session = session
+        self._totalread = 0
+
+    def bmap(self, path):
+        return None
+
+    def compression(self):
+        path = self._path
+        if path.endswith(".bz2"):
+            result = CONSTS.IMAGE.BZ2.value
+        elif path.endswith(".gz"):
+            result = CONSTS.IMAGE.GZ.value
+        elif path.endswith(".zst"):
+            result = CONSTS.IMAGE.ZST.value
+        elif path.endswith(".xz"):
+            result = CONSTS.IMAGE.XZ.value
+        else:
+            result = CONSTS.IMAGE.RAW.value
+        return result
+
+    def flush(self):
+        # Wait for background writes to complete
+        agent = self._agent
+        callback = self._callback
+        imgname = self._imgname
+        inputsize = self._inputsize
+        totalread = self._totalread
+        while True:
+            status, writing, written = agent.storage_status(self._session)
+            if callback is not None:
+                callback(imgname, totalread, inputsize, written, None)
+            if writing is False:
+                break
+            time.sleep(0.5)
+
+    def path(self):
+        return self._path
+
+    def prepare(self, output_size=None):
+        compr = self.compression()
+        self._inputsize = self.size()
+        self._outputsize = None
+        if output_size is None:
+            if compr == CONSTS.IMAGE.RAW.value:
+                self._outputsize = self._inputsize
+        self._agent.storage_compression(compr, self._session)
+        self._lastreport = time.time()
+        self._totalread = 0
+
+    def progress(self):
+        # Report progress via callback
+        callback = self._callback
+        imgname = self._imgname
+        inputsize = self._inputsize
+        totalread = self._totalread
+        if callback is not None and time.time() - self._lastreport > 0.5:
+            _, _, written = self._agent.storage_status(self._session)
+            callback(imgname, totalread, inputsize, written, None)
+            self._lastreport = time.time()
+
+    def size(self):
+        return None
+
+
+class ImageLocal(ImageFile):
+    """ An image from the local file-system to be copied over to the shared
+        storage. """
+
+    def __init__(self, path, agent, session, blksz, callback=None):
+        super().__init__(path, agent, session, blksz, callback)
+
+    def bmap(self, path):
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                return f.read()
+        return None
+
+    def copy(self):
+        if os.path.exists(self._path) is False:
+            raise IOError('{}: image not found!'.format(self._path))
+
+        image = open(self._path, 'rb')
+        try:
+            data = image.read(self._blksz)
+            dataread = len(data)
+            while self._totalread < self._inputsize:
+                self._totalread += dataread
+                self.progress()
+
+                # Write block to shared storage device
+                bytes_wanted = self._agent.storage_write(data, self._session)
+
+                # Check what to do next
+                if bytes_wanted < 0:
+                    raise IOError('write or decompression error from the '
+                                  'shared storage')
+                elif bytes_wanted > 0:
+                    # Read next block
+                    data = image.read(bytes_wanted)
+                    dataread = len(data)
+                else:
+                    # Agent may continue without further data
+                    data = b''
+                    dataread = 0
+
+        finally:
+            # Close the local image
+            image.close()
+
+    def size(self):
+        st = os.stat(self._path)
+        return st.st_size
+
+
+class ImageS3(ImageFile):
+    """ An image to be downloaded from a S3 bucket """
+
+    def __init__(self, path, agent, session, blksz, callback=None):
+        super().__init__(path, agent, session, blksz, callback)
+        self._object = None
+
+        from urllib.parse import urlparse
+        url = urlparse(self._path)
+        self._bucket = url.hostname
+        self._key = url.path[1:]
+
+    def bmap(self, path):
+        from urllib.parse import urlparse
+
+        url = urlparse(path)
+        bucket = url.hostname
+        key = url.path[1:]
+        result = None
+
+        if bucket != self._bucket:
+            raise RuntimeError('bmap shall be downloaded from the same S3 '
+                               'bucket as the image!')
+
+        bmap = self._open(key)
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp:
+            from boto3.s3.transfer import TransferConfig
+
+            config = TransferConfig(use_threads=False)
+            bmap.download_file(Filename=tmp.name, Config=config)
+            bmap = None
+
+            tmp.close()
+            with open(tmp.name, 'r') as f:
+                result = f.read()
+            os.unlink(tmp.name)
+
+        return result
+
+    def copy(self):
+        if self._object is None:
+            self._object = self._open()
+
+        from boto3.s3.transfer import TransferConfig
+        config = TransferConfig(use_threads=False)
+        self._object.download_fileobj(self, Config=config)
+
+    def size(self):
+        if self._object is None:
+            self._object = self._open()
+
+        result = None
+        if self._object is not None:
+            result = self._object.content_length
+        return result
+
+    def write(self, data):
+        """ called by boto3 as data gets downloaded from S3 """
+
+        dataread = len(data)
+        self._totalread += dataread
+
+        # Write block to shared storage device
+        bytes_wanted = 0
+        while bytes_wanted == 0:
+            # Report progress
+            self.progress()
+
+            # Write downloaded data to storage
+            bytes_wanted = self._agent.storage_write(data, self._session)
+            if bytes_wanted == 0:
+                # Agent may continue without further data
+                data = b''
+            elif bytes_wanted < 0:
+                # Write failure
+                raise IOError('write or decompression error')
+
+        return dataread
+
+    def _open(self, key=None):
+        if key is None:
+            key = self._key
+
+        import boto3
+        s3 = boto3.resource('s3')
+        return s3.Object(self._bucket, key)
