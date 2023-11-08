@@ -352,17 +352,20 @@ class Application:
         return 0
 
     def storage_write(self, args=None):
-        self.start_time = time.monotonic()
-        status = self.agent.storage_write_image(
-            args.image, self._storage_write_cb
-        )
-        sys.stdout.write("\n")
-        sys.stdout.flush()
-
-        if status is False:
-            print("'storage write' failed!", file=sys.stderr)
-            return 1
-        return 0
+        result = 0
+        try:
+            self.start_time = time.monotonic()
+            self.agent.storage_write_image(
+                args.image, self._storage_write_cb
+            )
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+        except Exception as e:
+            msg = e.msg if hasattr(e, 'msg') else str(e)
+            print("\n'storage write' failed! ({})".format(msg),
+                  file=sys.stderr)
+            result = 1
+        return result
 
     def target_uptime(self):
         result = ""

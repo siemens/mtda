@@ -622,7 +622,7 @@ class MultiTenantDeviceAccess:
         # Lastly, the shared storage device shall not be opened
         elif self._storage_opened is True:
             self.mtda.debug(4, "storage_locked(): "
-                               "shared storage is in used (opened)")
+                               "shared storage is in use (opened)")
             result = True
         # We may otherwise swap our shared storage device
         else:
@@ -668,31 +668,25 @@ class MultiTenantDeviceAccess:
         return result
 
     def storage_open(self, session=None):
-        self.mtda.debug(3, "main.storage_open()")
+        self.mtda.debug(3, 'main.storage_open()')
 
         self._session_check(session)
         owner = self._storage_owner
         status, _, _ = self.storage_status()
 
         if self.storage_controller is None:
-            self.mtda.debug(1, "storage_open(): no shared storage device")
-            result = False
+            raise RuntimeError('no shared storage device')
         elif status != CONSTS.STORAGE.ON_HOST:
-            self.mtda.debug(1, "storage_open(): not attached to host")
-            result = False
+            raise RuntimeError('shared storage not attached to host')
         elif owner is not None and owner != session:
-            self.mtda.debug(1, "storage_open(): in use")
-            result = False
-        else:
-            self.storage_close()
-            result = self.storage_controller.open()
-            if result is True:
-                self._storage_owner = session
-                self._writer.start()
-            self._storage_opened = result
+            raise RuntimeError('shared storage in use')
+        elif self._storage_opened is False:
+            self.storage_controller.open()
+            self._storage_opened = True
+            self._storage_owner = session
+            self._writer.start()
 
-        self.mtda.debug(3, "main.storage_open(): %s" % str(result))
-        return result
+        self.mtda.debug(3, 'main.storage_open(): success')
 
     def storage_status(self, session=None):
         self.mtda.debug(3, "main.storage_status()")
@@ -764,30 +758,27 @@ class MultiTenantDeviceAccess:
 
         self._session_check(session)
         if self.storage_controller is None:
-            self.mtda.debug(1, "main.storage_write(): no storage")
-            result = -1
+            raise RuntimeError('no shared storage')
         elif self._storage_opened is False:
-            self.mtda.debug(1, "main.storage_write(): not opened")
-            result = -1
+            raise RuntimeError('shared storage was not opened')
         elif self._writer.failed is True:
-            self.mtda.debug(1, "main.storage_write(): write error")
-            result = -1
+            raise RuntimeError('write or decompression error '
+                               'from shared storage')
         elif session != self._storage_owner:
-            self.mtda.debug(1, "main.storage_write(): in use")
-            result = -1
-        else:
-            try:
-                if len(data) == 0:
-                    self.mtda.debug(2, "main.storage_write(): "
-                                       "using queued data")
-                    data = self._writer_data
-                self._writer_data = data
-                self._writer.put(data, timeout=10)
-                result = self.blksz
-            except queue.Full:
+            raise RuntimeError('shared storage in use')
+
+        try:
+            if len(data) == 0:
                 self.mtda.debug(2, "main.storage_write(): "
-                                   "queue is full")
-                result = 0
+                                   "using queued data")
+                data = self._writer_data
+            self._writer_data = data
+            self._writer.put(data, timeout=10)
+            result = self.blksz
+        except queue.Full:
+            self.mtda.debug(2, "main.storage_write(): "
+                               "queue is full")
+            result = 0
 
         if self._writer.failed is True:
             self.mtda.debug(1, "main.storage_write(): "
