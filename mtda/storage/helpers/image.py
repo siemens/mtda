@@ -264,16 +264,11 @@ class Image(StorageController):
         return result
 
     def _open_impl(self):
-        result = True
         if self._status() == CONSTS.STORAGE.ON_HOST:
             if self.handle is None:
-                try:
-                    self.handle = open(self.file, "r+b")
-                    self.handle.seek(0, 0)
-                except FileNotFoundError:
-                    result = False
-
-        return result
+                self.handle = open(self.file, "r+b")
+                self.handle.seek(0, 0)
+        return True
 
     def status(self):
         self.mtda.debug(3, "storage.helpers.image.status()")

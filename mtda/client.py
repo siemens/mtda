@@ -167,11 +167,15 @@ class Client:
         tries = 60
         while tries > 0:
             tries = tries - 1
-            status = self._impl.storage_open(self._session)
-            if status is True:
+            try:
+                self._impl.storage_open(self._session)
                 return
-            time.sleep(1)
-        raise IOError('shared storage could not be opened')
+            except Exception:
+                if tries > 0:
+                    time.sleep(1)
+                    pass
+                else:
+                    raise
 
     def storage_status(self):
         return self._impl.storage_status(self._session)
@@ -204,6 +208,11 @@ class Client:
         else:
             file = ImageLocal(path, impl, session, blksz, callback)
 
+        # Open the shared storage device so we own it
+        # It also prevents us from loading a new bmap file while
+        # another transfer may be on-going
+        self.storage_open()
+
         # Automatically discover the bmap file
         bmap = None
         image_path = file.path()
@@ -216,7 +225,7 @@ class Client:
                     import xml.etree.ElementTree as ET
 
                     bmap = ET.fromstring(bmap)
-                    print("discovered bmap file '{}'".format(bmap_path))
+                    print("Discovered bmap file '{}'".format(bmap_path))
                     bmapDict = self.parseBmap(bmap, bmap_path)
                     self._impl.storage_bmap_dict(bmapDict, self._session)
                     image_size = bmapDict['ImageSize']
@@ -227,11 +236,6 @@ class Client:
             if ext == "":
                 print("No bmap file found at location of image")
                 break
-
-        # Open the shared storage device
-        status = self.storage_open()
-        if status is False:
-            return False
 
         try:
             # Prepare for download/copy
@@ -244,12 +248,10 @@ class Client:
             file.flush()
 
         except Exception:
-            status = False
+            raise
         finally:
             # Storage may be closed now
             self.storage_close()
-
-        return status
 
     def parseBmap(self, bmap, bmap_path):
         try:
