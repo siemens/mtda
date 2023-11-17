@@ -203,10 +203,8 @@ class Client:
         impl = self._impl
         session = self._session
 
-        if path.startswith('s3:'):
-            file = ImageS3(path, impl, session, blksz, callback)
-        else:
-            file = ImageLocal(path, impl, session, blksz, callback)
+        # Get file handler from specified path
+        file = ImageFile.new(path, impl, session, blksz, callback)
 
         # Open the shared storage device so we own it
         # It also prevents us from loading a new bmap file while
@@ -381,6 +379,12 @@ class Client:
 class ImageFile:
     """ Base class for image files (local or remote) """
 
+    def new(path, agent, session, blksz, callback=None):
+        if path.startswith('s3:'):
+            return ImageS3(path, agent, session, blksz, callback)
+        else:
+            return ImageLocal(path, agent, session, blksz, callback)
+
     def __init__(self, path, agent, session, blksz, callback=None):
         self._agent = agent
         self._blksz = blksz
@@ -426,8 +430,8 @@ class ImageFile:
     def path(self):
         return self._path
 
-    def prepare(self, output_size=None):
-        compr = self.compression()
+    def prepare(self, output_size=None, compression=None):
+        compr = self.compression() if compression is None else compression
         self._inputsize = self.size()
         self._outputsize = None
         if output_size is None:
