@@ -21,7 +21,7 @@ class QemuVideoController(VideoController):
     def __init__(self, mtda):
         self.mtda = mtda
         self.sink = "xvimagesink"
-        self.qemu = mtda.power_controller
+        self.qemu = mtda.power
 
     def configure(self, conf):
         self.mtda.debug(3, "video.qemu.configure()")

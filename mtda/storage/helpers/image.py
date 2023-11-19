@@ -53,6 +53,7 @@ class Image(StorageController):
         if self.handle is not None:
             self.handle.close()
             self.handle = None
+            self.bmapDict = None
             try:
                 subprocess.check_output(["sync"])
             except subprocess.CalledProcessError:

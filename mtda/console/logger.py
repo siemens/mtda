@@ -20,12 +20,12 @@ import time
 class ConsoleLogger:
 
     def __init__(self, mtda, console, socket=None,
-                 power_controller=None, topic=b'CON',
+                 power=None, topic=b'CON',
                  www=None):
         self.mtda = mtda
         self.console = console
         self._prompt = "=> "
-        self.power_controller = power_controller
+        self.power = power
         self.prints = True
         self.rx_active = threading.Event()
         self.rx_alive = False

@@ -26,7 +26,7 @@ class QemuController(Image):
         self.id = None
         self.name = "usb-storage"
         self.mode = CONSTS.STORAGE.ON_TARGET
-        self.qemu = mtda.power_controller
+        self.qemu = mtda.power
 
     """ Configure this storage controller from the provided configuration"""
     def configure(self, conf):

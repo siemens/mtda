@@ -26,7 +26,7 @@ class QemuMassStorageSwitch(UsbSwitch):
         self.id = None
         self.lock = threading.Lock()
         self.name = "mass-storage"
-        self.qemu = mtda.power_controller
+        self.qemu = mtda.power
 
     def configure(self, conf):
         self.mtda.debug(3, "usb.qemu_mass_storage.configure()")
