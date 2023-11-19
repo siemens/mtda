@@ -20,7 +20,7 @@ class DockerController(StorageController):
 
     def __init__(self, mtda):
         self.mtda = mtda
-        self._docker = mtda.power_controller
+        self._docker = mtda.power
         self._lock = threading.Lock()
         self._mode = CONSTS.STORAGE.ON_TARGET
         self._handle = None

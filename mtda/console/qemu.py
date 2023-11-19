@@ -22,7 +22,7 @@ class QemuConsole(ConsoleInterface):
 
     def __init__(self, mtda):
         self.mtda = mtda
-        self.qemu = mtda.power_controller
+        self.qemu = mtda.power
         self.opened = False
 
     """ Configure this console from the provided configuration"""

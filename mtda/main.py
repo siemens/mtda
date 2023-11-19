@@ -75,11 +75,11 @@ class MultiTenantDeviceAccess:
         self.mtda = self
         self.name = socket.gethostname()
         self.assistant = None
-        self.power_controller = None
+        self.power = None
         self.power_on_script = None
         self.power_off_script = None
         self.power_monitors = []
-        self.storage_controller = None
+        self.storage = None
         self._pastebin_api_key = None
         self._pastebin_endpoint = None
         self._storage_mounted = False
@@ -134,7 +134,7 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         result = False
         if self.power_locked(session) is False:
-            result = self.power_controller.command(args)
+            result = self.power.command(args)
 
         self.mtda.debug(3, "main.command(): %s" % str(result))
         return result
@@ -143,7 +143,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main._composite_start()")
 
         result = True
-        storage = self.storage_controller
+        storage = self.storage
         if storage is not None and storage.variant == 'usbf':
             status, _, _ = self.storage_status()
             enabled = status == CONSTS.STORAGE.ON_TARGET
@@ -161,7 +161,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main._composite_stop()")
 
         result = None
-        storage = self.storage_controller
+        storage = self.storage
         if storage is not None and storage.variant == 'usbf':
             Composite.remove()
 
@@ -410,8 +410,9 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         result = None
         if session is not None and timeout is None:
-            self.mtda.debug(1, "main.console_wait(): no timeout specified!")
             timeout = CONSTS.RPC.TIMEOUT
+            self.warn('console_wait() without timeout, '
+                      'using default ({})'.format(timeout))
         if self.console_locked(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.wait(what, timeout)
@@ -432,6 +433,12 @@ class MultiTenantDeviceAccess:
                 sys.stderr.buffer.write(_make_printable(line).encode("utf-8"))
                 sys.stderr.buffer.write(b"\n")
                 sys.stderr.buffer.flush()
+
+    def warn(self, msg):
+        print('warning: {}'.format(msg), file=sys.stderr)
+
+    def error(self, msg):
+        print('error: {}'.format(msg), file=sys.stderr)
 
     def env_get(self, name, default=None, session=None):
         self.mtda.debug(3, "env_get()")
@@ -509,8 +516,9 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         result = None
         if session is not None and timeout is None:
-            self.mtda.debug(1, "main.monitor_wait(): no timeout specified!")
             timeout = CONSTS.RPC.TIMEOUT
+            self.warn('monitor_wait() called without timeout, '
+                      'using default({})'.format(timeout))
         if self.console_locked(session) is False and \
            self.monitor_logger is not None:
             result = self.monitor_logger.wait(what, timeout)
@@ -530,7 +538,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.power_locked()")
 
         self._session_check(session)
-        if self.power_controller is None:
+        if self.power is None:
             result = True
         else:
             result = self._check_locked(session)
@@ -560,7 +568,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_compression()")
 
         self._session_check(session)
-        if self.storage_controller is None:
+        if self.storage is None:
             result = None
         else:
             result = self._writer.compression.value
@@ -573,10 +581,10 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_bmap_dict()")
 
         self._session_check(session)
-        if self.storage_controller is None:
+        if self.storage is None:
             result = None
         else:
-            self.storage_controller.setBmap(bmapDict)
+            self.storage.setBmap(bmapDict)
             result = True
         self.mtda.debug(3, "main.storage_bmap_dict()(): %s" % str(result))
 
@@ -584,12 +592,12 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_close()")
 
         self._session_check(session)
-        if self.storage_controller is None:
+        if self.storage is None:
             result = False
         else:
             self._writer.stop()
             self._writer_data = None
-            self._storage_opened = not self.storage_controller.close()
+            self._storage_opened = not self.storage.close()
             self._storage_owner = None
             result = (self._storage_opened is False)
 
@@ -604,15 +612,15 @@ class MultiTenantDeviceAccess:
             result = True
         # Cannot swap the shared storage device between the host and target
         # without a driver
-        elif self.storage_controller is None:
+        elif self.storage is None:
             self.mtda.debug(4, "storage_locked(): no shared storage device")
             result = True
         # If hotplugging is supported, swap only if the shared storage
         # isn't opened
-        elif self.storage_controller.supports_hotplug() is True:
+        elif self.storage.supports_hotplug() is True:
             result = self._storage_opened
         # We also need a power controller to be safe
-        elif self.power_controller is None:
+        elif self.power is None:
             self.mtda.debug(4, "storage_locked(): no power controller")
             result = True
         # The target shall be OFF
@@ -638,11 +646,11 @@ class MultiTenantDeviceAccess:
         if self._storage_mounted is True:
             self.mtda.debug(4, "storage_mount(): already mounted")
             result = True
-        elif self.storage_controller is None:
+        elif self.storage is None:
             self.mtda.debug(4, "storage_mount(): no shared storage device")
             return False
         else:
-            result = self.storage_controller.mount(part)
+            result = self.storage.mount(part)
             self._storage_mounted = (result is True)
 
         self.mtda.debug(3, "main.storage_mount(): %s" % str(result))
@@ -653,11 +661,11 @@ class MultiTenantDeviceAccess:
 
         self._session_check(session)
         result = False
-        if self.storage_controller is None:
+        if self.storage is None:
             self.mtda.debug(4, "storage_update(): no shared storage device")
         else:
             try:
-                result = self.storage_controller.update(dst, offset)
+                result = self.storage.update(dst, offset)
             except (FileNotFoundError, IOError) as e:
                 self.mtda.debug(1, "main.storage_update(): "
                                    "%s" % str(e.args[0]))
@@ -672,14 +680,14 @@ class MultiTenantDeviceAccess:
         owner = self._storage_owner
         status, _, _ = self.storage_status()
 
-        if self.storage_controller is None:
+        if self.storage is None:
             raise RuntimeError('no shared storage device')
         elif status != CONSTS.STORAGE.ON_HOST:
             raise RuntimeError('shared storage not attached to host')
         elif owner is not None and owner != session:
             raise RuntimeError('shared storage in use')
         elif self._storage_opened is False:
-            self.storage_controller.open()
+            self.storage.open()
             self._storage_opened = True
             self._storage_owner = session
             self._writer.start()
@@ -690,13 +698,13 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_status()")
 
         self._session_check(session)
-        if self.storage_controller is None:
+        if self.storage is None:
             self.mtda.debug(4, "storage_status(): no shared storage device")
             result = CONSTS.STORAGE.UNKNOWN, False, 0
         else:
             # avoid costly query of storage state when we know it anyways
             status = CONSTS.STORAGE.ON_HOST \
-                if self._writer.writing else self.storage_controller.status()
+                if self._writer.writing else self.storage.status()
             result = status, self._writer.writing, self._writer.written
 
         self.mtda.debug(3, "main.storage_status(): %s" % str(result))
@@ -707,11 +715,11 @@ class MultiTenantDeviceAccess:
 
         self._session_check(session)
         if self.storage_locked(session) is False:
-            result = self.storage_controller.to_host()
+            result = self.storage.to_host()
             if result is True:
                 self._storage_event(CONSTS.STORAGE.ON_HOST)
         else:
-            self.mtda.debug(1, "storage_to_host(): shared storage is locked")
+            self.error('cannot switch storage to host: locked')
             result = False
 
         self.mtda.debug(3, "main.storage_to_host(): %s" % str(result))
@@ -723,11 +731,11 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         if self.storage_locked(session) is False:
             self.storage_close()
-            result = self.storage_controller.to_target()
+            result = self.storage.to_target()
             if result is True:
                 self._storage_event(CONSTS.STORAGE.ON_TARGET)
         else:
-            self.mtda.debug(1, "storage_to_target(): shared storage is locked")
+            self.error('cannot switch storage to target: locked')
             result = False
 
         self.mtda.debug(3, "main.storage_to_target(): %s" % str(result))
@@ -740,10 +748,10 @@ class MultiTenantDeviceAccess:
         if self.storage_locked(session) is False:
             result, writing, written = self.storage_status(session)
             if result == CONSTS.STORAGE.ON_HOST:
-                if self.storage_controller.to_target() is True:
+                if self.storage.to_target() is True:
                     self._storage_event(CONSTS.STORAGE.ON_TARGET)
             elif result == CONSTS.STORAGE.ON_TARGET:
-                if self.storage_controller.to_host() is True:
+                if self.storage.to_host() is True:
                     self._storage_event(CONSTS.STORAGE.ON_HOST)
         result, writing, written = self.storage_status(session)
         return result
@@ -755,7 +763,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_write()")
 
         self._session_check(session)
-        if self.storage_controller is None:
+        if self.storage is None:
             raise RuntimeError('no shared storage')
         elif self._storage_opened is False:
             raise RuntimeError('shared storage was not opened')
@@ -779,8 +787,7 @@ class MultiTenantDeviceAccess:
             result = 0
 
         if self._writer.failed is True:
-            self.mtda.debug(1, "main.storage_write(): "
-                               "write or decompression error")
+            self.error('storage_write failed: write or decompression error')
             result = -1
 
         self.mtda.debug(3, "main.storage_write(): %s" % str(result))
@@ -790,7 +797,7 @@ class MultiTenantDeviceAccess:
         from filecmp import dircmp
 
         console = self.console
-        storage = self.storage_controller
+        storage = self.storage
         video = self.video
 
         with tempfile.TemporaryDirectory() as newdir:
@@ -926,7 +933,7 @@ class MultiTenantDeviceAccess:
 
             # Turn the DUT on
             if result is True:
-                result = self.power_controller.on()
+                result = self.power.on()
 
             # Resume logging
             if result is True:
@@ -1003,8 +1010,8 @@ class MultiTenantDeviceAccess:
             self.keyboard.idle()
 
         result = True
-        if self.power_controller is not None:
-            result = self.power_controller.off()
+        if self.power is not None:
+            result = self.power.off()
         self._composite_stop()
         self._power_event(CONSTS.POWER.OFF)
 
@@ -1029,10 +1036,10 @@ class MultiTenantDeviceAccess:
     def _target_status(self, session=None):
         self.mtda.debug(3, "main._target_status()")
 
-        if self.power_controller is None:
+        if self.power is None:
             result = CONSTS.POWER.UNSURE
         else:
-            result = self.power_controller.status()
+            result = self.power.status()
 
         self.mtda.debug(3, "main._target_status(): {}".format(result))
         return result
@@ -1224,24 +1231,26 @@ class MultiTenantDeviceAccess:
         if parser.has_section('ui'):
             self.load_ui_config(parser)
         if self.is_remote is False and is_server is True:
-            if parser.has_section('assistant'):
-                self.load_assistant_config(parser)
+            # load and configure core sub-systems
+            subsystems = ['power', 'console', 'storage', 'monitor', 'keyboard',
+                          'video']
+            for sub in subsystems:
+                if parser.has_section(sub):
+                    try:
+                        postconf = None
+                        hook = 'post_configure_{}'.format(sub)
+                        if hasattr(self, hook):
+                            postconf = getattr(self, hook)
+                        self.load_subsystem(sub, parser, postconf)
+                    except configparser.NoOptionError:
+                        self.error("variant not defined for '{}'!".format(sub))
+                    except ImportError:
+                        self.error("{} could not be found/loaded!".format(sub))
+            # configure additional components
             if parser.has_section('environment'):
                 self.load_environment(parser)
-            if parser.has_section('power'):
-                self.load_power_config(parser)
-            if parser.has_section('console'):
-                self.load_console_config(parser)
-            if parser.has_section('keyboard'):
-                self.load_keyboard_config(parser)
-            if parser.has_section('monitor'):
-                self.load_monitor_config(parser)
-            if parser.has_section('storage'):
-                self.load_storage_config(parser)
             if parser.has_section('usb'):
                 self.load_usb_config(parser)
-            if parser.has_section('video'):
-                self.load_video_config(parser)
             if parser.has_section('scripts'):
                 scripts = parser['scripts']
                 self.power_on_script = self._parse_script(
@@ -1281,93 +1290,34 @@ class MultiTenantDeviceAccess:
                                "%s => %s" % (opt, value))
             self.env_set(opt, value)
 
-    def load_assistant_config(self, parser):
-        self.mtda.debug(3, "main.load_assistant_config()")
+    def load_subsystem(self, subsystem, parser, postconf=None):
+        variant = parser.get(subsystem, 'variant')
+        mod = importlib.import_module("mtda.{}.{}".format(subsystem, variant))
+        factory = getattr(mod, 'instantiate')
+        instance = factory(self)
+        setattr(self, subsystem, instance)
+        setattr(instance, 'variant', variant)
+        config = dict(parser.items(subsystem))
+        if hasattr(instance, 'configure'):
+            instance.configure(dict(parser.items(subsystem)))
+        if postconf is not None:
+            postconf(instance, config, parser)
+        return instance, config
 
-        try:
-            # Get variant
-            variant = parser.get('assistant', 'variant')
-            # Try loading its support class
-            mod = importlib.import_module("mtda.assistant." + variant)
-            factory = getattr(mod, 'instantiate')
-            self.assistant = factory(self)
-            self.assistant.variant = variant
-            # Configure the assistant
-            self.assistant.configure(dict(parser.items('assistant')))
-        except configparser.NoOptionError:
-            print('assistant variant not defined!', file=sys.stderr)
-        except ImportError:
-            print('assistant "%s" could not be found/loaded!' % (
-                variant), file=sys.stderr)
+    def post_configure_console(self, console, config, parser):
+        self.mtda.debug(3, "main.post_configure_console()")
 
-    def load_console_config(self, parser):
-        self.mtda.debug(3, "main.load_console_config()")
-
-        try:
-            # Get variant
-            variant = parser.get('console', 'variant')
-            # Try loading its support class
-            mod = importlib.import_module("mtda.console." + variant)
-            factory = getattr(mod, 'instantiate')
-            self.console = factory(self)
-            self.console.variant = variant
-            # Configure the console
-            config = dict(parser.items('console'))
-            self.console.configure(config)
-            timestamps = parser.getboolean('console', 'timestamps',
-                                           fallback=None)
-            self._time_from_pwr = timestamps
-            if timestamps is None or timestamps is True:
-                # check 'time-from' / 'time-until' settings if timestamps is
-                # either yes or unspecified
-                if 'time-until' in config:
-                    self._time_until_str = config['time-until']
-                    self._time_from_pwr = True
-                if 'time-from' in config:
-                    self._time_from_str = config['time-from']
-                    self._time_from_pwr = False
-        except configparser.NoOptionError:
-            print('console variant not defined!', file=sys.stderr)
-        except ImportError:
-            print('console "%s" could not be found/loaded!' % (
-                variant), file=sys.stderr)
-
-    def load_keyboard_config(self, parser):
-        self.mtda.debug(3, "main.load_keyboard_config()")
-
-        try:
-            # Get variant
-            variant = parser.get('keyboard', 'variant')
-            # Try loading its support class
-            mod = importlib.import_module("mtda.keyboard." + variant)
-            factory = getattr(mod, 'instantiate')
-            self.keyboard = factory(self)
-            # Configure the keyboard controller
-            self.keyboard.configure(dict(parser.items('keyboard')))
-        except configparser.NoOptionError:
-            print('keyboard controller variant not defined!', file=sys.stderr)
-        except ImportError:
-            print('keyboard controller "%s" could not be found/loaded!' % (
-                variant), file=sys.stderr)
-
-    def load_monitor_config(self, parser):
-        self.mtda.debug(3, "main.load_monitor_config()")
-
-        try:
-            # Get variant
-            variant = parser.get('monitor', 'variant')
-            # Try loading its support class
-            mod = importlib.import_module("mtda.console." + variant)
-            factory = getattr(mod, 'instantiate')
-            self.monitor = factory(self)
-            self.monitor.variant = variant
-            # Configure the monitor console
-            self.monitor.configure(dict(parser.items('monitor')), 'monitor')
-        except configparser.NoOptionError:
-            print('monitor variant not defined!', file=sys.stderr)
-        except ImportError:
-            print('monitor "%s" could not be found/loaded!' % (
-                variant), file=sys.stderr)
+        timestamps = parser.getboolean('console', 'timestamps', fallback=None)
+        self._time_from_pwr = timestamps
+        if timestamps is None or timestamps is True:
+            # check 'time-from' / 'time-until' settings if timestamps is
+            # either yes or unspecified
+            if 'time-until' in config:
+                self._time_until_str = config['time-until']
+                self._time_from_pwr = True
+            if 'time-from' in config:
+                self._time_from_str = config['time-from']
+                self._time_from_pwr = False
 
     def load_pastebin_config(self, parser):
         self.mtda.debug(3, "main.load_pastebin_config()")
@@ -1376,44 +1326,9 @@ class MultiTenantDeviceAccess:
         self._pastebin_endpoint = parser.get('pastebin', 'endpoint',
                                              fallback=DEFAULT_PASTEBIN_EP)
 
-    def load_power_config(self, parser):
-        self.mtda.debug(3, "main.load_power_config()")
-
-        try:
-            # Get variant
-            variant = parser.get('power', 'variant')
-            # Try loading its support class
-            mod = importlib.import_module("mtda.power." + variant)
-            factory = getattr(mod, 'instantiate')
-            self.power_controller = factory(self)
-            self.power_controller.variant = variant
-            # Configure the power controller
-            self.power_controller.configure(dict(parser.items('power')))
-        except configparser.NoOptionError:
-            print('power controller variant not defined!', file=sys.stderr)
-        except ImportError:
-            print('power controller "%s" could not be found/loaded!' % (
-                variant), file=sys.stderr)
-
-    def load_storage_config(self, parser):
-        self.mtda.debug(3, "main.load_storage_config()")
-
-        try:
-            # Get variant
-            variant = parser.get('storage', 'variant')
-            # Try loading its support class
-            mod = importlib.import_module("mtda.storage." + variant)
-            factory = getattr(mod, 'instantiate')
-            self.storage_controller = factory(self)
-            self.storage_controller.variant = variant
-            self._writer = AsyncImageWriter(self, self.storage_controller)
-            # Configure the storage controller
-            self.storage_controller.configure(dict(parser.items('storage')))
-        except configparser.NoOptionError:
-            print('storage controller variant not defined!', file=sys.stderr)
-        except ImportError:
-            print('power controller "%s" could not be found/loaded!' % (
-                variant), file=sys.stderr)
+    def post_configure_storage(self, storage, config, parser):
+        self.mtda.debug(3, "main.post_configure_storage()")
+        self._writer = AsyncImageWriter(self, storage)
 
     def load_remote_config(self, parser):
         self.mtda.debug(3, "main.load_remote_config()")
@@ -1506,24 +1421,6 @@ class MultiTenantDeviceAccess:
             print('usb switch "%s" could not be found/loaded!' % (
                 variant), file=sys.stderr)
 
-    def load_video_config(self, parser):
-        self.mtda.debug(3, "main.load_video_config()")
-
-        try:
-            # Get variant
-            variant = parser.get('video', 'variant')
-            # Try loading its support class
-            mod = importlib.import_module("mtda.video." + variant)
-            factory = getattr(mod, 'instantiate')
-            self.video = factory(self)
-            # Configure the video controller
-            self.video.configure(dict(parser.items('video')))
-        except configparser.NoOptionError:
-            print('video controller variant not defined!', file=sys.stderr)
-        except ImportError:
-            print('video controller "%s" could not be found/loaded!' % (
-                variant), file=sys.stderr)
-
     def load_www_config(self, parser):
         self.mtda.debug(3, "main.load_www_config()")
 
@@ -1551,15 +1448,15 @@ class MultiTenantDeviceAccess:
             return True
 
         # Probe the specified power controller
-        if self.power_controller is not None:
-            status = self.power_controller.probe()
+        if self.power is not None:
+            status = self.power.probe()
             if status is False:
                 print('Probe of the Power Controller failed!', file=sys.stderr)
                 return False
 
         # Probe the specified storage controller
-        if self.storage_controller is not None:
-            status = self.storage_controller.probe()
+        if self.storage is not None:
+            status = self.storage.probe()
             if status is False:
                 print('Probe of the shared storage device failed!',
                       file=sys.stderr)
@@ -1583,7 +1480,7 @@ class MultiTenantDeviceAccess:
                 return False
             self.console_logger = ConsoleLogger(
                 self, self.console, socket,
-                self.power_controller, b'CON', self._www)
+                self.power, b'CON', self._www)
             if self._time_from_str is not None:
                 self.console_logger.time_from = self._time_from_str
             if self._time_until_str is not None:
@@ -1600,7 +1497,7 @@ class MultiTenantDeviceAccess:
                       self.monitor.variant), file=sys.stderr)
                 return False
             self.monitor_logger = ConsoleLogger(
-                self, self.monitor, socket, self.power_controller, b'MON')
+                self, self.monitor, socket, self.power, b'MON')
             self.monitor_logger.start()
 
         if self.keyboard is not None:
@@ -1631,7 +1528,7 @@ class MultiTenantDeviceAccess:
             self._session_timer.start()
 
         # Start from a known state
-        if self.power_controller is not None:
+        if self.power is not None:
             self._target_off()
             self.storage_to_target()
         else:

@@ -24,7 +24,7 @@ class DockerConsole(ConsoleInterface):
 
     def __init__(self, mtda):
         self.mtda = mtda
-        self.docker = mtda.power_controller
+        self.docker = mtda.power
         self._fd = None
         self._opened = False
         self._socket = None
