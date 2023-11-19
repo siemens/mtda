@@ -658,8 +658,6 @@ class MultiTenantDeviceAccess:
         else:
             try:
                 result = self.storage_controller.update(dst, offset)
-                if result is True:
-                    self._writer.start()
             except (FileNotFoundError, IOError) as e:
                 self.mtda.debug(1, "main.storage_update(): "
                                    "%s" % str(e.args[0]))

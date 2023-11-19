@@ -182,21 +182,41 @@ class Client:
 
     def storage_update(self, dest, src=None, callback=None):
         path = dest if src is None else src
-        imgname = os.path.basename(path)
         try:
             st = os.stat(path)
-            imgsize = st.st_size
-            image = open(path, "rb")
+            image_size = st.st_size
         except FileNotFoundError:
             return False
 
         status = self._impl.storage_update(dest, 0, self._session)
         if status is False:
-            image.close()
             return False
+        blksz = self._agent.blksz
+        impl = self._impl
+        session = self._session
 
-        self._impl.storage_compression(CONSTS.IMAGE.RAW.value, self._session)
-        return self._storage_write(image, imgname, imgsize, callback)
+        # Get file handler from specified path
+        file = ImageFile.new(path, impl, session, blksz, callback)
+
+        # Open the shared storage device so we own it
+        self.storage_open()
+
+        try:
+            # Prepare for download/copy
+            file.prepare(image_size, CONSTS.IMAGE.RAW.value)
+
+            # Copy image to shared storage
+            file.copy()
+
+            # Wait for background writes to complete
+            file.flush()
+
+        except Exception:
+            return False
+        finally:
+            # Storage may be closed now
+            self.storage_close()
+        return True
 
     def storage_write_image(self, path, callback=None):
         blksz = self._agent.blksz
