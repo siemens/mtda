@@ -32,7 +32,7 @@ class BmapWriteError(OSError):
 
 
 class Image(StorageController):
-
+    static_is_mounted = False
     def __init__(self, mtda):
         self.mtda = mtda
         self.handle = None
@@ -130,7 +130,8 @@ class Image(StorageController):
 
         with self.lock:
             result = self._umount()
-
+        if result is True:
+            static_is_mounted = False
         self.mtda.debug(3, "storage.helpers.image.umount(): %s" % str(result))
         return result
 
@@ -227,6 +228,8 @@ class Image(StorageController):
         self.mtda.debug(3, "storage.helpers.image.mount()")
         with self.lock:
             result = self._mount_impl(part)
+        if result is True:
+            static_is_mounted = True
         self.mtda.debug(3, "storage.helpers.image.mount(): %s" % str(result))
         return result
 
