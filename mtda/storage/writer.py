@@ -77,7 +77,9 @@ class AsyncImageWriter(queue.Queue):
             self.mtda.debug(1, "storage.writer.put(): no storage!")
             raise IOError("no storage!")
         result = super().put(chunk, block, timeout)
-
+        # if thread is started and put data is not empty
+        if len(chunk) > 0 and self._exiting is False:
+            self._writing = True
         self.mtda.debug(3, "storage.writer.put(): %s" % str(result))
         return result
 
@@ -120,17 +122,17 @@ class AsyncImageWriter(queue.Queue):
         self._failed = False
         self._written = 0
         while self._exiting is False:
+            if self.empty():
+                self._writing = False
             chunk = self.get()
             if self._exiting is False:
-                self._writing = True
                 try:
                     self._write(chunk)
                 except Exception as e:
                     self.mtda.debug(1, "storage.writer.worker(): {}".format(e))
                     self._failed = True
-                    pass
-                finally:
                     self._writing = False
+                    pass
             self.task_done()
             if self._failed is True:
                 self.mtda.debug(1, "storage.writer.worker(): "
