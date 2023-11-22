@@ -643,7 +643,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_mount()")
 
         self._session_check(session)
-        if self.storage_controller.static_is_mounted is True:
+        if self.storage.is_storage_mounted is True:
             self.mtda.debug(4, "storage_mount(): already mounted")
             result = True
         elif self.storage is None:

@@ -270,6 +270,7 @@ class Client:
         finally:
             # Storage may be closed now
             self.storage_close()
+            self._impl.storage_bmap_dict(None, self._session)
 
     def parseBmap(self, bmap, bmap_path):
         try:

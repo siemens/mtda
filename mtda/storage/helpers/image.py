@@ -32,7 +32,8 @@ class BmapWriteError(OSError):
 
 
 class Image(StorageController):
-    static_is_mounted = False
+    _is_storage_mounted = False
+
     def __init__(self, mtda):
         self.mtda = mtda
         self.handle = None
@@ -45,6 +46,10 @@ class Image(StorageController):
         self.rangeChkSum = None
         self.lock = threading.Lock()
         atexit.register(self._umount)
+
+    @property
+    def is_storage_mounted(self):
+        return Image._is_storage_mounted
 
     def _close(self):
         self.mtda.debug(3, "storage.helpers.image._close()")
@@ -123,6 +128,7 @@ class Image(StorageController):
                     self.isloop = False
 
         self.mtda.debug(3, "storage.helpers.image._umount(): %s" % str(result))
+        Image._is_storage_mounted = result is False
         return result
 
     def umount(self):
@@ -130,8 +136,6 @@ class Image(StorageController):
 
         with self.lock:
             result = self._umount()
-        if result is True:
-            static_is_mounted = False
         self.mtda.debug(3, "storage.helpers.image.umount(): %s" % str(result))
         return result
 
@@ -229,7 +233,7 @@ class Image(StorageController):
         with self.lock:
             result = self._mount_impl(part)
         if result is True:
-            static_is_mounted = True
+            Image._is_storage_mounted = True
         self.mtda.debug(3, "storage.helpers.image.mount(): %s" % str(result))
         return result
 
@@ -298,7 +302,8 @@ class Image(StorageController):
         self.crtBlockRange = 0
         self.writtenBytes = 0
         self.overlap = 0
-        self.rangeChkSum = self._get_hasher_by_name()
+        if bmapDict is not None:
+            self.rangeChkSum = self._get_hasher_by_name()
 
     def supports_hotplug(self):
         return False
