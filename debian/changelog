@@ -1,8 +1,18 @@
-mtda (0.25-0) testing; urgency=medium
+mtda (0.25-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * power/qemu: emulate USB 3.0 with -device qemu-xhci
+  * client: support 'storage write' from an S3 bucket
+  * client: add ImageFile.new() to ease use from various storage methods
+  * storage: use exceptions for open/write instead of booleans
+  * main: refactor loading and configuration of configured sub-systems
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 02 Nov 2023 22:30:00 +0100
+  [ Ding Meng ]
+  * storage: set storage_writing flag at the proper timing and place
+  * storage: set a static variable to tell is_mounted
+  * storage: reset storage_bmap_dict after writing and refactor
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 23 Nov 2023 22:30:00 +0100
 
 mtda (0.24-1) testing; urgency=medium
 
