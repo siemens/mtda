@@ -440,10 +440,11 @@ class ImageFile:
         imgname = self._imgname
         inputsize = self._inputsize
         totalread = self._totalread
+        outputsize = self._outputsize
         while True:
             status, writing, written = agent.storage_status(self._session)
             if callback is not None:
-                callback(imgname, totalread, inputsize, written, None)
+                callback(imgname, totalread, inputsize, written, outputsize)
             if writing is False:
                 break
             time.sleep(0.5)
@@ -454,7 +455,7 @@ class ImageFile:
     def prepare(self, output_size=None, compression=None):
         compr = self.compression() if compression is None else compression
         self._inputsize = self.size()
-        self._outputsize = None
+        self._outputsize = output_size
         if output_size is None:
             if compr == CONSTS.IMAGE.RAW.value:
                 self._outputsize = self._inputsize
@@ -468,9 +469,10 @@ class ImageFile:
         imgname = self._imgname
         inputsize = self._inputsize
         totalread = self._totalread
+        outputsize = self._outputsize
         if callback is not None and time.time() - self._lastreport > 0.5:
             _, _, written = self._agent.storage_status(self._session)
-            callback(imgname, totalread, inputsize, written, None)
+            callback(imgname, totalread, inputsize, written, outputsize)
             self._lastreport = time.time()
 
     def size(self):
