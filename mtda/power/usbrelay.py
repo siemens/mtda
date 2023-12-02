@@ -12,10 +12,12 @@
 # System imports
 import os
 import re
+import time
 import subprocess
 
 # Local imports
 from mtda.power.controller import PowerController
+import mtda.constants as CONSTS
 
 
 class UsbRelayPowerController(PowerController):
@@ -49,12 +51,12 @@ class UsbRelayPowerController(PowerController):
     def on(self):
         if self._set_lines("1") is False:
             return False
-        return self.status() == self.POWER_ON
+        return self._poll_status_until(self.POWER_ON)
 
     def off(self):
         if self._set_lines("0") is False:
             return False
-        return self.status() == self.POWER_OFF
+        return self._poll_status_until(self.POWER_OFF)
 
     def status(self):
         statuses = self._get_lines()
@@ -74,6 +76,13 @@ class UsbRelayPowerController(PowerController):
             elif value != result:
                 result = self.POWER_UNSURE
         return result
+
+    def _poll_status_until(self, desired_state):
+        for i in range(0, CONSTS.RPC.TIMEOUT // 2 + 1):
+            if self.status() == desired_state:
+                return True
+            time.sleep(0.5)
+        return False
 
     def _get_lines(self):
         result = {}
