@@ -1,3 +1,9 @@
+mtda (0.27-0) testing; urgency=medium
+
+  * development version
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 08 Dec 2023 22:00:00 +0100
+
 mtda (0.26-1) testing; urgency=medium
 
   [ Badrikesh Prusty ]
