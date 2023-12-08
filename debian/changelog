@@ -1,8 +1,16 @@
-mtda (0.26-0) testing; urgency=medium
+mtda (0.26-1) testing; urgency=medium
 
-  * development version
+  [ Badrikesh Prusty ]
+  * nanopi-neo: fix mtda image fails to boot due to boot device not found
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 24 Nov 2023 07:00:00 +0100
+  [ Cedric Hombourger ]
+  * scripts/qemu: implement secureboot and tpm reset operations
+
+  [ Felix Moessbauer ]
+  * use exact output size in clbk if available
+  * usbrelay: poll for status to confirm
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 08 Dec 2023 18:30:00 +0100
 
 mtda (0.25-1) testing; urgency=medium
 
