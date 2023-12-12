@@ -42,10 +42,23 @@ class QemuController(KeyboardController):
     def press(self, key, repeat=1):
         self.mtda.debug(3, "keyboard.qemu.press()")
 
+        symbols = {
+                ',': 'comma',
+                '.': 'dot',
+                '*': 'asterisk',
+                '/': 'slash',
+                '-': 'minus',
+                '=': 'equal',
+                ' ': 'spc',
+                '\t': 'tab',
+                '\n': 'ret'
+                }
+
         result = True
         while repeat > 0:
             repeat = repeat - 1
-            self.qemu.cmd("sendkey %s" % key)
+            key = symbols[key] if key in symbols else key
+            self.qemu.cmd("sendkey {}".format(key))
             time.sleep(0.1)
         return result
 
