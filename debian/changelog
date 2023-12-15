@@ -1,8 +1,12 @@
-mtda (0.27-0) testing; urgency=medium
+mtda (0.27-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * keyboard/qemu: translate symbols into key codes understood by QEMU's sendkey
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 08 Dec 2023 22:00:00 +0100
+  [ Felix Moessbauer ]
+  * www: show current power state in web-ui
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 15 Dec 2023 13:30:00 +0100
 
 mtda (0.26-1) testing; urgency=medium
 
