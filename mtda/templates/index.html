@@ -79,6 +79,7 @@ SPDX-License-Identifier: MIT
       <div class="title" id="mtda_title">MTDA</div>
         <ul class="nav">
           <li><a href="#" id=power-toggle><i id=power-status-icon class="large material-icons">power</i></a></li>
+          <li><a href="#" id=storage-toggle><i id=storage-status-icon class="large material-icons">no_sim</i></a></li>
           <li><a href="#" id=keyboard-show><i class="large material-icons">keyboard</i></a></li>
           <li id="mtda_status">Connecting...</li>
           <li id="vnc_status">Loading Video</li>
@@ -98,6 +99,15 @@ SPDX-License-Identifier: MIT
         $('a#power-toggle').bind('click', function() {
           document.getElementById("power-status-icon").innerHTML = "downloading"
           $.getJSON('./power-toggle', function(data) {
+            // do nothing
+          });
+          return false;
+        });
+      });
+      $(function() {
+        $('a#storage-toggle').bind('click', function() {
+          document.getElementById("storage-status-icon").innerHTML = "downloading"
+          $.getJSON('./storage-toggle', function(data) {
             // do nothing
           });
           return false;
@@ -135,6 +145,7 @@ SPDX-License-Identifier: MIT
       const version = document.getElementById("mtda_version");
       const video = document.getElementById("video");
       const power_status = document.getElementById("power-status-icon")
+      const storage_status = document.getElementById("storage-status-icon")
 
       socket.on("console-output", function (data) {
         term.write(data.output);
@@ -173,6 +184,22 @@ SPDX-License-Identifier: MIT
           case 'ON': power_status.innerHTML = "power_off"; break;
           case 'OFF': power_status.innerHTML = "power"; break;
           default: power_status.innerHTML = "help"
+        }
+      });
+
+      socket.on("storage-event", (data) => {
+        switch(data.event) {
+          case 'HOST':
+            storage_status.innerHTML = "save";
+            storage_status.title = "switch storage to target"
+            break;
+          case 'TARGET':
+            storage_status.innerHTML = "eject";
+            storage_status.title = "switch storage to host"
+            break;
+          default:
+            storage_status.innerHTML = "unknown_document"
+            storage_status.title = "storage status unknown"
         }
       });
     </script>
