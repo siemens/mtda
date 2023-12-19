@@ -50,6 +50,9 @@ def connect():
         data = mtda.console_dump()
         socket.emit("console-output", {"output": data}, namespace="/mtda")
 
+        power = mtda.target_status(session_id())
+        socket.emit("power-event", {"event": power}, namespace="/mtda")
+
         status, _, _ = mtda.storage_status(session_id())
         socket.emit("storage-event", {"event": status}, namespace="/mtda")
 
