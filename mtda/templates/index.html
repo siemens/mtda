@@ -156,7 +156,7 @@ SPDX-License-Identifier: MIT
       });
 
       socket.on("video-info", function (info) {
-	if (info.format == 'VNC') {
+        if (info.format == 'VNC') {
           vnc_load()
         }
         else {
@@ -188,7 +188,13 @@ SPDX-License-Identifier: MIT
       });
 
       socket.on("storage-event", (data) => {
-        switch(data.event) {
+        data = data.event.split(" ")
+        event = data[0]
+        data = data.splice(1).join(" ")
+	if (event == 'UNLOCKED') {
+	  event = data
+	}
+        switch(event) {
           case 'HOST':
             storage_status.innerHTML = "save";
             storage_status.title = "switch storage to target"
@@ -196,6 +202,10 @@ SPDX-License-Identifier: MIT
           case 'TARGET':
             storage_status.innerHTML = "eject";
             storage_status.title = "switch storage to host"
+            break;
+          case 'LOCKED':
+            storage_status.innerHTML = "no_sim";
+            storage_status.title = data
             break;
           default:
             storage_status.innerHTML = "unknown_document"
