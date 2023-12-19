@@ -223,15 +223,16 @@ class DockerPowerController(PowerController):
     def _status(self):
         self.mtda.debug(3, "power.docker._status()")
 
-        result = self.POWER_UNSURE
-        status = self._container.status
-        if status == "running":
-            result = self.POWER_ON
-        elif status == "created" or status == "exited":
-            result = self.POWER_OFF
-        else:
-            self.mtda.debug(1, "power.docker._status(): "
-                            "unknown status: {}".format(status))
+        result = self.POWER_OFF
+        if self._container is not None:
+            status = self._container.status
+            if status == "running":
+                result = self.POWER_ON
+            elif status == "created" or status == "exited":
+                result = self.POWER_OFF
+            else:
+                self.mtda.debug(1, "power.docker._status(): "
+                                "unknown status: {}".format(status))
 
         self.mtda.debug(3, "power.docker._status(): {}".format(result))
         return result
