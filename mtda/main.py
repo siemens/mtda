@@ -82,6 +82,7 @@ class MultiTenantDeviceAccess:
         self.storage = None
         self._pastebin_api_key = None
         self._pastebin_endpoint = None
+        self._storage_locked = False
         self._storage_mounted = False
         self._storage_opened = False
         self._storage_owner = None
@@ -552,7 +553,9 @@ class MultiTenantDeviceAccess:
                 self.socket.send(topic, flags=zmq.SNDMORE)
                 self.socket.send(data)
 
-    def _storage_event(self, status):
+    def _storage_event(self, status, reason=""):
+        if reason:
+            status = status + " " + reason
         self.notify(CONSTS.EVENTS.STORAGE, status)
 
     def storage_bytes_written(self, session=None):
@@ -601,6 +604,9 @@ class MultiTenantDeviceAccess:
             self._storage_owner = None
             result = (self._storage_opened is False)
 
+        if self.storage is not None:
+            self.storage_locked()
+
         self.mtda.debug(3, "main.storage_close(): %s" % str(result))
         return result
 
@@ -608,35 +614,48 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_locked()")
 
         self._session_check(session)
+        result = False
+        reason = "unsure"
         if self._check_locked(session):
+            reason = "target is locked"
             result = True
         # Cannot swap the shared storage device between the host and target
         # without a driver
         elif self.storage is None:
-            self.mtda.debug(4, "storage_locked(): no shared storage device")
+            reason = "no shared storage device"
             result = True
         # If hotplugging is supported, swap only if the shared storage
         # isn't opened
         elif self.storage.supports_hotplug() is True:
             result = self._storage_opened
+            if result is True:
+                reason = "hotplug supported but storage is opened"
         # We also need a power controller to be safe
         elif self.power is None:
-            self.mtda.debug(4, "storage_locked(): no power controller")
+            reason = "no power controller"
             result = True
         # The target shall be OFF
-        elif self.target_status() != "OFF":
-            self.mtda.debug(4, "storage_locked(): target isn't off")
+        elif self._target_status() != "OFF":
+            reason = "target is on"
             result = True
         # Lastly, the shared storage device shall not be opened
         elif self._storage_opened is True:
-            self.mtda.debug(4, "storage_locked(): "
-                               "shared storage is in use (opened)")
+            reason = "shared storage is in use (opened)"
             result = True
-        # We may otherwise swap our shared storage device
-        else:
-            result = False
 
-        self.mtda.debug(3, "main.storage_locked(): %s" % str(result))
+        if result is True:
+            self.mtda.debug(4, "storage_locked(): {}".format(reason))
+            event = CONSTS.STORAGE.LOCKED
+        else:
+            event = CONSTS.STORAGE.UNLOCKED
+            reason, _, _ = self.storage_status()
+
+        # Notify UI if storage becomes locked/unlocked
+        if result != self._storage_locked:
+            self._storage_locked = result
+            self._storage_event(event, reason)
+
+        self.mtda.debug(3, "main.storage_locked(): {}".format(result))
         return result
 
     def storage_mount(self, part=None, session=None):
@@ -652,6 +671,9 @@ class MultiTenantDeviceAccess:
         else:
             result = self.storage.mount(part)
             self._storage_mounted = (result is True)
+
+        if self.storage is not None:
+            self.storage_locked()
 
         self.mtda.debug(3, "main.storage_mount(): %s" % str(result))
         return result
@@ -691,6 +713,8 @@ class MultiTenantDeviceAccess:
             self._storage_opened = True
             self._storage_owner = session
             self._writer.start()
+            if self.storage is not None:
+                self.storage_locked()
 
         self.mtda.debug(3, 'main.storage_open(): success')
 
@@ -956,6 +980,9 @@ class MultiTenantDeviceAccess:
 
                 self._power_event(CONSTS.POWER.ON)
 
+        if self.storage is not None:
+            self.storage_locked()
+
         self.mtda.debug(3, "main._target_on(): {}".format(result))
         return result
 
@@ -1014,6 +1041,9 @@ class MultiTenantDeviceAccess:
             result = self.power.off()
         self._composite_stop()
         self._power_event(CONSTS.POWER.OFF)
+
+        if self.storage is not None:
+            self.storage_locked()
 
         self.mtda.debug(3, "main._target_off(): {}".format(result))
         return result
@@ -1461,6 +1491,7 @@ class MultiTenantDeviceAccess:
                 print('Probe of the shared storage device failed!',
                       file=sys.stderr)
                 return False
+            self._storage_event(CONSTS.STORAGE.UNLOCKED)
 
         if self.console is not None:
             # Create a publisher

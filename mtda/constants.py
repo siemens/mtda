@@ -63,6 +63,8 @@ class SESSION:
 class STORAGE:
     ON_HOST = "HOST"
     ON_TARGET = "TARGET"
+    LOCKED = "LOCKED"
+    UNLOCKED = "UNLOCKED"
     UNKNOWN = "???"
 
 
