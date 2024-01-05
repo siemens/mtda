@@ -468,15 +468,47 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "env_set(): %s" % str(result))
         return result
 
-    def keyboard_write(self, input_str, session=None):
+    def keyboard_write(self, what, session=None):
         self.mtda.debug(3, "main.keyboard_write()")
 
         self._session_check(session)
         result = None
         if self.keyboard is not None:
-            result = self.keyboard.write(input_str)
+            special_keys = {
+                    "<down>": self.keyboard.down,
+                    "<enter>": self.keyboard.enter,
+                    "<esc>": self.keyboard.esc,
+                    "<f1>": self.keyboard.f1,
+                    "<f2>": self.keyboard.f2,
+                    "<f3>": self.keyboard.f3,
+                    "<f4>": self.keyboard.f4,
+                    "<f5>": self.keyboard.f5,
+                    "<f6>": self.keyboard.f6,
+                    "<f7>": self.keyboard.f7,
+                    "<f8>": self.keyboard.f8,
+                    "<f9>": self.keyboard.f9,
+                    "<f10>": self.keyboard.f10,
+                    "<f11>": self.keyboard.f11,
+                    "<f12>": self.keyboard.f12,
+                    "<left>": self.keyboard.left,
+                    "<right>": self.keyboard.right,
+                    "<up>": self.keyboard.up
+                    }
 
-        self.mtda.debug(3, "main.keyboard_write(): %s" % str(result))
+            while what != "":
+                # check for special keys such as <esc>
+                if what.startswith('<') and '>' in what:
+                    key = what.split('>')[0] + '>'
+                    if key in special_keys:
+                        offset = len(key)
+                        what = what[offset:]
+                        special_keys[key]()
+                        continue
+                key = what[0]
+                what = what[1:]
+                self.keyboard.write(key)
+
+        self.mtda.debug(3, "main.keyboard_write(): {}".format(result))
         return result
 
     def monitor_remote(self, host, screen):
