@@ -1,8 +1,16 @@
-mtda (0.28-0) testing; urgency=medium
+mtda (0.28-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * fix(power/docker): check for _container in status()
+  * feat(main): emit storage locked/unlocked events
+  * feat(www): use storage locked/unlocked events to update the UI
+  * chore(keyboard): handle special keys in main
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 19 Dec 2023 05:30:00 +0100
+  [ Felix Moessbauer ]
+  * feat(www): expose storage toggle in web UI
+  * fix: emit power-event on socket connect
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 05 Jan 2024 13:00:00 +0100
 
 mtda (0.27-1) testing; urgency=medium
 
