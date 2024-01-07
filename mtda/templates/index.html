@@ -1,5 +1,5 @@
 <!---
-Copyright (C) 2024 Siemens Digital Industries Software
+Copyright (C) 2023 Siemens Digital Industries Software
 SPDX-License-Identifier: MIT
 -->
 <html lang="en">
@@ -9,9 +9,11 @@ SPDX-License-Identifier: MIT
     <!-- Apple iOS Safari settings -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="./assets/material_icons.css">
+    <link rel="stylesheet" href="./assets/modern.min.css">
     <link rel="stylesheet" href="./assets/keyboard.css">
     <link rel="stylesheet" href="novnc/app/styles/base.css">
     <script type="module" crossorigin="anonymous" src="./assets/vnc.js"></script>
+    <link rel="preload" href="./assets/winbox.bundle.min.js" as="script">
     <title>Multi-Tenant Device Access</title>
     <link rel="stylesheet" href="./assets/xterm.css"/>
     <style>
@@ -86,12 +88,22 @@ SPDX-License-Identifier: MIT
           <li id="mtda_version">&nbsp;</li>
         </ul>
     </div>
-    <table>
-      <tr>
-        <td><div style="width: 640px; height: 480px" id="console"></div></td>
-        <td><div style="width: 640px; height: 480px" id="video"></div></td>
-      </tr>
-    </table>
+    <script src="./assets/winbox.bundle.min.js"></script>
+    <script type=text/javascript>
+        consoleWindow = new WinBox("Console", {
+            html: "<div id=console></div>",
+            class: ["no-close", "no-full", "no-max", "modern"],
+            width: "640px",
+            height: "480px"
+        });
+        videoWindow = new WinBox("Video", {
+            html: "<div id=video></div>",
+            class: ["no-close", "no-full", "no-max", "modern"],
+            width: "1360px",
+            height: "768px"
+        });
+        consoleWindow.focus()
+    </script>
     <script src="./assets/jquery.min.js"></script>
     <script src="./assets/keyboard.js"></script>
     <script type=text/javascript>
@@ -191,9 +203,9 @@ SPDX-License-Identifier: MIT
         data = data.event.split(" ")
         event = data[0]
         data = data.splice(1).join(" ")
-	if (event == 'UNLOCKED') {
-	  event = data
-	}
+        if (event == 'UNLOCKED') {
+          event = data
+        }
         switch(event) {
           case 'HOST':
             storage_status.innerHTML = "save";
