@@ -147,6 +147,14 @@ Files: mtda/assets/socket.io.min.js
 Copyright: 2014-2021 Guillermo Rauch
 License: MIT
 
+Files: mtda/assets/modern.min.css
+Copyright: 2021-2023 Thomas Wilkerling
+License: Apache-2.0
+
+Files: mtda/assets/winbox.bundle.min.js
+Copyright: 2021-2023 Thomas Wilkerling
+License: Apache-2.0
+
 Files: mtda/assets/xterm.css
 Copyright: 2014 The xterm.js authors.
 License: MIT
