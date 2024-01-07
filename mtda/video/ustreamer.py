@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2023 Siemens AG
+# Copyright (C) 2024 Siemens AG
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT

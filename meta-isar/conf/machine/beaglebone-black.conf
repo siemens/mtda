@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # This Isar layer is part of MTDA
-# Copyright (C) 2023 Siemens Digital Industries Software
+# Copyright (C) 2024 Siemens Digital Industries Software
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------

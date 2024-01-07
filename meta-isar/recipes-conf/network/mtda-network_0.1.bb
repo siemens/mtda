@@ -1,5 +1,5 @@
 # This Isar layer is part of MTDA
-# Copyright (C) 2023 Siemens AG
+# Copyright (C) 2024 Siemens AG
 # SPDX-License-Identifier: MIT
 
 DESCRIPTION = "MTDA network configuration using network-manager"
