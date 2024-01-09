@@ -12,6 +12,7 @@
 # System imports
 import os
 import stat
+import subprocess
 
 # Local imports
 import mtda.constants as CONSTS
@@ -26,8 +27,22 @@ class UsbFunctionController(Image):
         super().__init__(mtda)
         self.device = None
         self.file = None
+        self.loop = None
         self.mode = CONSTS.STORAGE.ON_HOST
         Composite.mtda = mtda
+
+    def cleanup(self):
+        self.mtda.debug(3, "storage.usbf.cleanup()")
+
+        result = None
+        if self.loop is not None:
+            self.mtda.debug(2, "storage.usbf.cleanup(): "
+                               "removing {}".format(self.loop))
+            cmd = ['/usr/sbin/losetup', '-d', self.loop]
+            self.loop = subprocess.check_call(cmd)
+
+        self.mtda.debug(3, "storage.usbf.cleanup(): {}".format(result))
+        return result
 
     """ Configure this storage controller from the provided configuration"""
     def configure(self, conf):
@@ -44,8 +59,14 @@ class UsbFunctionController(Image):
                                "both 'file' ({}) and 'device' ({}) are set, "
                                "using 'file'".format(self.file, self.device))
             self.device = None
-
-        if self.file is None and self.device is not None:
+        elif self.device is None:
+            import atexit
+            cmd = ['/usr/sbin/losetup', '-f', '--show', self.file]
+            self.loop = subprocess.check_output(cmd).decode("utf-8").strip()
+            atexit.register(self.cleanup)
+            self.mtda.debug(2, "storage.usbf.configure(): created loopback "
+                               "device {} for {}".format(self.loop, self.file))
+        else:
             self.file = self.device
 
         if self.file is not None:

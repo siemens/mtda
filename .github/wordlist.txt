@@ -62,6 +62,7 @@ JQC
 keyrings
 kvm
 LEDs
+loopback
 LTS
 maxdepth
 microSD

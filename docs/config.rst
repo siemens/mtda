@@ -396,13 +396,15 @@ configuration to expose either a file or a physical device or partition to
 the DUT as a Mass Storage device. The following settings are supported:
 
 * ``device``: string [optional]
-  Block device for the shared storage as seen on the host. This is the
-  same as ``file`` but a warning will be issued if the specified file
-  is not a block device. When both ``device`` and ``file`` are set,
-  ``file`` will be used.
+  Block device for the shared storage as seen on the host. A systemd
+  dependency is added to ensure the service is started only after the
+  specified block device was found. A warning is issued if the input
+  is not a block device.
 
 * ``file``: string [optional]
-  File or block device for the shared storage as seen on the host.
+  File for the shared storage: a loopback device will be created to make
+  sure that writes to the shared storage do not cause this file to
+  expand and leave the host without free space.
 
 Timeout settings
 ----------------
