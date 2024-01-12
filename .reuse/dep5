@@ -156,11 +156,15 @@ Copyright: 2021-2023 Thomas Wilkerling
 License: Apache-2.0
 
 Files: mtda/assets/xterm.css
-Copyright: 2014 The xterm.js authors.
+Copyright: 2017-2022 The xterm.js authors.
 License: MIT
 
 Files: mtda/assets/xterm.js
-Copyright: 2014 The xterm.js authors.
+Copyright: 2017-2022 The xterm.js authors.
+License: MIT
+
+Files: mtda/assets/addon-fit.js
+Copyright: 2017-2022 The xterm.js authors.
 License: MIT
 
 Files: mtda/share/nginx-multi-mtda.conf
