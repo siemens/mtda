@@ -138,19 +138,24 @@ SPDX-License-Identifier: MIT
       });
     </script>
     <script src="./assets/xterm.js"></script>
+    <script src="./assets/addon-fit.js"></script>
     <script src="./assets/socket.io.min.js"></script>
     <script type="module" crossorigin="anonymous">
-      import {vnc_load} from './assets/vnc.js'
       const term = new Terminal({
         cursorBlink: true,
         macOptionIsMeta: true,
         scrollback: true,
       });
+      const termfit = new FitAddon.FitAddon();
+      term.loadAddon(termfit);
       term.open(document.getElementById("console"));
-      term.resize(80, 25);
+      termfit.fit();
       term.onData((data) => {
         socket.emit("console-input", { input: data });
       });
+      consoleWindow.onresize = function(w, h) {
+        termfit.fit()
+      }
 
       const socket = io.connect("/mtda", {path: window.location.pathname + "socket.io/"});
       const status = document.getElementById("mtda_status");
@@ -167,6 +172,7 @@ SPDX-License-Identifier: MIT
         version.textContent = 'Version ' + data.version
       });
 
+      import { vnc_load } from './assets/vnc.js'
       socket.on("video-info", function (info) {
         if (info.format == 'VNC') {
           vnc_load()
