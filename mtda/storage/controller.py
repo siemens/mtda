@@ -37,6 +37,11 @@ class StorageController(object):
         return False
 
     @abc.abstractmethod
+    def path(self):
+        """ Expose path to the shared storage device"""
+        return None
+
+    @abc.abstractmethod
     def probe(self):
         """ Check presence of the shared storage device"""
         return False

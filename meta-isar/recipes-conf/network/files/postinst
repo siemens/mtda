@@ -1,0 +1,6 @@
+#!/bin/sh
+# This script is part of MTDA
+# Copyright (C) 2024 Siemens AG
+# SPDX-License-Identifier: MIT
+
+sed -i -e 's,group = .*,group = disk,g' /etc/nbd-server/config

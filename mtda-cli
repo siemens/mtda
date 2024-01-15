@@ -277,6 +277,7 @@ class Application:
         cmds = {
            'host': self.storage_host,
            'mount': self.storage_mount,
+           'network': self.storage_network,
            'target': self.storage_target,
            'update': self.storage_update,
            'write': self.storage_write
@@ -299,6 +300,13 @@ class Application:
         status = self.agent.storage_mount(args.partnum)
         if status is False:
             print("'storage mount' failed!", file=sys.stderr)
+            return 1
+        return 0
+
+    def storage_network(self, args=None):
+        status = self.agent.storage_network(self.remote)
+        if status is False:
+            print("'storage network' failed!", file=sys.stderr)
             return 1
         return 0
 
@@ -683,7 +691,10 @@ class Application:
             metavar="partition number",
             type=int,
             nargs="?",
-            help="Parititon number to mount",
+            help="Partition number to mount",
+        )
+        s = subsub.add_parser(
+            "network", help="Access the shared storage device over the network"
         )
         s = subsub.add_parser(
             "target", help="Attach the shared storage device to the target"

@@ -13,6 +13,7 @@
 import os
 import random
 import socket
+import subprocess
 import tempfile
 import time
 import zerorpc
@@ -162,6 +163,18 @@ class Client:
 
     def storage_mount(self, part=None):
         return self._impl.storage_mount(part, self._session)
+
+    def storage_network(self, remote):
+        cmd = '/usr/sbin/nbd-client'
+        if os.path.exists(cmd) is False:
+            raise RuntimeError('{} not found'.format(cmd))
+
+        rdev = self._impl.storage_network()
+        if rdev is None:
+            raise RuntimeError('could not put storage on network')
+
+        cmd = ['sudo', cmd, '-N', 'mtda-storage', remote]
+        subprocess.check_call(cmd)
 
     def storage_open(self):
         tries = 60
