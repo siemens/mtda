@@ -50,6 +50,9 @@ except ModuleNotFoundError:
 DEFAULT_PREFIX_KEY = 'ctrl-a'
 DEFAULT_PASTEBIN_EP = "http://pastebin.com/api/api_post.php"
 
+NBD_CONF_DIR = '/etc/nbd-server/conf.d'
+NBD_CONF_FILE = 'mtda-storage.conf'
+
 
 def _make_printable(s):
     return s.encode('ascii', 'replace').decode()
@@ -86,6 +89,7 @@ class MultiTenantDeviceAccess:
         self._storage_mounted = False
         self._storage_opened = False
         self._storage_owner = None
+        self._storage_status = CONSTS.STORAGE.UNKNOWN
         self._writer = None
         self._writer_data = None
         self.blksz = CONSTS.WRITER.READ_SIZE
@@ -586,6 +590,10 @@ class MultiTenantDeviceAccess:
                 self.socket.send(data)
 
     def _storage_event(self, status, reason=""):
+        if status in [CONSTS.STORAGE.ON_HOST,
+                      CONSTS.STORAGE.ON_NETWORK,
+                      CONSTS.STORAGE.ON_TARGET]:
+            self._storage_status = status
         if reason:
             status = status + " " + reason
         self.notify(CONSTS.EVENTS.STORAGE, status)
@@ -630,6 +638,12 @@ class MultiTenantDeviceAccess:
         if self.storage is None:
             result = False
         else:
+            conf = os.path.join(NBD_CONF_DIR, NBD_CONF_FILE)
+            if os.path.exists(conf):
+                os.unlink(conf)
+                cmd = ['systemctl', 'restart', 'nbd-server']
+                subprocess.check_call(cmd)
+
             self._writer.stop()
             self._writer_data = None
             self._storage_opened = not self.storage.close()
@@ -727,6 +741,38 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.storage_update(): %s" % str(result))
         return result
 
+    def storage_network(self, session=None):
+        self.mtda.debug(3, "main.storage_network()")
+
+        result = False
+        self._session_check(session)
+        if self.storage_locked(session) is False:
+            if self.storage.to_host() is True:
+                conf = os.path.join(NBD_CONF_DIR, NBD_CONF_FILE)
+                file = None
+
+                if hasattr(self.storage, 'path'):
+                    file = self.storage.path()
+
+                if file is not None and os.path.exists(NBD_CONF_DIR):
+                    with open(conf, 'w') as f:
+                        f.write('[mtda-storage]\n')
+                        f.write('authfile = /etc/nbd-server/allow\n')
+                        f.write('exportname = {}\n'.format(file))
+                        f.close()
+
+                    cmd = ['systemctl', 'restart', 'nbd-server']
+                    subprocess.check_call(cmd)
+
+                    cmd = ['systemctl', 'is-active', 'nbd-server']
+                    subprocess.check_call(cmd)
+
+                    self._storage_event(CONSTS.STORAGE.ON_NETWORK)
+                    result = True
+
+        self.mtda.debug(3, "main.storage_network(): {}".format(result))
+        return result
+
     def storage_open(self, session=None):
         self.mtda.debug(3, 'main.storage_open()')
 
@@ -758,10 +804,9 @@ class MultiTenantDeviceAccess:
             self.mtda.debug(4, "storage_status(): no shared storage device")
             result = CONSTS.STORAGE.UNKNOWN, False, 0
         else:
-            # avoid costly query of storage state when we know it anyways
-            status = CONSTS.STORAGE.ON_HOST \
-                if self._writer.writing else self.storage.status()
-            result = status, self._writer.writing, self._writer.written
+            result = (self._storage_status,
+                      self._writer.writing,
+                      self._writer.written)
 
         self.mtda.debug(3, "main.storage_status(): %s" % str(result))
         return result
@@ -778,7 +823,7 @@ class MultiTenantDeviceAccess:
             self.error('cannot switch storage to host: locked')
             result = False
 
-        self.mtda.debug(3, "main.storage_to_host(): %s" % str(result))
+        self.mtda.debug(3, "main.storage_to_host(): {}".format(result))
         return result
 
     def storage_to_target(self, session=None):
@@ -803,7 +848,7 @@ class MultiTenantDeviceAccess:
         self._session_check(session)
         if self.storage_locked(session) is False:
             result, writing, written = self.storage_status(session)
-            if result == CONSTS.STORAGE.ON_HOST:
+            if result in [CONSTS.STORAGE.ON_HOST, CONSTS.STORAGE.ON_NETWORK]:
                 if self.storage.to_target() is True:
                     self._storage_event(CONSTS.STORAGE.ON_TARGET)
             elif result == CONSTS.STORAGE.ON_TARGET:
@@ -1391,6 +1436,9 @@ class MultiTenantDeviceAccess:
     def post_configure_storage(self, storage, config, parser):
         self.mtda.debug(3, "main.post_configure_storage()")
         self._writer = AsyncImageWriter(self, storage)
+
+        import atexit
+        atexit.register(self.storage_close)
 
     def load_remote_config(self, parser):
         self.mtda.debug(3, "main.load_remote_config()")

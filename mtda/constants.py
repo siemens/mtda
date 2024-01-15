@@ -62,6 +62,7 @@ class SESSION:
 
 class STORAGE:
     ON_HOST = "HOST"
+    ON_NETWORK = "NETWORK"
     ON_TARGET = "TARGET"
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"

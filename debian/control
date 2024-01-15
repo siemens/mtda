@@ -32,6 +32,7 @@ Depends: python3:any (>= 3.7~),
          wamerican,
          ${misc:Depends}
 Replaces: mtda-usb-functions
+Suggests: nbd-server
 Description: Multi-Tenant Device Access
  Multi-Tenant Device Access (or MTDA for short) is a relatively
  small Python application and library acting as an interface

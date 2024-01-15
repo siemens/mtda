@@ -134,6 +134,19 @@ target`` command::
 
     $ mtda-cli storage target
 
+Lastly, the shared device may be exposed on the network using the
+``storage network`` command:
+
+    $ mtda-cli storage network
+
+It uses `nbd-server` on the MTDA host and `sudo` and `nbd-client` on
+the client (the `nbd` kernel module must loaded or built-in into the
+kernel for `nbd-client to succeed). The name of the network block
+device will be printed to `stdout` and should be used to detach/release
+the block device when done:
+
+    $ nbd-client -d /dev/nbd0
+
 Monitor commands
 ~~~~~~~~~~~~~~~~
 
