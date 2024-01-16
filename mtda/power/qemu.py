@@ -269,18 +269,12 @@ class QemuController(PowerController):
                                    "({0})".format(result))
         return False
 
-    def kill(self, name, pid, wait_before_kill=True, timeout=3):
+    def kill(self, name, pid, timeout=3):
         tries = timeout
-        while wait_before_kill and tries > 0 and psutil.pid_exists(pid):
-            self.mtda.debug(2, "waiting {0} more seconds for {1} "
-                               "[{2}] to terminate".format(timeout, name, pid))
-            time.sleep(1)
-            tries = tries - 1
         if psutil.pid_exists(pid):
             self.mtda.debug(2, "terminating {0} "
                                "[{1}] using SIGTERM".format(name, pid))
             os.kill(pid, signal.SIGTERM)
-            tries = timeout
         while tries > 0 and psutil.pid_exists(pid):
             time.sleep(1)
             tries = tries - 1
@@ -297,20 +291,17 @@ class QemuController(PowerController):
         result = True
 
         if self.pidOfQemu is not None:
-
-            with open("/tmp/qemu-mtda.in", "w") as f:
-                f.write("quit\n")
             result = self.kill("qemu", self.pidOfQemu)
             if result:
                 self.pidOfQemu = None
 
         if self.pidOfSwTpm is not None:
-            result = self.kill("swtpm", self.pidOfSwTpm, False)
+            result = self.kill("swtpm", self.pidOfSwTpm)
             if result:
                 self.pidOfSwTpm = None
 
         if self.pidOfWebsockify is not None:
-            result = self.kill("websockify", self.pidOfWebsockify, False)
+            result = self.kill("websockify", self.pidOfWebsockify)
             if result:
                 self.pidOfWebsockify = None
 
