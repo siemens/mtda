@@ -42,8 +42,7 @@ class QemuMassStorageSwitch(UsbSwitch):
         if 'name' in conf:
             self.name = conf['name']
 
-        self.mtda.debug(3, "usb.qemu_mass_storage.configure(): "
-                        "%s" % str(result))
+        self.mtda.debug(3, f"usb.qemu_mass_storage.configure(): {str(result)}")
         self.lock.release()
         return result
 
@@ -55,7 +54,7 @@ class QemuMassStorageSwitch(UsbSwitch):
             self.mtda.debug(1, "usb.qemu_mass_storage.probe(): "
                             "qemu power controller required!")
 
-        self.mtda.debug(3, "usb.qemu_mass_storage.probe(): %s" % str(result))
+        self.mtda.debug(3, f"usb.qemu_mass_storage.probe(): {str(result)}")
         return result
 
     def on(self):
@@ -70,7 +69,7 @@ class QemuMassStorageSwitch(UsbSwitch):
                                 "usb storage could not be added!")
                 result = False
 
-        self.mtda.debug(3, "usb.qemu_mass_storage.add(): %s" % str(result))
+        self.mtda.debug(3, f"usb.qemu_mass_storage.add(): {str(result)}")
         self.lock.release()
         return result
 
@@ -87,7 +86,7 @@ class QemuMassStorageSwitch(UsbSwitch):
                 self.mtda.debug(1, "usb.qemu_mass_storage.off(): "
                                 "usb storage could not be removed!")
 
-        self.mtda.debug(3, "usb.qemu_mass_storage.off(): %s" % str(result))
+        self.mtda.debug(3, f"usb.qemu_mass_storage.off(): {str(result)}")
         self.lock.release()
         return result
 
@@ -99,7 +98,7 @@ class QemuMassStorageSwitch(UsbSwitch):
         if self.id is None:
             result = self.POWERED_OFF
 
-        self.mtda.debug(3, "usb.qemu_mass_storage.status(): %s" % str(result))
+        self.mtda.debug(3, f"usb.qemu_mass_storage.status(): {str(result)}")
         self.lock.release()
         return result
 
@@ -113,7 +112,7 @@ class QemuMassStorageSwitch(UsbSwitch):
             self.on()
             result = self.POWERED_ON
 
-        self.mtda.debug(3, "usb.qemu_mass_storage.toggle(): %s" % str(result))
+        self.mtda.debug(3, f"usb.qemu_mass_storage.toggle(): {str(result)}")
         return result
 
 

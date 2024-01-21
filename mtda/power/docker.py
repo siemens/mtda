@@ -53,11 +53,11 @@ class DockerPowerController(PowerController):
         self._client.images.pull(distro, tag=version)
         result = self._start()
 
-        self.mtda.debug(3, "power.docker.probe(): {}".format(result))
+        self.mtda.debug(3, f"power.docker.probe(): {result}")
         return result
 
     def _start(self, image=None):
-        self.mtda.debug(3, "power.docker._start({})".format(image))
+        self.mtda.debug(3, f"power.docker._start({image})")
 
         if image is None:
             image = self._image
@@ -80,7 +80,7 @@ class DockerPowerController(PowerController):
                                                    hostname=self._name,
                                                    name=self._name)
 
-        self.mtda.debug(3, "power.docker._start(): {}".format(result))
+        self.mtda.debug(3, f"power.docker._start(): {result}")
         return result
 
     def _stop(self):
@@ -100,11 +100,10 @@ class DockerPowerController(PowerController):
                                     "container {} has vanished".format(cid))
                     pass
                 except docker.errors.APIError as e:
-                    self.mtda.debug(1, "power.docker._stop(): "
-                                    "{}".format(e))
+                    self.mtda.debug(1, f"power.docker._stop(): {e}")
                     result = False
 
-        self.mtda.debug(3, "power.docker._stop(): {}".format(result))
+        self.mtda.debug(3, f"power.docker._stop(): {result}")
         return result
 
     def command(self, args):
@@ -123,8 +122,7 @@ class DockerPowerController(PowerController):
             result = True
         self._proc = None
 
-        self.mtda.debug(3, "power.docker._import_close(): "
-                        "{}".format(result))
+        self.mtda.debug(3, f"power.docker._import_close(): {result}")
         return result
 
     def import_close(self):
@@ -144,8 +142,7 @@ class DockerPowerController(PowerController):
                                       stdout=subprocess.PIPE)
         result = self._proc.stdin
 
-        self.mtda.debug(3, "power.docker._import_open(): "
-                        "{}".format(result))
+        self.mtda.debug(3, f"power.docker._import_open(): {result}")
         return result
 
     def import_open(self):
@@ -164,15 +161,14 @@ class DockerPowerController(PowerController):
             self._container.start()
             self._container = self._client.containers.get(cid)
         except docker.errors.NotFound:
-            self.mtda.debug(1, "power.docker._on(): "
-                            "container {} has vanished".format(cid))
+            self.mtda.debug(1, "power.docker."
+                               f"_on(): container {cid} has vanished")
             result = False
         except docker.errors.APIError as e:
-            self.mtda.debug(1, "power.docker._on(): "
-                            "{}".format(e))
+            self.mtda.debug(1, f"power.docker._on(): {e}")
             result = False
 
-        self.mtda.debug(3, "power.docker._on(): {}".format(result))
+        self.mtda.debug(3, f"power.docker._on(): {result}")
         return result
 
     def on(self):
@@ -188,15 +184,14 @@ class DockerPowerController(PowerController):
             self._container.stop()
             self._container = self._client.containers.get(cid)
         except docker.errors.NotFound:
-            self.mtda.debug(1, "power.docker._off(): "
-                            "container {} has vanished".format(cid))
+            self.mtda.debug(1, "power.docker."
+                               f"_off(): container {cid} has vanished")
             result = False
         except docker.errors.APIError as e:
-            self.mtda.debug(1, "power.docker._off(): "
-                            "{}".format(e))
+            self.mtda.debug(1, f"power.docker._off(): {e}")
             result = False
 
-        self.mtda.debug(3, "power.docker._off(): {}".format(result))
+        self.mtda.debug(3, f"power.docker._off(): {result}")
         return result
 
     def off(self):
@@ -213,7 +208,7 @@ class DockerPowerController(PowerController):
             'stderr': True,
             'stream': True})
 
-        self.mtda.debug(3, "power.docker._socket(): {}".format(result))
+        self.mtda.debug(3, f"power.docker._socket(): {result}")
         return result
 
     def socket(self):
@@ -231,10 +226,10 @@ class DockerPowerController(PowerController):
             elif status == "created" or status == "exited":
                 result = self.POWER_OFF
             else:
-                self.mtda.debug(1, "power.docker._status(): "
-                                "unknown status: {}".format(status))
+                self.mtda.debug(1, "power.docker."
+                                   f"_status(): unknown status: {status}")
 
-        self.mtda.debug(3, "power.docker._status(): {}".format(result))
+        self.mtda.debug(3, f"power.docker._status(): {result}")
         return result
 
     def status(self):

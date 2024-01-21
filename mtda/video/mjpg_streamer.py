@@ -70,15 +70,15 @@ class MJPGStreamerVideoController(VideoController):
             raise ValueError("mjpg_streamer executable not specified!")
 
         result = True
-        if os.system("%s --version" % self.executable) != 0:
-            raise ValueError("could not execute %s!" % self.executable)
+        if os.system(f"{self.executable} --version") != 0:
+            raise ValueError(f"could not execute {self.executable}!")
         if os.path.exists(self.dev) is False:
             self.mtda.debug(1, "video.mjpg_streamer.probe(): "
                                "video device (%s) not found!"
                                % self.dev)
             result = False
 
-        self.mtda.debug(3, "video.mjpg_streamer.probe(): %s" % str(result))
+        self.mtda.debug(3, f"video.mjpg_streamer.probe(): {str(result)}")
         return result
 
     def getpid(self):
@@ -105,7 +105,7 @@ class MJPGStreamerVideoController(VideoController):
         options += self.output.format(self.port, self.www)
         options += " -b"
 
-        result = os.system("%s %s" % (self.executable, options))
+        result = os.system(f"{self.executable} {options}")
         if result == 0:
             self.pid = self.getpid()
             self.mtda.debug(2, "video.mjpg_streamer.start(): "
@@ -121,15 +121,13 @@ class MJPGStreamerVideoController(VideoController):
     def kill(self, name, pid, timeout=3):
         tries = timeout
         if psutil.pid_exists(pid):
-            self.mtda.debug(2, "terminating {0} "
-                               "[{1}] using SIGTERM".format(name, pid))
+            self.mtda.debug(2, f"terminating {name} [{pid}] using SIGTERM")
             os.kill(pid, signal.SIGTERM)
         while tries > 0 and psutil.pid_exists(pid):
             time.sleep(1)
             tries = tries - 1
         if psutil.pid_exists(pid):
-            self.mtda.debug(2, "terminating {0} "
-                               "[{1}] using SIGKILL".format(name, pid))
+            self.mtda.debug(2, f"terminating {name} [{pid}] using SIGKILL")
             os.kill(pid, signal.SIGKILL)
         return psutil.pid_exists(pid)
 
@@ -146,19 +144,19 @@ class MJPGStreamerVideoController(VideoController):
                 self.pid = None
 
         self.lock.release()
-        self.mtda.debug(3, "video.mjpg_streamer.stop(): %s" % str(result))
+        self.mtda.debug(3, f"video.mjpg_streamer.stop(): {str(result)}")
         return result
 
     def url(self, host="", opts=None):
-        self.mtda.debug(3, "video.mjpg_streamer.url(host='%s')" % str(host))
+        self.mtda.debug(3, f"video.mjpg_streamer.url(host='{str(host)}')")
 
         if host is None or host == "":
             host = socket.getfqdn()
-            self.mtda.debug(3, "video.mjpg_streamer.url: "
-                               "using host='%s'" % str(host))
-        result = "http://{0}:{1}/?action=stream".format(host, self.port)
+            self.mtda.debug(3, "video.mjpg_streamer."
+                               f"url: using host='{str(host)}'")
+        result = f"http://{host}:{self.port}/?action=stream"
 
-        self.mtda.debug(3, "video.mjpg_streamer.url(): %s" % str(result))
+        self.mtda.debug(3, f"video.mjpg_streamer.url(): {str(result)}")
         return result
 
 

@@ -30,7 +30,7 @@ class RemoteConsole(ConsoleOutput):
     def connect(self):
         context = zmq.Context()
         socket = context.socket(zmq.SUB)
-        socket.connect("tcp://%s:%s" % (self.host, self.port))
+        socket.connect(f"tcp://{self.host}:{self.port}")
         socket.setsockopt(zmq.SUBSCRIBE, self.topic)
         self.context = context
         self.socket = socket

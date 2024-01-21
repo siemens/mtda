@@ -34,7 +34,7 @@ class DockerController(StorageController):
                 self._handle = None
                 result = self._docker.import_close()
 
-        self.mtda.debug(3, "storage.docker.close(): {}".format(result))
+        self.mtda.debug(3, f"storage.docker.close(): {result}")
         return result
 
     def configure(self, conf):
@@ -52,7 +52,7 @@ class DockerController(StorageController):
                 self._handle = self._docker.import_open()
                 result = self._handle is not None
 
-        self.mtda.debug(3, "storage.docker.open(): {}".format(result))
+        self.mtda.debug(3, f"storage.docker.open(): {result}")
         return result
 
     def probe(self):
@@ -64,7 +64,7 @@ class DockerController(StorageController):
             self.mtda.debug(1, "storage.docker.probe(): "
                             "docker power controller required!")
 
-        self.mtda.debug(3, "storage.docker.probe(): {}".format(result))
+        self.mtda.debug(3, f"storage.docker.probe(): {result}")
         self._lock.release()
         return result
 
@@ -93,7 +93,7 @@ class DockerController(StorageController):
             if self._handle is not None:
                 result = self._handle.write(data)
 
-        self.mtda.debug(3, "storage.docker.write(): {}".format(result))
+        self.mtda.debug(3, f"storage.docker.write(): {result}")
         return result
 
 

@@ -43,13 +43,13 @@ class PowerSwitch(Accessory):
         return "1" if status == "ON" else 0
 
     def relay_changed(self, status):
-        self.mtda.debug(3, "mtda.assistant.homekit.relay_changed(%s)" % status)
+        self.mtda.debug(3, f"mtda.assistant.homekit.relay_changed({status})")
 
         result = self.get_relay(status)
         self.relay_on.set_value(result)
 
-        self.mtda.debug(3, "mtda.assistant.homekit.relay_changed(): "
-                           "%s" % str(result))
+        self.mtda.debug(3, "mtda.assistant.homekit."
+                           f"relay_changed(): {str(result)}")
         return result
 
     def set_relay(self, state):
@@ -63,8 +63,8 @@ class PowerSwitch(Accessory):
                 self.mtda.target_off('homekit')
             result = self.get_relay()
 
-        self.mtda.debug(3, "mtda.assistant.homekit.set_relay(): "
-                           "%s" % str(result))
+        self.mtda.debug(3, "mtda.assistant.homekit."
+                           f"set_relay(): {str(result)}")
         return result
 
     def get_relay_in_use(self, state):
@@ -76,8 +76,8 @@ class PowerSwitch(Accessory):
         pincode = self.driver.state.pincode.decode()
         result = self.mtda.env_set('homekit-setup-code', pincode, 'homekit')
 
-        self.mtda.debug(3, "mtda.assistant.homekit.setup_message(): "
-                           "%s" % str(result))
+        self.mtda.debug(3, "mtda.assistant.homekit."
+                           f"setup_message(): {str(result)}")
         return result
 
 
@@ -103,8 +103,8 @@ class HomeKitAssistant(Assistant):
         dir = os.path.dirname(self.state)
         os.makedirs(dir, mode=0o755, exist_ok=True)
 
-        self.mtda.debug(3, "mtda.assistant.homekit.configure(): "
-                           "%s" % str(result))
+        self.mtda.debug(3, "mtda.assistant.homekit."
+                           f"configure(): {str(result)}")
         return result
 
     def probe(self):

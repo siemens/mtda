@@ -40,8 +40,8 @@ class UStreamerVideoController(VideoController):
 
         if 'device' in conf:
             self.dev = conf['device']
-            self.mtda.debug(4, 'video.ustreamer.configure(): '
-                               'will use %s' % str(self.dev))
+            self.mtda.debug(4, 'video.ustreamer.'
+                               f'configure(): will use {str(self.dev)}')
         if 'executable' in conf:
             self.executable = conf['executable']
         if 'port' in conf:
@@ -72,7 +72,7 @@ class UStreamerVideoController(VideoController):
             self.mtda.debug(1, 'error calling %s: %s', self.executable, str(e))
             result = False
 
-        self.mtda.debug(3, 'video.ustreamer.probe(): %s' % str(result))
+        self.mtda.debug(3, f'video.ustreamer.probe(): {str(result)}')
         return result
 
     def start(self):
@@ -111,15 +111,15 @@ class UStreamerVideoController(VideoController):
         return True
 
     def url(self, host="", opts=None):
-        self.mtda.debug(3, "video.ustreamer.url(host='%s')" % str(host))
+        self.mtda.debug(3, f"video.ustreamer.url(host='{str(host)}')")
 
         if host is None or host == "":
             host = socket.getfqdn()
-            self.mtda.debug(3, "video.ustreamer.url: "
-                               "using host='%s'" % str(host))
-        result = "http://{0}:{1}/?action=stream".format(host, self.port)
+            self.mtda.debug(3, "video.ustreamer."
+                               f"url: using host='{str(host)}'")
+        result = f"http://{host}:{self.port}/?action=stream"
 
-        self.mtda.debug(3, 'video.ustreamer.url(): %s' % str(result))
+        self.mtda.debug(3, f'video.ustreamer.url(): {str(result)}')
         return result
 
 

@@ -50,7 +50,7 @@ class Watcher(object):
     def lookup(self, name):
         result = None
 
-        name = '{}.{}'.format(name, self.domain)
+        name = f'{name}.{self.domain}'
         info = self.zeroconf.get_service_info(self.domain, name)
         if info is not None:
             result = socket.inet_ntoa(info.addresses[0])

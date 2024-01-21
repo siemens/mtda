@@ -33,7 +33,7 @@ class QemuController(KeyboardController):
             self.mtda.debug(1, "keyboard.qemu.probe(): "
                                "a qemu power controller is required")
 
-        self.mtda.debug(3, "keyboard.qemu.probe(): %s" % str(result))
+        self.mtda.debug(3, f"keyboard.qemu.probe(): {str(result)}")
         return result
 
     def idle(self):
@@ -58,7 +58,7 @@ class QemuController(KeyboardController):
         while repeat > 0:
             repeat = repeat - 1
             key = symbols[key] if key in symbols else key
-            self.qemu.cmd("sendkey {}".format(key))
+            self.qemu.cmd(f"sendkey {key}")
             time.sleep(0.1)
         return result
 

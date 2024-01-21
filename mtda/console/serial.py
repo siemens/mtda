@@ -44,11 +44,10 @@ class SerialConsole(ConsoleInterface):
 
         result = None
         if self.port is not None:
-            dropin = os.path.join(dir, 'auto-dep-{}.conf'.format(self.role))
+            dropin = os.path.join(dir, f'auto-dep-{self.role}.conf')
             SystemdDeviceUnit.create_device_dependency(dropin, self.port)
 
-        self.mtda.debug(3, "console.serial.configure_systemd(): "
-                           "{}".format(result))
+        self.mtda.debug(3, f"console.serial.configure_systemd(): {result}")
         return result
 
     def probe(self):
@@ -62,10 +61,10 @@ class SerialConsole(ConsoleInterface):
             self.ser.port = self.port
             self.ser.baudrate = self.rate
         else:
-            self.mtda.debug(1, "console.serial.probe(): "
-                            "{} does not exist".format(self.port))
+            self.mtda.debug(1, "console.serial."
+                               f"probe(): {self.port} does not exist")
 
-        self.mtda.debug(3, "console.serial.probe(): {}".format(result))
+        self.mtda.debug(3, f"console.serial.probe(): {result}")
         return result
 
     def open(self):
@@ -82,7 +81,7 @@ class SerialConsole(ConsoleInterface):
 
         result = self.opened
 
-        self.mtda.debug(3, "console.serial.open(): %s" % str(result))
+        self.mtda.debug(3, f"console.serial.open(): {str(result)}")
         return result
 
     def close(self):
@@ -99,7 +98,7 @@ class SerialConsole(ConsoleInterface):
             self.mtda.debug(4, "console.serial.close(): already closed")
 
         result = self.opened is False
-        self.mtda.debug(3, "console.serial.close(): {}".format(result))
+        self.mtda.debug(3, f"console.serial.close(): {result}")
         return result
 
     """ Return number of pending bytes to read"""
@@ -110,7 +109,7 @@ class SerialConsole(ConsoleInterface):
         if self.ser is not None and self.opened is True:
             result = self.ser.inWaiting()
 
-        self.mtda.debug(3, "console.serial.pending(): %s" % str(result))
+        self.mtda.debug(3, f"console.serial.pending(): {str(result)}")
         return result
 
     """ Read bytes from the console"""
@@ -121,18 +120,18 @@ class SerialConsole(ConsoleInterface):
         if self.ser is not None and self.opened is True:
             result = self.ser.read(n)
 
-        self.mtda.debug(3, "console.serial.read(): %s" % str(result))
+        self.mtda.debug(3, f"console.serial.read(): {str(result)}")
         return result
 
     """ Write to the console"""
     def write(self, data):
-        self.mtda.debug(3, "console.serial.write(data=%s)" % str(data))
+        self.mtda.debug(3, f"console.serial.write(data={str(data)})")
 
         result = None
         if self.ser is not None and self.opened is True:
             result = self.ser.write(data)
 
-        self.mtda.debug(3, "console.serial.write(): %s" % str(result))
+        self.mtda.debug(3, f"console.serial.write(): {str(result)}")
         return result
 
 

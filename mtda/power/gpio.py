@@ -34,7 +34,7 @@ class GpioPowerController(PowerController):
             for gpio in conf['gpio'].split(','):
                 self.gpiopair.append(itemgetter(0, 1)(gpio.split('@')))
 
-        self.mtda.debug(3, "power.gpio.configure(): {}".format(result))
+        self.mtda.debug(3, f"power.gpio.configure(): {result}")
         return result
 
     def probe(self):
@@ -55,19 +55,18 @@ class GpioPowerController(PowerController):
         for line in self.lines:
             try:
                 if line.is_used() is False:
-                    self.mtda.debug(3, "power.gpiochip{}@pin{} is free for "
-                                       "use" .format(chip, pin))
+                    self.mtda.debug(3, f"power.gpiochip{chip}@pin{pin} "
+                                       "is free for use")
                     line.request(consumer='mtda', type=gpiod.LINE_REQ_DIR_OUT)
                 else:
                     raise ValueError("gpiochip{}@pin{} is in use by other "
                                      "service" .format(chip, pin))
             except OSError:
-                self.mtda.debug(3, "line {} is not configured correctly"
-                                   .format(line))
+                self.mtda.debug(3, f"line {line} is not configured correctly")
 
         result = True
 
-        self.mtda.debug(3, "power.gpio.probe(): {}".format(result))
+        self.mtda.debug(3, f"power.gpio.probe(): {result}")
         return result
 
     def command(self, args):
@@ -75,7 +74,7 @@ class GpioPowerController(PowerController):
 
         result = False
 
-        self.mtda.debug(3, "power.gpio.command(): {}".format(result))
+        self.mtda.debug(3, f"power.gpio.command(): {result}")
         return result
 
     def on(self):
@@ -87,7 +86,7 @@ class GpioPowerController(PowerController):
             line.set_value(1)
         result = self.status() == self.POWER_ON
 
-        self.mtda.debug(3, "power.gpio.on(): {}".format(result))
+        self.mtda.debug(3, f"power.gpio.on(): {result}")
         return result
 
     def off(self):
@@ -99,7 +98,7 @@ class GpioPowerController(PowerController):
             line.set_value(0)
         result = self.status() == self.POWER_OFF
 
-        self.mtda.debug(3, "power.gpio.off(): {}".format(result))
+        self.mtda.debug(3, f"power.gpio.off(): {result}")
         return result
 
     def status(self):
@@ -114,15 +113,14 @@ class GpioPowerController(PowerController):
                 value = self.POWER_ON
             else:
                 value = self.POWER_OFF
-            self.mtda.debug(3, "power.gpio.status: "
-                               "line {} is {}" .format(line, value))
+            self.mtda.debug(3, f"power.gpio.status: line {line} is {value}")
             if first is True:
                 first = False
                 result = value
             elif value != result:
                 result = self.POWER_UNSURE
 
-        self.mtda.debug(3, "power.gpio.status(): {}".format(result))
+        self.mtda.debug(3, f"power.gpio.status(): {result}")
         return result
 
 

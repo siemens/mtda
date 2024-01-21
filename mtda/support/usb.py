@@ -34,12 +34,12 @@ class Composite:
             Composite.mtda.debug(level, msg)
 
     def configure(what, conf):
-        Composite.debug(3, "composite.configure('{}')".format(what))
+        Composite.debug(3, f"composite.configure('{what}')")
 
         with Composite.lock:
             result = Composite._configure(what, conf)
 
-        Composite.debug(3, "composite.configure(): {}".format(result))
+        Composite.debug(3, f"composite.configure(): {result}")
         return result
 
     def _configure(what, conf):
@@ -53,8 +53,8 @@ class Composite:
         if what in Composite.functions:
             Composite.functions[what]['configured'] = True
             Composite.functions[what]['enabled'] = True
-            Composite.debug(2, "composite.configure(): "
-                               "{} configured & enabled".format(what))
+            Composite.debug(2, "composite."
+                               f"configure(): {what} configured & enabled")
         else:
             Composite.debug(1, "composite.configure(): "
                                "not supported")
@@ -80,7 +80,7 @@ class Composite:
         with Composite.lock:
             result = Composite._install()
 
-        Composite.debug(3, "composite.install(): {}".format(result))
+        Composite.debug(3, f"composite.install(): {result}")
         return result
 
     def _install():
@@ -128,8 +128,8 @@ class Composite:
             write(lun + "ro", "0")
             write(lun + "nofua", "0")
             write(lun + "file", file)
-            Composite.debug(2, "composite.install(): "
-                               "storage device/file: {}".format(file))
+            Composite.debug(2, "composite."
+                               f"install(): storage device/file: {file}")
         Composite._installed = Composite._enable()
         return Composite._installed
 
@@ -139,7 +139,7 @@ class Composite:
         with Composite.lock:
             result = Composite._remove()
 
-        Composite.debug(3, "composite.remove(): {}".format(result))
+        Composite.debug(3, f"composite.remove(): {result}")
         return result
 
     def _remove():
@@ -170,8 +170,8 @@ class Composite:
                 continue
             if function['enabled'] is False:
                 continue
-            Composite.debug(2, "composite._create_functions: "
-                               "registering {}".format(name))
+            Composite.debug(2, "composite."
+                               f"_create_functions: registering {name}")
             path = Composite.path + "/functions/" + name
             if not os.path.exists(path):
                 os.makedirs(path)

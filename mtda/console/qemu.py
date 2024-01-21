@@ -32,7 +32,7 @@ class QemuConsole(ConsoleInterface):
     def probe(self):
         self.mtda.debug(3, "console.qemu.probe()")
         result = self.qemu.variant == "qemu"
-        self.mtda.debug(3, "console.qemu.probe(): %s" % str(result))
+        self.mtda.debug(3, f"console.qemu.probe(): {str(result)}")
         return result
 
     def open(self):
@@ -50,7 +50,7 @@ class QemuConsole(ConsoleInterface):
         else:
             self.mtda.debug(4, "console.qemu.open(): already opened")
 
-        self.mtda.debug(3, "console.qemu.open(): %s" % str(result))
+        self.mtda.debug(3, f"console.qemu.open(): {str(result)}")
         return result
 
     def close(self):
@@ -58,7 +58,7 @@ class QemuConsole(ConsoleInterface):
 
         result = True
 
-        self.mtda.debug(3, "console.qemu.close(): %s" % str(result))
+        self.mtda.debug(3, f"console.qemu.close(): {str(result)}")
         return result
 
     """ Return number of pending bytes to read"""
@@ -71,7 +71,7 @@ class QemuConsole(ConsoleInterface):
             fcntl.ioctl(self.rx, termios.FIONREAD, avail, 1)
             result = avail[0]
 
-        self.mtda.debug(3, "console.qemu.pending(): %s" % str(result))
+        self.mtda.debug(3, f"console.qemu.pending(): {str(result)}")
         return result
 
     """ Read bytes from the console"""
@@ -88,18 +88,18 @@ class QemuConsole(ConsoleInterface):
         if result is None:
             result = b''
 
-        self.mtda.debug(3, "console.qemu.read(): %s" % str(result))
+        self.mtda.debug(3, f"console.qemu.read(): {str(result)}")
         return result
 
     """ Write to the console"""
     def write(self, data):
-        self.mtda.debug(3, "console.qemu.write(data=%s)" % str(data))
+        self.mtda.debug(3, f"console.qemu.write(data={str(data)})")
 
         result = None
         if self.opened is True:
             result = self.tx.write(data)
 
-        self.mtda.debug(3, "console.qemu.write(): %s" % str(result))
+        self.mtda.debug(3, f"console.qemu.write(): {str(result)}")
         return result
 
 

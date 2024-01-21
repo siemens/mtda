@@ -31,7 +31,7 @@ class UsbFunctionConsole(SerialConsole):
             self.port = "/dev/ttyGS0" if role == "console" else "/dev/ttyGS1"
         result = Composite.configure(role, conf)
 
-        self.mtda.debug(3, "console.usbf.configure(): {}".format(result))
+        self.mtda.debug(3, f"console.usbf.configure(): {result}")
         return result
 
     def configure_systemd(self, dir):

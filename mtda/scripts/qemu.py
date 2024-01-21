@@ -97,7 +97,7 @@ def qemu_power_on():
 
 
 def qemu_select_item(target, tries=10):
-    mtda.debug(1, "wanting to select '{}'".format(target))
+    mtda.debug(1, f"wanting to select '{target}'")
 
     output = ""
     while target not in output and tries > 0:

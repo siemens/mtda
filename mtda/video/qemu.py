@@ -30,7 +30,7 @@ class QemuVideoController(VideoController):
         if 'sink' in conf:
             self.sink = conf['sink']
 
-        self.mtda.debug(3, "video.qemu.configure(): " "%s" % str(result))
+        self.mtda.debug(3, f"video.qemu.configure(): {str(result)}")
         return result
 
     @property
@@ -45,7 +45,7 @@ class QemuVideoController(VideoController):
             self.mtda.debug(1, "video.qemu.probe(): "
                             "qemu power controller required!")
 
-        self.mtda.debug(3, "video.qemu.probe(): %s" % str(result))
+        self.mtda.debug(3, f"video.qemu.probe(): {str(result)}")
         return result
 
     def start(self):
@@ -55,19 +55,18 @@ class QemuVideoController(VideoController):
         return True
 
     def url(self, host="", opts=None):
-        self.mtda.debug(3, "video.qemu.url(host={0}, "
-                           "opts={1}".format(host, opts))
+        self.mtda.debug(3, f"video.qemu.url(host={host}, opts={opts}")
 
         if host is None or host == "":
             host = socket.getfqdn()
-            self.mtda.debug(3, "video.qemu.url: using host='%s'" % str(host))
-        result = 'gst-pipeline: rfbsrc host={0} ! {1}'.format(host, self.sink)
+            self.mtda.debug(3, f"video.qemu.url: using host='{str(host)}'")
+        result = f'gst-pipeline: rfbsrc host={host} ! {self.sink}'
         if opts is not None:
             if 'sink' in opts:
                 if 'name' in opts['sink']:
-                    result += ' name="{0}"'.format(opts['sink']['name'])
+                    result += f" name=\"{opts['sink']['name']}\""
 
-        self.mtda.debug(3, "video.qemu.url(): %s" % str(result))
+        self.mtda.debug(3, f"video.qemu.url(): {str(result)}")
         return result
 
 

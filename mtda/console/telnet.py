@@ -45,7 +45,7 @@ class TelnetConsole(ConsoleInterface):
     def probe(self):
         self.mtda.debug(3, "console.telnet.probe()")
         result = True
-        self.mtda.debug(3, "console.telnet.probe(): %s" % str(result))
+        self.mtda.debug(3, f"console.telnet.probe(): {str(result)}")
         return result
 
     def open(self):
@@ -61,7 +61,7 @@ class TelnetConsole(ConsoleInterface):
             except OSError:
                 result = False
 
-        self.mtda.debug(3, "console.telnet.open(): %s" % str(result))
+        self.mtda.debug(3, f"console.telnet.open(): {str(result)}")
         return result
 
     def close(self):
@@ -74,7 +74,7 @@ class TelnetConsole(ConsoleInterface):
             self.telnet = None
         result = (self.opened is False)
 
-        self.mtda.debug(3, "console.telnet.close(): %s" % str(result))
+        self.mtda.debug(3, f"console.telnet.close(): {str(result)}")
         return result
 
     """ Return number of pending bytes to read"""
@@ -86,7 +86,7 @@ class TelnetConsole(ConsoleInterface):
         else:
             result = False
 
-        self.mtda.debug(3, "console.telnet.pending(): %s" % str(result))
+        self.mtda.debug(3, f"console.telnet.pending(): {str(result)}")
         return result
 
     """ Read bytes from the console"""
@@ -118,7 +118,7 @@ class TelnetConsole(ConsoleInterface):
         except socket.timeout:
             self.mtda.debug(2, "console.telnet.read(): timeout!")
 
-        self.mtda.debug(3, "console.telnet.read(): %d bytes" % len(data))
+        self.mtda.debug(3, f"console.telnet.read(): {len(data)} bytes")
         return data
 
     """ Write to the console"""
@@ -131,7 +131,7 @@ class TelnetConsole(ConsoleInterface):
             self.mtda.debug(2, "console.telnet.write(): not connected!")
             result = None
 
-        self.mtda.debug(3, "console.telnet.write(): %s" % str(result))
+        self.mtda.debug(3, f"console.telnet.write(): {str(result)}")
         return result
 
 

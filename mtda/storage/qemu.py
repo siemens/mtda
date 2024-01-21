@@ -45,7 +45,7 @@ class QemuController(Image):
         if 'name' in conf:
             self.name = conf['name']
 
-        self.mtda.debug(3, "storage.qemu.configure(): %s" % str(result))
+        self.mtda.debug(3, f"storage.qemu.configure(): {str(result)}")
         self.lock.release()
         return result
 
@@ -60,7 +60,7 @@ class QemuController(Image):
                                    "usb storage could not be added!")
                 result = False
 
-        self.mtda.debug(3, "storage.qemu._add(): %s" % str(result))
+        self.mtda.debug(3, f"storage.qemu._add(): {str(result)}")
         return result
 
     def _rm(self):
@@ -75,7 +75,7 @@ class QemuController(Image):
                 self.mtda.debug(1, "storage.qemu._rm(): "
                                    "usb storage could not be removed!")
 
-        self.mtda.debug(3, "storage.qemu._rm(): %s" % str(result))
+        self.mtda.debug(3, f"storage.qemu._rm(): {str(result)}")
         return result
 
     """ Get file used by the USB Function driver"""
@@ -88,7 +88,7 @@ class QemuController(Image):
             self.mtda.debug(1, "storage.qemu.probe(): "
                                "qemu power controller required!")
 
-        self.mtda.debug(3, "storage.qemu.probe(): %s" % str(result))
+        self.mtda.debug(3, f"storage.qemu.probe(): {str(result)}")
         self.lock.release()
         return result
 
@@ -104,7 +104,7 @@ class QemuController(Image):
         if result is True:
             self.mode = CONSTS.STORAGE.ON_HOST
 
-        self.mtda.debug(3, "storage.qemu.to_host(): %s" % str(result))
+        self.mtda.debug(3, f"storage.qemu.to_host(): {str(result)}")
         self.lock.release()
         return result
 
@@ -121,7 +121,7 @@ class QemuController(Image):
             if result is True:
                 self.mode = CONSTS.STORAGE.ON_TARGET
 
-        self.mtda.debug(3, "storage.qemu.to_target(): %s" % str(result))
+        self.mtda.debug(3, f"storage.qemu.to_target(): {str(result)}")
         self.lock.release()
         return result
 
@@ -131,7 +131,7 @@ class QemuController(Image):
 
         result = self.mode
 
-        self.mtda.debug(3, "storage.qemu.status(): %s" % str(result))
+        self.mtda.debug(3, f"storage.qemu.status(): {str(result)}")
         return result
 
 

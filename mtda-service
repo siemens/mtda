@@ -84,11 +84,11 @@ class Application:
         name = self.agent.name
         info = zeroconf.ServiceInfo(
                 type_=deviceType,
-                name='{}.{}'.format(name, deviceType),
+                name=f'{name}.{deviceType}',
                 addresses=[socket.inet_aton(self._ip())],
                 port=int(self.agent.ctrlport),
                 properties=props,
-                server='{}.local.'.format(name))
+                server=f'{name}.local.')
 
         try:
             zc.register_service(info)
@@ -113,7 +113,7 @@ class Application:
 
     def print_version(self):
         agent = MultiTenantDeviceAccess()
-        print("MTDA version: %s" % agent.version)
+        print(f"MTDA version: {agent.version}")
 
     def main(self):
         config = None
