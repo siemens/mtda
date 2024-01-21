@@ -5,8 +5,11 @@ Maintainer: Cedric Hombourger <cedric.hombourger@siemens.com>
 Build-Depends: debhelper (>=10) | dh-systemd,
                dh-python,
                libpython3-all-dev,
-               python3-all-dev,
-               python3-setuptools
+               python3-all-dev:any,
+               python3-setuptools,
+               python3-sphinx:native <!nodoc>,
+               python3-sphinx-rtd-theme:native <!nodoc>
+Rules-Requires-Root: no
 Standards-Version: 4.5.0 
 Homepage: https://github.com/siemens/mtda
 X-Python3-Version: >= 3.7
@@ -27,7 +30,9 @@ Depends: mtda-common,
          python3-zmq,
          python3-zstandard,
          usbrelay,
-         ${misc:Depends}
+         ${misc:Depends},
+         ${sphinxdoc:Depends}
+Built-Using: ${sphinxdoc:Built-Using}
 Replaces: mtda-usb-functions
 Suggests: nbd-server
 Description: Multi-Tenant Device Access service
