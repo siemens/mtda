@@ -33,6 +33,8 @@ class Application:
     def __init__(self):
         self.agent = None
         self.remote = None
+        self.zeroconf = None
+        self.zerosrv = None
         self.logfile = "/var/log/mtda.log"
         self.pidfile = "/var/run/mtda.pid"
 
@@ -46,8 +48,8 @@ class Application:
         )
 
         context.signal_map = {
-            signal.SIGTERM: 'terminate',
-            signal.SIGHUP:  'terminate',
+            signal.SIGTERM: self.stop,
+            signal.SIGHUP: 'terminate'
         }
 
         with context:
@@ -90,20 +92,24 @@ class Application:
 
         try:
             zc.register_service(info)
+            self.zeroconf = zc
+            self.zerosrv = info
         except zeroconf.NonUniqueNameException:
-            info = None
+            pass
 
         try:
             sd.notify('READY=1')
             s.run()
         except KeyboardInterrupt:
-            s.stop()
-            self.agent.stop()
-        finally:
-            if info is not None:
-                zc.unregister_service(info)
-
+            self.stop()
         return True
+
+    def stop(self, signum=0, frame=None):
+        if self.zerosrv is not None:
+            self.zeroconf.unregister_service(self.zerosrv)
+        if self.agent is not None:
+            self.agent.stop()
+        sys.exit(signum)
 
     def print_version(self):
         agent = MultiTenantDeviceAccess()
@@ -141,6 +147,7 @@ class Application:
         if args.no_detach is False:
             status = self.daemonize()
         else:
+            signal.signal(signal.SIGTERM, self.stop)
             status = self.server()
         if status is False:
             print('Failed to start the MTDA server!', file=sys.stderr)
