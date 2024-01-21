@@ -357,7 +357,7 @@ commands, e.g. curl requests:
     if it is off. Any other return code is interpreted as error.
 
 ``usbrelay`` driver settings
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``usbrelay`` driver may be used to control USB HID relays attached to the
 system running the MTDA agent. The following settings are supported:

@@ -18,7 +18,7 @@ Welcome to MTDA's documentation!
    config
    build
    dev
-   faq
+   FAQ
 
 Indices and tables
 ==================
