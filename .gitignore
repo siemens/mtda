@@ -1,5 +1,7 @@
 .pybuild
 .tox
+*.buildinfo
+*.changes
 *.img
 *.pyc
 *.swp

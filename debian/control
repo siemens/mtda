@@ -14,25 +14,8 @@ X-Python3-Version: >= 3.7
 Package: mtda
 Architecture: all
 Multi-Arch: foreign
-Depends: python3:any (>= 3.7~),
-         python3-boto3,
-         python3-daemon,
-         python3-gevent,
-         python3-libgpiod,
-         python3-psutil,
-         python3-requests,
-         python3-serial,
-         python3-systemd,
-         python3-usb,
-         python3-zeroconf,
-         python3-zerorpc,
-         python3-zmq,
-         python3-zstandard,
-         usbrelay,
-         wamerican,
-         ${misc:Depends}
-Replaces: mtda-usb-functions
-Suggests: nbd-server
+Depends: mtda-client,
+         mtda-service
 Description: Multi-Tenant Device Access
  Multi-Tenant Device Access (or MTDA for short) is a relatively
  small Python application and library acting as an interface
@@ -41,10 +24,30 @@ Description: Multi-Tenant Device Access
  plug USB devices in or out (also requiring special hardware) or
  simply access its console (in most cases serial).
 
+Package: mtda-client
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda-common,
+         python3-boto3,
+         wamerican,
+         ${misc:Depends}
+Suggests: nbd-client
+Description: CLI for Multi-Tenant Device Access
+ Provide a simple command line interface to interact with a
+ MTDA instance over the network.
+
+Package: mtda-common
+Architecture: all
+Multi-Arch: foreign
+Depends: python3:any (>= 3.7~),
+         python3-zerorpc
+Description: common modules for Multi-Tenant Device Access
+ Modules shared between the service and the client.
+
 Package: mtda-config
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda,
+Depends: mtda-service,
          python3-kconfiglib,
          python3-urwid
 Description: Tool to configure MTDA
@@ -53,7 +56,7 @@ Description: Tool to configure MTDA
 Package: mtda-docker
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda,
+Depends: mtda-service,
          docker-ce | docker.io,
          python3-docker
 Description: control docker containers using MTDA
@@ -63,7 +66,7 @@ Description: control docker containers using MTDA
 Package: mtda-kvm
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda,
+Depends: mtda-service,
          qemu-kvm
 Description: KVM machine managed by MTDA
  Provide a KVM machine with a MTDA interface to control its
@@ -72,16 +75,39 @@ Description: KVM machine managed by MTDA
 Package: mtda-pytest
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda,
+Depends: mtda-client,
          python3-pytest
 Description: support for pytest code that uses MTDA
  Provide helper classes to write tests with the pytest and MTDA
  frameworks.
 
+Package: mtda-service
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda-common,
+         python3-daemon,
+         python3-gevent,
+         python3-libgpiod,
+         python3-psutil,
+         python3-requests,
+         python3-serial,
+         python3-systemd,
+         python3-usb,
+         python3-zeroconf,
+         python3-zmq,
+         python3-zstandard,
+         usbrelay,
+         ${misc:Depends}
+Replaces: mtda-usb-functions
+Suggests: nbd-server
+Description: Multi-Tenant Device Access service
+ Provide the infrastructure for running MTDA as a systemd
+ service.
+
 Package: mtda-ui
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda,
+Depends: mtda-client,
          python3-py3qterm,
          python3-pyqt5.qtmultimedia
 Description: a simple user-interface for MTDA
@@ -91,7 +117,7 @@ Description: a simple user-interface for MTDA
 Package: mtda-www
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda,
+Depends: mtda-service,
          python3-flask-socketio,
          python3-gevent-websocket,
          novnc,
