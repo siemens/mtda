@@ -4,9 +4,12 @@
 debhelper-build-stamp
 files
 mtda
+mtda-client
+mtda-common
 mtda-config
 mtda-docker
 mtda-kvm
 mtda-pytest
+mtda-service
 mtda-ui
 mtda-www

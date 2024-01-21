@@ -13,31 +13,43 @@ override_dh_auto_install:
 	dh_auto_install
 	:
 	rm -rf debian/mtda
+	rm -rf debian/mtda-client
+	rm -rf debian/mtda-common
 	rm -rf debian/mtda-config
 	rm -rf debian/mtda-docker
 	rm -rf debian/mtda-kvm
 	rm -rf debian/mtda-pytest
+	rm -rf debian/mtda-service
 	rm -rf debian/mtda-ui
 	# lintian package-installs-python-pycache-dir
 	find debian -name "__pycache__" -type f -delete
 	:
-	install -m 0755 -d debian/mtda
-	mv debian/tmp/usr debian/mtda/
-	install -m 0755 -d debian/mtda/usr/sbin
-	mv debian/mtda/usr/bin/mtda-service debian/mtda/usr/sbin/
-	mv debian/mtda/usr/bin/mtda-systemd-helper debian/mtda/usr/sbin/
+	install -m 0755 -d debian/mtda-service
+	mv debian/tmp/usr debian/mtda-service/
+	install -m 0755 -d debian/mtda-service/usr/sbin
+	mv debian/mtda-service/usr/bin/mtda-service debian/mtda-service/usr/sbin/
+	mv debian/mtda-service/usr/bin/mtda-systemd-helper debian/mtda-service/usr/sbin/
+	:
+	install -m 0755 -d debian/mtda-client/usr/bin
+	mv debian/mtda-service/usr/bin/mtda-cli debian/mtda-client/usr/bin/
+	install -m 0755 -d debian/mtda-client$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/client.py debian/mtda-client$(MTDA_DIST)/
+	:
+	install -m 0755 -d debian/mtda-common$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/constants.py debian/mtda-common$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/main.py debian/mtda-common$(MTDA_DIST)/
 	:
 	install -m 0755 -d debian/mtda-config/usr/sbin
 	install -m 0755 -d debian/mtda-config/var/lib/mtda/
-	mv debian/mtda/usr/bin/mtda-config debian/mtda-config/usr/sbin/
+	mv debian/mtda-service/usr/bin/mtda-config debian/mtda-config/usr/sbin/
 	install -m 0644 Kconfig debian/mtda-config/var/lib/mtda/Kconfig
 	:
 	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/console
 	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/power
 	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/storage
-	mv debian/mtda$(MTDA_DIST)/console/docker.py debian/mtda-docker$(MTDA_DIST)/console/
-	mv debian/mtda$(MTDA_DIST)/power/docker.py debian/mtda-docker$(MTDA_DIST)/power/
-	mv debian/mtda$(MTDA_DIST)/storage/docker.py debian/mtda-docker$(MTDA_DIST)/storage/
+	mv debian/mtda-service$(MTDA_DIST)/console/docker.py debian/mtda-docker$(MTDA_DIST)/console/
+	mv debian/mtda-service$(MTDA_DIST)/power/docker.py debian/mtda-docker$(MTDA_DIST)/power/
+	mv debian/mtda-service$(MTDA_DIST)/storage/docker.py debian/mtda-docker$(MTDA_DIST)/storage/
 	install -m 0755 -d debian/mtda-docker/usr/share/doc/mtda-docker/examples/
 	install -m 0644 configs/docker.ini debian/mtda-docker/usr/share/doc/mtda-docker/examples/mtda.ini
 	:
@@ -47,26 +59,26 @@ override_dh_auto_install:
 	install -m 0644 configs/qemu-ovmf-vars.fd debian/mtda-kvm/var/lib/mtda/
 	:
 	install -m 0755 -d debian/mtda-pytest$(MTDA_DIST)/
-	mv debian/mtda$(MTDA_DIST)/pytest.py debian/mtda-pytest$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/pytest.py debian/mtda-pytest$(MTDA_DIST)/
 	:
 	install -m 0755 -d debian/mtda-ui/usr/bin
-	mv debian/mtda/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
+	mv debian/mtda-service/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
 	:
 	install -m 0755 -d debian/mtda-www$(MTDA_DIST)/
 	install -m 0755 -d debian/mtda-www/etc/mtda/config.d/
-	mv debian/mtda$(MTDA_DIST)/assets debian/mtda-www$(MTDA_DIST)/
-	mv debian/mtda$(MTDA_DIST)/templates debian/mtda-www$(MTDA_DIST)/
-	mv debian/mtda$(MTDA_DIST)/www.py debian/mtda-www$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/assets debian/mtda-www$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/templates debian/mtda-www$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/www.py debian/mtda-www$(MTDA_DIST)/
 	install -m 0644 configs/10-www.conf debian/mtda-www/etc/mtda/config.d/
 
 override_dh_systemd_enable:
-	dh_systemd_enable
+	dh_systemd_enable --name=mtda
 	dh_systemd_enable --name=mtda-config
 
 override_dh_installsystemd:
-	dh_installsystemd
+	dh_installsystemd --name=mtda
 	dh_installsystemd --name=mtda-config
 
 override_dh_systemd_start:
-	dh_systemd_start
+	dh_systemd_start --name=mtda
 	dh_systemd_start --name=mtda-config
