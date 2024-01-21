@@ -11,6 +11,29 @@ Standards-Version: 4.5.0
 Homepage: https://github.com/siemens/mtda
 X-Python3-Version: >= 3.7
 
+Package: mtda-service
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda-common,
+         python3-daemon,
+         python3-gevent,
+         python3-libgpiod,
+         python3-psutil,
+         python3-requests,
+         python3-serial,
+         python3-systemd,
+         python3-usb,
+         python3-zeroconf,
+         python3-zmq,
+         python3-zstandard,
+         usbrelay,
+         ${misc:Depends}
+Replaces: mtda-usb-functions
+Suggests: nbd-server
+Description: Multi-Tenant Device Access service
+ Provide the infrastructure for running MTDA as a systemd
+ service.
+
 Package: mtda
 Architecture: all
 Multi-Arch: foreign
@@ -80,29 +103,6 @@ Depends: mtda-client,
 Description: support for pytest code that uses MTDA
  Provide helper classes to write tests with the pytest and MTDA
  frameworks.
-
-Package: mtda-service
-Architecture: all
-Multi-Arch: foreign
-Depends: mtda-common,
-         python3-daemon,
-         python3-gevent,
-         python3-libgpiod,
-         python3-psutil,
-         python3-requests,
-         python3-serial,
-         python3-systemd,
-         python3-usb,
-         python3-zeroconf,
-         python3-zmq,
-         python3-zstandard,
-         usbrelay,
-         ${misc:Depends}
-Replaces: mtda-usb-functions
-Suggests: nbd-server
-Description: Multi-Tenant Device Access service
- Provide the infrastructure for running MTDA as a systemd
- service.
 
 Package: mtda-ui
 Architecture: all
