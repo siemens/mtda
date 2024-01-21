@@ -11,34 +11,19 @@
 
 # System imports
 import configparser
-import gevent
 import glob
 import importlib
 import os
-import queue
-import shutil
 import socket
 import subprocess
 import sys
 import threading
 import tempfile
 import time
-import zmq
 
 # Local imports
-from mtda.console.input import ConsoleInput
-from mtda.console.logger import ConsoleLogger
-from mtda.console.remote import RemoteConsole, RemoteMonitor
-from mtda.storage.writer import AsyncImageWriter
 import mtda.constants as CONSTS
-import mtda.discovery
-import mtda.keyboard.controller
-import mtda.power.controller
-import mtda.scripts
-import mtda.video.controller
-import mtda.utils
 from mtda import __version__
-from mtda.support.usb import Composite
 
 try:
     www_support = True
@@ -149,6 +134,7 @@ class MultiTenantDeviceAccess:
 
         result = True
         storage = self.storage
+        from mtda.support.usb import Composite
         if storage is not None and storage.variant == 'usbf':
             status, _, _ = self.storage_status()
             enabled = status == CONSTS.STORAGE.ON_TARGET
@@ -168,6 +154,7 @@ class MultiTenantDeviceAccess:
         result = None
         storage = self.storage
         if storage is not None and storage.variant == 'usbf':
+            from mtda.support.usb import Composite
             Composite.remove()
 
         self.mtda.debug(3, "main._composite_stop(): {}".format(result))
@@ -241,6 +228,7 @@ class MultiTenantDeviceAccess:
         return result
 
     def console_init(self):
+        from mtda.console.input import ConsoleInput
         self.console_input = ConsoleInput()
         self.console_input.start()
 
@@ -353,6 +341,7 @@ class MultiTenantDeviceAccess:
                 self.console_output.stop()
             if host is not None:
                 # Create and start our remote console
+                from mtda.console.remote import RemoteConsole
                 self.console_output = RemoteConsole(host, self.conport, screen)
                 self.console_output.start()
             else:
@@ -526,6 +515,7 @@ class MultiTenantDeviceAccess:
             if host is not None:
                 # Create and start our remote console in paused
                 # (i.e. buffering) state
+                from mtda.console.remote import RemoteMonitor
                 self.monitor_output = RemoteMonitor(host, self.conport, screen)
                 self.monitor_output.pause()
                 self.monitor_output.start()
@@ -585,6 +575,7 @@ class MultiTenantDeviceAccess:
 
     def publish(self, topic, data):
         if self.socket is not None:
+            import zmq
             with self._socket_lock:
                 self.socket.send(topic, flags=zmq.SNDMORE)
                 self.socket.send(data)
@@ -874,6 +865,7 @@ class MultiTenantDeviceAccess:
         elif session != self._storage_owner:
             raise RuntimeError('shared storage in use')
 
+        import queue
         try:
             if len(data) == 0:
                 self.mtda.debug(2, "main.storage_write(): "
@@ -919,6 +911,7 @@ class MultiTenantDeviceAccess:
             # check for changes between the target directory and the
             # temporary directory to determine if systemd should be
             # reloaded
+            import shutil
             dcmp = dircmp(etcdir, newdir)
             diffs = len(dcmp.left_only)    # files that were removed
             diffs += len(dcmp.right_only)  # files that were added
@@ -984,6 +977,9 @@ class MultiTenantDeviceAccess:
         self.notify(CONSTS.EVENTS.POWER, status)
 
     def _env_for_script(self):
+        import gevent
+        import mtda.scripts
+
         variant = 'unknown'
         if 'variant' in self.env:
             variant = self.env['variant']
@@ -996,6 +992,8 @@ class MultiTenantDeviceAccess:
         }
 
     def _load_device_scripts(self):
+        import mtda.scripts
+
         env = self._env_for_script()
         mtda.scripts.load_device_scripts(env['variant'], env)
         for e in env.keys():
@@ -1435,6 +1433,8 @@ class MultiTenantDeviceAccess:
 
     def post_configure_storage(self, storage, config, parser):
         self.mtda.debug(3, "main.post_configure_storage()")
+
+        from mtda.storage.writer import AsyncImageWriter
         self._writer = AsyncImageWriter(self, storage)
 
         import atexit
@@ -1454,6 +1454,7 @@ class MultiTenantDeviceAccess:
                     'remote', 'host', fallback=self.remote)
 
             # Attempt to resolve remote using Zeroconf
+            import mtda.discovery
             watcher = mtda.discovery.Watcher(CONSTS.MDNS.TYPE)
             ip = watcher.lookup(self.remote)
             if ip is not None:
@@ -1542,6 +1543,7 @@ class MultiTenantDeviceAccess:
 
         result = None
         if self.socket is not None:
+            import zmq
             with self._socket_lock:
                 self.socket.send(CONSTS.CHANNEL.EVENTS, flags=zmq.SNDMORE)
                 self.socket.send_string("{} {}".format(what, info))
@@ -1573,9 +1575,13 @@ class MultiTenantDeviceAccess:
                 return False
             self._storage_event(CONSTS.STORAGE.UNLOCKED)
 
+        if self.console is not None or self.monitor is not None:
+            from mtda.console.logger import ConsoleLogger
+
         if self.console is not None:
             # Create a publisher
             if self.is_server is True:
+                import zmq
                 context = zmq.Context()
                 socket = context.socket(zmq.PUB)
                 socket.bind("tcp://*:%s" % self.conport)
@@ -1634,8 +1640,9 @@ class MultiTenantDeviceAccess:
             self._www.start()
 
         if self.is_server is True:
+            from mtda.utils import RepeatTimer
             handler = self._session_check
-            self._session_timer = mtda.utils.RepeatTimer(10, handler)
+            self._session_timer = RepeatTimer(10, handler)
             self._session_timer.start()
 
         # Start from a known state
