@@ -37,13 +37,13 @@ class ShellCmdPowerController(PowerController):
     def probe(self):
         if self.on_cmd is None:
             raise ValueError("on-cmd not specified")
-        self.mtda.debug(3, "on-cmd: {}".format(self.on_cmd))
+        self.mtda.debug(3, f"on-cmd: {self.on_cmd}")
         if self.off_cmd is None:
             raise ValueError("off-cmd not specified")
-        self.mtda.debug(3, "off-cmd: {}".format(self.off_cmd))
+        self.mtda.debug(3, f"off-cmd: {self.off_cmd}")
         if self.check_on is None:
             raise ValueError("check-on not specified")
-        self.mtda.debug(3, "check_on: {}".format(self.check_on))
+        self.mtda.debug(3, f"check_on: {self.check_on}")
 
     def command(self, args):
         return False
@@ -64,7 +64,7 @@ class ShellCmdPowerController(PowerController):
 
     def status(self):
         proc = subprocess.run(self.check_on, shell=True, capture_output=True)
-        self.mtda.debug(3, "check_on: {}".format(proc.returncode))
+        self.mtda.debug(3, f"check_on: {proc.returncode}")
         if proc.returncode == 0:
             return self.POWER_ON
         elif proc.returncode == 1:

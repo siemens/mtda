@@ -55,7 +55,7 @@ class Client:
                 if name.endswith("'s"):
                     name = name.replace("'s", "")
             elif USER is not None and HOST is not None:
-                name = "%s@%s" % (USER, HOST)
+                name = f"{USER}@{HOST}"
             else:
                 name = "mtda"
             self._session = os.getenv('MTDA_SESSION', name)
@@ -167,7 +167,7 @@ class Client:
     def storage_network(self, remote):
         cmd = '/usr/sbin/nbd-client'
         if os.path.exists(cmd) is False:
-            raise RuntimeError('{} not found'.format(cmd))
+            raise RuntimeError(f'{cmd} not found')
 
         rdev = self._impl.storage_network()
         if rdev is None:
@@ -256,7 +256,7 @@ class Client:
                     import xml.etree.ElementTree as ET
 
                     bmap = ET.fromstring(bmap)
-                    print("Discovered bmap file '{}'".format(bmap_path))
+                    print(f"Discovered bmap file '{bmap_path}'")
                     bmapDict = self.parseBmap(bmap, bmap_path)
                     self._impl.storage_bmap_dict(bmapDict, self._session)
                     image_size = bmapDict['ImageSize']
@@ -311,8 +311,7 @@ class Client:
                     "chksum": child.attrib["chksum"]
                 })
         except Exception:
-            print("Error parsing '%s', probably not a bmap 2.0 file"
-                  % bmap_path)
+            print(f"Error parsing '{bmap_path}', probably not a bmap 2.0 file")
             return None
         return bmapDict
 
@@ -507,7 +506,7 @@ class ImageLocal(ImageFile):
 
     def copy(self):
         if os.path.exists(self._path) is False:
-            raise IOError('{}: image not found!'.format(self._path))
+            raise IOError(f'{self._path}: image not found!')
 
         image = open(self._path, 'rb')
         try:

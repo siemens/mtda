@@ -64,7 +64,7 @@ class Image(StorageController):
             except subprocess.CalledProcessError:
                 result = False
 
-        self.mtda.debug(3, "storage.helpers.image._close(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image._close(): {str(result)}")
         return result
 
     def close(self):
@@ -73,7 +73,7 @@ class Image(StorageController):
         with self.lock:
             result = self._close()
 
-        self.mtda.debug(3, "storage.helpers.image.close(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image.close(): {str(result)}")
         return result
 
     def _mountpoint(self, path=""):
@@ -127,7 +127,7 @@ class Image(StorageController):
                     self.device = None
                     self.isloop = False
 
-        self.mtda.debug(3, "storage.helpers.image._umount(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image._umount(): {str(result)}")
         Image._is_storage_mounted = result is False
         return result
 
@@ -136,7 +136,7 @@ class Image(StorageController):
 
         with self.lock:
             result = self._umount()
-        self.mtda.debug(3, "storage.helpers.image.umount(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image.umount(): {str(result)}")
         return result
 
     def _get_partitions(self):
@@ -150,9 +150,9 @@ class Image(StorageController):
             device = os.path.join(
                 "/run", "user", str(os.getuid()), "mtda", "storage", "0")
             os.makedirs(device, exist_ok=True)
-            cmd = "/usr/bin/partitionfs -s {0} {1}".format(self.file, device)
-            self.mtda.debug(2, "storage.helpers.image._get_partitions(): "
-                               "{0}".format(cmd))
+            cmd = f"/usr/bin/partitionfs -s {self.file} {device}"
+            self.mtda.debug(2, "storage.helpers"
+                               f".image._get_partitions(): {cmd}")
             result = (os.system(cmd)) == 0
             if result:
                 self.device = device + "/"
@@ -170,8 +170,8 @@ class Image(StorageController):
                 self.device = device
                 self.isloop = True
 
-        self.mtda.debug(3, "storage.helpers.image._get_partitions(): "
-                           "%s" % str(result))
+        self.mtda.debug(3, "storage.helpers.image."
+                           f"_get_partitions(): {str(result)}")
         return result
 
     def _mount_part(self, path):
@@ -183,7 +183,7 @@ class Image(StorageController):
 
         if os.path.exists(path) is False:
             self.mtda.debug(1, "storage.helpers.image._mount_part(): "
-                               "{0} does not exist!".format(path))
+                               f"{path} does not exist!")
         elif os.path.ismount(mountpoint) is False:
             os.makedirs(mountpoint, exist_ok=True)
             if pathlib.Path(path).is_block_device():
@@ -199,17 +199,18 @@ class Image(StorageController):
                 elif 'FAT (32 bit)' in fstype:
                     cmd = ["/usr/bin/fusefat", path, mountpoint]
                 else:
-                    self.mtda.debug(1, "storage.helpers.image._mount_part(): "
-                                       "{0}".format(fstype))
-                    self.mtda.debug(1, "storage.helpers.image._mount_part(): "
+                    self.mtda.debug(1, "storage.helpers.image."
+                                       f"_mount_part(): {fstype}")
+                    self.mtda.debug(1, "storage.helpers.image."
+                                       "_mount_part(): "
                                        "file-system not supported")
             if cmd:
                 cmd = " ".join(cmd)
                 self.mtda.debug(2, "storage.helpers.image._mount_part(): "
                                    "mounting {0} on {1}"
                                    .format(path, mountpoint))
-                self.mtda.debug(2, "storage.helpers.image._mount_part(): "
-                                   "{0}".format(cmd))
+                self.mtda.debug(2, "storage.helpers.image."
+                                   f"_mount_part(): {cmd}")
                 result = (os.system(cmd)) == 0
 
             if result is False:
@@ -218,15 +219,15 @@ class Image(StorageController):
             self.mtda.debug(1, "storage.helpers.image._mount_part(): "
                                "{0} is a mount point".format(mountpoint))
 
-        self.mtda.debug(3, "storage.helpers.image._mount_part(): "
-                           "%s" % str(result))
+        self.mtda.debug(3, "storage.helpers.image."
+                           f"_mount_part(): {str(result)}")
         return result
 
     def _part_dev(self, path, part):
         if path[-1:].isdigit():
-            return "{0}p{1}".format(path, part)
+            return f"{path}p{part}"
         else:
-            return "{0}{1}".format(path, part)
+            return f"{path}{part}"
 
     def mount(self, part=None):
         self.mtda.debug(3, "storage.helpers.image.mount()")
@@ -234,7 +235,8 @@ class Image(StorageController):
             result = self._mount_impl(part)
         if result is True:
             Image._is_storage_mounted = True
-        self.mtda.debug(3, "storage.helpers.image.mount(): %s" % str(result))
+        self.mtda.debug(3, "storage.helpers.image."
+                           f"mount(): {str(result)}")
         return result
 
     def _mount_impl(self, part=None):
@@ -268,7 +270,7 @@ class Image(StorageController):
         self.mtda.debug(3, "storage.helpers.image.open()")
         with self.lock:
             result = self._open_impl()
-        self.mtda.debug(3, "storage.helpers.image.open(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image.open(): {str(result)}")
         return result
 
     def _open_impl(self):
@@ -281,7 +283,7 @@ class Image(StorageController):
     def path(self):
         self.mtda.debug(3, "storage.helpers.image.path()")
         result = self.file
-        self.mtda.debug(3, "storage.helpers.image.open(): {}".format(result))
+        self.mtda.debug(3, f"storage.helpers.image.open(): {result}")
         return result
 
     def status(self):
@@ -289,7 +291,7 @@ class Image(StorageController):
         with self.lock:
             result = self._status()
 
-        self.mtda.debug(3, "storage.helpers.image.status(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image.status(): {str(result)}")
         return result
 
     def _get_hasher_by_name(self):
@@ -321,7 +323,7 @@ class Image(StorageController):
             if self.handle is not None:
                 result = self.handle.tell()
 
-        self.mtda.debug(3, "storage.helpers.image.tell(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image.tell(): {str(result)}")
         return result
 
     def _locate(self, dst):
@@ -337,7 +339,7 @@ class Image(StorageController):
                     result = path
                     break
 
-        self.mtda.debug(3, "storage.helpers.image._locate(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image._locate(): {str(result)}")
         return result
 
     def update(self, dst, offset):
@@ -360,8 +362,8 @@ class Image(StorageController):
                 self.mtda.debug(1, "storage.helpers.image.update(): "
                                    "shared storage already opened!")
 
-            self.mtda.debug(3, "storage.helpers.image.update(): "
-                               "%s" % str(result))
+            self.mtda.debug(3, "storage.helpers.image."
+                               f"update(): {str(result)}")
             return result
 
     def write(self, data):
@@ -377,7 +379,7 @@ class Image(StorageController):
                     # No bmap
                     result = self.handle.write(data)
 
-        self.mtda.debug(3, "storage.helpers.image.write(): %s" % str(result))
+        self.mtda.debug(3, f"storage.helpers.image.write(): {str(result)}")
         return result
 
     def _write_with_bmap(self, data):

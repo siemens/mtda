@@ -44,8 +44,8 @@ class Application:
         if isinstance(result, str):
             print(result)
         else:
-            print("Device command '{0}' failed!".format(
-                " ".join(args)), file=sys.stderr)
+            print(f"Device command '{' '.join(args)}' failed!",
+                  file=sys.stderr)
 
     def console_clear(self, args):
         self.client().console_clear()
@@ -139,7 +139,7 @@ class Application:
             new_status = server.target_status()
             if previous_status != new_status:
                 server.console_print(
-                    "\r\n*** Target is now %s ***\r\n" % (new_status))
+                    f"\r\n*** Target is now {new_status} ***\r\n")
         elif c == 'q':
             self.screen.capture_stop()
             self.exiting = True
@@ -153,8 +153,7 @@ class Application:
             new_status, writing, written = server.storage_status()
             if new_status != previous_status:
                 server.console_print(
-                    "\r\n*** Storage now connected to "
-                    "%s ***\r\n" % (new_status))
+                    f"\r\n*** Storage now connected to {new_status} ***\r\n")
         elif c == 't':
             server.toggle_timestamps()
         elif c == 'u':
@@ -179,7 +178,7 @@ class Application:
         r = requests.post(url=endpoint, data=data)
         server = self.client()
         server.console_print(
-            "\r\n*** console buffer posted to %s ***\r\n" % (r.text))
+            f"\r\n*** console buffer posted to {r.text} ***\r\n")
 
     def console_prompt(self, args):
         data = self.client().console_prompt(args.prompt)
@@ -320,11 +319,11 @@ class Application:
 
     def _human_readable_size(self, size):
         if size < 1024*1024:
-            return "{:d} KiB".format(int(size/1024))
+            return f"{int(size / 1024):d} KiB"
         elif size < 1024*1024*1024:
-            return "{:d} MiB".format(int(size/1024/1024))
+            return f"{int(size / 1024 / 1024):d} MiB"
         else:
-            return "{:.2f} GiB".format(size/1024/1024/1024)
+            return f"{size / 1024 / 1024 / 1024:.2f} GiB"
 
     def _storage_write_cb(self, imgname, totalread,
                           inputsize, totalwritten, imagesize):
@@ -370,7 +369,7 @@ class Application:
             sys.stdout.flush()
         except Exception as e:
             msg = e.msg if hasattr(e, 'msg') else str(e)
-            print("\n'storage write' failed! ({})".format(msg),
+            print(f"\n'storage write' failed! ({msg})",
                   file=sys.stderr)
             result = 1
         return result
@@ -410,7 +409,7 @@ class Application:
         tgt_status = client.target_status()
         uptime = ""
         if tgt_status == "ON":
-            uptime = " (up %s)" % self.target_uptime()
+            uptime = f" (up {self.target_uptime()})"
         try:
             remote_version = client.agent_version()
         except (zerorpc.RemoteError) as e:
@@ -427,11 +426,11 @@ class Application:
               socket.gethostname(), host.version, ""))
         print("Remote         : %s (%s)%30s\r" % (
               remote, remote_version, ""))
-        print("Prefix key:    : ctrl-%s\r" % (prefix_key))
-        print("Session        : %s\r" % (session))
+        print(f"Prefix key:    : ctrl-{prefix_key}\r")
+        print(f"Session        : {session}\r")
         print("Target         : %-6s%s%s\r" % (tgt_status, locked, uptime))
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
-        print("Storage writes : %s (%s)\r" % (written, writing))
+        print(f"Storage writes : {written} ({writing})\r")
 
         # Print status of the USB ports
         ports = client.usb_ports()
@@ -442,7 +441,7 @@ class Application:
         # Print video stream details
         url = client.video_url()
         if url is not None:
-            print("Video stream   : %s\r" % (url))
+            print(f"Video stream   : {url}\r")
 
     def target_off(self, args=None):
         status = self.client().target_off()
@@ -506,7 +505,7 @@ class Application:
 
     def print_version(self):
         agent = MultiTenantDeviceAccess()
-        print("MTDA version: %s" % agent.version)
+        print(f"MTDA version: {agent.version}")
 
     def main(self):
         parser = ArgumentParser(

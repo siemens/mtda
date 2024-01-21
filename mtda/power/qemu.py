@@ -82,8 +82,8 @@ class QemuController(PowerController):
             self.watchdog = conf['watchdog']
         n = 0
         while True:
-            key = 'storage.{}'.format(n)
-            sizekey = 'storage.{}.size'.format(n)
+            key = f'storage.{n}'
+            sizekey = f'storage.{n}.size'
             if key in conf:
                 path = os.path.realpath(conf[key])
                 size = int(conf[sizekey]) if sizekey in conf else 16
@@ -97,11 +97,11 @@ class QemuController(PowerController):
 
         if self.executable is None:
             raise ValueError("qemu executable not specified!")
-        result = os.system("%s --version" % self.executable)
+        result = os.system(f"{self.executable} --version")
         if result != 0:
-            raise ValueError("could not execute %s!" % self.executable)
+            raise ValueError(f"could not execute {self.executable}!")
         if self.swtpm is not None and os.path.exists(self.swtpm) is False:
-            raise ValueError("swtpm (%s) could not be found!" % self.swtpm)
+            raise ValueError(f"swtpm ({self.swtpm}) could not be found!")
 
     def getpid(self, pidfile, timeout=30):
         result = 0
@@ -154,27 +154,27 @@ class QemuController(PowerController):
         options += " -serial pipe:/tmp/qemu-serial"
         options += " -device e1000,netdev=net0"
         options += " -netdev user,id=net0,"
-        options += "hostfwd=tcp::2222-:22,hostname={0}".format(self.hostname)
+        options += f"hostfwd=tcp::2222-:22,hostname={self.hostname}"
         options += " -device qemu-xhci"
         options += " -vnc :0,websocket=on"
 
         # extra options
         if self.bios is not None:
-            options += " -bios %s" % self.bios
+            options += f" -bios {self.bios}"
         if self.cpu is not None:
-            options += " -cpu %s" % self.cpu
+            options += f" -cpu {self.cpu}"
         if self.smp is not None:
             if self.smp == 0:
-                options += " -smp %s" % multiprocessing.cpu_count()
+                options += f" -smp {multiprocessing.cpu_count()}"
             else:
-                options += " -smp %s" % self.smp
+                options += f" -smp {self.smp}"
         if self.machine is not None:
-            options += " -machine %s" % self.machine
+            options += f" -machine {self.machine}"
         if self.pflash_ro is not None:
             if pathlib.Path(self.pflash_ro).is_file():
                 if os.access(self.pflash_ro, os.R_OK):
                     options += " -drive if=pflash,format=raw,"
-                    options += "readonly=on,file=%s" % self.pflash_ro
+                    options += f"readonly=on,file={self.pflash_ro}"
                 else:
                     raise ValueError("Read-only pflash file (%s) "
                                      "cannot be read." % self.pflash_ro)
@@ -184,7 +184,7 @@ class QemuController(PowerController):
         if self.pflash_rw is not None:
             try:
                 options += " -drive if=pflash,format=raw,"
-                options += "file=%s" % self.pflash_rw
+                options += f"file={self.pflash_rw}"
                 if pathlib.Path(self.pflash_rw).is_file():
                     if not os.access(self.pflash_rw, os.W_OK):
                         raise ValueError("Writeable pflash file (%s) has no "
@@ -207,13 +207,13 @@ class QemuController(PowerController):
                                  "%s" % (self.pflash_rw, e))
         if len(self.drives) > 0:
             for drv, size in self.drives:
-                options += " -drive file={},media=disk,format=raw".format(drv)
+                options += f" -drive file={drv},media=disk,format=raw"
                 if os.path.exists(drv) is False:
                     sparse = pathlib.Path(drv)
                     sparse.touch()
                     os.truncate(str(sparse), size*1024*1024*1024)
         if self.watchdog is not None:
-            options += " -device {},id=watchdog0".format(self.watchdog)
+            options += f" -device {self.watchdog},id=watchdog0"
 
         # swtpm options
         if self.swtpm is not None:
@@ -224,7 +224,7 @@ class QemuController(PowerController):
                       + " socket -d"
                       + " --tpmstate dir=/tmp/qemu-swtpm"
                       + " --ctrl type=unixio,path=/tmp/qemu-swtpm/sock"
-                      + " --pid file=%s --tpm2" % pidfile.name)
+                      + f" --pid file={pidfile.name} --tpm2")
                 if result == 0:
                     self.pidOfSwTpm = self.getpid(pidfile.name)
                     self.mtda.debug(2, "power.qemu.start(): "
@@ -246,7 +246,7 @@ class QemuController(PowerController):
         if self.mtda.www is not None and os.path.exists(self.websockify):
             # bind on the same address as our web service
             host = self.mtda.www.host
-            cmd = self.websockify + " -D {}:5901 {}:5900".format(host, host)
+            cmd = self.websockify + f" -D {host}:5901 {host}:5900"
             result = os.system(cmd)
             if result == 0:
                 self.pidOfWebsockify = self.getproc(cmd)
@@ -255,8 +255,8 @@ class QemuController(PowerController):
                                    "[{0}]".format(self.pidOfWebsockify))
 
         with tempfile.NamedTemporaryFile() as pidfile:
-            options += " -pidfile {0}".format(pidfile.name)
-            result = os.system("%s %s" % (self.executable, options))
+            options += f" -pidfile {pidfile.name}"
+            result = os.system(f"{self.executable} {options}")
             if result == 0:
                 self.pidOfQemu = self.getpid(pidfile.name)
                 self.mtda.debug(2, "power.qemu.start(): "
@@ -272,15 +272,13 @@ class QemuController(PowerController):
     def kill(self, name, pid, timeout=3):
         tries = timeout
         if psutil.pid_exists(pid):
-            self.mtda.debug(2, "terminating {0} "
-                               "[{1}] using SIGTERM".format(name, pid))
+            self.mtda.debug(2, f"terminating {name} [{pid}] using SIGTERM")
             os.kill(pid, signal.SIGTERM)
         while tries > 0 and psutil.pid_exists(pid):
             time.sleep(1)
             tries = tries - 1
         if psutil.pid_exists(pid):
-            self.mtda.debug(2, "terminating {0} "
-                               "[{1}] using SIGKILL".format(name, pid))
+            self.mtda.debug(2, f"terminating {name} [{pid}] using SIGKILL")
             os.kill(pid, signal.SIGKILL)
         return psutil.pid_exists(pid)
 
@@ -329,7 +327,7 @@ class QemuController(PowerController):
         if output.endswith("(qemu) "):
             output = output[:-7]
 
-        self.mtda.debug(3, "power.qemu.monitor_command_output(): %s" % output)
+        self.mtda.debug(3, f"power.qemu.monitor_command_output(): {output}")
         return output
 
     def _cmd(self, what):
@@ -350,7 +348,7 @@ class QemuController(PowerController):
         # provide response from the monitor
         output = self.monitor_command_output()
 
-        self.mtda.debug(3, "power.qemu._cmd(): %s" % str(output))
+        self.mtda.debug(3, f"power.qemu._cmd(): {str(output)}")
         return output
 
     def cmd(self, what):
@@ -360,7 +358,7 @@ class QemuController(PowerController):
         result = self._cmd(what)
         self.lock.release()
 
-        self.mtda.debug(3, "power.qemu.cmd(): %s" % str(result))
+        self.mtda.debug(3, f"power.qemu.cmd(): {str(result)}")
         return result
 
     def command(self, args):
@@ -369,7 +367,7 @@ class QemuController(PowerController):
         result = self.cmd(" ".join(args))
         result = "\n".join(result.splitlines()[1:])
 
-        self.mtda.debug(3, "power.qemu.command(): %s" % str(result))
+        self.mtda.debug(3, f"power.qemu.command(): {str(result)}")
         return result
 
     def on(self):
@@ -408,9 +406,9 @@ class QemuController(PowerController):
                     break
 
         if result == self.POWER_UNSURE:
-            self.mtda.debug(1, "unknown power status: %s" % str(status))
+            self.mtda.debug(1, f"unknown power status: {str(status)}")
 
-        self.mtda.debug(3, "power.qemu.status(): %s" % str(result))
+        self.mtda.debug(3, f"power.qemu.status(): {str(result)}")
         return result
 
     def usb_ids(self):
@@ -420,7 +418,7 @@ class QemuController(PowerController):
         for line in lines:
             line = line.strip()
             if line.startswith("Device "):
-                self.mtda.debug(2, "power.qemu.usb_ids(): {0}".format(line))
+                self.mtda.debug(2, f"power.qemu.usb_ids(): {line}")
                 match = re.findall(r'ID: (\S+)$', line)
                 if match:
                     results.append(match[0])
@@ -433,8 +431,8 @@ class QemuController(PowerController):
         self.lock.acquire()
 
         if id not in self.usb_ids():
-            self.mtda.debug(2, "power.qemu.usb_add(): "
-                               "adding '{0}' as '{1}'".format(file, id))
+            self.mtda.debug(2, "power.qemu."
+                               f"usb_add(): adding '{file}' as '{id}'")
             cmdstr = "drive_add 0 if=none,id={0},file={1}"
             output = self._cmd(cmdstr.format(id, file))
             added = False
@@ -458,7 +456,7 @@ class QemuController(PowerController):
                                    "usb-storage '{0}' could not be added "
                                    "({1})!".format(id, reason))
 
-        self.mtda.debug(3, "power.qemu.usb_add(): %s" % str(result))
+        self.mtda.debug(3, f"power.qemu.usb_add(): {str(result)}")
         self.lock.release()
         return result
 
@@ -469,17 +467,17 @@ class QemuController(PowerController):
         self.lock.acquire()
 
         if id in self.usb_ids():
-            self._cmd("device_del {0}".format(id))
+            self._cmd(f"device_del {id}")
             result = (id not in self.usb_ids())
             if result:
-                self.mtda.debug(2, "power.qemu.usb_rm(): "
-                                   "usb-storage '{0}' removed".format(id))
+                self.mtda.debug(2, "power.qemu."
+                                   f"usb_rm(): usb-storage '{id}' removed")
             else:
                 self.mtda.debug(1, "power.qemu.usb_rm(): "
                                    "usb-storage '{0}' could not be "
                                    "removed!".format(id))
 
-        self.mtda.debug(3, "power.qemu.usb_rm(): %s" % str(result))
+        self.mtda.debug(3, f"power.qemu.usb_rm(): {str(result)}")
         self.lock.release()
         return result
 

@@ -130,7 +130,7 @@ class ConsoleLogger:
 
         # Send requested command
         self._clear()
-        self.write("%s\n" % (cmd))
+        self.write(f"{cmd}\n")
 
         # Wait for the command to complete
         self.rx_cond.wait_for(self._matchprompt)
@@ -165,10 +165,10 @@ class ConsoleLogger:
         result = False
         line = self._tail(False)
         if line is not None and self._what in line:
-            self.mtda.debug(2, "matched '%s'" % str(self._what))
+            self.mtda.debug(2, f"matched '{str(self._what)}'")
             result = True
 
-        self.mtda.debug(3, "console.logger._match_any: %s" % str(result))
+        self.mtda.debug(3, f"console.logger._match_any: {str(result)}")
         return result
 
     def wait(self, what, timeout=None):
@@ -183,7 +183,7 @@ class ConsoleLogger:
         if result is True:
             self.rx_lock.release()
 
-        self.mtda.debug(3, "console.logger.wait: %s" % str(result))
+        self.mtda.debug(3, f"console.logger.wait: {str(result)}")
         return result
 
     def write(self, data, raw=False):
@@ -194,8 +194,8 @@ class ConsoleLogger:
                 data = bytes(data, "utf-8")
             self.console.write(data)
         except IOError as e:
-            print("write error on the console ({0})!".format(
-                e.strerror), file=sys.stderr)
+            print(f"write error on the console ({e.strerror})!",
+                  file=sys.stderr)
 
     def reset_timer(self):
         self.basetime = 0
@@ -245,7 +245,7 @@ class ConsoleLogger:
                     newdata.extend(b'\r')
                     if self.timestamps is True:
                         elapsed = now - self.basetime
-                        timestr = "[%4.6f] " % elapsed
+                        timestr = f"[{elapsed:4.6f}] "
                         newdata.extend(timestr.encode("utf-8"))
                     linefeeds = linefeeds + 1
             data = newdata
@@ -334,8 +334,7 @@ class ConsoleLogger:
             self.rx_active.clear()
             result = self.console.close()
 
-        self.mtda.debug(3, "console.logger.pause(): "
-                           "{}".format(result))
+        self.mtda.debug(3, f"console.logger.pause(): {result}")
         return result
 
     def resume(self):
@@ -346,8 +345,7 @@ class ConsoleLogger:
             if result is True:
                 self.rx_active.set()
 
-        self.mtda.debug(3, "console.logger.resume(): "
-                           "{}".format(result))
+        self.mtda.debug(3, f"console.logger.resume(): {result}")
         return result
 
     @property

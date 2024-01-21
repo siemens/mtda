@@ -32,7 +32,7 @@ class ScreenOutput:
                 delta = time.monotonic_ns() - self.capture_time
                 delta = delta / 1000000000.0
                 data = json.dumps(data.decode("latin-1"))
-                entry = '[%0.6f, "o", %s]\n' % (delta, data)
+                entry = f'[{delta:0.6f}, "o", {data}]\n'
                 self.capture_fd.write(entry)
 
     def capture_enabled(self):

@@ -28,5 +28,5 @@ class SystemdDeviceUnit():
         device = device_path[1:].replace('-', '\\x2d').replace('/', '-')
         with open(dropin_path, 'w') as f:
             f.write('[Unit]\n')
-            f.write('Wants={}.device\n'.format(device))
-            f.write('After={}.device\n'.format(device))
+            f.write(f'Wants={device}.device\n')
+            f.write(f'After={device}.device\n')

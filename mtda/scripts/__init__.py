@@ -17,7 +17,7 @@ def load_device_scripts(variant, env):
     try:
         scripts = importlib.import_module("mtda.scripts." + variant)
         for op in ops.keys():
-            name = "{}_{}".format(variant, op.replace('-', '_'))
+            name = f"{variant}_{op.replace('-', '_')}"
             if hasattr(scripts, name) is False:
                 continue
             method = getattr(scripts, name)
@@ -32,14 +32,13 @@ def load_device_scripts(variant, env):
 
 def op_handler(name):
     if name in ops and variant in ops[name]:
-        mtda.debug(2, "calling '{}' device script".format(name))
+        mtda.debug(2, f"calling '{name}' device script")
         mtda.env_set(name, '0')
         result = ops[name][variant]()
-        mtda.env_set(name, '{}'.format(result))
+        mtda.env_set(name, f'{result}')
     else:
         if variant != 'unknown':
-            mtda.debug(1, "no '{}' script provided "
-                          "for '{}'".format(name, variant))
+            mtda.debug(1, f"no '{name}' script provided for '{variant}'")
         mtda.env_set(name, 'not supported')
 
 

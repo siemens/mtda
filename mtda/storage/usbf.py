@@ -36,12 +36,11 @@ class UsbFunctionController(Image):
 
         result = None
         if self.loop is not None:
-            self.mtda.debug(2, "storage.usbf.cleanup(): "
-                               "removing {}".format(self.loop))
+            self.mtda.debug(2, f"storage.usbf.cleanup(): removing {self.loop}")
             cmd = ['/usr/sbin/losetup', '-d', self.loop]
             self.loop = subprocess.check_call(cmd)
 
-        self.mtda.debug(3, "storage.usbf.cleanup(): {}".format(result))
+        self.mtda.debug(3, f"storage.usbf.cleanup(): {result}")
         return result
 
     """ Configure this storage controller from the provided configuration"""
@@ -72,7 +71,7 @@ class UsbFunctionController(Image):
         if self.file is not None:
             result = Composite.configure('storage', conf)
 
-        self.mtda.debug(3, "storage.usbf.configure(): {}".format(result))
+        self.mtda.debug(3, f"storage.usbf.configure(): {result}")
         return result
 
     def configure_systemd(self, dir):
@@ -100,13 +99,13 @@ class UsbFunctionController(Image):
             if os.path.exists(self.file) is True:
                 result = True
             else:
-                self.mtda.debug(1, "storage.usbf.probe(): "
-                                   "{} not found!".format(self.file))
+                self.mtda.debug(1, "storage.usbf."
+                                   f"probe(): {self.file} not found!")
         else:
             self.mtda.debug(1, "storage.usbf.probe(): "
                                "file not configured!")
 
-        self.mtda.debug(3, "storage.usbf.probe(): {}".format(result))
+        self.mtda.debug(3, f"storage.usbf.probe(): {result}")
         return result
 
     """ Attach the shared storage device to the host"""
@@ -117,7 +116,7 @@ class UsbFunctionController(Image):
         self.mode = CONSTS.STORAGE.ON_HOST
         result = True
 
-        self.mtda.debug(3, "storage.usbf.to_host(): {}".format(result))
+        self.mtda.debug(3, f"storage.usbf.to_host(): {result}")
         self.lock.release()
         return result
 
@@ -134,7 +133,7 @@ class UsbFunctionController(Image):
             self.mode = CONSTS.STORAGE.ON_TARGET
 
         self.lock.release()
-        self.mtda.debug(3, "storage.usbf.to_target(): {}".format(result))
+        self.mtda.debug(3, f"storage.usbf.to_target(): {result}")
         return result
 
     """ Determine where the shared storage device is attached"""
@@ -143,7 +142,7 @@ class UsbFunctionController(Image):
 
         result = self.mode
 
-        self.mtda.debug(3, "storage.usbf.status(): {}".format(result))
+        self.mtda.debug(3, f"storage.usbf.status(): {result}")
         return result
 
 

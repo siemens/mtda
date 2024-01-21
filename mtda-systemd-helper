@@ -48,8 +48,7 @@ class Application:
                 sys.exit(0)
 
         if config is not None and os.path.exists(config) is False:
-            print('could not find config file: '
-                  '{}'.format(config), file=sys.stderr)
+            print(f'could not find config file: {config}', file=sys.stderr)
             return 1
 
         self.agent = MultiTenantDeviceAccess()

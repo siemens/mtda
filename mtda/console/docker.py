@@ -36,7 +36,7 @@ class DockerConsole(ConsoleInterface):
     def probe(self):
         self.mtda.debug(3, "console.docker.probe()")
         result = self.docker.variant == "docker"
-        self.mtda.debug(3, "console.docker.probe(): {}".format(result))
+        self.mtda.debug(3, f"console.docker.probe(): {result}")
         return result
 
     def open(self):
@@ -55,7 +55,7 @@ class DockerConsole(ConsoleInterface):
             self.mtda.debug(4, "console.docker.open(): already opened")
 
         self._opened = result
-        self.mtda.debug(3, "console.docker.open(): {}".format(result))
+        self.mtda.debug(3, f"console.docker.open(): {result}")
         return result
 
     def close(self):
@@ -68,7 +68,7 @@ class DockerConsole(ConsoleInterface):
             self._socket = None
             self._opened = False
 
-        self.mtda.debug(3, "console.docker.close(): {}".format(result))
+        self.mtda.debug(3, f"console.docker.close(): {result}")
         return result
 
     """ Return number of pending bytes to read"""
@@ -81,12 +81,12 @@ class DockerConsole(ConsoleInterface):
             fcntl.ioctl(self._fd, termios.FIONREAD, avail, 1)
             result = avail[0]
 
-        self.mtda.debug(3, "console.docker.pending(): {}".format(result))
+        self.mtda.debug(3, f"console.docker.pending(): {result}")
         return result
 
     """ Read bytes from the console"""
     def read(self, n=1):
-        self.mtda.debug(3, "console.docker.read({})".format(n))
+        self.mtda.debug(3, f"console.docker.read({n})")
 
         result = None
         if self._opened is True:
@@ -101,18 +101,18 @@ class DockerConsole(ConsoleInterface):
         if result is None:
             result = b''
 
-        self.mtda.debug(3, "console.docker.read(): {}".format(result))
+        self.mtda.debug(3, f"console.docker.read(): {result}")
         return result
 
     """ Write to the console"""
     def write(self, data):
-        self.mtda.debug(3, "console.docker.write(data={})".format(data))
+        self.mtda.debug(3, f"console.docker.write(data={data})")
 
         result = None
         if self._opened is True:
             result = os.write(self._fd, data)
 
-        self.mtda.debug(3, "console.docker.write(): {}".format(result))
+        self.mtda.debug(3, f"console.docker.write(): {result}")
         return result
 
 

@@ -37,13 +37,13 @@ class UsbRelayPowerController(PowerController):
             raise ValueError("usbrelay: 'lines' not configured!")
 
         if os.path.exists(self.exe) is False:
-            raise ValueError("{0} was not found!".format(self.exe))
+            raise ValueError(f"{self.exe} was not found!")
 
         # Make sure all configured lines were detected
         statuses = self._get_lines()
         for line in self.lines:
             if line not in statuses:
-                raise ValueError("usbrelay: {0} not detected!".format(line))
+                raise ValueError(f"usbrelay: {line} not detected!")
 
     def command(self, args):
         return False
@@ -68,8 +68,8 @@ class UsbRelayPowerController(PowerController):
                 value = self.POWER_ON
             else:
                 value = self.POWER_OFF
-            self.mtda.debug(3, "power.usbrelay.status: "
-                               "line {0} is {1}".format(line, value))
+            self.mtda.debug(3, "power.usbrelay."
+                               f"status: line {line} is {value}")
             if first is True:
                 first = False
                 result = value
@@ -104,7 +104,7 @@ class UsbRelayPowerController(PowerController):
         try:
             for line in self.lines:
                 subprocess.check_call(
-                        [self.exe, "{0}={1}".format(line, value)])
+                        [self.exe, f"{line}={value}"])
         except subprocess.CalledProcessError:
             return False
         return True

@@ -38,10 +38,10 @@ class HidKeyboardController(KeyboardController):
         result = Composite.configure('keyboard', conf)
         if 'device' in conf:
             self.dev = conf['device']
-            self.mtda.debug(4, "keyboard.hid.configure(): "
-                               "will use {}".format(self.dev))
+            self.mtda.debug(4, "keyboard.hid."
+                               f"configure(): will use {self.dev}")
 
-        self.mtda.debug(3, "keyboard.hid.configure(): {}".format(result))
+        self.mtda.debug(3, f"keyboard.hid.configure(): {result}")
         return result
 
     def probe(self):
@@ -50,10 +50,10 @@ class HidKeyboardController(KeyboardController):
         result = True
         if self.dev is None:
             result = False
-            self.mtda.debug(1, "keyboard.hid.probe(): "
-                               "{} not configured".format(self.dev))
+            self.mtda.debug(1, "keyboard.hid."
+                               f"probe(): {self.dev} not configured")
 
-        self.mtda.debug(3, "keyboard.hid.probe(): {}".format(result))
+        self.mtda.debug(3, f"keyboard.hid.probe(): {result}")
         return result
 
     def write_report(self, report):
@@ -66,7 +66,7 @@ class HidKeyboardController(KeyboardController):
         else:
             result = 0
 
-        self.mtda.debug(3, "keyboard.hid.write_report(): {}".format(result))
+        self.mtda.debug(3, f"keyboard.hid.write_report(): {result}")
         return result
 
     def idle(self):
@@ -77,20 +77,18 @@ class HidKeyboardController(KeyboardController):
             self.fd.close()
             self.fd = None
 
-        self.mtda.debug(3, "keyboard.hid.idle(): {}".format(result))
+        self.mtda.debug(3, f"keyboard.hid.idle(): {result}")
         return result
 
     def press(self, key, mod=0x00, repeat=1):
         self.mtda.debug(3, "keyboard.hid.press()")
 
         if os.path.exists(self.dev) is False:
-            self.mtda.debug(1, "keyboard.hid.press(): "
-                               "{} not found".format(self.dev))
+            self.mtda.debug(1, f"keyboard.hid.press(): {self.dev} not found")
             return False
 
         if self.fd is None:
-            self.mtda.debug(4, "keyboard.hid.press(): "
-                               "opening {}".format(self.dev))
+            self.mtda.debug(4, f"keyboard.hid.press(): opening {self.dev}")
             self.fd = open(self.dev, mode="r+b", buffering=0)
 
         NULL_CHAR = chr(0)

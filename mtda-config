@@ -31,7 +31,7 @@ class Config:
     def __save_as_config(self, config):
         with open("./.config", "w") as config_file:
             for key in config:
-                config_file.write("{}={}\n".format(key, config[key]))
+                config_file.write(f"{key}={config[key]}\n")
 
     def __save_as_ini(self, config, output_file=None):
         if not output_file:
@@ -54,15 +54,14 @@ class Config:
                 config_name = template.group(2).lower()
                 # Write the module_name
                 if module_name != current_module:
-                    config_file.write("\n[{}]\n".format(module_name))
+                    config_file.write(f"\n[{module_name}]\n")
                     current_module = module_name
-                config_file.write("  {} = {}\n"
-                                  .format(config_name, config[key]))
+                config_file.write(f"  {config_name} = {config[key]}\n")
 
     def save_config(self, nodes=[], output_file=None):
         config_entries = {}
         for node in nodes:
-            config = "CONFIG_{}".format(node.item.name)
+            config = f"CONFIG_{node.item.name}"
             config_entries[config] = node.item.str_value
             logging.debug("save_config: %s=%s", config, config_entries[config])
 
@@ -86,8 +85,7 @@ class Config:
                 if module_name not in skip_list:
                     # Handle invalid cases later
                     (config, value) = line.split("=")
-                    config = "CONFIG_{}_{}".format(module_name,
-                                                   config.strip()).upper()
+                    config = f"CONFIG_{module_name}_{config.strip()}".upper()
                     config_entries[config] = value.strip()
         return config_entries
 
@@ -353,7 +351,7 @@ class ConfigApp:
             "Q/q - quit | Esc - previous screen | Arrow keys - navigation"
         )
         footer_right_text = urwid.Text(
-            "Kconfig: {}".format(self.kconfig_file), align="right"
+            f"Kconfig: {self.kconfig_file}", align="right"
         )
         footer_column = urwid.Columns([footer_left_text, footer_right_text])
         footer_column = urwid.AttrMap(footer_column, "footer")
@@ -377,7 +375,7 @@ def start_config():
         "-v",
         "--version",
         action="version",
-        version="mtda config generator {}".format(mtda.__version__),
+        version=f"mtda config generator {mtda.__version__}",
     )
     parser.add_argument(
         "-d",
@@ -413,12 +411,12 @@ def start_config():
 
     if args.config:
         if not os.path.exists(args.config):
-            print("Cannot access config file [ {} ]\n".format(args.config))
+            print(f"Cannot access config file [ {args.config} ]\n")
             parser.print_help()
             sys.exit(1)
 
     if not os.path.exists(kconfig_file):
-        print("Cannot access Kconfig file [ {} ]\n".format(kconfig_file))
+        print(f"Cannot access Kconfig file [ {kconfig_file} ]\n")
         parser.print_help()
         sys.exit(1)
 
