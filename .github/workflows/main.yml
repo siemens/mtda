@@ -89,5 +89,5 @@ jobs:
       - name: Upload source packages to PPA
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          sudo apt install -y devscripts dh-python equivs
+          sudo apt install -y devscripts dh-python equivs python3-sphinx
           ./scripts/build-using-ppa ${PWD}/build jammy
