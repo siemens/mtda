@@ -6,7 +6,7 @@
 case "$1" in
 
   configure)
-    /usr/sbin/mtda-systemd-helper || exit ${?}
+    ischroot || /usr/sbin/mtda-systemd-helper || exit ${?}
     if ! grep -qe '^libcomposite$' /etc/modules; then
       echo "libcomposite" >/etc/modules || exit ${?}
     fi
