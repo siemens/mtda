@@ -65,7 +65,7 @@ IMAGE_PREINSTALL += "                    \
 IMAGE_INSTALL += "python3-hap-python"
 
 # LAVA support
-IMAGE_PREINSTALL += "lava-dispatcher"
+IMAGE_PREINSTALL:lava += "lava-dispatcher"
 
 # Expand root file-system
 IMAGE_INSTALL:append = " expand-on-first-boot "
