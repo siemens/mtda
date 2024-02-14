@@ -24,6 +24,7 @@ CIDR
 config
 de
 dearmor
+debian
 dev
 DHCP
 DNS
@@ -59,6 +60,7 @@ jpc
 jpg
 jqc
 JQC
+kas
 keyrings
 kvm
 LEDs
@@ -74,6 +76,7 @@ MTDA's
 Mux
 MUX
 nano
+nanopi
 NanoPi
 neo
 netmask
@@ -129,3 +132,4 @@ VLC
 VNC
 Wi
 www
+yml

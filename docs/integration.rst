@@ -111,14 +111,14 @@ Sign in to your account with the created superuser. Login should be successful.
 Attach to lava-server
 ~~~~~~~~~~~~~~~~~~~~~
 
-The sample NanoPi NEO image comes with the ``lava-dispatcher`` package
-preinstalled. It however needs to be configured to connect to the LAVA server
-and logger installed as noted above. You may connect to the MTDA agent using
-``ssh`` (default credentials are ``mtda``/``mtda``)::
+The sample NanoPi NEO image may be rebuilt with the ``lava-dispatcher`` package
+preinstalled using the optional `lava.yml` fragment when building with `kas`::
 
-    $ ssh mtda@mtda-for-de0-nano-soc.lan
+   $ ./kas-container build kas/debian/mtda-nanopi-neo.yml:kas/opt/lava.yml
 
-Create a worker on the lava-server web interface through::
+It is also possible to install that package using `apt install`. Once the new
+image has been deployed (or required packages installed manually), create a
+worker on the lava-server web interface through::
     
     Administration -> Lava Scheduler App -> Worker (Add)
 
