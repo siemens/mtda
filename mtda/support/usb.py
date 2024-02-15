@@ -42,6 +42,29 @@ class Composite:
         Composite.debug(3, f"composite.configure(): {result}")
         return result
 
+    def install():
+        Composite.debug(3, "composite.install()")
+
+        with Composite.lock:
+            result = Composite._install()
+
+        Composite.debug(3, f"composite.install(): {result}")
+        return result
+
+    def remove():
+        Composite.debug(3, "composite.remove()")
+
+        with Composite.lock:
+            result = Composite._remove()
+
+        Composite.debug(3, f"composite.remove(): {result}")
+        return result
+
+    def storage_toggle(enabled):
+        with Composite.lock:
+            if Composite.functions['storage']['configured'] is True:
+                Composite.functions['storage']['enabled'] = enabled
+
     def _configure(what, conf):
         result = True
         if what == 'storage':
@@ -73,15 +96,6 @@ class Composite:
         if os.path.exists(udc):
             write(udc, "")
         return True
-
-    def install():
-        Composite.debug(3, "composite.install()")
-
-        with Composite.lock:
-            result = Composite._install()
-
-        Composite.debug(3, f"composite.install(): {result}")
-        return result
 
     def _install():
         if Composite._installed is True:
@@ -133,15 +147,6 @@ class Composite:
         Composite._installed = Composite._enable()
         return Composite._installed
 
-    def remove():
-        Composite.debug(3, "composite.remove()")
-
-        with Composite.lock:
-            result = Composite._remove()
-
-        Composite.debug(3, f"composite.remove(): {result}")
-        return result
-
     def _remove():
         lang = Composite.lang
         path = Composite.path
@@ -186,11 +191,6 @@ class Composite:
             config = Composite.path + "/configs/c.1/" + name
             if not os.path.exists(config):
                 os.symlink(path, config, True)
-
-    def storage_toggle(enabled):
-        with Composite.lock:
-            if Composite.functions['storage']['configured'] is True:
-                Composite.functions['storage']['enabled'] = enabled
 
     hid_function = {
         "name": "hid.usb0",
