@@ -86,10 +86,20 @@ class Composite:
         return result
 
     def _enable():
-        usbdrv = os.listdir("/sys/class/udc")[0]
-        udc = os.path.join(Composite.path, "UDC")
-        result = write(udc, usbdrv)
-        return result > 0
+        Composite.debug(3, "composite._enable()")
+
+        instances = os.listdir("/sys/class/udc")
+        result = False
+        if instances:
+            usbdrv = instances[0]
+            udc = os.path.join(Composite.path, "UDC")
+            result = write(udc, usbdrv) > 0
+        else:
+            Composite.debug(1, "composite._enable(): "
+                               "platform does not support udc")
+
+        Composite.debug(3, f"composite._enable(): {result}")
+        return result
 
     def _disable():
         udc = os.path.join(Composite.path, "UDC")
