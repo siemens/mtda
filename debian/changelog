@@ -1,8 +1,18 @@
-mtda (0.31-0) testing; urgency=medium
+mtda (0.31-1) testing; urgency=medium
 
- * development version
+  [ Jan Kiszka ]
+  * feat(storage): Add support for usbsdmux
+  * feat(meta-isar): Install usbsdmux
+  * feat(docs): Add description and references to new usbsdmux storage driver
+  * fix(storage/qemu): Adjust configure return value
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 29 Jan 2024 19:30:00 +0100
+  [ Cedric Hombourger ]
+  * debian: do not call mtda-systemd-helper when running in chroot
+  * meta-isar: images: make LAVA an optional feature
+  * support/usb: move public methods to top of the class
+  * support/usb: check for udc instance
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 16 Feb 2024 20:30:00 +0100
 
 mtda (0.30-1) testing; urgency=medium
 
