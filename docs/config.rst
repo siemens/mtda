@@ -128,8 +128,8 @@ General settings
     selected with ``variant``.
 
   * ``variant``: string [required]
-      Select a shared storage variant from ``docker``, ``qemu``, ``samsung``
-      and ``usbf``.
+      Select a shared storage variant from ``docker``, ``qemu``, ``samsung``,
+      ``usbsdmux`` and ``usbf``.
 
 * ``usb``: section [optional]
     Specify how many USB ports may be controlled from this agent.
@@ -387,6 +387,21 @@ a SD card between the DUT and host. The following settings are supported:
 * ``serial``: string [optional]
   Identifier of the sdmux/sdwire device to use. Use ``sd-mux-ctrl`` to list
   available devices. When not specified, the first device is auto-detected.
+
+``usbsdmux`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``usbsdmux`` driver supports SD card switcher based on the Microchip
+USB2642 card reader chip. A tool with this name is available for several
+distributions and via pip. The following settings are supported:
+
+* ``device``: string [optional]
+  Block device for the shared storage as seen on the host (defaults to
+  ``/dev/sda``)
+
+* ``control-device``: string [optional]
+  Control device used for talking to the switcher on the host (defaults to
+  ``/dev/sg0``)
 
 ``usbf`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
