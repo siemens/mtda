@@ -135,8 +135,8 @@ config CONSOLE_VARIANT
     string "Console variant"
     default "qemu"
     help
-      Select a shared storage variant from 'docker', 'qemu', 'samsung'
-      and 'usbf'.
+      Select a shared storage variant from 'docker', 'qemu', 'samsung',
+      'usbsdmux' and 'usbf'.
 endmenu
 
 menu "Video Settings"
