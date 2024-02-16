@@ -33,7 +33,7 @@ class QemuController(Image):
         self.mtda.debug(3, "storage.qemu.configure()")
         self.lock.acquire()
 
-        result = None
+        result = True
         if 'file' in conf:
             self.file = os.path.realpath(conf['file'])
         d = os.path.dirname(self.file)
