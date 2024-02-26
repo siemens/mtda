@@ -19,16 +19,28 @@ from mtda.power.controller import PowerController
 
 class GpioPowerController(PowerController):
 
+    HIGH = 1
+    LOW = 0
+
     def __init__(self, mtda):
         self.dev = None
         self.mtda = mtda
         self.lines = []
         self.gpiopair = []
+        self.trigger = self.HIGH
 
     def configure(self, conf):
         self.mtda.debug(3, "power.gpio.configure()")
 
         result = None
+
+        if 'enable' in conf:
+            if conf['enable'] == 'high':
+                self.trigger = self.HIGH
+            elif conf['enable'] == 'low':
+                self.trigger = self.LOW
+            else:
+                raise ValueError("'enable' shall be either 'high' or 'low'!")
 
         if 'gpio' in conf:
             for gpio in conf['gpio'].split(','):
@@ -83,7 +95,7 @@ class GpioPowerController(PowerController):
         result = False
 
         for line in self.lines:
-            line.set_value(1)
+            line.set_value(self.trigger)
         result = self.status() == self.POWER_ON
 
         self.mtda.debug(3, f"power.gpio.on(): {result}")
@@ -95,7 +107,7 @@ class GpioPowerController(PowerController):
         result = False
 
         for line in self.lines:
-            line.set_value(0)
+            line.set_value(self.trigger ^ 1)
         result = self.status() == self.POWER_OFF
 
         self.mtda.debug(3, f"power.gpio.off(): {result}")
@@ -109,7 +121,7 @@ class GpioPowerController(PowerController):
 
         for line in self.lines:
             value = line.get_value()
-            if value == 1:
+            if value == self.trigger:
                 value = self.POWER_ON
             else:
                 value = self.POWER_OFF
