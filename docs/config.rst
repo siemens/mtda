@@ -262,10 +262,14 @@ supported:
     Format: <gpiochipx>@<pin>
     If multiple GPIO lines and pins are used separate the entries using ','.
 
+* ``enable``: string [optional]
+    If the relay enable trigger is ``high`` or ``low``. Defaults to ``high``.
+
     Example::
 
         # For single GPIO line
         gpio = gpiochip0@201
+        enable = high
         # For multiple GPIO lines
         gpio = gpiochip0@201,gpiochip1@11,gpiochip0@203
 
