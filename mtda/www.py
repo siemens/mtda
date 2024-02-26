@@ -76,6 +76,7 @@ def console_input(data):
 def keyboard_input():
     mtda = app.config['mtda']
     map = {
+      # virtual keyboard (keyboard.js)
       "Esc": mtda.keyboard.esc,
       "F1": mtda.keyboard.f1,
       "F2": mtda.keyboard.f2,
@@ -96,7 +97,30 @@ def keyboard_input():
       "Left": mtda.keyboard.left,
       "Right": mtda.keyboard.right,
       "Up": mtda.keyboard.up,
-      "Down": mtda.keyboard.down
+      "Down": mtda.keyboard.down,
+
+      # physical keyboard (keysight.js)
+      "esc": mtda.keyboard.esc,
+      "f1": mtda.keyboard.f1,
+      "f2": mtda.keyboard.f2,
+      "f3": mtda.keyboard.f3,
+      "f4": mtda.keyboard.f4,
+      "f5": mtda.keyboard.f5,
+      "f6": mtda.keyboard.f6,
+      "f7": mtda.keyboard.f7,
+      "f8": mtda.keyboard.f8,
+      "f9": mtda.keyboard.f9,
+      "f10": mtda.keyboard.f10,
+      "f11": mtda.keyboard.f11,
+      "f12": mtda.keyboard.f12,
+      "\b": mtda.keyboard.backspace,
+      "    ": mtda.keyboard.tab,
+      "caps": mtda.keyboard.capsLock,
+      "\n": mtda.keyboard.enter,
+      "left": mtda.keyboard.left,
+      "right": mtda.keyboard.right,
+      "up": mtda.keyboard.up,
+      "down": mtda.keyboard.down,
     }
     if mtda is not None and mtda.keyboard is not None:
         input = request.args.get('input', '', type=str)

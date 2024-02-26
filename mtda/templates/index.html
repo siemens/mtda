@@ -106,7 +106,15 @@ SPDX-License-Identifier: MIT
     </script>
     <script src="./assets/jquery.min.js"></script>
     <script src="./assets/keyboard.js"></script>
+    <script src="./assets/keysight.js"></script>
     <script type=text/javascript>
+      window.addEventListener("keydown", function(event) {
+        var key = keysight(event).char
+        console.log("#### <KEY> " + key)
+        $.getJSON('./keyboard-input', {input: key}, function(key) {
+          // do nothing
+        });
+      });
       $(function() {
         $('a#power-toggle').bind('click', function() {
           document.getElementById("power-status-icon").innerHTML = "downloading"
