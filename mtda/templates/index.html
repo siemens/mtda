@@ -173,7 +173,9 @@ SPDX-License-Identifier: MIT
       const storage_status = document.getElementById("storage-status-icon")
 
       socket.on("console-output", function (data) {
-        term.write(data.output);
+        if (data.output != null) {
+          term.write(data.output);
+        }
       });
 
       socket.on("mtda-version", function (data) {
