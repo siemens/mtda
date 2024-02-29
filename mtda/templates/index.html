@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="./assets/material_icons.css">
     <link rel="stylesheet" href="./assets/modern.min.css">
-    <link rel="stylesheet" href="./assets/keyboard.css">
     <link rel="stylesheet" href="novnc/app/styles/base.css">
     <script type="module" crossorigin="anonymous" src="./assets/vnc.js"></script>
     <link rel="preload" href="./assets/winbox.bundle.min.js" as="script">
@@ -82,7 +81,6 @@ SPDX-License-Identifier: MIT
         <ul class="nav">
           <li><a href="#" id=power-toggle><i id=power-status-icon class="large material-icons">power</i></a></li>
           <li><a href="#" id=storage-toggle><i id=storage-status-icon class="large material-icons">no_sim</i></a></li>
-          <li><a href="#" id=keyboard-show><i class="large material-icons">keyboard</i></a></li>
           <li id="mtda_status">Connecting...</li>
           <li id="vnc_status">Loading Video</li>
           <li id="mtda_version">&nbsp;</li>
@@ -105,7 +103,6 @@ SPDX-License-Identifier: MIT
         consoleWindow.focus()
     </script>
     <script src="./assets/jquery.min.js"></script>
-    <script src="./assets/keyboard.js"></script>
     <script src="./assets/keysight.js"></script>
     <script type=text/javascript>
       window.addEventListener("keydown", function(event) {
@@ -131,17 +128,6 @@ SPDX-License-Identifier: MIT
           $.getJSON('./storage-toggle', function(data) {
             // do nothing
           });
-          return false;
-        });
-      });
-      $(function() {
-        $('a#keyboard-show').bind('click', function() {
-          Keyboard.open('', function(data) {
-            console.log("#### <KEY> " + data);
-            $.getJSON('./keyboard-input', {input: data}, function(data) {
-              // do nothing
-            });
-          }, '');
           return false;
         });
       });

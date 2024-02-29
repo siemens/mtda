@@ -76,30 +76,6 @@ def console_input(data):
 def keyboard_input():
     mtda = app.config['mtda']
     map = {
-      # virtual keyboard (keyboard.js)
-      "Esc": mtda.keyboard.esc,
-      "F1": mtda.keyboard.f1,
-      "F2": mtda.keyboard.f2,
-      "F3": mtda.keyboard.f3,
-      "F4": mtda.keyboard.f4,
-      "F5": mtda.keyboard.f5,
-      "F6": mtda.keyboard.f6,
-      "F7": mtda.keyboard.f7,
-      "F8": mtda.keyboard.f8,
-      "F9": mtda.keyboard.f9,
-      "F10": mtda.keyboard.f10,
-      "F11": mtda.keyboard.f11,
-      "F12": mtda.keyboard.f12,
-      "Backspace": mtda.keyboard.backspace,
-      "Tab": mtda.keyboard.tab,
-      "Caps Lock": mtda.keyboard.capsLock,
-      "Enter": mtda.keyboard.enter,
-      "Left": mtda.keyboard.left,
-      "Right": mtda.keyboard.right,
-      "Up": mtda.keyboard.up,
-      "Down": mtda.keyboard.down,
-
-      # physical keyboard (keysight.js)
       "esc": mtda.keyboard.esc,
       "f1": mtda.keyboard.f1,
       "f2": mtda.keyboard.f2,
