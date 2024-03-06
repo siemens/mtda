@@ -104,7 +104,13 @@ def keyboard_input():
             if input in map:
                 map[input]()
         else:
-            mtda.keyboard.write(input)
+            mtda.keyboard.press(
+                input,
+                ctrl=request.args.get('ctrl', False, type=lambda s: s == 'true'),
+                shift=request.args.get('shift', False, type=lambda s: s == 'true'),
+                alt=request.args.get('alt', False, type=lambda s: s == 'true'),
+                meta=request.args.get('meta', False, type=lambda s: s == 'true')
+            )
     return ''
 
 
