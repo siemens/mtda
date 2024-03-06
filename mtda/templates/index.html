@@ -92,13 +92,15 @@ SPDX-License-Identifier: MIT
             html: "<div id=console></div>",
             class: ["no-close", "no-full", "no-max", "modern"],
             width: "640px",
-            height: "480px"
+            height: "480px",
+            hidden: true,
         });
         videoWindow = new WinBox("Video", {
             html: "<div id=video></div>",
             class: ["no-close", "no-full", "no-max", "modern"],
             width: "1360px",
-            height: "768px"
+            height: "768px",
+            hidden: true,
         });
         consoleWindow.focus()
     </script>
@@ -161,6 +163,9 @@ SPDX-License-Identifier: MIT
 
       socket.on("console-output", function (data) {
         if (data.output != null) {
+          if (consoleWindow.hidden) {
+            consoleWindow.show();
+          }
           term.write(data.output);
         }
       });
@@ -171,6 +176,9 @@ SPDX-License-Identifier: MIT
 
       import { vnc_load } from './assets/vnc.js'
       socket.on("video-info", function (info) {
+        if (videoWindow.hidden) {
+          videoWindow.show();
+        }
         if (info.format == 'VNC') {
           vnc_load()
         }
