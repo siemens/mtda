@@ -64,6 +64,10 @@ class KeyboardController(object):
         return False
 
     @abc.abstractmethod
+    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
+        return False
+
+    @abc.abstractmethod
     def write(self, str):
         return
 
