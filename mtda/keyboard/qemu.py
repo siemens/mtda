@@ -39,7 +39,7 @@ class QemuController(KeyboardController):
     def idle(self):
         return True
 
-    def press(self, key, repeat=1):
+    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.press()")
 
         symbols = {
@@ -54,11 +54,21 @@ class QemuController(KeyboardController):
                 '\n': 'ret'
                 }
 
+        mod = ""
+        if ctrl:
+            mod = "ctrl-"
+        if shift:
+            mod = f"{mod}shift-"
+        if alt:
+            mod = f"{mod}alt-"
+        if meta:
+            mod = f"{mod}meta_l-"
+
         result = True
         while repeat > 0:
             repeat = repeat - 1
             key = symbols[key] if key in symbols else key
-            self.qemu.cmd(f"sendkey {key}")
+            self.qemu.cmd(f"sendkey {mod}{key}")
             time.sleep(0.1)
         return result
 
