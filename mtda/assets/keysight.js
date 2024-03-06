@@ -60,7 +60,7 @@
                 12: "num",
                 13: "\n",
                 16: "shift",
-                17: "meta",
+                17: "ctrl",
                 18: "alt",
                 19: "pause",
                 20: "caps",
@@ -156,7 +156,11 @@
             else var f = t.toUpperCase();
             return {
                 "char": f,
-                key: t
+                key: t,
+                ctrl: e.ctrlKey,
+                shift: e.shiftKey,
+                alt: e.altKey,
+                cmd: e.metaKey,
             }
         }, e.exports.unprintableKeys = {
             "\b": 1,

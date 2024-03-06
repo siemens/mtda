@@ -108,10 +108,15 @@ SPDX-License-Identifier: MIT
     <script src="./assets/keysight.js"></script>
     <script type=text/javascript>
       window.addEventListener("keydown", function(event) {
-        var key = keysight(event).char;
-        event.preventDefault();
-        console.log("#### <KEY> " + key);
-        $.getJSON('./keyboard-input', {input: key}, function(key) {
+        var key = keysight(event)
+        console.log("#### <KEY> " + JSON.stringify(key))
+        $.getJSON('./keyboard-input', {
+          input: key.char,
+          ctrl:  key.ctrl,
+          shift: key.shift,
+          alt:   key.alt,
+          meta:  key.cmd,
+        }, function(key) {
           // do nothing
         });
       });
