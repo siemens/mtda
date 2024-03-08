@@ -8,7 +8,7 @@
 inherit dpkg
 
 SRC_URI = "apt://${PN} \
-           file://changelog.tmpl"
+           file://changelog.tmpl "
 
 DEB_BUILD_OPTIONS += "nocheck"
 
