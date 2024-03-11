@@ -1,8 +1,20 @@
-mtda (0.32-0) testing; urgency=medium
+mtda (0.32-1) testing; urgency=medium
 
- * development version
+  [ Badrikesh Prusty ]
+  * kas/common/base: update isar to latest revision
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 26 Feb 2024 14:30:00 +0100
+  [ Tobias Schaffner ]
+  * feat(www): Allow to use physical keyboard as hid input
+  * power/gpio: Allow to configure low level triggered relays
+  * fix(www): Fix video with no configured console
+  * fix(www): Disable browser shortcuts
+  * feat(www): Remove the virtual keyboard
+  * chore(www): Only show console and video windows if used
+  * chore(keyboard): Expose a press function that handles modifier keys
+  * feat(www): Enable the usage of modifier keys
+  * flake8: set maximum line length to 120 chars
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 11 Mar 2024 08:30:00 +0100
 
 mtda (0.31-1) testing; urgency=medium
 
