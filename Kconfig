@@ -104,8 +104,8 @@ config POWER_VARIANT
     string "Power variant"
     default "qemu"
     help
-      Select a power variant from 'aviosys_8800', 'gpio', 'pduclient',
-      'qemu' and 'usbrelay'.
+      Select a power variant from 'aviosys_8800', 'anel', 'gpio',
+      'pduclient', 'qemu' and 'usbrelay'.
 endmenu
 
 menu "Remote Settings"

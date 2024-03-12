@@ -84,8 +84,8 @@ General settings
     may be selected with ``variant``.
 
   * ``variant``: string [required]
-      Select a power variant from ``aviosys_8800``, ``gpio``, ``pduclient``, 
-      ``qemu``, ``shellcmd`` and ``usbrelay``.
+      Select a power variant from ``aviosys_8800``, ``anel``, ``gpio``,
+      ``pduclient``, ``qemu``, ``shellcmd`` and ``usbrelay``.
 
 * ``remote``: section [optional]
     Specify the host and ports to connect to when using a MTDA client (such as
@@ -235,6 +235,32 @@ Aviosys. The following settings are supported:
 
 * ``vid``: integer [optional]
     The USB vendor ID of the power outlet (defaults to ``067b``).
+
+``anel`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``anel`` driver supports the UDP API of the Ethernet controlled power strips
+from Anel. The following settings are supported:
+
+* ``host``: string [required]
+    The IP or hostname of the power strip.
+
+* ``plug``: integer [required]
+    The number of the plug used.
+
+* ``user``: string [optional]
+    The username as configured in the web interface (defaults to ``admin``).
+
+* ``password``: string [optional]
+    The password as configured in the web interface (defaults to ``amel``).
+
+* ``port_in``: integer [optional]
+    The receive port of the UDP api as configured in the web interface
+    (defaults to ``77``).
+
+* ``port_out``: integer [optional]
+    The send of the UDP api as configured in the web interface
+    (defaults to ``75``).
 
 ``docker`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

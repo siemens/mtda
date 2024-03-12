@@ -12,6 +12,7 @@
 ACM
 Allwinner
 amd
+Anel
 api
 APIs
 ARCELI
@@ -121,6 +122,7 @@ Tizen's
 TPM
 tpmtool
 ttyS
+UDP
 UI
 unmuted
 uncomment
