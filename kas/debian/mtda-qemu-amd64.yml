@@ -13,6 +13,6 @@ build_system: isar
 machine: qemuamd64
 
 header:
-  version: 10
+  version: 16
   includes:
     - kas/debian/bookworm-base.yml
