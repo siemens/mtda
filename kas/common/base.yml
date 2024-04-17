@@ -36,3 +36,5 @@ local_conf_header:
   base: |
     CONF_VERSION = "1"
     ISAR_CROSS_COMPILE = "1"
+  ccache: |
+    USE_CCACHE = "1"
