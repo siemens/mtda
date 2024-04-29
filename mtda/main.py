@@ -167,7 +167,7 @@ class MultiTenantDeviceAccess:
         self._power_timeout = timeout
         if timeout == 0:
             self._power_expiry = None
-        self._session_check()
+        self._session_check(session)
 
         self.mtda.debug(3, f"main.config_set_power_timeout(): {result}")
         return result
@@ -187,7 +187,7 @@ class MultiTenantDeviceAccess:
                 left = self._sessions[s] - now
                 if left > timeout:
                     self._sessions[s] = now + timeout
-        self._session_check()
+        self._session_check(session)
 
         self.mtda.debug(3, f"main.config_set_session_timeout(): {result}")
         return result
