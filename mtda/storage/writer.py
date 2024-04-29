@@ -139,7 +139,7 @@ class AsyncImageWriter(queue.Queue):
         self.mtda.debug(3, f"storage.writer.worker(): {str(result)}")
         return result
 
-    def write_raw(self, data, session=None):
+    def write_raw(self, data):
         self.mtda.debug(3, "storage.writer.write_raw()")
 
         result = None
@@ -152,7 +152,7 @@ class AsyncImageWriter(queue.Queue):
         self.mtda.debug(3, f"storage.writer.write_raw(): {str(result)}")
         return result
 
-    def write_gz(self, data, session=None):
+    def write_gz(self, data):
         self.mtda.debug(3, "storage.writer.write_gz()")
 
         # Create a zlib decompressor when called for the first time
