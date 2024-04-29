@@ -17,6 +17,7 @@ import subprocess
 import tempfile
 import time
 import zerorpc
+import zstandard as zstd
 
 from mtda.main import MultiTenantDeviceAccess
 import mtda.constants as CONSTS
@@ -468,9 +469,9 @@ class ImageFile:
         compr = self.compression() if compression is None else compression
         self._inputsize = self.size()
         self._outputsize = output_size
-        if output_size is None:
-            if compr == CONSTS.IMAGE.RAW.value:
-                self._outputsize = self._inputsize
+        # if image is uncompressed, we compress on the fly
+        if compr == CONSTS.IMAGE.RAW.value:
+            compr = CONSTS.IMAGE.ZST.value
         self._agent.storage_compression(compr, self._session)
         self._lastreport = time.time()
         self._totalread = 0
@@ -509,11 +510,18 @@ class ImageLocal(ImageFile):
             raise IOError(f'{self._path}: image not found!')
 
         image = open(self._path, 'rb')
+        comp_on_the_fly = False
+        if self.compression() == CONSTS.IMAGE.RAW.value:
+            cctx = zstd.ZstdCompressor(level=1)
+            comp_on_the_fly = True
+            inputstream = cctx.stream_reader(image)
+        else:
+            inputstream = image
+
         try:
-            data = image.read(self._blksz)
-            dataread = len(data)
-            while self._totalread < self._inputsize:
-                self._totalread += dataread
+            data = inputstream.read(self._blksz)
+            while data:
+                self._totalread = image.tell()
                 self.progress()
 
                 # Write block to shared storage device
@@ -525,16 +533,16 @@ class ImageLocal(ImageFile):
                                   'shared storage')
                 elif bytes_wanted > 0:
                     # Read next block
-                    data = image.read(bytes_wanted)
-                    dataread = len(data)
+                    data = inputstream.read(bytes_wanted)
                 else:
                     # Agent may continue without further data
                     data = b''
-                    dataread = 0
 
         finally:
-            # Close the local image
-            image.close()
+            if comp_on_the_fly:
+                inputstream.close()
+            else:
+                image.close()
 
     def size(self):
         st = os.stat(self._path)
