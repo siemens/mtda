@@ -15,6 +15,10 @@ on:
   pull_request:
     types: [opened, ready_for_review]
 
+permissions:
+  contents: read # to read configuration file
+  pull-requests: write # to assign PRs
+
 jobs:
   add-reviews:
     runs-on: ubuntu-latest
