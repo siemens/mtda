@@ -1,8 +1,24 @@
-mtda (0.33-0) testing; urgency=medium
+mtda (0.33-1) testing; urgency=medium
 
- * development version
+  [ Badrikesh Prusty ]
+  * kas-container: update kas-container to 4.3.1
+  * ci: update actions to latest version and fix nodejs deprecated warning
+  * kas/common/base.yml: enable use of ccache for the builds
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 12 Mar 2024 16:30:00 +0100
+  [ Felix Moessbauer ]
+  * feat: compress image on-the-fly
+
+  [ Florian Greinacher ]
+  * ci(assign): define permissions for auto assign workflow
+
+  [ Jan Kiszka ]
+  * storage: Drop unused session arguments from write_raw/gz
+  * main: Add missing parameter to _session_check calls
+
+  [ Tobias Schaffner ]
+  * feat(power): add driver for Anel ethernet power strips
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 07 May 2024 08:45:00 +0100
 
 mtda (0.32-1) testing; urgency=medium
 
