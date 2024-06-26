@@ -1,12 +1,12 @@
-diff -ur python-zstandard-0.21.0.orig/debian/compat python-zstandard-0.21.0/debian/compat
---- python-zstandard-0.21.0.orig/debian/compat	2023-08-29 07:53:13.471345710 +0200
-+++ python-zstandard-0.21.0/debian/compat	2023-08-29 07:53:46.211650713 +0200
+diff -ur python-zstandard-0.22.0.orig/debian/compat python-zstandard-0.22.0/debian/compat
+--- python-zstandard-0.22.0.orig/debian/compat	2023-08-29 07:53:13.471345710 +0200
++++ python-zstandard-0.22.0/debian/compat	2023-08-29 07:53:46.211650713 +0200
 @@ -1 +1 @@
 -7
 +10
-diff -ur python-zstandard-0.21.0.orig/debian/rules python-zstandard-0.21.0/debian/rules
---- python-zstandard-0.21.0.orig/debian/rules	2023-08-29 07:53:13.471345710 +0200
-+++ python-zstandard-0.21.0/debian/rules	2023-08-29 07:53:52.421708602 +0200
+diff -ur python-zstandard-0.22.0.orig/debian/rules python-zstandard-0.22.0/debian/rules
+--- python-zstandard-0.22.0.orig/debian/rules	2023-08-29 07:53:13.471345710 +0200
++++ python-zstandard-0.22.0/debian/rules	2023-08-29 07:53:52.421708602 +0200
 @@ -1,9 +1,6 @@
  #!/usr/bin/make -f
  
@@ -17,9 +17,9 @@ diff -ur python-zstandard-0.21.0.orig/debian/rules python-zstandard-0.21.0/debia
  
  %:
  	dh $@ --parallel --with python3 --buildsystem=pybuild
-diff -ur python-zstandard-0.21.0.orig/debian/source/format python-zstandard-0.21.0/debian/source/format
---- python-zstandard-0.21.0.orig/debian/source/format	2023-08-29 07:53:27.591477132 +0200
-+++ python-zstandard-0.21.0/debian/source/format	2023-08-29 07:40:17.973822478 +0200
+diff -ur python-zstandard-0.22.0.orig/debian/source/format python-zstandard-0.22.0/debian/source/format
+--- python-zstandard-0.22.0.orig/debian/source/format	2023-08-29 07:53:27.591477132 +0200
++++ python-zstandard-0.22.0/debian/source/format	2023-08-29 07:40:17.973822478 +0200
 @@ -1 +1 @@
 -3.0 (quilt)
 +3.0 (native)
