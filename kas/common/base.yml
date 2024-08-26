@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 
 header:
-  version: 16
+  version: 17
 
 machine: qemuamd64
 target: mtda-image
