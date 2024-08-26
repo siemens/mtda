@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 
 header:
-  version: 16
+  version: 17
 
 local_conf_header:
   lava_override: |

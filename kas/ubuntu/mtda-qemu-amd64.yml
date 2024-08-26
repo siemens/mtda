@@ -12,7 +12,7 @@
 build_system: isar
 
 header:
-  version: 16
+  version: 17
   includes:
     - kas/common/base.yml
 
