@@ -491,6 +491,24 @@ class ImageFile:
     def size(self):
         return None
 
+    def _write_to_storage(self, data):
+        max_tries = int(CONSTS.STORAGE.TIMEOUT / CONSTS.STORAGE.RETRY_INTERVAL)
+
+        for _ in range(max_tries):
+            result = self._agent.storage_write(data, self._session)
+            if result != 0:
+                break
+            time.sleep(CONSTS.STORAGE.RETRY_INTERVAL)
+
+        if result > 0:
+            return result
+        elif result < 0:
+            exc = 'write or decompression error from shared storage'
+            raise IOError(exc)
+        else:
+            exc = 'timeout from shared storage'
+            raise IOError(exc)
+
 
 class ImageLocal(ImageFile):
     """ An image from the local file-system to be copied over to the shared
@@ -519,24 +537,10 @@ class ImageLocal(ImageFile):
             inputstream = image
 
         try:
-            data = inputstream.read(self._blksz)
-            while data:
+            while (data := inputstream.read(self._blksz)):
                 self._totalread = image.tell()
                 self.progress()
-
-                # Write block to shared storage device
-                bytes_wanted = self._agent.storage_write(data, self._session)
-
-                # Check what to do next
-                if bytes_wanted < 0:
-                    raise IOError('write or decompression error from the '
-                                  'shared storage')
-                elif bytes_wanted > 0:
-                    # Read next block
-                    data = inputstream.read(bytes_wanted)
-                else:
-                    # Agent may continue without further data
-                    data = b''
+                self._write_to_storage(data)
 
         finally:
             if comp_on_the_fly:
@@ -612,19 +616,8 @@ class ImageS3(ImageFile):
         self._totalread += dataread
 
         # Write block to shared storage device
-        bytes_wanted = 0
-        while bytes_wanted == 0:
-            # Report progress
-            self.progress()
-
-            # Write downloaded data to storage
-            bytes_wanted = self._agent.storage_write(data, self._session)
-            if bytes_wanted == 0:
-                # Agent may continue without further data
-                data = b''
-            elif bytes_wanted < 0:
-                # Write failure
-                raise IOError('write or decompression error')
+        self.progress()
+        self._write_to_storage(data)
 
         return dataread
 
