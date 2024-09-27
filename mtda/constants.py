@@ -67,6 +67,8 @@ class STORAGE:
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"
     UNKNOWN = "???"
+    RETRY_INTERVAL = 0.5
+    TIMEOUT = 30
 
 
 class WRITER:
