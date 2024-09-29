@@ -1,8 +1,13 @@
-mtda (0.34-0) testing; urgency=medium
+mtda (0.34-1) testing; urgency=medium
 
- * development version
+  [ Badrikesh Prusty ]
+  * upgrade python-zstandard to 0.22.0
+  * update to latest isar and kas-container
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 06 Jun 2024 11:00:00 +0100
+  [ Cedric Hombourger ]
+  * fix(storage): add retry mechanism to recover from a full input queue
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 29 Sep 2024 05:00:00 +0100
 
 mtda (0.33-1) testing; urgency=medium
 
