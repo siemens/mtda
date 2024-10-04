@@ -44,16 +44,18 @@ def connect():
     session['id'] = uuid.uuid4().hex
     mtda = app.config['mtda']
     if mtda is not None:
+        socket.emit("session", {"id": session['id']}, namespace="/mtda")
+
         version = mtda.agent_version()
         socket.emit("mtda-version", {"version": version}, namespace="/mtda")
 
         data = mtda.console_dump()
         socket.emit("console-output", {"output": data}, namespace="/mtda")
 
-        power = mtda.target_status(session_id())
+        power = mtda.target_status(session['id'])
         socket.emit("power-event", {"event": power}, namespace="/mtda")
 
-        status, _, _ = mtda.storage_status(session_id())
+        status, _, _ = mtda.storage_status(session['id'])
         socket.emit("storage-event", {"event": status}, namespace="/mtda")
 
         if mtda.video is not None:
@@ -116,7 +118,7 @@ def keyboard_input():
 
 @app.route('/power-toggle')
 def power_toggle():
-    sid = session_id()
+    sid = request.args.get('session')
     mtda = app.config['mtda']
     if mtda is not None:
         return mtda.target_toggle(session=sid)
@@ -125,7 +127,7 @@ def power_toggle():
 
 @app.route('/storage-toggle')
 def storage_toggle():
-    sid = session_id()
+    sid = request.args.get('session')
     mtda = app.config['mtda']
     if mtda is not None:
         status, _, _ = mtda.storage_status(session=sid)
@@ -134,6 +136,35 @@ def storage_toggle():
         elif status == CONSTS.STORAGE.ON_TARGET:
             return 'HOST' if mtda.storage_to_host(session=sid) else 'TARGET'
         return status
+    return ''
+
+
+@app.route('/storage-open')
+def storage_open():
+    sid = request.args.get('session')
+    mtda = app.config['mtda']
+    if mtda is not None:
+        mtda.storage_open(session=sid)
+    return ''
+
+
+@socket.on("storage-close", namespace="/mtda")
+def storage_close(data):
+    sid = request.args.get('session')
+    mtda = app.config['mtda']
+    if mtda is not None:
+        mtda.storage_close(sid)
+        mtda.storage_to_target(sid)
+    return ''
+
+
+@socket.on("storage-write", namespace="/mtda")
+def storage_write(data):
+    sid = session_id()
+    mtda = app.config['mtda']
+    if mtda is not None:
+        data = data['data']
+        mtda.storage_write(data, sid)
     return ''
 
 

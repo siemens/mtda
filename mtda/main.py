@@ -779,6 +779,7 @@ class MultiTenantDeviceAccess:
             self._storage_opened = True
             self._storage_owner = session
             self._writer.start()
+            self._storage_event(CONSTS.STORAGE.OPENED, session)
             if self.storage is not None:
                 self.storage_locked()
 
