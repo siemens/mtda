@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <!-- Apple iOS Safari settings -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="./assets/dropzone.css">
     <link rel="stylesheet" href="./assets/material_icons.css">
     <link rel="stylesheet" href="./assets/modern.min.css">
     <link rel="stylesheet" href="novnc/app/styles/base.css">
@@ -81,6 +82,7 @@ SPDX-License-Identifier: MIT
         <ul class="nav">
           <li><a href="#" id=power-toggle><i id=power-status-icon class="large material-icons">power</i></a></li>
           <li><a href="#" id=storage-toggle><i id=storage-status-icon class="large material-icons">no_sim</i></a></li>
+          <li><a href="#" id=storage-write><i id=storage-write-icon class="large material-icons">upload_file</i></a></li>
           <li id="mtda_status">Connecting...</li>
           <li id="vnc_status">Loading Video</li>
           <li id="mtda_version">&nbsp;</li>
@@ -102,6 +104,13 @@ SPDX-License-Identifier: MIT
             height: "768px",
             hidden: true,
         });
+        uploadWindow = new WinBox("Upload", {
+            html: "<div id=dropzone>Drag and drop your file here</div><button id='upload' disabled></button>",
+            class: ["no-full", "no-max", "modern"],
+            width: "600px",
+            height: "340px",
+            hidden: true,
+        });
         consoleWindow.focus()
     </script>
     <script src="./assets/jquery.min.js"></script>
@@ -116,6 +125,7 @@ SPDX-License-Identifier: MIT
           shift: key.shift,
           alt:   key.alt,
           meta:  key.cmd,
+          session: localStorage.getItem('session')
         }, function(key) {
           // do nothing
         });
@@ -123,7 +133,7 @@ SPDX-License-Identifier: MIT
       $(function() {
         $('a#power-toggle').bind('click', function() {
           document.getElementById("power-status-icon").innerHTML = "downloading"
-          $.getJSON('./power-toggle', function(data) {
+          $.getJSON('./power-toggle', {session: localStorage.getItem('session')}, function(data) {
             // do nothing
           });
           return false;
@@ -132,7 +142,24 @@ SPDX-License-Identifier: MIT
       $(function() {
         $('a#storage-toggle').bind('click', function() {
           document.getElementById("storage-status-icon").innerHTML = "downloading"
-          $.getJSON('./storage-toggle', function(data) {
+          $.getJSON('./storage-toggle', {session: localStorage.getItem('session')}, function(data) {
+            // do nothing
+          });
+          return false;
+        });
+      });
+      $(function() {
+        $('a#storage-write').bind('click', function() {
+          upload.innerHTML = 'Upload File'
+          uploadWindow.move('center', 'center');
+          uploadWindow.toggleClass('modal');
+          uploadWindow.show();
+          uploadWindow.focus();
+        });
+      });
+      $(function() {
+        $('#upload').bind('click', function() {
+          $.getJSON('./storage-open', {session: localStorage.getItem('session')}, function(data) {
             // do nothing
           });
           return false;
@@ -207,6 +234,10 @@ SPDX-License-Identifier: MIT
         status.innerHTML = '<span style="color: #ff8383;"><b>Disconnected</b></span>';
       });
 
+      socket.on("session", (data) => {
+        localStorage.setItem('session', data.id);
+      });
+
       socket.on("power-event", (data) => {
         switch(data.event) {
           case 'ON': power_status.innerHTML = "power_off"; break;
@@ -235,11 +266,75 @@ SPDX-License-Identifier: MIT
             storage_status.innerHTML = "no_sim";
             storage_status.title = data
             break;
+          case 'OPENED':
+            if (localStorage.getItem('session') == data) {
+              if (selectedFile) {
+                upload.innerHTML = 'Uploading...'
+                uploadSelectedFile();
+              }
+            }
+            break;
           default:
             storage_status.innerHTML = "unknown_document"
             storage_status.title = "storage status unknown"
         }
       });
+      const CHUNK_SIZE = 512 * 1024;
+      const dropzone = document.getElementById('dropzone');
+      const upload = document.getElementById('upload');
+      let selectedFile = null;
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => e.preventDefault());
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => dropzone.classList.add('hover'));
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => dropzone.classList.remove('hover'));
+      });
+
+      dropzone.addEventListener('drop', (event) => {
+        const files = event.dataTransfer.files;
+        if (files.length) {
+          selectedFile = files[0];
+          dropzone.textContent = `${selectedFile.name}`;
+          upload.disabled = false;
+        }
+      });
+
+      function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      async function uploadSelectedFile() {
+        const sendFileInChunks = (file) => {
+          let offset = 0;
+          const reader = new FileReader();
+
+          const readNextChunk = () => {
+            const slice = file.slice(offset, offset + CHUNK_SIZE);
+            reader.readAsArrayBuffer(slice);
+          };
+
+          reader.onload = async (event) => {
+            socket.emit("storage-write", { data: event.target.result });
+            offset += CHUNK_SIZE;
+            await delay(10);
+
+            if (offset < file.size) {
+              readNextChunk();
+            } else {
+              socket.emit("storage-close", { });
+              uploadWindow.hide();
+            }
+          };
+          readNextChunk();
+        };
+        await sendFileInChunks(selectedFile);
+      };
     </script>
   </body>
 </html>

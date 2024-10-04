@@ -1,0 +1,40 @@
+/* ---------------------------------------------------------------------------
+   Copyright (C) 2024 Siemens AG
+   ---------------------------------------------------------------------------
+   SPDX-License-Identifier: MIT
+   ---------------------------------------------------------------------------
+*/
+
+#dropzone {
+    width: 100%;
+    max-width: 600px;
+    height: 200px;
+    border: 2px dashed #888;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #888;
+    font-size: 18px;
+    margin: 20px auto;
+    cursor: pointer;
+}
+
+#dropzone.hover {
+    border-color: #333;
+    color: #333;
+}
+
+button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
