@@ -66,6 +66,7 @@ class STORAGE:
     ON_TARGET = "TARGET"
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"
+    OPENED = "OPENED"
     UNKNOWN = "???"
     RETRY_INTERVAL = 0.5
     TIMEOUT = 30
