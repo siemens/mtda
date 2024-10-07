@@ -58,6 +58,10 @@ class RPC:
 
 class SESSION:
     MIN_TIMEOUT = 10
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    NONE = "NONE"
+    RUNNING = "RUNNING"
 
 
 class STORAGE:
@@ -66,6 +70,8 @@ class STORAGE:
     ON_TARGET = "TARGET"
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"
+    OPENED = "OPENED"
+    CORRUPTED = "CORRUPTED"
     UNKNOWN = "???"
     RETRY_INTERVAL = 0.5
     TIMEOUT = 30
