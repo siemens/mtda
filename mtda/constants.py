@@ -58,6 +58,10 @@ class RPC:
 
 class SESSION:
     MIN_TIMEOUT = 10
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    NONE = "NONE"
+    RUNNING = "RUNNING"
 
 
 class STORAGE:

@@ -70,6 +70,7 @@ class MultiTenantDeviceAccess:
         self.storage = None
         self._pastebin_api_key = None
         self._pastebin_endpoint = None
+        self._session_manager = None
         self._storage_locked = False
         self._storage_mounted = False
         self._storage_opened = False
@@ -85,13 +86,8 @@ class MultiTenantDeviceAccess:
         self.is_remote = False
         self.is_server = False
         self.remote = None
-        self._lock_owner = None
-        self._lock_expiry = None
         self._power_expiry = None
         self._power_lock = threading.Lock()
-        self._session_lock = threading.Lock()
-        self._session_timer = None
-        self._sessions = {}
         self._socket_lock = threading.Lock()
         self._time_from_pwr = None
         self._time_from_str = None
@@ -180,16 +176,10 @@ class MultiTenantDeviceAccess:
 
         result = self._session_timeout
         self._session_timeout = timeout
+        if self._session_manager is not None:
+            self._session_manager.set_timeout(timeout)
 
-        with self._session_lock:
-            now = time.monotonic()
-            for s in self._sessions:
-                left = self._sessions[s] - now
-                if left > timeout:
-                    self._sessions[s] = now + timeout
-        self._session_check(session)
-
-        self.mtda.debug(3, f"main.config_set_session_timeout(): {result}")
+        self.mtda.debug(3, f"main.config_set_session_timeout: {result}")
         return result
 
     def console_prefix_key(self):
@@ -939,29 +929,22 @@ class MultiTenantDeviceAccess:
     def target_lock(self, session):
         self.mtda.debug(3, "main.target_lock()")
 
-        self._session_check(session)
-        with self._session_lock:
-            owner = self.target_owner()
-            if owner is None or owner == session:
-                self._lock_owner = session
-                self._session_event(f"LOCKED {session}")
-                result = True
-            else:
-                result = False
+        result = False
+        if self._session_manager is not None:
+            result = self._session_manager.lock(session)
 
-        self.mtda.debug(3, f"main.target_lock(): {str(result)}")
+        self.mtda.debug(3, f"main.target_lock: {result}")
         return result
 
     def target_locked(self, session):
         self.mtda.debug(3, "main.target_locked()")
 
-        self._session_check(session)
-        return self._check_locked(session)
+        result = False
+        if self._session_manager:
+            result = self._session_manager.locked(session) is not None
 
-    def target_owner(self):
-        self.mtda.debug(3, "main.target_owner()")
-
-        return self._lock_owner
+        self.mtda.debug(3, f"main.target_locked: {result}")
+        return result
 
     def _power_event(self, status):
         self._power_expiry = None
@@ -1180,14 +1163,10 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.target_unlock()")
 
         result = False
-        self._session_check(session)
-        with self._session_lock:
-            if self.target_owner() == session:
-                self._session_event(f"UNLOCKED {session}")
-                self._lock_owner = None
-                result = True
+        if self._session_manager is not None:
+            result = self._session_manager.unlock(session)
 
-        self.mtda.debug(3, f"main.target_unlock(): {str(result)}")
+        self.mtda.debug(3, f"main.target_unlock: {result}")
         return result
 
     def target_uptime(self, session=None):
@@ -1554,6 +1533,12 @@ class MultiTenantDeviceAccess:
         if self.is_remote is True:
             return True
 
+        # Create session manager to support multiple users
+        from mtda.session import SessionManager
+        self._session_manager = SessionManager(self,
+                                               self._lock_timeout,
+                                               self._session_timeout)
+
         # Probe the specified power controller
         if self.power is not None:
             status = self.power.probe()
@@ -1688,88 +1673,53 @@ class MultiTenantDeviceAccess:
             self.socket.close()
             self.socket = None
 
-    def _session_check(self, session=None):
-        self.mtda.debug(3, f"main._session_check({str(session)})")
+    def session_event(self, info):
+        self.mtda.debug(3, f"main.session_event({info})")
 
-        events = []
+        info = info.split()
+        event = info[0]
         now = time.monotonic()
-        power_off = False
+
+        if event == CONSTS.SESSION.NONE:
+            # Check if we should arm the auto power-off timer
+            # i.e. when the last session is removed and a power timeout
+            # was set
+            if self._power_timeout > 0:
+                self._power_expiry = now + self._power_timeout
+                self.mtda.debug(2, "device will be powered down in "
+                                   f"{self._power_timeout} seconds")
+
+        elif event == CONSTS.SESSION.RUNNING:
+            # There are active sessions: reset power expiry
+            self._power_expiry = None
+
+    def _session_check(self, session=None):
+        self.mtda.debug(3, f"main._session_check({session})")
+
         result = None
+        if self._session_manager is not None:
+            result = self._session_manager.check(session)
 
-        with self._session_lock:
-            # Register new session
-            if session is not None:
-                if session not in self._sessions:
-                    events.append(f"ACTIVE {session}")
-                self._sessions[session] = now + self._session_timeout
-
-            # Check for inactive sessions
-            inactive = []
-            for s in self._sessions:
-                left = self._sessions[s] - now
-                self.mtda.debug(3, "session %s: %d seconds" % (s, left))
-                if left <= 0:
-                    inactive.append(s)
-            for s in inactive:
-                events.append(f"INACTIVE {s}")
-                self._sessions.pop(s, "")
-
-                # Check if we should arm the auto power-off timer
-                # i.e. when the last session is removed and a power timeout
-                # was set
-                if len(self._sessions) == 0 and self._power_timeout > 0:
-                    self._power_expiry = now + self._power_timeout
-                    self.mtda.debug(2, "device will be powered down in {} "
-                                       "seconds".format(self._power_timeout))
-
-            if len(self._sessions) > 0:
-                # There are active sessions: reset power expiry
-                self._power_expiry = None
-            else:
-                # Otherwise check if we should auto-power off the target
-                if self._power_expiry is not None and now > self._power_expiry:
-                    self._lock_expiry = 0
-                    power_off = True
-
-            # Release device if the session owning the lock is idle
-            if self._lock_owner is not None:
-                if session == self._lock_owner:
-                    self._lock_expiry = now + self._lock_timeout
-                elif now >= self._lock_expiry:
-                    events.append(f"UNLOCKED {self._lock_owner}")
-                    self._lock_owner = None
-
-        # Send event sessions generated above
-        for e in events:
-            self._session_event(e)
-
-        # Check if we should auto power-off the device
-        if power_off is True:
+        now = time.monotonic()
+        if self._power_expiry is not None and now > self._power_expiry:
             self._target_off()
-            self.mtda.debug(2, "device powered down after {} seconds of "
-                               "inactivity".format(self._power_timeout))
+            self._power_expiry = None
+            self.mtda.debug(2, "device powered down after "
+                               f"{self._power_timeout} seconds of inactivity")
 
-        self.mtda.debug(3, f"main._session_check: {str(result)}")
-        return result
-
-    def _session_event(self, info):
-        self.mtda.debug(3, f"main._session_event({str(info)})")
-
-        result = None
-        if info is not None:
-            self.notify(CONSTS.EVENTS.SESSION, info)
-
-        self.mtda.debug(3, f"main._session_event: {str(result)}")
+        self.mtda.debug(3, f"main._session_check: {result}")
         return result
 
     def _check_locked(self, session):
         self.mtda.debug(3, "main._check_locked()")
 
-        owner = self.target_owner()
-        if owner is None:
-            return False
-        status = False if session == owner else True
-        return status
+        owner = None
+        if self._session_manager is not None:
+            owner = self._session_manager.locked(session)
+        result = (owner is not None and session == owner)
+
+        self.mtda.debug(3, f"main._check_locked: {result}")
+        return result
 
     @property
     def www(self):
