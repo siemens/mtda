@@ -1693,6 +1693,18 @@ class MultiTenantDeviceAccess:
             # There are active sessions: reset power expiry
             self._power_expiry = None
 
+        elif event == CONSTS.SESSION.INACTIVE:
+            # If a session had the shared storage device opened but has gone
+            # quiet, close it to let others grab it. Let's assume that its
+            # content is corrupted: send a storage event that UIs may use to
+            # display a warning
+            session = info[1]
+            if self._storage_opened is True and self._storage_owner == session:
+                self.mtda.debug(2, "closing storage for idle session "
+                                   f"{session}, storage may be corrupted!")
+                self._storage_event(CONSTS.STORAGE.CORRUPTED)
+                self.storage_close(None)
+
     def _session_check(self, session=None):
         self.mtda.debug(3, f"main._session_check({session})")
 
