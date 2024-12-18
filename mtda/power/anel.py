@@ -80,6 +80,7 @@ class AnelPowerController(PowerController):
         payload = f"Sw_{'on' if state else 'off'}{self._plug}"
         self._send(payload)
 
+        result = None
         try:
             result = self._receive().split(':')[5+self._plug].rsplit(',', 1)[1]
         except TimeoutError:
