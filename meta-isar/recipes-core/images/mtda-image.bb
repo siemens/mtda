@@ -62,6 +62,8 @@ IMAGE_PREINSTALL += "                    \
     python3-libgpiod                     \
 "
 
+IMAGE_PREINSTALL:remove:ubuntu-noble = "pdudaemon-client"
+
 # HomeKit support
 IMAGE_INSTALL += "python3-hap-python"
 
