@@ -103,11 +103,11 @@ Files: meta-isar/recipes-python/compression/files/zstandard-0.14.0/debian/*
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
-Files: meta-isar/recipes-python/net/files/hap-python-3.0/debian/*
+Files: meta-isar/recipes-python/net/files/hap-python-*/debian/*
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
-Files: meta-isar/recipes-python/net/files/hap-python-3.0/debian/source/*
+Files: meta-isar/recipes-python/net/files/hap-python-*/debian/source/*
 Copyright: 2021 Siemens Digital Industries Software
 License: MIT
 
