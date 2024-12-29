@@ -1,3 +1,9 @@
+hap-python (4.9.1-1) unstable; urgency=medium
+
+  * New upstream release (4.9.1)
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 29 Oct 2024 15:00:00 +0100
+
 hap-python (3.0-4) unstable; urgency=medium
 
   * Build-Depends against python3-all0-dev
