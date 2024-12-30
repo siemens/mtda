@@ -12,6 +12,8 @@ DEPENDS = "                              \
     mtda                                 \
     sd-mux-ctrl                          \
 "
+# Ubuntu noble ships sd-mux-ctrl package 
+DEPENDS:remove:noble = "sd-mux-ctrl"
 
 # Make sure packages we built were added to the isar-apt repository
 do_build[deptask] += "do_deploy_deb"
