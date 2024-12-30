@@ -1,8 +1,17 @@
-mtda (0.35-0) testing; urgency=medium
+mtda (0.35-1) testing; urgency=medium
 
- * development version
+  [ Cedric Hombourger ]
+  * debian: open development window for version 0.35
+  * update hap-python to version 4.9.1
+  * initial port to Ubuntu 24.04
+  * preliminary support for uploading to the shared storage
+  * move session handling code to its own module
+  * auto-close storage on session timeout
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 29 Sep 2024 06:00:00 +0100
+  [ Quirin Gylstorff ]
+  * anel.py declare result in front of exception
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 30 Dec 2024 14:30:00 +0100
 
 mtda (0.34-1) testing; urgency=medium
 
