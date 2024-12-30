@@ -1,7 +1,12 @@
+mtda (0.36-0) testing; urgency=medium
+
+  * development version
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 30 Dec 2024 18:30:00 +0100
+
 mtda (0.35-1) testing; urgency=medium
 
   [ Cedric Hombourger ]
-  * debian: open development window for version 0.35
   * update hap-python to version 4.9.1
   * initial port to Ubuntu 24.04
   * preliminary support for uploading to the shared storage
