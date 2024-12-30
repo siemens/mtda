@@ -35,9 +35,7 @@ SRC_URI += "${@' '.join(['file://' + d.getVar('LAYERDIR_mtda') + '/../' + file f
 
 S = "${WORKDIR}/working-repo"
 
-DEPENDS += "zerorpc-python kconfiglib py3qterm"
-# bookworm ships suitable versions of these packages
-DEPENDS:remove:bookworm = "kconfiglib"
+DEPENDS += "zerorpc-python py3qterm"
 
 do_gen_working_repo() {
 	for file in ${MTDA_FILES}; do
