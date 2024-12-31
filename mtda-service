@@ -14,6 +14,7 @@
 import argparse
 import daemon
 import lockfile
+import netifaces
 import os
 import os.path
 import signal
@@ -56,12 +57,16 @@ class Application:
             status = self.server()
             return status
 
-    def _ip(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('192.0.2.0', 0))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
+    def _addresses(self):
+        results = []
+        for iface in netifaces.interfaces():
+            if iface.startswith("lo"):
+                continue
+            if netifaces.AF_INET in netifaces.ifaddresses(iface):
+                addresses = netifaces.ifaddresses(iface)[netifaces.AF_INET]
+                for addr in addresses:
+                    results.append(addr['addr'])
+        return results
 
     def server(self):
         # Start our agent
@@ -82,10 +87,11 @@ class Application:
         }
         deviceType = CONSTS.MDNS.TYPE
         name = self.agent.name
+        addresses = self._addresses()
         info = zeroconf.ServiceInfo(
                 type_=deviceType,
                 name=f'{name}.{deviceType}',
-                addresses=[socket.inet_aton(self._ip())],
+                addresses=[socket.inet_aton(addr) for addr in addresses],
                 port=int(self.agent.ctrlport),
                 properties=props,
                 server=f'{name}.local.')
