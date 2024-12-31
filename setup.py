@@ -59,6 +59,7 @@ and testers to remotely access and control hardware devices.
         "gevent",
         "gevent-websocket",
         "kconfiglib",
+        "netifaces>=0.11.0",
         "pyserial>=2.6",
         "python-daemon>=2.0",
         "pyusb>=1.0",
