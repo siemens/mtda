@@ -1313,7 +1313,7 @@ class MultiTenantDeviceAccess:
         if self.is_remote is False and is_server is True:
             # load and configure core sub-systems
             subsystems = ['power', 'console', 'storage', 'monitor', 'keyboard',
-                          'video']
+                          'video', 'assistant']
             for sub in subsystems:
                 if parser.has_section(sub):
                     try:
