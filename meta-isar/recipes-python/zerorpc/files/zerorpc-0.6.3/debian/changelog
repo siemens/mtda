@@ -1,3 +1,9 @@
+zerorpc-python (0.6.3-6) testing; urgency=low
+
+  * Remove use of the future module since not supported in Debian trixie
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 06 Jan 2024 15:30:00 +0100
+
 zerorpc-python (0.6.3-5) testing; urgency=low
 
   * Pull fix submitted upstream for zerorpc to work with pyzmq 23.0.0 (issue #251)
