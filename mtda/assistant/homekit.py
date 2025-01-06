@@ -12,6 +12,7 @@
 
 # System imports
 import os
+import threading
 
 # HAP-Python imports
 from pyhap.accessory import Accessory
@@ -86,9 +87,11 @@ class HomeKitAssistant(Assistant):
     def __init__(self, mtda):
         self.mtda = mtda
         self.accessory = None
+        self.drv = None
         self.name = "MTDA"
         self.port = 51826
         self.state = "/var/lib/mtda/homekit.state"
+        self.thread = None
 
     def configure(self, conf):
         self.mtda.debug(3, "mtda.assistant.homekit.configure()")
@@ -117,7 +120,13 @@ class HomeKitAssistant(Assistant):
         drv = AccessoryDriver(persist_file=self.state, port=self.port)
         self.accessory = PowerSwitch(self.mtda, drv, self.name)
         drv.add_accessory(self.accessory)
-        drv.start_service()
+        self.drv = drv
+        self.thread = threading.Thread(target=drv.start, daemon=True)
+        self.thread.start()
+
+    def stop(self):
+        if self.drv:
+            self.drv.stop()
 
 
 def instantiate(mtda):
