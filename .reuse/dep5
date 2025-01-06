@@ -4,11 +4,11 @@ Upstream-Contact: Cedric Hombourger <cedric.hombourger@siemens.com>
 Source: https://github.com/siemens/mtda
 
 Files: .gitignore
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: *.md
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: kas-container
@@ -16,119 +16,95 @@ Copyright: 2021 Siemens AG
 License: MIT
 
 Files: configs/qemu-ovmf-vars.fd
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: debian/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: docs/.gitignore
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: docs/*.png
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: docs/*.rst
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: docs/jqc3f-05vdc.jpg
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: docs/*_pinout.jpg
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-conf/hostname/files/postinst
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: meta-isar/recipes-conf/mass-storage/usb-ms-use-mmcblk0/usb-functions
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: meta-isar/recipes-conf/mass-storage/usb-ms-use-sda/usb-functions
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-conf/network/files/90-systemd-networkd-disabled.preset
 Copyright: 2023 Siemens AG
 License: MIT
 
-Files: meta-isar/recipes-core/usb-otg/mtda-usb-functions/postinst
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: meta-isar/recipes-core/usb-otg/mtda-usb-functions/mtda-usb-functions.service
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: meta-isar/recipes-core/usb-otg/mtda-usb-functions/usb-functions
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
 Files: meta-isar/recipes-crypto/gnutls/files/changelog.tmpl
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/compression/python-zstandard/*.patch
-Copyright: 2023 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/crypto/files/curve25519-donna-1.3/debian/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/crypto/files/curve25519-donna-1.3/debian/source/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/crypto/files/ed25519-1.5/debian/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/crypto/files/ed25519-1.5/debian/source/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-multimedia/mjpg-streamer/files/git/mjpg-streamer-experimental/debian/*
-Copyright: 2021 Siemens Digital Industries Software
-License: MIT
-
-Files: meta-isar/recipes-python/compression/files/zstandard-0.14.0/debian/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/net/files/hap-python-*/debian/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/net/files/hap-python-*/debian/source/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/qt5/files/py3qterm-0.4/debian/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/source/*
-Copyright: 2021 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-bsp/rpi-firmware/files/*
-Copyright: Siemens AG, 2022
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: meta-isar/recipes-python/kconfiglib/files/kconfiglib-14.1.0/debian/*
-Copyright: 2022 Siemens Digital Industries Software
+Copyright: 2025 Siemens AG
 License: MIT
 
 Files: mtda/assets/jquery.min.js
