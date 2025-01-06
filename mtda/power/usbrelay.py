@@ -33,14 +33,21 @@ class UsbRelayPowerController(PowerController):
             self.lines = conf['lines'].split(',')
 
     def probe(self):
-        if self.lines is None:
-            raise ValueError("usbrelay: 'lines' not configured!")
-
         if os.path.exists(self.exe) is False:
             raise ValueError(f"{self.exe} was not found!")
 
-        # Make sure all configured lines were detected
         statuses = self._get_lines()
+        if not self.lines:
+            statuses = self._get_lines()
+            if len(statuses) == 1:
+                line = next(iter(statuses.keys()))
+                self.mtda.debug(2, "power.usbrelay."
+                                   f"using default line: {line}")
+                self.lines = [line]
+            else:
+                raise ValueError("usbrelay: 'lines' not configured!")
+
+        # Make sure all configured lines were detected
         for line in self.lines:
             if line not in statuses:
                 raise ValueError(f"usbrelay: {line} not detected!")
