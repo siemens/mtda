@@ -71,6 +71,7 @@ class MultiTenantDeviceAccess:
         self._pastebin_api_key = None
         self._pastebin_endpoint = None
         self._session_manager = None
+        self._session_timer = None
         self._storage_locked = False
         self._storage_mounted = False
         self._storage_opened = False
@@ -1646,7 +1647,8 @@ class MultiTenantDeviceAccess:
             return True
 
         # stop sesssion timer
-        self._session_timer.cancel()
+        if self._session_timer:
+            self._session_timer.cancel()
 
         # stop web service
         if self._www is not None:
