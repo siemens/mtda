@@ -21,7 +21,7 @@ repos:
       meta-isar:
   isar:
     url: https://github.com/ilbers/isar.git
-    commit: fe7f6a94ebc040fd1220f03056e2d6312b48f25d
+    commit: 483093e11cd722f0c88dc2fcbed1e937fc0abb60
     layers:
       meta:
       meta-isar:
