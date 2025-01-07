@@ -17,9 +17,9 @@ import lockfile
 import netifaces
 import os
 import os.path
+import Pyro4
 import signal
 import sys
-import zerorpc
 import socket
 import zeroconf
 from systemd import daemon as sd
@@ -75,9 +75,10 @@ class Application:
             return False
 
         # Start our RPC server
-        uri = "tcp://*:%d" % (self.agent.ctrlport)
-        s = zerorpc.Server(self.agent, heartbeat=20)
-        s.bind(uri)
+        Pyro4.config.HOST = "0.0.0.0"
+        Pyro4.config.SERIALIZER = "marshal"
+        daemon = Pyro4.Daemon(port=self.agent.ctrlport)
+        daemon.register(self.agent, objectId="mtda.main")
 
         # Initialize ZeroConf
         interfaces = zeroconf.InterfaceChoice.All
@@ -105,7 +106,7 @@ class Application:
 
         try:
             sd.notify('READY=1')
-            s.run()
+            daemon.requestLoop()
         except KeyboardInterrupt:
             self.stop()
         return True

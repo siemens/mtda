@@ -52,7 +52,6 @@ class POWER:
 
 
 class RPC:
-    HEARTBEAT = 20
     TIMEOUT = 2*60
 
 

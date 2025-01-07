@@ -11,12 +11,12 @@
 
 
 import os
+import Pyro4
 import random
 import socket
 import subprocess
 import tempfile
 import time
-import zerorpc
 import zstandard as zstd
 
 from mtda.main import MultiTenantDeviceAccess
@@ -37,11 +37,10 @@ class Client:
         agent = MultiTenantDeviceAccess()
         agent.load_config(host, config_files=config_files)
         if agent.remote is not None:
-            uri = "tcp://%s:%d" % (agent.remote, agent.ctrlport)
-            self._impl = zerorpc.Client(
-                heartbeat=min(timeout, CONSTS.RPC.HEARTBEAT),
-                timeout=timeout)
-            self._impl.connect(uri)
+            uri = f"PYRO:mtda.main@{agent.remote}:{agent.ctrlport}"
+            Pyro4.config.SERIALIZER = "marshal"
+            self._impl = Pyro4.Proxy(uri)
+            self._impl._pyroTimeout = timeout
         else:
             self._impl = agent
         self._agent = agent
