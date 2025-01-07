@@ -14,7 +14,6 @@
 import requests
 import time
 import sys
-import zerorpc
 import socket
 from argparse import ArgumentParser, RawTextHelpFormatter
 
@@ -410,13 +409,7 @@ class Application:
         uptime = ""
         if tgt_status == "ON":
             uptime = f" (up {self.target_uptime()})"
-        try:
-            remote_version = client.agent_version()
-        except (zerorpc.RemoteError) as e:
-            if e.name == 'NameError':
-                remote_version = "<=0.5"
-            else:
-                raise e
+        remote_version = client.agent_version()
 
         host = MultiTenantDeviceAccess()
         prefix_key = chr(ord(client.console_prefix_key()) + ord('a') - 1)

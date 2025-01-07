@@ -91,14 +91,6 @@ Files: meta-isar/recipes-python/qt5/files/py3qterm-0.4/debian/*
 Copyright: 2025 Siemens AG
 License: MIT
 
-Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/*
-Copyright: 2025 Siemens AG
-License: MIT
-
-Files: meta-isar/recipes-python/zerorpc/files/zerorpc-0.6.3/debian/source/*
-Copyright: 2025 Siemens AG
-License: MIT
-
 Files: meta-isar/recipes-bsp/rpi-firmware/files/*
 Copyright: 2025 Siemens AG
 License: MIT
