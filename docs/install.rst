@@ -13,7 +13,6 @@ Set up MTDA apt repository::
 
    # Add repository to Apt sources
    $ echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/mtda.gpg] https://apt.fury.io/mtda/ /" | sudo tee /etc/apt/sources.list.d/mtda.list
-     deb [arch=amd64 signed-by=/etc/apt/keyrings/mtda.gpg] https://apt.fury.io/mtda/ /
 
 Packages for Debian 12 (bookworm) may be installed as follows::
 
