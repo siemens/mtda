@@ -24,7 +24,7 @@ such as Ubuntu)::
 
 The user running the MTDA agent should be added to the ``kvm`` group::
 
-    $ sudo addgroup $USER kvm
+    $ sudo usermod -aG kvm $USER
 
 Logout or reboot your PC for the group changes to take effect.
 

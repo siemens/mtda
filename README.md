@@ -27,7 +27,7 @@ A sample setup is depicted below:
 # Development
 
 Mailing list:
-[mtda-users@googlegroups.com](mtda-users@googlegroups.com)
+* `mtda-users@googlegroups.com`
 
 Archive:
 [https://www.mail-archive.com/mtda-users@googlegroups.com/](https://www.mail-archive.com/mtda-users@googlegroups.com)
