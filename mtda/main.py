@@ -1614,11 +1614,9 @@ class MultiTenantDeviceAccess:
             self._storage_event(CONSTS.STORAGE.UNLOCKED)
 
         if self.console is not None or self.monitor is not None:
-            from mtda.console.logger import ConsoleLogger
-
-        if self.console is not None:
             # Create a publisher
             if self.is_server is True:
+                from mtda.console.logger import ConsoleLogger
                 import zmq
                 context = zmq.Context()
                 socket = context.socket(zmq.PUB)
@@ -1627,6 +1625,7 @@ class MultiTenantDeviceAccess:
                 socket = None
             self.socket = socket
 
+        if self.console is not None:
             # Create and start console logger
             status = self.console.probe()
             if status is False:
