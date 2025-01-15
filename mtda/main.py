@@ -1571,7 +1571,7 @@ class MultiTenantDeviceAccess:
             self._www.configure(dict(parser.items('www')))
 
     def notify(self, what, info):
-        self.mtda.debug(3, f"main.notify({what},{info})")
+        self.mtda.debug(4, f"main.notify({what},{info})")
 
         result = None
         if self.socket is not None:
@@ -1582,7 +1582,7 @@ class MultiTenantDeviceAccess:
         if self._www is not None:
             self._www.notify(what, info)
 
-        self.mtda.debug(3, f"main.notify: {result}")
+        self.mtda.debug(4, f"main.notify: {result}")
         return result
 
     def start(self):
@@ -1732,7 +1732,7 @@ class MultiTenantDeviceAccess:
             self.socket = None
 
     def session_event(self, info):
-        self.mtda.debug(3, f"main.session_event({info})")
+        self.mtda.debug(4, f"main.session_event({info})")
 
         info = info.split()
         event = info[0]
@@ -1764,7 +1764,7 @@ class MultiTenantDeviceAccess:
                 self.storage_close(None)
 
     def _session_check(self, session=None):
-        self.mtda.debug(3, f"main._session_check({session})")
+        self.mtda.debug(4, f"main._session_check({session})")
 
         result = None
         if self._session_manager is not None:
@@ -1777,7 +1777,7 @@ class MultiTenantDeviceAccess:
             self.mtda.debug(2, "device powered down after "
                                f"{self._power_timeout} seconds of inactivity")
 
-        self.mtda.debug(3, f"main._session_check: {result}")
+        self.mtda.debug(4, f"main._session_check: {result}")
         return result
 
     def _check_locked(self, session):

@@ -28,7 +28,7 @@ class SessionManager:
         self._sessions = {}
 
     def check(self, session=None):
-        self.mtda.debug(3, f"session.check({session})")
+        self.mtda.debug(4, f"session.check({session})")
 
         events = []
         now = time.monotonic()
@@ -45,7 +45,7 @@ class SessionManager:
             inactive = []
             for s in self._sessions:
                 left = self._sessions[s] - now
-                self.mtda.debug(3, "session %s: %d seconds" % (s, left))
+                self.mtda.debug(4, "session %s: %d seconds" % (s, left))
                 if left <= 0:
                     inactive.append(s)
             for s in inactive:
@@ -73,11 +73,11 @@ class SessionManager:
         for e in events:
             self.notify(e)
 
-        self.mtda.debug(3, f"session.check: {result}")
+        self.mtda.debug(4, f"session.check: {result}")
         return result
 
     def lock(self, session):
-        self.mtda.debug(3, f"session.lock({session})")
+        self.mtda.debug(4, f"session.lock({session})")
 
         self.check(session)
         with self._lock:
@@ -88,7 +88,7 @@ class SessionManager:
             else:
                 result = False
 
-        self.mtda.debug(3, f"session.lock(): {result}")
+        self.mtda.debug(4, f"session.lock(): {result}")
         return result
 
     def locked(self, session):
@@ -100,7 +100,7 @@ class SessionManager:
         return result
 
     def unlock(self, session):
-        self.mtda.debug(3, f"session.unlock({session})")
+        self.mtda.debug(4, f"session.unlock({session})")
 
         result = False
         self.check(session)
@@ -112,11 +112,11 @@ class SessionManager:
         if result is True:
             self.notify(f"UNLOCKED {session}")
 
-        self.mtda.debug(3, f"session.unlock: {result}")
+        self.mtda.debug(4, f"session.unlock: {result}")
         return result
 
     def notify(self, info):
-        self.mtda.debug(3, f"session.notify({info})")
+        self.mtda.debug(4, f"session.notify({info})")
 
         result = None
         if info is not None:
@@ -124,21 +124,21 @@ class SessionManager:
                 m.session_event(info)
             self.mtda.notify(CONSTS.EVENTS.SESSION, info)
 
-        self.mtda.debug(3, f"session.notify: {result}")
+        self.mtda.debug(4, f"session.notify: {result}")
         return result
 
     def monitor(self, monitor):
-        self.mtda.debug(3, "session.monitor()")
+        self.mtda.debug(4, "session.monitor()")
 
         result = None
         with self._lock:
             self._monitors.append(monitor)
 
-        self.mtda.debug(3, f"session.monitor: {result}")
+        self.mtda.debug(4, f"session.monitor: {result}")
         return result
 
     def set_timeout(self, timeout, session=None):
-        self.mtda.debug(3, f"session.set_timeout({timeout}, {session})")
+        self.mtda.debug(4, f"session.set_timeout({timeout}, {session})")
 
         with self._lock:
             result = self._session_timeout
@@ -150,5 +150,5 @@ class SessionManager:
                     self._sessions[s] = now + timeout
         self.check(session)
 
-        self.mtda.debug(3, f"session.set_timeout: {result}")
+        self.mtda.debug(4, f"session.set_timeout: {result}")
         return result
