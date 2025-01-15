@@ -56,10 +56,10 @@ Docker and KVM may be used as virtual platforms by respectively installing the m
 
     $ sudo apt-get install mtda-docker
     $ sudo mkdir -p /etc/mtda/
-    $ sudo cp /usr/share/doc/mtda-docker/examples/docker.ini /etc/mtda/config
+    $ sudo cp /usr/share/doc/mtda-docker/examples/mtda.ini /etc/mtda/config
 
 `mtda-kvm` may be installed as follows::
 
     $ sudo apt-get install mtda-kvm
     $ sudo mkdir -p /etc/mtda/
-    $ sudo cp /usr/share/doc/mtda-kvm/examples/qemu.ini /etc/mtda/config
+    $ sudo cp /usr/share/doc/mtda-kvm/examples/mtda.ini /etc/mtda/config
