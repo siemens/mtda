@@ -196,7 +196,7 @@ preinstalled::
 Insert a microSD card to your system and write the generated image::
 
     # Check the microSD card device, /dev/mmcblk0 is used as an example
-    $ sudo dd if=build/tmp/deploy/images/nanopi-r1/isar-*.wic \
+    $ sudo dd if=build/tmp/deploy/images/nanopi-r1/mtda-image-*.wic \
       of=/dev/mmcblk0 bs=8M
 
 (replace ``/dev/mmcblk0`` with the actual SD card device on your system).
@@ -317,7 +317,7 @@ preinstalled::
 Insert a microSD card to your system and write the generated image::
 
     # Check the microSD card device, /dev/mmcblk0 is used as an example
-    $ sudo dd if=build/tmp/deploy/images/nanopi-neo/isar-*.wic \
+    $ sudo dd if=build/tmp/deploy/images/nanopi-neo/mtda-image-*.wic \
       of=/dev/mmcblk0 bs=8M
 
 (replace ``/dev/mmcblk0`` with the actual SD card device on your system).
