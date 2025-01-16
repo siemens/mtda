@@ -19,12 +19,12 @@ Packages for Debian 12 (bookworm) may be installed as follows::
    $ sudo apt-get update
    $ sudo apt-get install -y mtda
 
-Using apt on Ubuntu 22.04
+Using apt on Ubuntu 24.04
 -------------------------
 
-Packages for Ubuntu 22.04 (Jammy Jellyfish) may be installed as follows::
+Packages for Ubuntu 24.04 (Noble Numbat) may be installed as follows::
 
-   $ sudo add-apt-repository ppa:chombourger/mtda-jammy
+   $ sudo add-apt-repository ppa:chombourger/mtda-noble
    $ sudo apt-get update
    $ sudo apt-get install -y mtda
 

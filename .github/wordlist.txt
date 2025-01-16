@@ -82,6 +82,7 @@ NanoPi
 neo
 netmask
 nmcli
+Numbat
 OTG
 pastebin
 pdu
