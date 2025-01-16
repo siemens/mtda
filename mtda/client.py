@@ -17,6 +17,7 @@ import socket
 import subprocess
 import tempfile
 import time
+import zmq
 import zstandard as zstd
 
 from mtda.main import MultiTenantDeviceAccess
@@ -44,6 +45,7 @@ class Client:
         else:
             self._impl = agent
         self._agent = agent
+        self._data = None
 
         if session is None:
             HOST = socket.gethostname()
@@ -115,7 +117,12 @@ class Client:
         while tries > 0:
             tries = tries - 1
             try:
-                self._impl.storage_open(self._session)
+                host = self.remote()
+                port = self._impl.storage_open(self._session)
+                context = zmq.Context()
+                socket = context.socket(zmq.PUSH)
+                socket.connect(f'tcp://{host}:{port}')
+                self._data = socket
                 return
             except Exception:
                 if tries > 0:
@@ -201,7 +208,7 @@ class Client:
 
         try:
             # Prepare for download/copy
-            file.prepare(image_size)
+            file.prepare(self._data, image_size)
 
             # Copy image to shared storage
             file.copy()
@@ -298,6 +305,7 @@ class ImageFile:
         self._path = path
         self._session = session
         self._totalread = 0
+        self._totalsent = 0
 
     def bmap(self, path):
         return None
@@ -324,21 +332,25 @@ class ImageFile:
         inputsize = self._inputsize
         totalread = self._totalread
         outputsize = self._outputsize
+
+        agent.storage_flush(self._totalsent)
         while True:
-            status, writing, written = agent.storage_status(self._session)
+            status, writing, written = agent.storage_status()
             if callback is not None:
                 callback(imgname, totalread, inputsize, written, outputsize)
             if writing is False:
                 break
             time.sleep(0.5)
+        self._socket.close()
 
     def path(self):
         return self._path
 
-    def prepare(self, output_size=None, compression=None):
+    def prepare(self, socket, output_size=None, compression=None):
         compr = self.compression() if compression is None else compression
         self._inputsize = self.size()
         self._outputsize = output_size
+        self._socket = socket
         # if image is uncompressed, we compress on the fly
         if compr == CONSTS.IMAGE.RAW.value:
             compr = CONSTS.IMAGE.ZST.value
@@ -362,22 +374,8 @@ class ImageFile:
         return None
 
     def _write_to_storage(self, data):
-        max_tries = int(CONSTS.STORAGE.TIMEOUT / CONSTS.STORAGE.RETRY_INTERVAL)
-
-        for _ in range(max_tries):
-            result = self._agent.storage_write(data, self._session)
-            if result != 0:
-                break
-            time.sleep(CONSTS.STORAGE.RETRY_INTERVAL)
-
-        if result > 0:
-            return result
-        elif result < 0:
-            exc = 'write or decompression error from shared storage'
-            raise IOError(exc)
-        else:
-            exc = 'timeout from shared storage'
-            raise IOError(exc)
+        self._socket.send(data)
+        self._totalsent += len(data)
 
 
 class ImageLocal(ImageFile):

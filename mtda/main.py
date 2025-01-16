@@ -84,6 +84,7 @@ class MultiTenantDeviceAccess:
         self.usb_switches = []
         self.ctrlport = 5556
         self.conport = 5557
+        self.dataport = 0
         self.prefix_key = self._prefix_key_code(DEFAULT_PREFIX_KEY)
         self.is_remote = False
         self.is_server = False
@@ -661,7 +662,20 @@ class MultiTenantDeviceAccess:
         if self.storage is not None:
             self.storage_locked()
 
-        self.mtda.debug(3, f"main.storage_close(): {str(result)}")
+        self.mtda.debug(3, f"main.storage_close(): {result}")
+        return result
+
+    @Pyro4.expose
+    def storage_flush(self, size, session=None):
+        self.mtda.debug(3, "main.storage_flush()")
+
+        self.session_ping(session)
+        if self.storage is None:
+            result = False
+        else:
+            result = self._writer.flush(size)
+
+        self.mtda.debug(3, f"main.storage_flush(): {result}")
         return result
 
     @Pyro4.expose
@@ -790,6 +804,7 @@ class MultiTenantDeviceAccess:
 
         self.session_ping(session)
         owner = self._storage_owner
+        result = None
         status, _, _ = self.storage_status()
 
         if self.storage is None:
@@ -802,12 +817,13 @@ class MultiTenantDeviceAccess:
             self.storage.open()
             self._storage_opened = True
             self._storage_owner = session
-            self._writer.start()
+            result = self._writer.start(session)
             self._storage_event(CONSTS.STORAGE.OPENED, session)
             if self.storage is not None:
                 self.storage_locked()
 
-        self.mtda.debug(3, 'main.storage_open(): success')
+        self.mtda.debug(3, f'main.storage_open(): {result}')
+        return result
 
     @Pyro4.expose
     def storage_status(self, session=None):
@@ -875,42 +891,6 @@ class MultiTenantDeviceAccess:
         return result
 
         self.mtda.debug(3, f"main.storage_swap(): {str(result)}")
-        return result
-
-    @Pyro4.expose
-    def storage_write(self, data, session=None):
-        self.mtda.debug(3, "main.storage_write()")
-
-        self.session_ping(session)
-        if self.storage is None:
-            raise RuntimeError('no shared storage')
-        elif self._storage_opened is False:
-            raise RuntimeError('shared storage was not opened')
-        elif self._writer.failed is True:
-            raise RuntimeError('write or decompression error '
-                               'from shared storage')
-        elif session != self._storage_owner:
-            raise RuntimeError('shared storage in use')
-
-        import queue
-        try:
-            if len(data) == 0:
-                self.mtda.debug(2, "main.storage_write(): "
-                                   "using queued data")
-                data = self._writer_data
-            self._writer_data = data
-            self._writer.put(data, timeout=10)
-            result = self.blksz
-        except queue.Full:
-            self.mtda.debug(2, "main.storage_write(): "
-                               "queue is full")
-            result = 0
-
-        if self._writer.failed is True:
-            self.error('storage_write failed: write or decompression error')
-            result = -1
-
-        self.mtda.debug(3, f"main.storage_write(): {str(result)}")
         return result
 
     def systemd_configure(self):
@@ -1467,7 +1447,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.post_configure_storage()")
 
         from mtda.storage.writer import AsyncImageWriter
-        self._writer = AsyncImageWriter(self, storage)
+        self._writer = AsyncImageWriter(self, storage, self.dataport)
 
         import atexit
         atexit.register(self.storage_close)
@@ -1479,6 +1459,8 @@ class MultiTenantDeviceAccess:
             parser.get('remote', 'console', fallback=self.conport))
         self.ctrlport = int(
             parser.get('remote', 'control', fallback=self.ctrlport))
+        self.dataport = int(
+            parser.get('remote', 'data', fallback=self.dataport))
         if self.is_server is False:
             if self.remote is None:
                 # Load remote setting from the configuration

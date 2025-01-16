@@ -98,6 +98,10 @@ General settings
       Remote port to connect to in order to get console messages (defaults to
       ``5557``).
 
+  * ``data``: integer [optional]
+      Remote port for data transfers between the client and agent (defaults to
+      ``0`` for a dynamic port assignment).
+
   * ``host``: string [optional]
       Remote host name or ip to connect to as a client to interact with the
       MTDA agent (defaults to ``localhost``).
