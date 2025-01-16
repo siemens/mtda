@@ -10,28 +10,32 @@
 # ---------------------------------------------------------------------------
 
 import bz2
-import queue
 import threading
 import mtda.constants as CONSTS
 import zlib
 import zstandard as zstd
 import lzma
+import zmq
 
 
-class AsyncImageWriter(queue.Queue):
+class AsyncImageWriter:
 
-    def __init__(self, mtda, storage, compression=CONSTS.IMAGE.RAW):
+    def __init__(self, mtda, storage, dataport, compression=CONSTS.IMAGE.RAW):
         self.mtda = mtda
         self.storage = storage
         self.compression = compression
         self._blksz = CONSTS.WRITER.WRITE_SIZE
+        self._dataport = dataport
         self._exiting = False
         self._failed = False
+        self._session = None
+        self._size = 0
+        self._socket = None
         self._thread = None
+        self._receiving = False
         self._writing = False
         self._written = 0
         self._zdec = None
-        super().__init__(maxsize=CONSTS.WRITER.QUEUE_SLOTS)
 
     @property
     def compression(self):
@@ -68,75 +72,96 @@ class AsyncImageWriter(queue.Queue):
     def failed(self):
         return self._failed
 
-    def put(self, chunk, block=True, timeout=None):
-        self.mtda.debug(3, "storage.writer.put()")
-
-        if self.storage is None:
-            self.mtda.debug(1, "storage.writer.put(): no storage!")
-            raise IOError("no storage!")
-        result = super().put(chunk, block, timeout)
-        # if thread is started and put data is not empty
-        if len(chunk) > 0 and self._exiting is False:
-            self._writing = True
-        self.mtda.debug(3, f"storage.writer.put(): {str(result)}")
-        return result
-
-    def start(self):
-        self.mtda.debug(3, "mtda.storage.writer.start()")
+    def flush(self, size):
+        self.mtda.debug(3, "mtda.storage.writer.flush()")
 
         result = None
+        self._receiving = False
+        self._size = size
+
+        self.mtda.debug(3, f"storage.writer.flush(): {result}")
+        return result
+
+    def start(self, session):
+        self.mtda.debug(3, "mtda.storage.writer.start()")
+
+        self._session = session
+        context = zmq.Context()
+        timeout = CONSTS.WRITER.RECV_TIMEOUT * 1000
+
+        self._socket = context.socket(zmq.PULL)
+        self._socket.bind(f"tcp://*:{self._dataport}")
+        self._socket.setsockopt(zmq.RCVTIMEO, timeout)
+
+        endpoint = self._socket.getsockopt_string(zmq.LAST_ENDPOINT)
+        result = int(endpoint.split(":")[-1])
+
         self._thread = threading.Thread(target=self.worker,
                                         daemon=True, name='writer')
         self._thread.start()
 
-        self.mtda.debug(3, f"storage.writer.start(): {str(result)}")
+        self.mtda.debug(3, f"storage.writer.start(): {result}")
         return result
 
     def stop(self):
         self.mtda.debug(3, "storage.writer.stop()")
 
         result = None
-        self.mtda.debug(2, "storage.writer.stop(): waiting on queue...")
-        self.join()
+        self._exiting = True
 
         if self._thread is not None:
             self.mtda.debug(2, "storage.writer.stop(): waiting on thread...")
-            self._exiting = True
-            self.put(b'')
             self._thread.join()
 
         self.mtda.debug(2, "storage.writer.stop(): all done")
+
         self._thread = None
         self._zdec = None
 
-        self.mtda.debug(3, f"storage.writer.stop(): {str(result)}")
+        self.mtda.debug(3, f"storage.writer.stop(): {result}")
         return result
 
     def worker(self):
         self.mtda.debug(3, "storage.writer.worker()")
 
+        mtda = self.mtda
+        received = 0
         result = None
         self._exiting = False
         self._failed = False
+        self._receiving = True
         self._written = 0
+        self._writing = True
         while self._exiting is False:
-            if self.empty():
-                self._writing = False
-            chunk = self.get()
-            if self._exiting is False:
-                try:
-                    self._write(chunk)
-                except Exception as e:
-                    self.mtda.debug(1, f"storage.writer.worker(): {e}")
-                    self._failed = True
-                    self._writing = False
-                    pass
-            self.task_done()
-            if self._failed is True:
-                self.mtda.debug(1, "storage.writer.worker(): "
-                                   "write or decompression error!")
+            try:
+                chunk = self._socket.recv()
+                received += len(chunk)
+                mtda.session_ping(self._session)
+                self._write(chunk)
+            except zmq.Again:
+                if self._receiving is False:
+                    if self._size > 0 and received == self._size:
+                        mtda.debug(1, "storage.writer.worker(): transfer complete")
+                        break
+                self._failed = True
+                mtda.debug(1, "storage.writer.worker(): timeout "
+                              f"(recv'd {received} / {self._size})")
+            except Exception as e:
+                self._failed = True
+                mtda.debug(1, f"storage.writer.worker(): {e}")
+                break
 
-        self.mtda.debug(3, f"storage.writer.worker(): {str(result)}")
+        self._receiving = False
+        self._writing = False
+        if self._failed is True:
+            mtda.debug(1, "storage.writer.worker(): "
+                          "write or decompression error!")
+
+        if self._socket:
+            self._socket.close()
+            self._socket = None
+
+        mtda.debug(3, f"storage.writer.worker(): {result}")
         return result
 
     def write_raw(self, data):
