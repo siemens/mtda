@@ -121,6 +121,8 @@ class Client:
                 port = self._impl.storage_open(self._session)
                 context = zmq.Context()
                 socket = context.socket(zmq.PUSH)
+                hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.READ_SIZE)
+                socket.setsockopt(zmq.SNDHWM, hwm)
                 socket.connect(f'tcp://{host}:{port}')
                 self._data = socket
                 return
@@ -365,7 +367,7 @@ class ImageFile:
         inputsize = self._inputsize
         totalread = self._totalread
         outputsize = self._outputsize
-        if callback is not None and time.time() - self._lastreport > 0.5:
+        if callback is not None and time.time() - self._lastreport >= 1:
             _, _, written = self._agent.storage_status(self._session)
             callback(imgname, totalread, inputsize, written, outputsize)
             self._lastreport = time.time()

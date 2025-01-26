@@ -90,9 +90,11 @@ class AsyncImageWriter:
         timeout = CONSTS.WRITER.RECV_TIMEOUT * 1000
 
         self._socket = context.socket(zmq.PULL)
-        self._socket.bind(f"tcp://*:{self._dataport}")
         self._socket.setsockopt(zmq.RCVTIMEO, timeout)
+        hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.WRITE_SIZE)
+        self._socket.setsockopt(zmq.RCVHWM, hwm)
 
+        self._socket.bind(f"tcp://*:{self._dataport}")
         endpoint = self._socket.getsockopt_string(zmq.LAST_ENDPOINT)
         result = int(endpoint.split(":")[-1])
 
@@ -126,7 +128,7 @@ class AsyncImageWriter:
 
         mtda = self.mtda
         received = 0
-        result = None
+        tries = CONSTS.WRITER.RECV_RETRIES
         self._exiting = False
         self._failed = False
         self._receiving = True
@@ -136,16 +138,36 @@ class AsyncImageWriter:
             try:
                 chunk = self._socket.recv()
                 received += len(chunk)
+                tries = CONSTS.WRITER.RECV_RETRIES
                 mtda.session_ping(self._session)
                 self._write(chunk)
+
             except zmq.Again:
+                tries = tries - 1
                 if self._receiving is False:
                     if self._size > 0 and received == self._size:
-                        mtda.debug(1, "storage.writer.worker(): transfer complete")
+                        mtda.debug(2, "storage.writer.worker(): "
+                                      "transfer complete")
                         break
-                self._failed = True
-                mtda.debug(1, "storage.writer.worker(): timeout "
-                              f"(recv'd {received} / {self._size})")
+                    mtda.debug(1, "storage.writer.worker(): "
+                                  "incomplete transfer")
+                    tries = 0
+
+                retries = ""
+                if tries > 0:
+                    retries = f" {tries} retries left "
+
+                total = ""
+                if self._size > 0:
+                    total = f" / {self._size}"
+
+                mtda.debug(1, f"storage.writer.worker(): timeout!{retries} "
+                              f"(recv'd {received}{total})")
+
+                if tries == 0:
+                    self._failed = True
+                    break
+
             except Exception as e:
                 self._failed = True
                 mtda.debug(1, f"storage.writer.worker(): {e}")
@@ -153,16 +175,16 @@ class AsyncImageWriter:
 
         self._receiving = False
         self._writing = False
-        if self._failed is True:
-            mtda.debug(1, "storage.writer.worker(): "
-                          "write or decompression error!")
 
         if self._socket:
             self._socket.close()
             self._socket = None
 
-        mtda.debug(3, f"storage.writer.worker(): {result}")
-        return result
+        if self._failed is True:
+            mtda.debug(1, "storage.writer.worker(): "
+                          "write or decompression error!")
+
+        mtda.debug(3, "storage.writer.worker(): exit")
 
     def write_raw(self, data):
         self.mtda.debug(3, "storage.writer.write_raw()")
