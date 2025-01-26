@@ -814,13 +814,15 @@ class MultiTenantDeviceAccess:
         elif owner is not None and owner != session:
             raise RuntimeError('shared storage in use')
         elif self._storage_opened is False:
-            self.storage.open()
-            self._storage_opened = True
-            self._storage_owner = session
-            result = self._writer.start(session)
-            self._storage_event(CONSTS.STORAGE.OPENED, session)
-            if self.storage is not None:
+            try:
+                self.storage.open()
+                self._storage_opened = True
+                self._storage_owner = session
                 self.storage_locked()
+                self._storage_event(CONSTS.STORAGE.OPENED, session)
+            except Exception:
+                raise RuntimeError('shared storage could not be opened!')
+            result = self._writer.start(session)
 
         self.mtda.debug(3, f'main.storage_open(): {result}')
         return result
