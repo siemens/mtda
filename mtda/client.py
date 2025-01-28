@@ -109,6 +109,9 @@ class Client:
         if rdev is None:
             raise RuntimeError('could not put storage on network')
 
+        cmd = ['sudo', '/usr/sbin/modprobe', 'nbd']
+        subprocess.check_call(cmd)
+
         cmd = ['sudo', cmd, '-N', 'mtda-storage', remote]
         subprocess.check_call(cmd)
 

@@ -1,0 +1,3 @@
+%mtda ALL=(ALL) NOPASSWD: /usr/sbin/modprobe nbd
+%mtda ALL=(ALL) NOPASSWD: /usr/sbin/nbd-client -N mtda-storage [A-Za-z0-9.-]*
+%mtda ALL=(ALL) NOPASSWD: /usr/sbin/nbd-client -d /dev/nbd[0-9]*
