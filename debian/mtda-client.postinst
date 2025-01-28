@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if ! getent group mtda >/dev/null; then
+    addgroup --system mtda
+fi

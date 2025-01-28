@@ -44,6 +44,8 @@ override_dh_auto_install:
 	mv debian/mtda-service/usr/bin/mtda-cli debian/mtda-client/usr/bin/
 	install -m 0755 -d debian/mtda-client$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/client.py debian/mtda-client$(MTDA_DIST)/
+	install -m 0755 -d debian/mtda-client/etc/sudoers.d/
+	install -m 0644 debian/mtda-client.sudoers debian/mtda-client/etc/sudoers.d/mtda-client
 	:
 	install -m 0755 -d debian/mtda-common$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/constants.py debian/mtda-common$(MTDA_DIST)/
