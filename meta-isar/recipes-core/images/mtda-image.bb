@@ -68,7 +68,7 @@ IMAGE_PREINSTALL:remove:ubuntu-noble = "pdudaemon-client"
 IMAGE_INSTALL += "python3-hap-python"
 
 # LAVA support
-IMAGE_PREINSTALL:lava += "lava-dispatcher"
+IMAGE_PREINSTALL:append:lava = " lava-dispatcher"
 
 # Expand root file-system
 IMAGE_INSTALL:append = " expand-on-first-boot "
