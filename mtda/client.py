@@ -101,9 +101,9 @@ class Client:
         return self._agent.pastebin_endpoint()
 
     def storage_network(self, remote):
-        cmd = '/usr/sbin/nbd-client'
-        if os.path.exists(cmd) is False:
-            raise RuntimeError(f'{cmd} not found')
+        cmd_nbd = '/usr/sbin/nbd-client'
+        if os.path.exists(cmd_nbd) is False:
+            raise RuntimeError(f'{cmd_nbd} not found')
 
         rdev = self._impl.storage_network()
         if rdev is None:
@@ -112,7 +112,7 @@ class Client:
         cmd = ['sudo', '/usr/sbin/modprobe', 'nbd']
         subprocess.check_call(cmd)
 
-        cmd = ['sudo', cmd, '-N', 'mtda-storage', remote]
+        cmd = ['sudo', cmd_nbd, '-N', 'mtda-storage', remote]
         subprocess.check_call(cmd)
 
     def storage_open(self):
