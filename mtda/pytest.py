@@ -43,12 +43,16 @@ class Test:
         # Initialize boot media
         image = os.getenv("TEST_IMAGE", Consts.DEFAULT_IMAGE)
         if os.path.exists(image) is False:
-            return False
+            if image != Consts.DEFAULT_IMAGE:
+                return False
+            else:
+                image = ""
 
-        Storage.to_host()
-        Storage.write(image)
-        Storage.to_target()
-        Env.set("boot-from-usb", "1")
+        if image:
+            Storage.to_host()
+            Storage.write(image)
+            Storage.to_target()
+            Env.set("boot-from-usb", "1")
 
         return True
 
