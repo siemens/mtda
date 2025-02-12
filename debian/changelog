@@ -1,3 +1,10 @@
+mtda (0.35.3-1) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * pull kas-container version 4.7 to fix builds on Ubuntu 24.04
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 12 Feb 2025 11:30:00 +0100
+
 mtda (0.35.2-1) testing; urgency=medium
 
   [ Cedric Hombourger ]
