@@ -1,3 +1,10 @@
+mtda (0.35.2-1) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * add py312 for tests executed by tox
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 12 Feb 2025 11:00:00 +0100
+
 mtda (0.35.1-1) testing; urgency=medium
 
   [ Cedric Hombourger ]
