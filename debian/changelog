@@ -1,3 +1,12 @@
+mtda (0.35.1-1) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * register Zeroconf service for all non-loopback addresses
+  * use :append to add lava packages to the Isar image
+  * pytest should ot fail if the default TEST_IMAGE cannot be found
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 12 Feb 2025 09:30:00 +0100
+
 mtda (0.35-1) testing; urgency=medium
 
   [ Cedric Hombourger ]
