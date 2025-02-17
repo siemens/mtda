@@ -19,9 +19,7 @@ import time
 
 class ConsoleLogger:
 
-    def __init__(self, mtda, console, socket=None,
-                 power=None, topic=b'CON',
-                 www=None):
+    def __init__(self, mtda, console, socket=None, power=None, topic=b'CON'):
         self.mtda = mtda
         self.console = console
         self._prompt = "=> "
@@ -40,7 +38,6 @@ class ConsoleLogger:
         self.timestamps = False
         self._time_from = None
         self._time_until = None
-        self._www = www
 
     def start(self):
         self.rx_alive = True
@@ -215,8 +212,6 @@ class ConsoleLogger:
                 # Write to stdout if received are not pushed to the network
                 sys.stdout.buffer.write(data)
                 sys.stdout.buffer.flush()
-            if self._www is not None:
-                self._www.write(self.topic, data.decode('utf-8', 'ignore'))
 
     # Print a string to the console (local or remote)
     def print(self, data):

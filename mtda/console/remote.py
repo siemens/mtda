@@ -28,22 +28,28 @@ class RemoteConsole(ConsoleOutput):
         self.topic = CONSTS.CHANNEL.CONSOLE
 
     def connect(self):
-        context = zmq.Context()
-        socket = context.socket(zmq.SUB)
-        socket.connect(f"tcp://{self.host}:{self.port}")
-        socket.setsockopt(zmq.SUBSCRIBE, self.topic)
-        self.context = context
-        self.socket = socket
-        return socket
+        self.context = self._context()
+        self.socket = self.context.socket(zmq.SUB)
+        self.socket.connect(f"tcp://{self.host}:{self.port}")
+        self._subscribe()
+
+    def _context(self):
+        return zmq.Context()
+
+    def _subscribe(self):
+        self.socket.setsockopt(zmq.SUBSCRIBE, self.topic)
 
     def dispatch(self, topic, data):
-        self.write(data)
+        if topic != CONSTS.CHANNEL.EVENTS:
+            self.write(data)
+        else:
+            self.on_event(data.decode("utf-8"))
 
     def reader(self):
-        socket = self.connect()
+        self.connect()
         try:
             while self.exiting is False:
-                topic, data = socket.recv_multipart()
+                topic, data = self.socket.recv_multipart()
                 self.dispatch(topic, data)
         except zmq.error.ContextTerminated:
             self.socket = None
@@ -61,13 +67,6 @@ class RemoteMonitor(RemoteConsole):
         super().__init__(host, port, screen)
         self.topic = CONSTS.CHANNEL.MONITOR
 
-    def connect(self):
-        socket = super().connect()
-        socket.setsockopt(zmq.SUBSCRIBE, CONSTS.CHANNEL.EVENTS)
-        return socket
-
-    def dispatch(self, topic, data):
-        if topic != CONSTS.CHANNEL.EVENTS:
-            self.write(data)
-        else:
-            self.on_event(data.decode("utf-8"))
+    def _subscribe(self):
+        super()._subscribe()
+        self.socket.setsockopt(zmq.SUBSCRIBE, CONSTS.CHANNEL.EVENTS)
