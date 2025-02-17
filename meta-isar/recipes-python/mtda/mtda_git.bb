@@ -23,6 +23,7 @@ MTDA_FILES = " \
     mtda-service \
     mtda-systemd-helper \
     mtda-ui \
+    mtda-www \
     mtda.ini \
     mtda/ \
     scripts/ \

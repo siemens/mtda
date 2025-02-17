@@ -10,6 +10,9 @@ case "$1" in
     if ! grep -qe '^libcomposite$' /etc/modules; then
       echo "libcomposite" >/etc/modules || exit ${?}
     fi
+    if ! getent passwd mtda >/dev/null; then
+      adduser --system --group --no-create-home --disabled-login mtda
+    fi
     ;;
 
 esac

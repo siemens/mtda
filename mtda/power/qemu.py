@@ -243,10 +243,9 @@ class QemuController(PowerController):
 
         # Create a WebSocket proxy to QEMU's VNC service to support noVNC
         # when our web service is enabled and have websockify installed
-        if self.mtda.www is not None and os.path.exists(self.websockify):
+        if os.path.exists(self.websockify):
             # bind on the same address as our web service
-            host = self.mtda.www.host
-            cmd = self.websockify + f" -D {host}:5901 {host}:5900"
+            cmd = self.websockify + " -D 0.0.0.0:5901 localhost:5900"
             result = os.system(cmd)
             if result == 0:
                 self.pidOfWebsockify = self.getproc(cmd)

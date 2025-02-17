@@ -1,0 +1,310 @@
+#!/usr/bin/env python3
+# ---------------------------------------------------------------------------
+# Web service for MTDA
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2025 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+import argparse
+import asyncio
+import base64
+import json
+import tornado.web
+import tornado.websocket
+import tornado.ioloop
+import tornado.escape
+import os
+import uuid
+import zmq.asyncio
+
+from mtda.client import Client
+import mtda.constants as CONSTS
+from mtda.console.remote import RemoteConsole
+from mtda.console.screen import ScreenOutput
+
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("index.html")
+
+
+class AssetsHandler(tornado.web.StaticFileHandler):
+    pass
+
+
+class NoVNCHandler(tornado.web.StaticFileHandler):
+    pass
+
+
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
+    clients = set()
+
+    def open(self):
+        self.session_id = uuid.uuid4().hex
+        self.set_nodelay(True)
+        WebSocketHandler.clients.add(self)
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            self.write_message(
+                    {"session": {"id": self.session_id}}
+            )
+            self.write_message(
+                    {"mtda-version": {"version": mtda.agent_version()}}
+            )
+            self.write_message(
+                    {"console-output": {"output": mtda.console_dump()}}
+            )
+            self.write_message(
+                    {"POWER": {"event": mtda.target_status()}}
+            )
+            status, _, _ = mtda.storage_status()
+            self.write_message({"STORAGE": {"event": status}})
+
+            fmt = mtda.video_format()
+            if fmt is not None:
+                url = mtda.video_url(host=self.request.host)
+                self.write_message({"video-info": {"format": fmt, "url": url}})
+
+    def on_message(self, message):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.session_id
+            if isinstance(message, bytes):
+                mtda.debug(4, f"www.ws.on_message({len(message)} bytes, "
+                           f"session={sid})")
+                sockets = self.application.settings['sockets']
+                if sid in sockets:
+                    sockets[sid].send(message)
+                else:
+                    mtda.debug(1, f'no data socket for session {sid}!')
+            else:
+                data = tornado.escape.json_decode(message)
+                mtda.debug(4, f"www.ws.on_message({data})")
+                if 'console-input' in data:
+                    input = data['console-input']['input']
+                    mtda.console_send(input, raw=False, session=sid)
+
+    def on_close(self):
+        WebSocketHandler.clients.remove(self)
+
+
+class BaseHandler(tornado.web.RequestHandler):
+    def result_as_json(self, result):
+        response = {"result": result}
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(response))
+
+
+class KeyboardInputHandler(BaseHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        result = ''
+        input_key = self.get_argument("input", "")
+
+        key_map = {
+            "esc": "<esc>",
+            "f1": "<f1>", "f2": "<f2>", "f3": "<f3>", "f4": "<f4>",
+            "f5": "<f5>", "f6": "<f6>", "f7": "<f7>", "f8": "<f8>",
+            "f9": "<f9>", "f10": "<f10>", "f11": "<f11>", "f12": "<12>",
+            "\b": "<backspace>", "    ": "<tab>", "caps": "<capslock>",
+            "\n": "<enter>",
+            "left": "<left>", "right": "<right>",
+            "up": "<up>", "down": "<down>"
+        }
+        if input_key in key_map:
+            input_key = key_map[input_key]
+
+        result = mtda.keyboard_press(
+                  input_key,
+                  ctrl=self.get_argument('ctrl', 'false') == 'true',
+                  shift=self.get_argument('shift', 'false') == 'true',
+                  alt=self.get_argument('alt', 'false') == 'true',
+                  meta=self.get_argument('meta', 'false') == 'true'
+                  )
+        self.result_as_json({"result": result})
+
+
+class PowerToggleHandler(BaseHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        result = ''
+        if mtda is not None:
+            sid = self.get_argument('session')
+            result = mtda.target_toggle(session=sid)
+        self.result_as_json({"result": result})
+
+
+class StorageFlushHandler(BaseHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        result = ''
+        if mtda is not None:
+            size = int(self.get_argument('size'))
+            sid = self.get_argument('session')
+            result = mtda.storage_flush(size=size, session=sid)
+        self.result_as_json({"result": result})
+
+
+class StorageOpenHandler(BaseHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        result = ''
+        if mtda is not None:
+            sid = self.get_argument('session')
+            zmq_socket = mtda.storage_open(session=sid)
+            self.application.settings['sockets'][sid] = zmq_socket
+        self.result_as_json({"result": result})
+
+
+class StorageCloseHandler(BaseHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        result = ''
+        if mtda is not None:
+            sid = self.get_argument('session')
+            result = mtda.storage_close(session=sid)
+            del self.application.settings['sockets'][sid]
+        self.result_as_json({"result": result})
+
+
+class StorageToggleHandler(tornado.web.RequestHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        result = ''
+        if mtda is not None:
+            sid = self.get_argument('session')
+            status, _, _ = mtda.storage_status(session=sid)
+            if status == CONSTS.STORAGE.ON_HOST:
+                result = (
+                        'TARGET'
+                        if mtda.storage_to_target()
+                        else 'HOST'
+                )
+            elif status == CONSTS.STORAGE.ON_TARGET:
+                result = (
+                        'HOST'
+                        if mtda.storage_to_host()
+                        else 'TARGET'
+                )
+        self.write(result)
+
+
+class WebConsole(RemoteConsole):
+    def _context(self):
+        return zmq.asyncio.Context()
+
+    async def reader(self):
+        self.connect()
+        try:
+            while self.exiting is False:
+                topic, data = await self.socket.recv_multipart()
+                self.dispatch(topic, data)
+        except zmq.error.ContextTerminated:
+            self.socket = None
+
+
+class WebMonitor(WebConsole):
+    def __init__(self, host, port, screen):
+        super().__init__(host, port, screen)
+        self.topic = CONSTS.CHANNEL.MONITOR
+
+    def _subscribe(self):
+        super()._subscribe()
+        self.socket.setsockopt(zmq.SUBSCRIBE, CONSTS.CHANNEL.EVENTS)
+
+
+class WebOutput(ScreenOutput):
+    def __init__(self, application, mtda):
+        self.application = application
+        super().__init__(mtda)
+
+    def _send_to_clients(self, message):
+        for client in WebSocketHandler.clients:
+            client.write_message(message)
+
+    def on_event(self, event):
+        info = event.split()
+        domain = info[0]
+
+        if domain == 'SESSION':
+            self.session_event(info[1:])
+
+        message = {domain: {"event": ' '.join(info[1:])}}
+        loop = tornado.ioloop.IOLoop.current()
+        loop.add_callback(self._send_to_clients, message)
+
+    def session_event(self, info):
+        if info[0] == 'INACTIVE':
+            sid = info[1]
+            del self.application.settings['sockets'][sid]
+
+    def write(self, data):
+        data = base64.b64encode(data).decode('utf-8')
+        message = {"console-output": {"output": data}}
+        loop = tornado.ioloop.IOLoop.current()
+        loop.add_callback(self._send_to_clients, message)
+
+
+class Service:
+    def __init__(self):
+        self.mtda = Client('localhost')
+
+    def parse_args(self):
+        parser = argparse.ArgumentParser(description='mtda.www settings')
+        parser.add_argument(
+                "--host",
+                type=str,
+                default=CONSTS.DEFAULTS.WWW_HOST)
+        parser.add_argument(
+                "--port",
+                type=int,
+                default=CONSTS.DEFAULTS.WWW_PORT)
+        args = parser.parse_args()
+        self._host = args.host
+        self._port = args.port
+
+    async def run(self):
+        self.parse_args()
+        BASE_DIR = os.path.dirname(os.path.abspath(CONSTS.__file__))
+        self.application = tornado.web.Application([
+            (r"/", MainHandler),
+            (r"/assets/(.*)", AssetsHandler, {
+                "path": os.path.join(BASE_DIR, "assets")
+            }),
+            (r"/novnc/(.*)", NoVNCHandler, {
+                "path": "/usr/share/novnc"
+            }),
+            (r"/mtda", WebSocketHandler),
+            (r"/keyboard-input", KeyboardInputHandler),
+            (r"/power-toggle", PowerToggleHandler),
+            (r"/storage-close", StorageCloseHandler),
+            (r"/storage-flush", StorageFlushHandler),
+            (r"/storage-open", StorageOpenHandler),
+            (r"/storage-toggle", StorageToggleHandler),
+        ], template_path=os.path.join(BASE_DIR, "templates"),
+           mtda=self.mtda, sockets={}, debug=False)
+
+        output = WebOutput(self.application, self.mtda)
+        conport = self.mtda.console_port()
+        remote = self.mtda.remote()
+
+        # Connect both the console and monitor to our custom output
+        console = WebConsole(remote, conport, output)
+        asyncio.create_task(console.reader())
+        monitor = WebMonitor(remote, conport, output)
+        asyncio.create_task(monitor.reader())
+
+        self.mtda.start()
+        self.application.listen(self._port, self._host)
+
+        await asyncio.Event().wait()
+
+
+if __name__ == '__main__':
+    srv = Service()
+    asyncio.run(srv.run())

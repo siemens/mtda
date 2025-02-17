@@ -15,22 +15,23 @@ import mtda.constants as CONSTS
 import zlib
 import zstandard as zstd
 import lzma
-import zmq
+
+from mtda.exceptions import RetryException
 
 
 class AsyncImageWriter:
 
-    def __init__(self, mtda, storage, dataport, compression=CONSTS.IMAGE.RAW):
+    def __init__(self, mtda, storage, compression=CONSTS.IMAGE.RAW):
         self.mtda = mtda
         self.storage = storage
         self.compression = compression
         self._blksz = CONSTS.WRITER.WRITE_SIZE
-        self._dataport = dataport
         self._exiting = False
         self._failed = False
         self._session = None
         self._size = 0
         self._socket = None
+        self._stream = None
         self._thread = None
         self._receiving = False
         self._writing = False
@@ -68,6 +69,16 @@ class AsyncImageWriter:
         result = compression
         self.mtda.debug(3, f"storage.writer.compression.set(): {str(result)}")
 
+    def enqueue(self, data, callback=None):
+        self.mtda.debug(3, "mtda.storage.writer.enqueue()")
+
+        result = None
+        if self._stream is not None:
+            result = self._stream.push(data, callback)
+
+        self.mtda.debug(3, f"storage.writer.enqueue(): {result}")
+        return result
+
     @property
     def failed(self):
         return self._failed
@@ -75,29 +86,23 @@ class AsyncImageWriter:
     def flush(self, size):
         self.mtda.debug(3, "mtda.storage.writer.flush()")
 
-        result = None
         self._receiving = False
         self._size = size
+
+        self.mtda.debug(2, "storage.writer.flush(): waiting on thread...")
+        self._thread.join()
+        result = not self._failed
 
         self.mtda.debug(3, f"storage.writer.flush(): {result}")
         return result
 
-    def start(self, session):
+    def start(self, session, stream):
         self.mtda.debug(3, "mtda.storage.writer.start()")
 
         self._session = session
-        context = zmq.Context()
-        timeout = CONSTS.WRITER.RECV_TIMEOUT * 1000
+        self._stream = stream
 
-        self._socket = context.socket(zmq.PULL)
-        self._socket.setsockopt(zmq.RCVTIMEO, timeout)
-        hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.WRITE_SIZE)
-        self._socket.setsockopt(zmq.RCVHWM, hwm)
-
-        self._socket.bind(f"tcp://*:{self._dataport}")
-        endpoint = self._socket.getsockopt_string(zmq.LAST_ENDPOINT)
-        result = int(endpoint.split(":")[-1])
-
+        result = stream.prepare()
         self._thread = threading.Thread(target=self.worker,
                                         daemon=True, name='writer')
         self._thread.start()
@@ -136,13 +141,17 @@ class AsyncImageWriter:
         self._writing = True
         while self._exiting is False:
             try:
-                chunk = self._socket.recv()
+                chunk = self._stream.pop()
+                if len(chunk) == 0:
+                    mtda.debug(2, "storage.writer.worker(): empty chunk "
+                                  "transfer complete")
+                    break
                 received += len(chunk)
                 tries = CONSTS.WRITER.RECV_RETRIES
                 mtda.session_ping(self._session)
                 self._write(chunk)
 
-            except zmq.Again:
+            except RetryException:
                 tries = tries - 1
                 if self._receiving is False:
                     if self._size > 0 and received == self._size:
@@ -169,16 +178,18 @@ class AsyncImageWriter:
                     break
 
             except Exception as e:
+                import traceback
                 self._failed = True
                 mtda.debug(1, f"storage.writer.worker(): {e}")
+                mtda.debug(1, traceback.format_exc())
                 break
 
         self._receiving = False
         self._writing = False
 
-        if self._socket:
-            self._socket.close()
-            self._socket = None
+        if self._stream:
+            self._stream.close()
+            self._stream = None
 
         if self._failed is True:
             mtda.debug(1, "storage.writer.worker(): "

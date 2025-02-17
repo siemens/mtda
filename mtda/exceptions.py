@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Setup script for MTDA
+# Exceptions
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -9,21 +9,6 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-[tox]
-envlist = py38,py39,py310,py311,py312
 
-[testenv]
-allowlist_externals = bash
-deps =
-    flake8
-    pytest
-    reuse
-    python-debian < 0.1.44
-commands =
-    flake8 --exclude mtda/scripts mtda mtda-cli mtda-service mtda-ui mtda-config mtda-www
-    reuse lint
-    bash ./scripts/test-using-docker
-
-[flake8]
-exclude = dist,docs,*.egg-info,__pycache__
-max-line-length = 120
+class RetryException(Exception):
+    pass

@@ -1,0 +1,18 @@
+[Unit]
+Description=mtda-www service
+Requires=mtda.service
+After=mtda.service
+
+[Service]
+Environment=HOST=localhost PORT=9080
+ExecStart=/usr/libexec/mtda/www --host $HOST --port $PORT
+Restart=always
+StandardOutput=journal
+StandardError=journal
+User=mtda
+Group=mtda
+PrivateTmp=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

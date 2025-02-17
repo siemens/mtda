@@ -124,8 +124,8 @@ Package: mtda-www
 Architecture: all
 Multi-Arch: foreign
 Depends: mtda-service,
-         python3-flask-socketio,
-         python3-gevent-websocket,
+         python3-systemd,
+         python3-tornado,
          novnc,
          websockify
 Description: web-based user-interface for MTDA

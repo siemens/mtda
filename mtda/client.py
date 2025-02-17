@@ -85,11 +85,18 @@ class Client:
     def console_init(self):
         return self._agent.console_init()
 
+    def console_port(self):
+        return self._agent.console_port()
+
     def console_remote(self, host, screen):
         return self._agent.console_remote(host, screen)
 
     def console_toggle(self):
         return self._agent.console_toggle(self._session)
+
+    def debug(self, level, msg):
+        if self._agent:
+            return self._agent.debug(level, msg)
 
     def monitor_remote(self, host, screen):
         return self._agent.monitor_remote(host, screen)
@@ -115,20 +122,25 @@ class Client:
         cmd = ['sudo', cmd_nbd, '-N', 'mtda-storage', remote]
         subprocess.check_call(cmd)
 
-    def storage_open(self):
+    def storage_open(self, **kwargs):
+        session = kwargs.get('session', None)
         tries = 60
         while tries > 0:
             tries = tries - 1
             try:
                 host = self.remote()
-                port = self._impl.storage_open(self._session)
+                port = self._impl.storage_open(session=session)
                 context = zmq.Context()
                 socket = context.socket(zmq.PUSH)
-                hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.READ_SIZE)
+                hwm = int(
+                        CONSTS.WRITER.HIGH_WATER_MARK
+                        /
+                        CONSTS.WRITER.READ_SIZE
+                )
                 socket.setsockopt(zmq.SNDHWM, hwm)
                 socket.connect(f'tcp://{host}:{port}')
                 self._data = socket
-                return
+                return socket
             except Exception:
                 if tries > 0:
                     time.sleep(1)
@@ -201,7 +213,7 @@ class Client:
                     bmap = ET.fromstring(bmap)
                     print(f"Discovered bmap file '{bmap_path}'")
                     bmapDict = self.parseBmap(bmap, bmap_path)
-                    self._impl.storage_bmap_dict(bmapDict, self._session)
+                    self._impl.storage_bmap_dict(bmapDict)
                     image_size = bmapDict['ImageSize']
                     break
             except Exception:
@@ -226,7 +238,7 @@ class Client:
         finally:
             # Storage may be closed now
             self.storage_close()
-            self._impl.storage_bmap_dict(None, self._session)
+            self._impl.storage_bmap_dict(None)
 
     def parseBmap(self, bmap, bmap_path):
         try:
@@ -338,6 +350,7 @@ class ImageFile:
         totalread = self._totalread
         outputsize = self._outputsize
 
+        self._socket.send(b'')
         agent.storage_flush(self._totalsent)
         while True:
             status, writing, written = agent.storage_status()
@@ -347,6 +360,7 @@ class ImageFile:
                 break
             time.sleep(0.5)
         self._socket.close()
+        self._socket = None
 
     def path(self):
         return self._path
@@ -359,7 +373,7 @@ class ImageFile:
         # if image is uncompressed, we compress on the fly
         if compr == CONSTS.IMAGE.RAW.value:
             compr = CONSTS.IMAGE.ZST.value
-        self._agent.storage_compression(compr, self._session)
+        self._agent.storage_compression(compr)
         self._lastreport = time.time()
         self._totalread = 0
 
@@ -371,7 +385,7 @@ class ImageFile:
         totalread = self._totalread
         outputsize = self._outputsize
         if callback is not None and time.time() - self._lastreport >= 1:
-            _, _, written = self._agent.storage_status(self._session)
+            _, _, written = self._agent.storage_status()
             callback(imgname, totalread, inputsize, written, outputsize)
             self._lastreport = time.time()
 

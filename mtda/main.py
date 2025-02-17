@@ -26,12 +26,6 @@ import time
 import mtda.constants as CONSTS
 from mtda import __version__
 
-try:
-    www_support = True
-    import mtda.www
-except ModuleNotFoundError:
-    www_support = False
-
 
 DEFAULT_PREFIX_KEY = 'ctrl-a'
 DEFAULT_PASTEBIN_EP = "http://pastebin.com/api/api_post.php"
@@ -96,8 +90,9 @@ class MultiTenantDeviceAccess:
         self._time_from_str = None
         self._time_until_str = None
         self._uptime = 0
+        self._www_host = None
+        self._www_port = None
         self.version = __version__
-        self._www = None
 
         # Config file in /etc/mtda/config
         if os.path.exists('/etc/mtda'):
@@ -115,15 +110,16 @@ class MultiTenantDeviceAccess:
             self.config_files.append(os.path.join(home, '.mtda', 'config'))
 
     @Pyro4.expose
-    def agent_version(self, session=None):
+    def agent_version(self,  **kwargs):
         return self.version
 
     @Pyro4.expose
-    def command(self, args, session=None):
+    def command(self, args, **kwargs):
         self.mtda.debug(3, "main.command()")
 
-        self.session_ping(session)
         result = False
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.power_locked(session) is False:
             result = self.power.command(args)
 
@@ -162,20 +158,21 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def config_set_power_timeout(self, timeout, session=None):
+    def config_set_power_timeout(self, timeout, **kwargs):
         self.mtda.debug(3, "main.config_set_power_timeout()")
 
         result = self._power_timeout
         self._power_timeout = timeout
         if timeout == 0:
             self._power_expiry = None
+        session = kwargs.get("session", None)
         self.session_ping(session)
 
         self.mtda.debug(3, f"main.config_set_power_timeout(): {result}")
         return result
 
     @Pyro4.expose
-    def config_set_session_timeout(self, timeout, session=None):
+    def config_set_session_timeout(self, timeout, **kwargs):
         self.mtda.debug(3, "main.config_set_session_timeout()")
 
         if timeout < CONSTS.SESSION.MIN_TIMEOUT:
@@ -228,9 +225,10 @@ class MultiTenantDeviceAccess:
         self.console_input.start()
 
     @Pyro4.expose
-    def console_clear(self, session=None):
+    def console_clear(self, **kwargs):
         self.mtda.debug(3, "main.console_clear()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.console_locked(session):
             self.mtda.debug(2, "console_clear(): console is locked")
@@ -244,9 +242,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_dump(self, session=None):
+    def console_dump(self, **kwargs):
         self.mtda.debug(3, "main.console_dump()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.console_locked(session):
             self.mtda.debug(2, "console_dump(): console is locked")
@@ -260,9 +259,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_flush(self, session=None):
+    def console_flush(self, **kwargs):
         self.mtda.debug(3, "main.console_flush()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.console_locked(session):
             self.mtda.debug(2, "console_flush(): console is locked")
@@ -276,11 +276,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_head(self, session=None):
+    def console_head(self, **kwargs):
         self.mtda.debug(3, "main.console_head()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.console_logger is not None:
             result = self.console_logger.head()
 
@@ -288,33 +289,36 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_lines(self, session=None):
+    def console_lines(self, **kwargs):
         self.mtda.debug(3, "main.console_lines()")
 
-        self.session_ping(session)
         result = 0
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.console_logger is not None:
             result = self.console_logger.lines()
 
         self.mtda.debug(3, f"main.console_lines(): {str(result)}")
         return result
 
-    @Pyro4.expose
     def console_locked(self, session=None):
         self.mtda.debug(3, "main.console_locked()")
 
-        self.session_ping(session)
         result = self._check_locked(session)
 
         self.mtda.debug(3, f"main.console_locked(): {str(result)}")
         return result
 
+    def console_port(self):
+        return self.conport
+
     @Pyro4.expose
-    def console_print(self, data, session=None):
+    def console_print(self, data, **kwargs):
         self.mtda.debug(3, "main.console_print()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.console_logger is not None:
             result = self.console_logger.print(data)
 
@@ -322,11 +326,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_prompt(self, newPrompt=None, session=None):
+    def console_prompt(self, newPrompt=None, **kwargs):
         self.mtda.debug(3, "main.console_prompt()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.console_locked(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.prompt(newPrompt)
@@ -354,11 +359,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_run(self, cmd, session=None):
+    def console_run(self, cmd, **kwargs):
         self.mtda.debug(3, "main.console_run()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.console_locked(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.run(cmd)
@@ -367,11 +373,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_send(self, data, raw=False, session=None):
+    def console_send(self, data, raw=False, **kwargs):
         self.mtda.debug(3, "main.console_send()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.console_locked(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.write(data, raw)
@@ -380,9 +387,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_tail(self, session=None):
+    def console_tail(self, **kwargs):
         self.mtda.debug(3, "main.console_tail()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.console_locked(session) is False and \
            self.console_logger is not None:
@@ -392,10 +400,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_toggle(self, session=None):
+    def console_toggle(self, **kwargs):
         self.mtda.debug(3, "main.console_toggle()")
 
         result = None
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.console_output is not None:
             self.console_output.toggle()
@@ -406,11 +415,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def console_wait(self, what, timeout=None, session=None):
+    def console_wait(self, what, timeout=None, **kwargs):
         self.mtda.debug(3, "main.console_wait()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if session is not None and timeout is None:
             timeout = CONSTS.RPC.TIMEOUT
             self.warn('console_wait() without timeout, '
@@ -443,7 +453,7 @@ class MultiTenantDeviceAccess:
         print(f'error: {msg}', file=sys.stderr)
 
     @Pyro4.expose
-    def env_get(self, name, default=None, session=None):
+    def env_get(self, name, default=None, **kwargs):
         self.mtda.debug(3, "env_get()")
 
         result = default
@@ -454,7 +464,7 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def env_set(self, name, value, session=None):
+    def env_set(self, name, value, **kwargs):
         self.mtda.debug(3, "env_set()")
 
         result = None
@@ -471,42 +481,72 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, f"env_set(): {str(result)}")
         return result
 
+    def _keyboard_special_key(self, key):
+        special_keys = {
+                "<backspace>": self.keyboard.backspace,
+                "<capslock>": self.keyboard.capsLock,
+                "<enter>": self.keyboard.enter,
+                "<tab>": self.keyboard.tab,
+
+                "<esc>": self.keyboard.esc,
+                "<f1>": self.keyboard.f1,
+                "<f2>": self.keyboard.f2,
+                "<f3>": self.keyboard.f3,
+                "<f4>": self.keyboard.f4,
+                "<f5>": self.keyboard.f5,
+                "<f6>": self.keyboard.f6,
+                "<f7>": self.keyboard.f7,
+                "<f8>": self.keyboard.f8,
+                "<f9>": self.keyboard.f9,
+                "<f10>": self.keyboard.f10,
+                "<f11>": self.keyboard.f11,
+                "<f12>": self.keyboard.f12,
+
+                "<left>": self.keyboard.left,
+                "<right>": self.keyboard.right,
+                "<up>": self.keyboard.up,
+                "<down>": self.keyboard.down
+                }
+        if key in special_keys:
+            return special_keys[key]
+        return None
+
     @Pyro4.expose
-    def keyboard_write(self, what, session=None):
+    def keyboard_press(self, key, repeat=1, ctrl=False, shift=False,
+                       alt=False, meta=False, **kwargs):
+        self.mtda.debug(3, "main.keyboard_press()")
+
+        result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+        if self.keyboard is not None:
+            special_key = self._keyboard_special_key(key)
+            if special_key is not None:
+                result = special_key()
+            else:
+                result = self.keyboard.press(key, repeat, ctrl, shift,
+                                             alt, meta)
+
+        self.mtda.debug(3, f"main.keyboard_press(): {result}")
+        return result
+
+    @Pyro4.expose
+    def keyboard_write(self, what, **kwargs):
         self.mtda.debug(3, "main.keyboard_write()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.keyboard is not None:
-            special_keys = {
-                    "<down>": self.keyboard.down,
-                    "<enter>": self.keyboard.enter,
-                    "<esc>": self.keyboard.esc,
-                    "<f1>": self.keyboard.f1,
-                    "<f2>": self.keyboard.f2,
-                    "<f3>": self.keyboard.f3,
-                    "<f4>": self.keyboard.f4,
-                    "<f5>": self.keyboard.f5,
-                    "<f6>": self.keyboard.f6,
-                    "<f7>": self.keyboard.f7,
-                    "<f8>": self.keyboard.f8,
-                    "<f9>": self.keyboard.f9,
-                    "<f10>": self.keyboard.f10,
-                    "<f11>": self.keyboard.f11,
-                    "<f12>": self.keyboard.f12,
-                    "<left>": self.keyboard.left,
-                    "<right>": self.keyboard.right,
-                    "<up>": self.keyboard.up
-                    }
-
             while what != "":
                 # check for special keys such as <esc>
                 if what.startswith('<') and '>' in what:
                     key = what.split('>')[0] + '>'
-                    if key in special_keys:
+                    special_key = self._keyboard_special_key(key)
+                    if special_key is not None:
                         offset = len(key)
                         what = what[offset:]
-                        special_keys[key]()
+                        special_key()
                         continue
                 key = what[0]
                 what = what[1:]
@@ -537,11 +577,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def monitor_send(self, data, raw=False, session=None):
+    def monitor_send(self, data, raw=False, **kwargs):
         self.mtda.debug(3, "main.monitor_send()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.console_locked(session) is False and \
            self.monitor_logger is not None:
             result = self.monitor_logger.write(data, raw)
@@ -550,11 +591,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def monitor_wait(self, what, timeout=None, session=None):
+    def monitor_wait(self, what, timeout=None, **kwargs):
         self.mtda.debug(3, "main.monitor_wait()")
 
-        self.session_ping(session)
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if session is not None and timeout is None:
             timeout = CONSTS.RPC.TIMEOUT
             self.warn('monitor_wait() called without timeout, '
@@ -574,7 +616,6 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.pastebin_endpoint()")
         return self._pastebin_endpoint
 
-    @Pyro4.expose
     def power_locked(self, session=None):
         self.mtda.debug(3, "main.power_locked()")
 
@@ -604,9 +645,10 @@ class MultiTenantDeviceAccess:
         self.notify(CONSTS.EVENTS.STORAGE, status)
 
     @Pyro4.expose
-    def storage_bytes_written(self, session=None):
+    def storage_bytes_written(self, **kwargs):
         self.mtda.debug(3, "main.storage_bytes_written()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         result = self._writer.written
 
@@ -614,35 +656,33 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_compression(self, compression, session=None):
+    def storage_compression(self, compression, **kwargs):
         self.mtda.debug(3, "main.storage_compression()")
 
-        self.session_ping(session)
         if self.storage is None:
             result = None
         else:
             result = self._writer.compression.value
             self._writer.compression = compression
 
-        self.mtda.debug(3, f"main.storage_compression(): {str(result)}")
+        self.mtda.debug(3, f"main.storage_compression(): {result}")
         return result
 
     @Pyro4.expose
-    def storage_bmap_dict(self, bmapDict, session=None):
+    def storage_bmap_dict(self, bmapDict, **kwargs):
         self.mtda.debug(3, "main.storage_bmap_dict()")
 
-        self.session_ping(session)
-        if self.storage is None:
-            result = None
-        else:
+        result = None
+        if self.storage is not None:
             self.storage.setBmap(bmapDict)
             result = True
-        self.mtda.debug(3, f"main.storage_bmap_dict()(): {str(result)}")
+        self.mtda.debug(3, f"main.storage_bmap_dict()(): {result}")
 
     @Pyro4.expose
-    def storage_close(self, session=None):
+    def storage_close(self, **kwargs):
         self.mtda.debug(3, "main.storage_close()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage is None:
             result = False
@@ -666,25 +706,31 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_flush(self, size, session=None):
-        self.mtda.debug(3, "main.storage_flush()")
+    def storage_flush(self, size, **kwargs):
+        self.mtda.debug(3, f"main.storage_flush({size})")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage is None:
             result = False
         else:
             result = self._writer.flush(size)
+            event = (
+                    CONSTS.STORAGE.INITIALIZED
+                    if result
+                    else CONSTS.STORAGE.CORRUPTED
+            )
+            self._storage_event(event)
 
         self.mtda.debug(3, f"main.storage_flush(): {result}")
         return result
 
-    @Pyro4.expose
     def storage_locked(self, session=None):
         self.mtda.debug(3, "main.storage_locked()")
 
-        self.session_ping(session)
         result = False
         reason = "unsure"
+        self.session_ping(session)
         if self._check_locked(session):
             reason = "target is locked"
             result = True
@@ -728,9 +774,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_mount(self, part=None, session=None):
+    def storage_mount(self, part=None, **kwargs):
         self.mtda.debug(3, "main.storage_mount()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage.is_storage_mounted is True:
             self.mtda.debug(4, "storage_mount(): already mounted")
@@ -749,11 +796,12 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_update(self, dst, offset, session=None):
+    def storage_update(self, dst, offset, **kwargs):
         self.mtda.debug(3, "main.storage_update()")
 
-        self.session_ping(session)
         result = False
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.storage is None:
             self.mtda.debug(4, "storage_update(): no shared storage device")
         else:
@@ -766,10 +814,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_network(self, session=None):
+    def storage_network(self, **kwargs):
         self.mtda.debug(3, "main.storage_network()")
 
         result = False
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage_locked(session) is False:
             if self.storage.to_host() is True:
@@ -799,12 +848,13 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_open(self, session=None):
+    def storage_open(self, stream=None, **kwargs):
         self.mtda.debug(3, 'main.storage_open()')
 
+        result = None
+        session = kwargs.get("session", None)
         self.session_ping(session)
         owner = self._storage_owner
-        result = None
         status, _, _ = self.storage_status()
 
         if self.storage is None:
@@ -822,15 +872,20 @@ class MultiTenantDeviceAccess:
                 self._storage_event(CONSTS.STORAGE.OPENED, session)
             except Exception:
                 raise RuntimeError('shared storage could not be opened!')
-            result = self._writer.start(session)
+
+            if stream is None:
+                from mtda.storage.datastream import NetworkDataStream
+                stream = NetworkDataStream(self.dataport)
+            result = self._writer.start(session, stream)
 
         self.mtda.debug(3, f'main.storage_open(): {result}')
         return result
 
     @Pyro4.expose
-    def storage_status(self, session=None):
+    def storage_status(self, **kwargs):
         self.mtda.debug(3, "main.storage_status()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage is None:
             self.mtda.debug(4, "storage_status(): no shared storage device")
@@ -844,9 +899,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_to_host(self, session=None):
+    def storage_to_host(self, **kwargs):
         self.mtda.debug(3, "main.storage_to_host()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage_locked(session) is False:
             result = self.storage.to_host()
@@ -860,9 +916,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_to_target(self, session=None):
+    def storage_to_target(self, **kwargs):
         self.mtda.debug(3, "main.storage_to_target()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage_locked(session) is False:
             self.storage_close()
@@ -877,9 +934,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_swap(self, session=None):
+    def storage_swap(self, **kwargs):
         self.mtda.debug(3, "main.storage_swap()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage_locked(session) is False:
             result, writing, written = self.storage_status(session)
@@ -895,6 +953,16 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, f"main.storage_swap(): {str(result)}")
         return result
 
+    def storage_write(self, data, **kwargs):
+        self.mtda.debug(3, "main.storage_write()")
+
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+        result = self._writer.enqueue(data, callback=self._storage_event)
+
+        self.mtda.debug(3, f"main.storage_write(): {result}")
+        return result
+
     def systemd_configure(self):
         from filecmp import dircmp
 
@@ -902,6 +970,7 @@ class MultiTenantDeviceAccess:
         storage = self.storage
         video = self.video
 
+        self.systemd_configure_www()
         with tempfile.TemporaryDirectory() as newdir:
 
             # make drivers generate their systemd dropins in a temporary
@@ -935,6 +1004,24 @@ class MultiTenantDeviceAccess:
                 self.mtda.debug(2, "main.systemd_configure(): "
                                    "no changes to systemd dropins")
 
+    def systemd_configure_www(self):
+        self.mtda.debug(3, "main.systemd_configure_www()")
+
+        result = None
+        etcdir = '/etc/systemd/system/mtda-www.service.d/'
+        if self._www_port or self._www_host:
+            os.makedirs(etcdir, exist_ok=True)
+            dropin = os.path.join(etcdir, 'www.conf')
+            with open(dropin, 'w') as f:
+                f.write('[Service]\n')
+                f.write(f'Environment=HOST={self._www_host} PORT={self._www_port}\n')
+        else:
+            import shutil
+            shutil.rmtree(etcdir)
+
+        self.mtda.debug(3, f"main.systemd_configure_www(): {result}")
+        return result
+
     @Pyro4.expose
     def toggle_timestamps(self):
         self.mtda.debug(3, "main.toggle_timestamps()")
@@ -949,10 +1036,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_lock(self, session):
+    def target_lock(self, **kwargs):
         self.mtda.debug(3, "main.target_lock()")
 
         result = False
+        session = kwargs.get("session", None)
         if self._session_manager is not None:
             result = self._session_manager.lock(session)
 
@@ -960,10 +1048,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_locked(self, session):
+    def target_locked(self, **kwargs):
         self.mtda.debug(3, "main.target_locked()")
 
         result = False
+        session = kwargs.get("session", None)
         if self._session_manager:
             result = self._session_manager.locked(session) is not None
 
@@ -1067,10 +1156,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_on(self, session=None):
+    def target_on(self, **kwargs):
         self.mtda.debug(3, "main.target_on()")
 
         result = True
+        session = kwargs.get("session", None)
         self.session_ping(session)
         with self._power_lock:
             status = self._target_status()
@@ -1130,10 +1220,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_off(self, session=None):
+    def target_off(self, **kwargs):
         self.mtda.debug(3, "main.target_off()")
 
         result = True
+        session = kwargs.get("session", None)
         self.session_ping(session)
         with self._power_lock:
             status = self._target_status()
@@ -1157,9 +1248,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_status(self, session=None):
+    def target_status(self, **kwargs):
         self.mtda.debug(3, "main.target_status()")
 
+        session = kwargs.get("session", None)
         with self._power_lock:
             result = self._target_status(session)
 
@@ -1167,10 +1259,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_toggle(self, session=None):
+    def target_toggle(self, **kwargs):
         self.mtda.debug(3, "main.target_toggle()")
 
         result = CONSTS.POWER.UNSURE
+        session = kwargs.get("session", None)
         self.session_ping(session)
         with self._power_lock:
             if self.power_locked(session) is False:
@@ -1188,10 +1281,11 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_unlock(self, session):
+    def target_unlock(self, **kwargs):
         self.mtda.debug(3, "main.target_unlock()")
 
         result = False
+        session = kwargs.get("session", None)
         if self._session_manager is not None:
             result = self._session_manager.unlock(session)
 
@@ -1199,7 +1293,7 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def target_uptime(self, session=None):
+    def target_uptime(self, **kwargs):
         self.mtda.debug(3, "main.target_uptime()")
 
         result = 0
@@ -1210,9 +1304,10 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def usb_find_by_class(self, className, session=None):
+    def usb_find_by_class(self, className, **kwargs):
         self.mtda.debug(3, "main.usb_find_by_class()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         ports = len(self.usb_switches)
         ndx = 0
@@ -1224,17 +1319,19 @@ class MultiTenantDeviceAccess:
         return None
 
     @Pyro4.expose
-    def usb_has_class(self, className, session=None):
+    def usb_has_class(self, className, **kwargs):
         self.mtda.debug(3, "main.usb_has_class()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         usb_switch = self.usb_find_by_class(className, session)
         return usb_switch is not None
 
     @Pyro4.expose
-    def usb_off(self, ndx, session=None):
+    def usb_off(self, ndx, **kwargs):
         self.mtda.debug(3, "main.usb_off()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         try:
             if ndx > 0:
@@ -1244,9 +1341,10 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     @Pyro4.expose
-    def usb_off_by_class(self, className, session=None):
+    def usb_off_by_class(self, className, **kwargs):
         self.mtda.debug(3, "main.usb_off_by_class()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
@@ -1254,9 +1352,10 @@ class MultiTenantDeviceAccess:
         return False
 
     @Pyro4.expose
-    def usb_on(self, ndx, session=None):
+    def usb_on(self, ndx, **kwargs):
         self.mtda.debug(3, "main.usb_on()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         try:
             if ndx > 0:
@@ -1266,9 +1365,10 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     @Pyro4.expose
-    def usb_on_by_class(self, className, session=None):
+    def usb_on_by_class(self, className, **kwargs):
         self.mtda.debug(3, "main.usb_on_by_class()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         usb_switch = self.usb_find_by_class(className, session)
         if usb_switch is not None:
@@ -1276,16 +1376,18 @@ class MultiTenantDeviceAccess:
         return False
 
     @Pyro4.expose
-    def usb_ports(self, session=None):
+    def usb_ports(self, **kwargs):
         self.mtda.debug(3, "main.usb_ports()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         return len(self.usb_switches)
 
     @Pyro4.expose
-    def usb_status(self, ndx, session=None):
+    def usb_status(self, ndx, **kwargs):
         self.mtda.debug(3, "main.usb_status()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         try:
             if ndx > 0:
@@ -1303,9 +1405,10 @@ class MultiTenantDeviceAccess:
         return "???"
 
     @Pyro4.expose
-    def usb_toggle(self, ndx, session=None):
+    def usb_toggle(self, ndx, **kwargs):
         self.mtda.debug(3, "main.usb_toggle()")
 
+        session = kwargs.get("session", None)
         self.session_ping(session)
         try:
             if ndx > 0:
@@ -1315,14 +1418,29 @@ class MultiTenantDeviceAccess:
             print("invalid USB switch #" + str(ndx), file=sys.stderr)
 
     @Pyro4.expose
-    def video_url(self, host="", opts=None):
+    def video_format(self, **kwargs):
+        self.mtda.debug(3, "main.video_format()")
+
+        result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+        if self.video is not None:
+            result = self.video.format
+
+        self.mtda.debug(3, f"main.video_format(): {result}")
+        return result
+
+    @Pyro4.expose
+    def video_url(self, host="", opts=None, **kwargs):
         self.mtda.debug(3, f"main.video_url(host={host}, opts={opts})")
 
         result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
         if self.video is not None:
             result = self.video.url(host, opts)
 
-        self.mtda.debug(3, f"main.video_url(): {str(result)}")
+        self.mtda.debug(3, f"main.video_url(): {result}")
         return result
 
     def load_config(self, remote=None, is_server=False, config_files=None):
@@ -1384,11 +1502,9 @@ class MultiTenantDeviceAccess:
                     "scripts.power_off()")
             self._load_device_scripts()
 
-            # web-base UI
-            if www_support is True:
-                self._www = mtda.www.Service(self)
-                if parser.has_section('www'):
-                    self.load_www_config(parser)
+            # web-based UI
+            if parser.has_section('www'):
+                self.load_www_config(parser)
 
     def load_main_config(self, parser):
         self.mtda.debug(3, "main.load_main_config()")
@@ -1449,7 +1565,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main.post_configure_storage()")
 
         from mtda.storage.writer import AsyncImageWriter
-        self._writer = AsyncImageWriter(self, storage, self.dataport)
+        self._writer = AsyncImageWriter(self, storage)
 
         import atexit
         atexit.register(self.storage_close)
@@ -1550,9 +1666,8 @@ class MultiTenantDeviceAccess:
 
     def load_www_config(self, parser):
         self.mtda.debug(3, "main.load_www_config()")
-
-        if www_support is True:
-            self._www.configure(dict(parser.items('www')))
+        self._www_host = parser.get('www', 'host', fallback='localhost')
+        self._www_port = int(parser.get('www', 'port', fallback=0))
 
     def notify(self, what, info):
         self.mtda.debug(4, f"main.notify({what},{info})")
@@ -1563,8 +1678,6 @@ class MultiTenantDeviceAccess:
             with self._socket_lock:
                 self.socket.send(CONSTS.CHANNEL.EVENTS, flags=zmq.SNDMORE)
                 self.socket.send_string(f"{what} {info}")
-        if self._www is not None:
-            self._www.notify(what, info)
 
         self.mtda.debug(4, f"main.notify: {result}")
         return result
@@ -1617,8 +1730,7 @@ class MultiTenantDeviceAccess:
                       self.console.variant), file=sys.stderr)
                 return False
             self.console_logger = ConsoleLogger(
-                self, self.console, socket,
-                self.power, b'CON', self._www)
+                self, self.console, socket, self.power, b'CON')
             if self._time_from_str is not None:
                 self.console_logger.time_from = self._time_from_str
             if self._time_until_str is not None:
@@ -1657,9 +1769,6 @@ class MultiTenantDeviceAccess:
                 return False
             self.video.start()
 
-        if self._www is not None:
-            self._www.start()
-
         if self.is_server is True:
             from mtda.utils import RepeatTimer
             handler = self.session_check
@@ -1689,10 +1798,6 @@ class MultiTenantDeviceAccess:
         # stop sesssion timer
         if self._session_timer:
             self._session_timer.cancel()
-
-        # stop web service
-        if self._www is not None:
-            self._www.stop()
 
         # stop video
         if self.video is not None:
@@ -1781,7 +1886,3 @@ class MultiTenantDeviceAccess:
 
         self.mtda.debug(3, f"main._check_locked: {result}")
         return result
-
-    @property
-    def www(self):
-        return self._www

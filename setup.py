@@ -22,7 +22,8 @@ setup(
         'mtda-config',
         'mtda-service',
         'mtda-systemd-helper',
-        'mtda-ui'
+        'mtda-ui',
+        'mtda-www'
     ],
     packages=find_packages(exclude=["demos"]),
     package_data={'mtda': ['assets/*.*', 'templates/*.html']},
