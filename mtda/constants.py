@@ -27,6 +27,7 @@ class DEFAULTS:
 
 
 class EVENTS:
+    INTERVAL = 30
     POWER = "POWER"
     SESSION = "SESSION"
     STORAGE = "STORAGE"

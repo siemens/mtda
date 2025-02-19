@@ -18,6 +18,7 @@ import mtda.constants as CONSTS
 class SessionManager:
     def __init__(self, mtda, lock_timeout, session_timeout):
         self.mtda = mtda
+        self._last_event = None
         self._lock = threading.Lock()
         self._lock_owner = None
         self._lock_expiry = None
@@ -57,10 +58,6 @@ class SessionManager:
                 if len(self._sessions) == 0:
                     events.append(f"{CONSTS.SESSION.NONE}")
 
-            if len(self._sessions) > 0:
-                # There are active sessions: let monitors know
-                events.append(f"{CONSTS.SESSION.RUNNING}")
-
             # Release device if the session owning the lock is idle
             if self._lock_owner is not None:
                 if session == self._lock_owner:
@@ -68,6 +65,22 @@ class SessionManager:
                 elif now >= self._lock_expiry:
                     events.append(f"UNLOCKED {self._lock_owner}")
                     self._lock_owner = None
+
+            if len(self._sessions) > 0:
+                # There are active sessions let monitors know but avoid
+                # sending this event too frequently (no more than
+                # CONSTS.EVENTS.INTERVAL)
+                if (
+                        events
+                        or self._last_event is None
+                        or (now - self._last_event) >= CONSTS.EVENTS.INTERVAL
+                ):
+                    events.append(f"{CONSTS.SESSION.RUNNING}")
+
+            # If there are events to send then remember when we are sending
+            # them
+            if events:
+                self._last_event = now
 
         # Send event sessions generated above
         for e in events:
