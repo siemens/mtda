@@ -121,10 +121,14 @@ class Client:
             tries = tries - 1
             try:
                 host = self.remote()
-                port = self._impl.storage_open(self._session)
+                port = self._impl.storage_open(session=self._session)
                 context = zmq.Context()
                 socket = context.socket(zmq.PUSH)
-                hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.READ_SIZE)
+                hwm = int(
+                        CONSTS.WRITER.HIGH_WATER_MARK
+                        /
+                        CONSTS.WRITER.READ_SIZE
+                )
                 socket.setsockopt(zmq.SNDHWM, hwm)
                 socket.connect(f'tcp://{host}:{port}')
                 self._data = socket
@@ -338,6 +342,7 @@ class ImageFile:
         totalread = self._totalread
         outputsize = self._outputsize
 
+        self._socket.send(b'')
         agent.storage_flush(self._totalsent)
         while True:
             status, writing, written = agent.storage_status()
@@ -347,6 +352,7 @@ class ImageFile:
                 break
             time.sleep(0.5)
         self._socket.close()
+        self._socket = None
 
     def path(self):
         return self._path
