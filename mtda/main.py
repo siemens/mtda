@@ -1334,7 +1334,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(2, f"main.load_config(): config_files={config_files}")
 
         self.remote = os.getenv('MTDA_REMOTE', remote)
-        self.is_remote = remote is not None
+        self.is_remote = self.remote is not None
         self.is_server = is_server
         parser = configparser.ConfigParser()
         configs_found = parser.read(config_files)
