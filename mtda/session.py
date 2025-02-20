@@ -36,11 +36,9 @@ class SessionManager:
         result = None
 
         with self._lock:
-            # Register new session
-            if session is not None:
-                if session not in self._sessions:
-                    events.append(f"{CONSTS.SESSION.ACTIVE} {session}")
-                self._sessions[session] = now + self._session_timeout
+            if self._ping(session):
+                # Announce new session
+                events.append(f"{CONSTS.SESSION.ACTIVE} {session}")
 
             # Check for inactive sessions
             inactive = []
@@ -149,6 +147,25 @@ class SessionManager:
 
         self.mtda.debug(4, f"session.monitor: {result}")
         return result
+
+    def _ping(self, session=None):
+        self.mtda.debug(4, f"session._ping({session})")
+
+        now = time.monotonic()
+        result = False
+
+        # Register new session
+        if session is not None:
+            if session not in self._sessions:
+                result = True
+            self._sessions[session] = now + self._session_timeout
+
+        self.mtda.debug(4, f"session._ping: {result}")
+        return result
+
+    def ping(self, session=None):
+        with self._lock:
+            self._ping(session)
 
     def set_timeout(self, timeout, session=None):
         self.mtda.debug(4, f"session.set_timeout({timeout}, {session})")
