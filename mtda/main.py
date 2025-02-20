@@ -1662,7 +1662,7 @@ class MultiTenantDeviceAccess:
 
         if self.is_server is True:
             from mtda.utils import RepeatTimer
-            handler = self.session_ping
+            handler = self.session_check
             self._session_timer = RepeatTimer(10, handler)
             self._session_timer.start()
 
@@ -1715,6 +1715,20 @@ class MultiTenantDeviceAccess:
             self.socket.close()
             self.socket = None
 
+    def session_check(self):
+        self.mtda.debug(4, "main.session_check()")
+
+        self._session_manager.check()
+
+        now = time.monotonic()
+        if self._power_expiry is not None and now > self._power_expiry:
+            self._target_off()
+            self._power_expiry = None
+            self.mtda.debug(2, "device powered down after "
+                               f"{self._power_timeout} seconds of inactivity")
+
+        self.mtda.debug(4, "main.session_check: exit")
+
     def session_event(self, info):
         self.mtda.debug(4, f"main.session_event({info})")
 
@@ -1752,14 +1766,7 @@ class MultiTenantDeviceAccess:
 
         result = None
         if self._session_manager is not None:
-            result = self._session_manager.check(session)
-
-        now = time.monotonic()
-        if self._power_expiry is not None and now > self._power_expiry:
-            self._target_off()
-            self._power_expiry = None
-            self.mtda.debug(2, "device powered down after "
-                               f"{self._power_timeout} seconds of inactivity")
+            result = self._session_manager.ping(session)
 
         self.mtda.debug(4, f"main.session_ping: {result}")
         return result
