@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
     <link rel="stylesheet" href="./assets/modern.min.css">
     <link rel="stylesheet" href="novnc/app/styles/base.css">
     <script type="module" crossorigin="anonymous" src="./assets/vnc.js"></script>
+    <script src="./assets/smoothie.js"></script>
     <link rel="preload" href="./assets/winbox.bundle.min.js" as="script">
     <title>Multi-Tenant Device Access</title>
     <link rel="stylesheet" href="./assets/xterm.css"/>
@@ -95,22 +96,31 @@ SPDX-License-Identifier: MIT
             class: ["no-close", "no-full", "no-max", "modern"],
             width: "640px",
             height: "480px",
-            hidden: true,
+            hidden: true
         });
         videoWindow = new WinBox("Video", {
             html: "<div id=video></div>",
             class: ["no-close", "no-full", "no-max", "modern"],
             width: "1360px",
             height: "768px",
-            hidden: true,
+            hidden: true
         });
         uploadWindow = new WinBox("Upload", {
             html: "<div id=dropzone>Drag and drop your file here</div><button id='upload' disabled></button>",
             class: ["no-full", "no-max", "modern"],
             width: "600px",
             height: "340px",
-            hidden: true,
+            hidden: true
         });
+        xferWindow = new WinBox("Transferring", {
+            html: "<canvas id='xferCanvas' width='320' height='200'></canvas>",
+            class: ["no-full", "no-max", "modern"],
+            width: "320px",
+            height: "200px",
+            hidden: true
+        });
+        var xferChart;
+        var xferSeries = new TimeSeries();
         consoleWindow.focus()
     </script>
     <script src="./assets/jquery.min.js"></script>
@@ -192,9 +202,9 @@ SPDX-License-Identifier: MIT
       $(function() {
         $('#upload').bind('click', function() {
           $.getJSON('./storage-open', {
-		  file: selectedFile.name,
-		  session: localStorage.getItem('session')
-	  }, function(data) {
+                  file: selectedFile.name,
+                  session: localStorage.getItem('session')
+          }, function(data) {
             // do nothing
           });
           return false;
@@ -290,7 +300,8 @@ SPDX-License-Identifier: MIT
       function storage_event(data) {
         data = data.event.split(" ");
         event = data[0];
-        data = data.splice(1).join(" ");
+        let args = data.splice(1);
+        data = args.join(" ");
         if (event == 'UNLOCKED') {
           event = data;
         }
@@ -316,6 +327,25 @@ SPDX-License-Identifier: MIT
               }
             }
             break;
+          case 'WRITING':
+            let speed = args[1] / 1024 / 1024;
+            if (xferWindow.hidden) {
+              uploadWindow.hide();
+              xferWindow.move('center', 'center');
+              xferWindow.toggleClass('modal');
+              xferWindow.show();
+              xferWindow.focus();
+              xferChart = new SmoothieChart({
+                  millisPerPixel: 100,
+                  maxValueScale: 1.2,
+                  minValueScale: 1.2,
+                  grid: { strokeStyle: 'rgba(0, 0, 0, 0.2)', verticalSections: 4 },
+              });
+              xferChart.streamTo(document.getElementById("xferCanvas"), 1000);
+              xferChart.addTimeSeries(xferSeries, { strokeStyle: 'rgb(0, 255, 0)', lineWidth: 2 });
+            }
+            xferSeries.append(Date.now(), speed);
+            break;
           case 'CORRUPTED':
           case 'INITIALIZED':
             $.getJSON('./storage-close', {
@@ -325,6 +355,8 @@ SPDX-License-Identifier: MIT
             }).fail(function(jqXHR, textStatus, errorThrown) {
               console.error('Upload failed:', textStatus, errorThrown);
             });
+            xferChart.stop();
+            xferWindow.hide();
             break;
           case 'QLOW':
             maySend = true;
@@ -354,7 +386,7 @@ SPDX-License-Identifier: MIT
         const files = event.dataTransfer.files;
         if (files.length) {
           selectedFile = files[0];
-	  console.log('will upload '+selectedFile.name);
+          console.log('will upload '+selectedFile.name);
           dropzone.textContent = `${selectedFile.name}`;
           upload.disabled = false;
         }
