@@ -177,7 +177,8 @@ class StorageCloseHandler(BaseHandler):
         if mtda is not None:
             sid = self.get_argument('session')
             result = mtda.storage_close(session=sid)
-            del self.application.settings['sockets'][sid]
+            if sid in self.application.settings['sockets']:
+                del self.application.settings['sockets'][sid]
         self.result_as_json({"result": result})
 
 

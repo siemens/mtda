@@ -12,6 +12,7 @@
 import bz2
 import threading
 import mtda.constants as CONSTS
+import time
 import zlib
 import zstandard as zstd
 import lzma
@@ -132,6 +133,8 @@ class AsyncImageWriter:
         self.mtda.debug(3, "storage.writer.worker()")
 
         mtda = self.mtda
+        last_notification = time.monotonic()
+        last_read = 0
         received = 0
         tries = CONSTS.WRITER.RECV_RETRIES
         self._exiting = False
@@ -147,6 +150,15 @@ class AsyncImageWriter:
                                   "transfer complete")
                     break
                 received += len(chunk)
+
+                now = time.monotonic()
+                if (now - last_notification) >= CONSTS.WRITER.NOTIFY_SECONDS:
+                    speed = (received - last_read) / (now - last_notification)
+                    mtda._storage_event(f'{CONSTS.STORAGE.WRITING} '
+                                        f'{received} {speed}')
+                    last_notification = now
+                    last_read = received
+
                 tries = CONSTS.WRITER.RECV_RETRIES
                 mtda.session_ping(self._session)
                 self._write(chunk)
