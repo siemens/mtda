@@ -10,6 +10,22 @@
 # ---------------------------------------------------------------------------
 
 import threading
+import mtda.constants as CONSTS
+
+
+class Compression:
+    def from_extension(path):
+        if path.endswith(".bz2"):
+            result = CONSTS.IMAGE.BZ2.value
+        elif path.endswith(".gz"):
+            result = CONSTS.IMAGE.GZ.value
+        elif path.endswith(".zst"):
+            result = CONSTS.IMAGE.ZST.value
+        elif path.endswith(".xz"):
+            result = CONSTS.IMAGE.XZ.value
+        else:
+            result = CONSTS.IMAGE.RAW.value
+        return result
 
 
 class RepeatTimer(threading.Timer):

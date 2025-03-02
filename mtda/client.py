@@ -21,6 +21,7 @@ import zmq
 import zstandard as zstd
 
 from mtda.main import MultiTenantDeviceAccess
+from mtda.utils import Compression
 import mtda.constants as CONSTS
 
 
@@ -327,20 +328,6 @@ class ImageFile:
     def bmap(self, path):
         return None
 
-    def compression(self):
-        path = self._path
-        if path.endswith(".bz2"):
-            result = CONSTS.IMAGE.BZ2.value
-        elif path.endswith(".gz"):
-            result = CONSTS.IMAGE.GZ.value
-        elif path.endswith(".zst"):
-            result = CONSTS.IMAGE.ZST.value
-        elif path.endswith(".xz"):
-            result = CONSTS.IMAGE.XZ.value
-        else:
-            result = CONSTS.IMAGE.RAW.value
-        return result
-
     def flush(self):
         # Wait for background writes to complete
         agent = self._agent
@@ -366,7 +353,9 @@ class ImageFile:
         return self._path
 
     def prepare(self, socket, output_size=None, compression=None):
-        compr = self.compression() if compression is None else compression
+        compr = None
+        if compression is None:
+            compr = Compression.from_extension(self._path)
         self._inputsize = self.size()
         self._outputsize = output_size
         self._socket = socket
@@ -416,7 +405,7 @@ class ImageLocal(ImageFile):
 
         image = open(self._path, 'rb')
         comp_on_the_fly = False
-        if self.compression() == CONSTS.IMAGE.RAW.value:
+        if Compression.from_extension(self._path) == CONSTS.IMAGE.RAW.value:
             cctx = zstd.ZstdCompressor(level=1)
             comp_on_the_fly = True
             inputstream = cctx.stream_reader(image)

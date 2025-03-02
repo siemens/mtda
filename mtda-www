@@ -23,6 +23,7 @@ import uuid
 import zmq.asyncio
 
 from mtda.client import Client
+from mtda.utils import Compression
 import mtda.constants as CONSTS
 from mtda.console.remote import RemoteConsole
 from mtda.console.screen import ScreenOutput
@@ -155,9 +156,17 @@ class StorageOpenHandler(BaseHandler):
         mtda = self.application.settings['mtda']
         result = ''
         if mtda is not None:
+            compr = CONSTS.IMAGE.RAW.value
+            file = self.get_argument('file')
+            if file:
+                mtda.debug(2, f'file to be uploaded: {file}')
+                compr = Compression.from_extension(file)
+            mtda.storage_compression(compr)
+
             sid = self.get_argument('session')
             zmq_socket = mtda.storage_open(session=sid)
             self.application.settings['sockets'][sid] = zmq_socket
+
         self.result_as_json({"result": result})
 
 
@@ -241,7 +250,8 @@ class WebOutput(ScreenOutput):
     def session_event(self, info):
         if info[0] == 'INACTIVE':
             sid = info[1]
-            del self.application.settings['sockets'][sid]
+            if sid in self.application.settings['sockets']:
+                del self.application.settings['sockets'][sid]
 
     def write(self, data):
         data = base64.b64encode(data).decode('utf-8')
