@@ -1017,7 +1017,7 @@ class MultiTenantDeviceAccess:
                 f.write(f'Environment=HOST={self._www_host} PORT={self._www_port}\n')
         else:
             import shutil
-            shutil.rmtree(etcdir)
+            shutil.rmtree(etcdir, ignore_errors=True)
 
         self.mtda.debug(3, f"main.systemd_configure_www(): {result}")
         return result
