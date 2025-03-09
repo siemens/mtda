@@ -158,13 +158,17 @@ class StorageOpenHandler(BaseHandler):
         if mtda is not None:
             compr = CONSTS.IMAGE.RAW.value
             file = self.get_argument('file')
+            try:
+                size = int(self.get_argument('size', 0))
+            except ValueError:
+                size = 0
             if file:
                 mtda.debug(2, f'file to be uploaded: {file}')
                 compr = Compression.from_extension(file)
             mtda.storage_compression(compr)
 
             sid = self.get_argument('session')
-            zmq_socket = mtda.storage_open(session=sid)
+            zmq_socket = mtda.storage_open(size, session=sid)
             self.application.settings['sockets'][sid] = zmq_socket
 
         self.result_as_json({"result": result})

@@ -123,14 +123,14 @@ class Client:
         cmd = ['sudo', cmd_nbd, '-N', 'mtda-storage', remote]
         subprocess.check_call(cmd)
 
-    def storage_open(self, **kwargs):
+    def storage_open(self, size=0, **kwargs):
         session = kwargs.get('session', None)
         tries = 60
         while tries > 0:
             tries = tries - 1
             try:
                 host = self.remote()
-                port = self._impl.storage_open(session=session)
+                port = self._impl.storage_open(size, session=session)
                 context = zmq.Context()
                 socket = context.socket(zmq.PUSH)
                 hwm = int(
@@ -168,7 +168,7 @@ class Client:
         file = ImageFile.new(path, impl, session, blksz, callback)
 
         # Open the shared storage device so we own it
-        self.storage_open()
+        self.storage_open(image_size)
 
         try:
             # Prepare for download/copy
@@ -198,7 +198,7 @@ class Client:
         # Open the shared storage device so we own it
         # It also prevents us from loading a new bmap file while
         # another transfer may be on-going
-        self.storage_open()
+        self.storage_open(file.size)
 
         # Automatically discover the bmap file
         bmap = None
@@ -356,7 +356,7 @@ class ImageFile:
         compr = None
         if compression is None:
             compr = Compression.from_extension(self._path)
-        self._inputsize = self.size()
+        self._inputsize = self.size
         self._outputsize = output_size
         self._socket = socket
         # if image is uncompressed, we compress on the fly
@@ -378,8 +378,9 @@ class ImageFile:
             callback(imgname, totalread, inputsize, written, outputsize)
             self._lastreport = time.time()
 
+    @property
     def size(self):
-        return None
+        return 0
 
     def _write_to_storage(self, data):
         self._socket.send(data)
@@ -424,6 +425,7 @@ class ImageLocal(ImageFile):
             else:
                 image.close()
 
+    @property
     def size(self):
         st = os.stat(self._path)
         return st.st_size
@@ -476,6 +478,7 @@ class ImageS3(ImageFile):
         config = TransferConfig(use_threads=False)
         self._object.download_fileobj(self, Config=config)
 
+    @property
     def size(self):
         if self._object is None:
             self._object = self._open()

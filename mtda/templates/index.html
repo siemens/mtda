@@ -113,10 +113,16 @@ SPDX-License-Identifier: MIT
             hidden: true
         });
         xferWindow = new WinBox("Transferring", {
-            html: "<canvas id='xferCanvas' width='320' height='200'></canvas>",
+            html: "<svg width='100' height='100' viewBox='0 0 100 100'>" +
+                  "<circle cx='50' cy='50' r='40' stroke='#eee' stroke-width='8' fill='none'/>" +
+                  "<circle id='xferProgress' cx='50' cy='50' r='40' stroke='#00aaff' stroke-width='8' fill='none'" +
+                  "stroke-dasharray='251.2' stroke-dashoffset='251.2' stroke-linecap='round'/>" +
+                  "<text id='xferPercent' x='50' y='55' font-size='16' text-anchor='middle' fill='#333'>0%</text>" +
+                  "</svg>" +
+                  "<canvas id='xferCanvas' width='220' height='100'></canvas>",
             class: ["no-full", "no-max", "modern"],
-            width: "320px",
-            height: "200px",
+            width: "360px",
+            height: "150px",
             hidden: true
         });
         var xferChart;
@@ -203,6 +209,7 @@ SPDX-License-Identifier: MIT
         $('#upload').bind('click', function() {
           $.getJSON('./storage-open', {
                   file: selectedFile.name,
+                  size: selectedFile.size,
                   session: localStorage.getItem('session')
           }, function(data) {
             // do nothing
@@ -328,7 +335,15 @@ SPDX-License-Identifier: MIT
             }
             break;
           case 'WRITING':
-            let speed = args[1] / 1024 / 1024;
+            var percent = 0;
+            let read = args[0];
+            let size = args[1];
+            let speed = args[2] / 1024 / 1024;
+            if (size) {
+              percent = Math.round((read * 100) / size);
+              $("#xferProgress").css("stroke-dashoffset", 251.2 - (percent / 100) * 251.2);
+              $("#xferPercent").text(percent + "%");
+            }
             if (xferWindow.hidden) {
               uploadWindow.hide();
               xferWindow.move('center', 'center');
@@ -339,7 +354,7 @@ SPDX-License-Identifier: MIT
                   millisPerPixel: 100,
                   maxValueScale: 1.2,
                   minValueScale: 1.2,
-                  grid: { strokeStyle: 'rgba(0, 0, 0, 0.2)', verticalSections: 4 },
+                  grid: { fillStyle: 'rgba(40, 40, 40, 0.2)', strokeStyle: 'rgba(90, 90, 90, 0.2)', verticalSections: 4 },
               });
               xferChart.streamTo(document.getElementById("xferCanvas"), 1000);
               xferChart.addTimeSeries(xferSeries, { strokeStyle: 'rgb(0, 255, 0)', lineWidth: 2 });
