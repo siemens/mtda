@@ -97,10 +97,11 @@ class AsyncImageWriter:
         self.mtda.debug(3, f"storage.writer.flush(): {result}")
         return result
 
-    def start(self, session, stream):
+    def start(self, session, size, stream):
         self.mtda.debug(3, "mtda.storage.writer.start()")
 
         self._session = session
+        self._size = size
         self._stream = stream
 
         result = stream.prepare()
@@ -155,7 +156,7 @@ class AsyncImageWriter:
                 if (now - last_notification) >= CONSTS.WRITER.NOTIFY_SECONDS:
                     speed = (received - last_read) / (now - last_notification)
                     mtda._storage_event(f'{CONSTS.STORAGE.WRITING} '
-                                        f'{received} {speed}')
+                                        f'{received} {self._size} {speed}')
                     last_notification = now
                     last_read = received
 

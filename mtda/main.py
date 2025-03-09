@@ -848,7 +848,7 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_open(self, stream=None, **kwargs):
+    def storage_open(self, size=0, stream=None, **kwargs):
         self.mtda.debug(3, 'main.storage_open()')
 
         result = None
@@ -876,7 +876,7 @@ class MultiTenantDeviceAccess:
             if stream is None:
                 from mtda.storage.datastream import NetworkDataStream
                 stream = NetworkDataStream(self.dataport)
-            result = self._writer.start(session, stream)
+            result = self._writer.start(session, size, stream)
 
         self.mtda.debug(3, f'main.storage_open(): {result}')
         return result
