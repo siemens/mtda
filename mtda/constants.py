@@ -31,6 +31,7 @@ class EVENTS:
     POWER = "POWER"
     SESSION = "SESSION"
     STORAGE = "STORAGE"
+    SYSTEM = "SYSTEM"
 
 
 class IMAGE(Enum):
