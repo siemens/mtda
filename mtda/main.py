@@ -753,6 +753,12 @@ class MultiTenantDeviceAccess:
         elif self._target_status() != "OFF":
             reason = "target is on"
             result = True
+        elif (self._storage_status == CONSTS.STORAGE.ON_NETWORK and
+              self._storage_owner is not None and
+              self._storage_owner != session):
+            reason = ("storage shared on the network for " +
+                      f"{self._storage_owner}")
+            result = True
         # Lastly, the shared storage device shall not be opened
         elif self._storage_opened is True:
             reason = "shared storage is in use (opened)"
@@ -820,29 +826,37 @@ class MultiTenantDeviceAccess:
         result = False
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.storage_locked(session) is False:
-            if self.storage.to_host() is True:
+
+        if self.storage is None:
+            raise RuntimeError('no shared storage device')
+        elif hasattr(self.storage, 'path') is False:
+            raise RuntimeError('path to shared storage not available')
+        elif os.path.exists(NBD_CONF_DIR) is False:
+            raise RuntimeError('NBD configuration directory not found')
+        elif self.storage_locked(session) is True:
+            raise RuntimeError('shared storage in use')
+        elif self.storage.to_host() is True:
+            file = self.storage.path()
+            if file:
                 conf = os.path.join(NBD_CONF_DIR, NBD_CONF_FILE)
-                file = None
+                with open(conf, 'w') as f:
+                    f.write('[mtda-storage]\n')
+                    f.write('authfile = /etc/nbd-server/allow\n')
+                    f.write(f'exportname = {file}\n')
+                    f.close()
 
-                if hasattr(self.storage, 'path'):
-                    file = self.storage.path()
+                cmd = ['systemctl', 'restart', 'nbd-server']
+                subprocess.check_call(cmd)
 
-                if file is not None and os.path.exists(NBD_CONF_DIR):
-                    with open(conf, 'w') as f:
-                        f.write('[mtda-storage]\n')
-                        f.write('authfile = /etc/nbd-server/allow\n')
-                        f.write(f'exportname = {file}\n')
-                        f.close()
+                cmd = ['systemctl', 'is-active', 'nbd-server']
+                subprocess.check_call(cmd)
 
-                    cmd = ['systemctl', 'restart', 'nbd-server']
-                    subprocess.check_call(cmd)
-
-                    cmd = ['systemctl', 'is-active', 'nbd-server']
-                    subprocess.check_call(cmd)
-
-                    self._storage_event(CONSTS.STORAGE.ON_NETWORK)
-                    result = True
+                self._storage_owner = session
+                self.storage_locked()
+                self._storage_event(CONSTS.STORAGE.ON_NETWORK)
+                result = True
+            else:
+                raise RuntimeError('no path to shared storage')
 
         self.mtda.debug(3, f"main.storage_network(): {result}")
         return result
@@ -1014,7 +1028,8 @@ class MultiTenantDeviceAccess:
             dropin = os.path.join(etcdir, 'www.conf')
             with open(dropin, 'w') as f:
                 f.write('[Service]\n')
-                f.write(f'Environment=HOST={self._www_host} PORT={self._www_port}\n')
+                f.write(f'Environment=HOST={self._www_host} '
+                        f'PORT={self._www_port}\n')
         else:
             import shutil
             shutil.rmtree(etcdir, ignore_errors=True)
