@@ -113,7 +113,7 @@ class Client:
         if os.path.exists(cmd_nbd) is False:
             raise RuntimeError(f'{cmd_nbd} not found')
 
-        rdev = self._impl.storage_network()
+        rdev = self._impl.storage_network(session=self._session)
         if rdev is None:
             raise RuntimeError('could not put storage on network')
 
