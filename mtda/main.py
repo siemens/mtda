@@ -1786,8 +1786,7 @@ class MultiTenantDeviceAccess:
 
         if self.is_server is True:
             from mtda.utils import RepeatTimer
-            handler = self.session_check
-            self._session_timer = RepeatTimer(10, handler)
+            self._session_timer = RepeatTimer(5, self._timer)
             self._session_timer.start()
 
         # Start from a known state
@@ -1901,3 +1900,17 @@ class MultiTenantDeviceAccess:
 
         self.mtda.debug(3, f"main._check_locked: {result}")
         return result
+
+    def _system_monitor(self):
+        loadavg = 0.0
+        with open('/proc/loadavg') as f:
+            stats = f.readline().split()
+            loadavg = stats[0]
+        self.notify(CONSTS.EVENTS.SYSTEM, f'{loadavg}')
+
+    def _timer(self):
+        # Check for inative sessions
+        self.session_check()
+
+        # System health checks
+        self._system_monitor()

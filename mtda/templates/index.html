@@ -112,6 +112,17 @@ SPDX-License-Identifier: MIT
             height: "340px",
             hidden: true
         });
+
+        sysWindow = new WinBox("System", {
+            html: "<canvas id='sysLoadCanvas' width='220' height='100'></canvas>",
+            class: ["no-full", "no-max", "modern"],
+            width: "250px",
+            height: "150px",
+            hidden: true
+        });
+        var sysLoadChart;
+        var sysLoadSeries = new TimeSeries();
+
         xferWindow = new WinBox("Transferring", {
             html: "<svg width='100' height='100' viewBox='0 0 100 100'>" +
                   "<circle cx='50' cy='50' r='40' stroke='#eee' stroke-width='8' fill='none'/>" +
@@ -127,6 +138,7 @@ SPDX-License-Identifier: MIT
         });
         var xferChart;
         var xferSeries = new TimeSeries();
+
         consoleWindow.focus()
     </script>
     <script src="./assets/jquery.min.js"></script>
@@ -270,6 +282,7 @@ SPDX-License-Identifier: MIT
               case 'POWER': power_event(message); break;
               case 'SESSION': ignore_message(message); break;
               case 'STORAGE': storage_event(message); break;
+              case 'SYSTEM': system_event(message); break;
               case 'console-output': console_output(message); break;
               case 'mtda-version': mtda_version(message); break;
               case 'session': session_set_id(message); break;
@@ -406,6 +419,24 @@ SPDX-License-Identifier: MIT
           upload.disabled = false;
         }
       });
+
+      function system_event(data) {
+        data = data.event.split(" ");
+        let loadavg = data[0];
+
+        if (sysWindow.hidden) {
+          sysWindow.show();
+          sysLoadChart = new SmoothieChart({
+              millisPerPixel: 100,
+              maxValueScale: 1.2,
+              minValueScale: 1.2,
+              grid: { fillStyle: 'rgba(40, 40, 40, 0.2)', strokeStyle: 'rgba(90, 90, 90, 0.2)', verticalSections: 4 },
+          });
+          sysLoadChart.streamTo(document.getElementById("sysLoadCanvas"), 5000);
+          sysLoadChart.addTimeSeries(sysLoadSeries, { strokeStyle: 'rgb(0, 255, 0)', lineWidth: 2 });
+        }
+        sysLoadSeries.append(Date.now(), loadavg);
+      }
 
       function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
