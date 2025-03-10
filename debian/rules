@@ -30,7 +30,6 @@ override_dh_auto_install:
 	rm -rf debian/mtda-kvm
 	rm -rf debian/mtda-pytest
 	rm -rf debian/mtda-service
-	rm -rf debian/mtda-ui
 	rm -rf debian/mtda-www
 	# lintian package-installs-python-pycache-dir
 	find debian -name "__pycache__" -type f -delete
@@ -73,9 +72,6 @@ override_dh_auto_install:
 	:
 	install -m 0755 -d debian/mtda-pytest$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/pytest.py debian/mtda-pytest$(MTDA_DIST)/
-	:
-	install -m 0755 -d debian/mtda-ui/usr/bin
-	mv debian/mtda-service/usr/bin/mtda-ui debian/mtda-ui/usr/bin/
 	:
 	install -m 0755 -d debian/mtda-www$(MTDA_DIST)/
 	install -m 0755 -d debian/mtda-www/etc/mtda/config.d/

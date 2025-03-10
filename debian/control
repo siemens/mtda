@@ -110,16 +110,6 @@ Description: support for pytest code that uses MTDA
  Provide helper classes to write tests with the pytest and MTDA
  frameworks.
 
-Package: mtda-ui
-Architecture: all
-Multi-Arch: foreign
-Depends: mtda-client,
-         python3-py3qterm,
-         python3-pyqt5.qtmultimedia
-Description: a simple user-interface for MTDA
- Provide a simple client-side user-interface to interact with
- devices under test.
-
 Package: mtda-www
 Architecture: all
 Multi-Arch: foreign

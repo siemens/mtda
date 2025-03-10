@@ -8,7 +8,6 @@ Files:     .gitignore
            docs/*.png
            kas/*.yml
            mtda-cli
-           mtda-ui
            mtda.ini
            setup.py
            mtda/*.py

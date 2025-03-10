@@ -22,7 +22,6 @@ MTDA_FILES = " \
     mtda-config \
     mtda-service \
     mtda-systemd-helper \
-    mtda-ui \
     mtda-www \
     mtda.ini \
     mtda/ \
@@ -35,8 +34,6 @@ MTDA_FILES = " \
 SRC_URI += "${@' '.join(['file://' + d.getVar('LAYERDIR_mtda') + '/../' + file for file in d.getVar('MTDA_FILES').split()])}"
 
 S = "${WORKDIR}/working-repo"
-
-DEPENDS += "py3qterm"
 
 do_gen_working_repo() {
 	for file in ${MTDA_FILES}; do
