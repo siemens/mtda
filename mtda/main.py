@@ -779,20 +779,20 @@ class MultiTenantDeviceAccess:
 
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.storage.is_storage_mounted is True:
-            self.mtda.debug(4, "storage_mount(): already mounted")
-            result = True
-        elif self.storage is None:
-            self.mtda.debug(4, "storage_mount(): no shared storage device")
-            return False
-        else:
+
+        if self.storage is None:
+            raise RuntimeError('no shared storage device')
+        elif self.storage.is_storage_mounted is True:
+            raise RuntimeError("already mounted")
+        elif self.storage_locked(session) is True:
+            raise RuntimeError('shared storage in use')
+        elif self.storage.to_host() is True:
             result = self.storage.mount(part)
             self._storage_mounted = (result is True)
-
-        if self.storage is not None:
+            self._storage_owner = session
             self.storage_locked()
 
-        self.mtda.debug(3, f"main.storage_mount(): {str(result)}")
+        self.mtda.debug(3, f"main.storage_mount(): {result}")
         return result
 
     @Pyro4.expose
