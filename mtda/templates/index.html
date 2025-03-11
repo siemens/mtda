@@ -376,6 +376,7 @@ SPDX-License-Identifier: MIT
             break;
           case 'CORRUPTED':
           case 'INITIALIZED':
+            maySend = false;
             $.getJSON('./storage-close', {
               session: localStorage.getItem('session')
             }).done(function(data) {
