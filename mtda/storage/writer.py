@@ -204,9 +204,13 @@ class AsyncImageWriter:
             self._stream.close()
             self._stream = None
 
-        if self._failed is True:
+        if self._failed is False:
+            event = CONSTS.STORAGE.INITIALIZED
+        else:
+            event = CONSTS.STORAGE.CORRUPTED
             mtda.debug(1, "storage.writer.worker(): "
                           "write or decompression error!")
+        mtda._storage_event(event)
 
         mtda.debug(3, "storage.writer.worker(): exit")
 
