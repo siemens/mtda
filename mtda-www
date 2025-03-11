@@ -140,17 +140,6 @@ class PowerToggleHandler(BaseHandler):
         self.result_as_json({"result": result})
 
 
-class StorageFlushHandler(BaseHandler):
-    def get(self):
-        mtda = self.application.settings['mtda']
-        result = ''
-        if mtda is not None:
-            size = int(self.get_argument('size'))
-            sid = self.get_argument('session')
-            result = mtda.storage_flush(size=size, session=sid)
-        self.result_as_json({"result": result})
-
-
 class StorageOpenHandler(BaseHandler):
     def get(self):
         mtda = self.application.settings['mtda']
@@ -298,7 +287,6 @@ class Service:
             (r"/keyboard-input", KeyboardInputHandler),
             (r"/power-toggle", PowerToggleHandler),
             (r"/storage-close", StorageCloseHandler),
-            (r"/storage-flush", StorageFlushHandler),
             (r"/storage-open", StorageOpenHandler),
             (r"/storage-toggle", StorageToggleHandler),
         ], template_path=os.path.join(BASE_DIR, "templates"),
