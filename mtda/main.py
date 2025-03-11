@@ -715,12 +715,6 @@ class MultiTenantDeviceAccess:
             result = False
         else:
             result = self._writer.flush(size)
-            event = (
-                    CONSTS.STORAGE.INITIALIZED
-                    if result
-                    else CONSTS.STORAGE.CORRUPTED
-            )
-            self._storage_event(event)
 
         self.mtda.debug(3, f"main.storage_flush(): {result}")
         return result
@@ -1878,7 +1872,7 @@ class MultiTenantDeviceAccess:
                 self.mtda.debug(2, "closing storage for idle session "
                                    f"{session}, storage may be corrupted!")
                 self._storage_event(CONSTS.STORAGE.CORRUPTED)
-                self.storage_close(None)
+                self.storage_close(session=session)
 
     def session_ping(self, session=None):
         self.mtda.debug(4, f"main.session_ping({session})")
