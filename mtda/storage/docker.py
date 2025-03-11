@@ -83,7 +83,7 @@ class DockerController(StorageController):
         return self._mode
 
     def update(self, dst, offset):
-        return False
+        raise RuntimeError('update not supported for docker')
 
     def write(self, data):
         self.mtda.debug(3, "storage.docker.write()")
