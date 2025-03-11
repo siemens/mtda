@@ -124,13 +124,16 @@ class Client:
         subprocess.check_call(cmd)
 
     def storage_open(self, size=0, **kwargs):
-        session = kwargs.get('session', None)
+        session = kwargs.get('session', self._session)
+        port = self._impl.storage_open(size, session=session)
+        return self._storage_socket(port)
+
+    def _storage_socket(self, port):
         tries = 60
         while tries > 0:
             tries = tries - 1
             try:
                 host = self.remote()
-                port = self._impl.storage_open(size, session=session)
                 context = zmq.Context()
                 socket = context.socket(zmq.PUSH)
                 hwm = int(
@@ -149,30 +152,25 @@ class Client:
                 else:
                     raise
 
-    def storage_update(self, dest, src=None, callback=None):
-        path = dest if src is None else src
-        try:
-            st = os.stat(path)
-            image_size = st.st_size
-        except FileNotFoundError:
-            return False
+    def storage_update(self, dest, src=None, callback=None, **kwargs):
+        session = kwargs.get('session', self._session)
 
-        status = self._impl.storage_update(dest, 0, self._session)
-        if status is False:
-            return False
+        path = dest if src is None else src
+        st = os.stat(path)
+        size = st.st_size
+
+        port = self._impl.storage_update(dest, size, session=session)
+        self._storage_socket(port)
+
         blksz = self._agent.blksz
         impl = self._impl
-        session = self._session
 
         # Get file handler from specified path
         file = ImageFile.new(path, impl, session, blksz, callback)
 
-        # Open the shared storage device so we own it
-        self.storage_open(image_size)
-
         try:
             # Prepare for download/copy
-            file.prepare(image_size, CONSTS.IMAGE.RAW.value)
+            file.prepare(self._data, size)
 
             # Copy image to shared storage
             file.copy()
@@ -181,11 +179,10 @@ class Client:
             file.flush()
 
         except Exception:
-            return False
+            raise
         finally:
             # Storage may be closed now
             self.storage_close()
-        return True
 
     def storage_write_image(self, path, callback=None):
         blksz = self._agent.blksz

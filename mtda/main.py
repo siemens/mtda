@@ -796,21 +796,26 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def storage_update(self, dst, offset, **kwargs):
+    def storage_update(self, dst, size, stream=None, **kwargs):
         self.mtda.debug(3, "main.storage_update()")
 
         result = False
         session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage is None:
-            self.mtda.debug(4, "storage_update(): no shared storage device")
+            raise RuntimeError('no shared storage device')
+        elif self.storage_locked(session) is True:
+            raise RuntimeError('shared storage in use')
+        elif self.storage.is_storage_mounted is False:
+            raise RuntimeError("not mounted")
         else:
             try:
-                result = self.storage.update(dst, offset)
+                self.storage.update(dst)
+                result = self._storage_socket(session, size, stream)
             except (FileNotFoundError, IOError) as e:
                 self.mtda.debug(1, f"main.storage_update(): {str(e.args[0])}")
 
-        self.mtda.debug(3, f"main.storage_update(): {str(result)}")
+        self.mtda.debug(3, f"main.storage_update(): {result}")
         return result
 
     @Pyro4.expose
@@ -880,14 +885,16 @@ class MultiTenantDeviceAccess:
                 self._storage_event(CONSTS.STORAGE.OPENED, session)
             except Exception:
                 raise RuntimeError('shared storage could not be opened!')
-
-            if stream is None:
-                from mtda.storage.datastream import NetworkDataStream
-                stream = NetworkDataStream(self.dataport)
-            result = self._writer.start(session, size, stream)
+            result = self._storage_socket(session, size, stream)
 
         self.mtda.debug(3, f'main.storage_open(): {result}')
         return result
+
+    def _storage_socket(self, session, size, stream=None):
+        if stream is None:
+            from mtda.storage.datastream import NetworkDataStream
+            stream = NetworkDataStream(self.dataport)
+        return self._writer.start(session, size, stream)
 
     @Pyro4.expose
     def storage_status(self, **kwargs):

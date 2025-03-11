@@ -342,29 +342,16 @@ class Image(StorageController):
         self.mtda.debug(3, f"storage.helpers.image._locate(): {str(result)}")
         return result
 
-    def update(self, dst, offset):
+    def update(self, dst):
         self.mtda.debug(3, "storage.helpers.image.update()")
 
         with self.lock:
-            result = False
             if self.handle is None:
                 path = self._locate(dst)
-                if path is not None:
-                    mode = "ab" if offset > 0 else "wb"
-                    self.handle = open(path, mode)
-                    self.handle.seek(offset)
-                    result = True
-                else:
-                    self.mtda.debug(1, "storage.helpers.image.update(): "
-                                       "%s could not be found!" % str(dst))
-                    raise FileNotFoundError(dst + " could not be found!")
+                self.handle = open(path, "wb")
             else:
-                self.mtda.debug(1, "storage.helpers.image.update(): "
-                                   "shared storage already opened!")
-
-            self.mtda.debug(3, "storage.helpers.image."
-                               f"update(): {str(result)}")
-            return result
+                raise RuntimeError("already opened")
+            self.mtda.debug(3, "storage.helpers.image.update(): exit")
 
     def write(self, data):
         self.mtda.debug(3, "storage.helpers.image.write()")
