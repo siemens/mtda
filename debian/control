@@ -73,15 +73,6 @@ Depends: python3:any (>= 3.7~),
 Description: common modules for Multi-Tenant Device Access
  Modules shared between the service and the client.
 
-Package: mtda-config
-Architecture: all
-Multi-Arch: foreign
-Depends: mtda-service,
-         python3-kconfiglib,
-         python3-urwid
-Description: Tool to configure MTDA
- Kconfig-based tool for configuring MTDA
-
 Package: mtda-docker
 Architecture: all
 Multi-Arch: foreign

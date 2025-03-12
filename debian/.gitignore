@@ -6,7 +6,6 @@ files
 mtda
 mtda-client
 mtda-common
-mtda-config
 mtda-docker
 mtda-kvm
 mtda-pytest

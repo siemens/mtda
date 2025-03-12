@@ -25,7 +25,6 @@ override_dh_auto_install:
 	rm -rf debian/mtda
 	rm -rf debian/mtda-client
 	rm -rf debian/mtda-common
-	rm -rf debian/mtda-config
 	rm -rf debian/mtda-docker
 	rm -rf debian/mtda-kvm
 	rm -rf debian/mtda-pytest
@@ -50,11 +49,6 @@ override_dh_auto_install:
 	install -m 0755 -d debian/mtda-common$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/constants.py debian/mtda-common$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/main.py debian/mtda-common$(MTDA_DIST)/
-	:
-	install -m 0755 -d debian/mtda-config/usr/sbin
-	install -m 0755 -d debian/mtda-config/var/lib/mtda/
-	mv debian/mtda-service/usr/bin/mtda-config debian/mtda-config/usr/sbin/
-	install -m 0644 Kconfig debian/mtda-config/var/lib/mtda/Kconfig
 	:
 	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/console
 	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/power
