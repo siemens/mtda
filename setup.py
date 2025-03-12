@@ -19,7 +19,6 @@ setup(
     version=__version__,
     scripts=[
         'mtda-cli',
-        'mtda-config',
         'mtda-service',
         'mtda-systemd-helper',
         'mtda-www'
@@ -58,7 +57,6 @@ and testers to remotely access and control hardware devices.
         "flask_socketio",
         "gevent",
         "gevent-websocket",
-        "kconfiglib",
         "netifaces>=0.11.0",
         "pyserial>=2.6",
         "python-daemon>=2.0",
@@ -68,7 +66,6 @@ and testers to remotely access and control hardware devices.
         "psutil",
         "requests",
         "systemd-python>=234",
-        "urwid",
         "zstandard>=0.14",
         "zeroconf>=0.28.6"
     ],
