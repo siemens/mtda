@@ -21,7 +21,7 @@ target:
   - mc:nanopi-neo:mtda-image
   - mc:nanopi-r1:mtda-image
   - mc:rpi4b:mtda-image
-  - mc:debian-qemu-amd64:mtda-packages
+  - mc:debian-qemu-amd64:mtda
   - mc:debian-qemu-amd64:qemu-packages
-  - mc:ubuntu-qemu-amd64:mtda-packages
+  - mc:ubuntu-qemu-amd64:mtda
   - mc:ubuntu-qemu-amd64:qemu-packages

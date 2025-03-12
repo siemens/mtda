@@ -16,10 +16,6 @@ PV = "1.0"
 
 ISAR_RELEASE_CMD = "git -C ${LAYERDIR_mtda} describe --tags --dirty --match 'v[0-9].[0-9]*'"
 
-# Build and deploy our MTDA packages
-DEPENDS += "mtda-packages"
-do_build[deptask] += "do_deploy_deb"
-
 # We suffix u-boot-script with DISTRO and MACHINE, remove the non-suffixed
 # version of the package
 IMAGE_INSTALL:remove = "u-boot-script"
@@ -35,6 +31,8 @@ DEPENDS:append:nanopi-r1 = " u-boot-nanopi-r1"
 IMAGE_INSTALL:append:nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
 
 IMAGE_INSTALL += "                       \
+    mtda                                 \
+    mtda-www                             \
     mtda-hostname                        \
     mtda-network                         \
     mtda-repo                            \
@@ -47,8 +45,6 @@ IMAGE_PREINSTALL += "                    \
     isc-dhcp-client                      \
     mjpg-streamer                        \
     ustreamer                            \
-    mtda                                 \
-    mtda-www                             \
     pdudaemon-client                     \
     sd-mux-ctrl                          \
     ssh                                  \
