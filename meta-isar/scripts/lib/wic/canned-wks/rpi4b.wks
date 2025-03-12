@@ -5,9 +5,9 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-part --source bootimg-partition --ondisk mmcblk0 --fstype vfat --label boot --align 1 --size 128 --overhead-factor 1 --extra-space 0
+part /boot --source bootimg-partition --ondisk mmcblk0 --fstype vfat --label boot --align 1 --size 128 --overhead-factor 1 --extra-space 0
 
-part / --source rootfs --fstype ext4 --mkfs-extraopts "-T default" --label platform --align 1024 --active
+part / --source rootfs --ondisk mmcblk0 --fstype ext4 --mkfs-extraopts "-T default" --label platform --align 1024 --active --exclude-path=boot/
 
 # silence wic
 bootloader
