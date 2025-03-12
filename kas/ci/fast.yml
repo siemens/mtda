@@ -19,5 +19,5 @@ header:
 target:
   - mc:nanopi-neo:mtda-image
   - mc:rpi4b:mtda-image
-  - mc:debian-qemu-amd64:mtda-packages
+  - mc:debian-qemu-amd64:mtda
   - mc:debian-qemu-amd64:qemu-packages

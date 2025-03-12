@@ -29,6 +29,26 @@ MTDA_FILES = " \
     tox.ini \
     "
 
+# Here's our list of custom packages
+RDEPENDS:${PN} = "                       \
+    python3-hap-python                   \
+    mjpg-streamer                        \
+    mtda                                 \
+    sd-mux-ctrl                          \
+"
+# Ubuntu noble ships sd-mux-ctrl package
+RDEPENDS:${PN}:remove:noble = "sd-mux-ctrl"
+
+PROVIDES += "                            \
+    mtda-service                         \
+    mtda-client                          \
+    mtda-common                          \
+    mtda-docker                          \
+    mtda-kvm                             \
+    mtda-pytest                          \
+    mtda-www                             \
+"
+
 SRC_URI += "${@' '.join(['file://' + d.getVar('LAYERDIR_mtda') + '/../' + file for file in d.getVar('MTDA_FILES').split()])}"
 
 S = "${WORKDIR}/working-repo"
