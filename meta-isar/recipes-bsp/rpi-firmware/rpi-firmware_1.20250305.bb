@@ -11,7 +11,7 @@ SRC_URI = " \
     https://github.com/raspberrypi/firmware/archive/${PV}.tar.gz;downloadfilename=${PN}-${PV}.tar.gz \
     file://debian \
     file://rules"
-SRC_URI[sha256sum] = "67c49b6f2fbf4ee612536b3fc24e44ab3fa9584c78224865699f1cbc1b8eea3c"
+SRC_URI[sha256sum] = "4981021b82f600f450d64d9b82034dc603bf5429889a3947b2863e01992a343c"
 
 S = "${WORKDIR}/firmware-${PV}"
 
