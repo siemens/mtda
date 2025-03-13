@@ -11,7 +11,7 @@ case "$1" in
       echo "libcomposite" >/etc/modules || exit ${?}
     fi
     if ! getent passwd mtda >/dev/null; then
-      adduser --system --group --no-create-home --disabled-login mtda
+      adduser --system --group --home /var/lib/mtda --disabled-login mtda
     fi
     ;;
 
