@@ -70,13 +70,12 @@ IMAGE_PREINSTALL:append:lava = " lava-dispatcher"
 IMAGE_INSTALL:append = " expand-on-first-boot "
 
 # Create a "mtda" user account with "mtda" as the default password
-# hash created with: python3 -c 'import crypt; print(crypt.crypt("mtda", crypt.mksalt(crypt.METHOD_SHA512)))'
 USERS += "mtda"
 GROUPS += "mtda"
 USER_mtda[gid] = "mtda"
 USER_mtda[home] = "/home/mtda"
 USER_mtda[comment] = "Multi-Tenant Device Access"
-USER_mtda[flags] = "system create-home"
+USER_mtda[flags] = "system create-home clear-text-password"
 USER_mtda[groups] = "mtda sudo"
-USER_mtda[password] ??= "$6$uaP1WXXu/joK8zxJ$LONexagmcWBKkY/HRQe0fVjY7n06FkX1qJUjigQ.4JVYxC9/OfBu3iJrF8hugMo2CaIh1sIOxDdpXvWWIjhfQ1"
+USER_mtda[password] ??= "mtda"
 USER_mtda[shell] = "/bin/bash"
