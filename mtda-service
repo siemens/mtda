@@ -12,7 +12,6 @@
 
 # System imports
 import argparse
-import daemon
 import lockfile
 import netifaces
 import os
@@ -40,6 +39,7 @@ class Application:
         self.pidfile = "/var/run/mtda.pid"
 
     def daemonize(self):
+        import daemon
         context = daemon.DaemonContext(
             working_directory=os.getcwd(),
             stdout=open(self.logfile, 'w+'),
