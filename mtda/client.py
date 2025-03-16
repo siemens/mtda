@@ -142,6 +142,7 @@ class Client:
                         CONSTS.WRITER.READ_SIZE
                 )
                 socket.setsockopt(zmq.SNDHWM, hwm)
+                socket.setsockopt(zmq.MAXMSGSIZE, CONSTS.WRITER.READ_SIZE)
                 socket.connect(f'tcp://{host}:{port}')
                 self._data = socket
                 return socket
