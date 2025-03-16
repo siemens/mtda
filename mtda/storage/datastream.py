@@ -51,6 +51,7 @@ class NetworkDataStream(DataStream):
         self._socket.setsockopt(zmq.RCVTIMEO, timeout)
         hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.WRITE_SIZE)
         self._socket.setsockopt(zmq.RCVHWM, hwm)
+        self._socket.setsockopt(zmq.MAXMSGSIZE, CONSTS.WRITER.WRITE_SIZE)
 
         self._socket.bind(f"tcp://*:{self._dataport}")
         endpoint = self._socket.getsockopt_string(zmq.LAST_ENDPOINT)
