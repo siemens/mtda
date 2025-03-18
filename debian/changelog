@@ -1,8 +1,41 @@
-mtda (0.36-0) testing; urgency=medium
+mtda (0.36-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * replace zerorpc with pyro4 for communication between clients and agent.
+    use zmq for data transfers.
+  * service: register Zeroconf service for all non-loopback addresses
+  * www: replace flask with tornado and run in a separate process
+  * www: support for uploading to the shared storage
+  * www: show system load average
+  * www: update various 3rd party dependencies (jquery, socket.io, xterm)
+  * storage: auto-close storage on session timeout
+  * storage: add INITIALIZED and CORRUPTED events
+  * update to kas-container version 4.7 and remove recipes for obsolete
+    packages. support builds on Ubuntu 24.04.
+  * various fixes
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 30 Dec 2024 18:30:00 +0100
+  [ Felix Moessbauer ]
+  * service: create home dir of user mtda
+  * lava: correctly add lava-dispatcher to the image
+  * rpi4b: mount boot instead of duplicating it in rootfs
+  * rpi4b: limit imager install to wic
+  * rpi4b: update rpi-firmware to 1.20250305
+  * move mtda runtime deps to mtda package
+  * images: use clear text password for mtda user
+
+  [ Badrikesh Prusty ]
+  * drop unused recipes (python-zstandard and kconfiglib)
+  * do not build sd-mux-ctrl for Ubuntu Noble (unnecessary)
+
+  [ Syeda Shagufta Naaz ]
+  * storage: rename cmd for nbd-client to cmd_nbd
+  * documentation fixes
+
+  [ Vidyasagar G C ]
+  * documentation fixes
+  * main: remove etcdir if only exists
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 18 Mar 2025 22:00:00 +0100
 
 mtda (0.35-1) testing; urgency=medium
 
