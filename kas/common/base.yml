@@ -25,6 +25,10 @@ repos:
     layers:
       meta:
       meta-isar:
+    patches:
+      01-wicvars-efi:
+        repo: mtda
+        path: patches/isar/0001-wic-add-IMAGE_EFI_BOOT_FILES-to-WICVARS.patch
 
 bblayers_conf_header:
   base: |
