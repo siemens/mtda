@@ -99,6 +99,10 @@ Files: meta-isar/recipes-python/kconfiglib/files/kconfiglib-14.1.0/debian/*
 Copyright: 2025 Siemens AG
 License: MIT
 
+Files: meta-isar/conf/distro/*
+Copyright: 2025 Siemens AG
+License: MIT
+
 Files: mtda/assets/jquery.min.js
 Copyright: 2005, 2013 jQuery Foundation and other contributors
 License: MIT
@@ -141,4 +145,8 @@ License: MIT
 
 Files: mtda/share/nginx-multi-mtda.conf
 Copyright: 2023 Siemens AG
+License: MIT
+
+Files: patches/isar/*
+Copyright: 2025 Siemens AG
 License: MIT
