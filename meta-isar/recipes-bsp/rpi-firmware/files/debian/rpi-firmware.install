@@ -5,5 +5,9 @@ boot/*.dtb			usr/lib/rpi-firmware/
 boot/*.elf			usr/lib/rpi-firmware/
 boot/overlays/README		usr/lib/rpi-firmware/overlays/
 boot/overlays/aliases.dtbo	usr/lib/rpi-firmware/overlays/
+boot/overlays/dwc2.dtbo		usr/lib/rpi-firmware/overlays/
+boot/overlays/disable-bt.dtbo	usr/lib/rpi-firmware/overlays/
+boot/overlays/uart2.dtbo	usr/lib/rpi-firmware/overlays/
+boot/overlays/vc4-kms-v3d-pi4.dtbo	usr/lib/rpi-firmware/overlays/
 debian/cmdline.txt		usr/lib/rpi-firmware/
 debian/config.txt		usr/lib/rpi-firmware/
