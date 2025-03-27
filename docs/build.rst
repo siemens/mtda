@@ -158,6 +158,149 @@ and install the updated packages::
     Processing triggers for man-db (2.9.1-1) ...
     Processing triggers for libc-bin (2.31-0ubuntu9) ...
 
+Raspberry Pi 4 Model B
+----------------------
+
+The Raspberry Pi 4 Model B ("Pi 4") is a powerful, open-source, single-board 
+computer developed by the Raspberry Pi Foundation for a wide range of computing 
+applications.
+
+It is equipped with multiple connectivity options, including Gigabit Ethernet, 
+Wi-Fi (802.11ac), Bluetooth 5.0, and supports dual 4K display outputs via micro HDMI ports. 
+Additionally, the Pi 4 has two USB 3.0 ports, two USB 2.0 ports, and a USB-C power input.
+
+Debian (bookworm) will be loaded on the microSD card and will include the MTDA
+agent. It will communicate with its clients over Ethernet. An electric relay
+will be controlled via USB to drive power for our Device Under Test.
+Communication with that device will be achieved via the USB OTG port where the
+following functions will be exposed:
+
+ * ACM: provide a Serial over USB port. The Operating System running on the
+   Device Under Test may use this virtual serial port to provide a login
+   shell to MTDA clients.
+
+ * HID: the Raspberry Pi will be seen as a keyboard. This may be used by e.g.
+   ``power on`` scripts to enter the firmware of the Device Under Test to
+   select a boot media (SSD or USB).
+
+ * Mass Storage: a USB stick will be connected to the USB Host available on the
+   Raspberry Pi and will be exposed to the Device Under Test. MTDA will allow
+   clients to write a new OS image for the device it is connected to.
+
+Building the microSD card image
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``kas-container`` to build a Debian image for the Raspberry Pi 4 with MTDA
+preinstalled::
+
+    $ ./kas-container build kas/debian/mtda-rpi4b.yml
+
+Insert a microSD card to your system and write the generated image::
+
+    # Check the microSD card device, /dev/mmcblk0 is used as an example
+    $ sudo dd if=build/tmp/deploy/images/rpi4b/mtda-image-*.wic \
+      of=/dev/mmcblk0 bs=8M
+
+(replace ``/dev/mmcblk0`` with the actual SD card device on your system).
+
+Applying external power
+~~~~~~~~~~~~~~~~~~~~~~
+
+The Raspberry Pi 4 Model B usually gets powered over its USB-Type C interface. 
+Since we will attach this port to the Device Under Test, we need to apply external
+power instead. Re-purpose a USB cable and connect its red wire to #2 (5V IN)
+and its black wire to #6 (GND).
+
+Booting the Raspberry Pi 4 Model B
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Insert the microSD card created above into the microSD card slot of your Raspberry 
+Pi 4 Model B and connect the board to your network. Attach a formatted USB stick to
+the USB-Host port. Lastly, get a Type C USB cable, connect your system and the
+Raspberry Pi. The red LED of the Raspberry Pi should light up as well as the LEDs from
+the RJ45 port. Your system should detect a mass storage after the Raspberry Pi has
+booted. A new serial port and keyboard should also be detected. You may also
+check that your Raspberry Pi has obtained an IP address. Use ``ssh`` to connect (use
+``mtda`` as both login and password).
+
+Attaching an electric relay
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We will use a 5V relay such as the JQC3F-05VDC pictured below:
+
+.. image:: jqc3f-05vdc.jpg
+
+It requires a 5V line, ground and signal. Here is the pin-out of our Raspberry Pi 4
+Model B:
+
+.. image:: raspberry-pi-4B-pinout.png
+
+We will use pin #4 (5V OUT) to deliver 5V to the relay, pin #9 (GND) to connect the relay
+to ground and pin #11 to drive the relay. It should be noted that the signal GPIO pin
+is seen as GPIO 529 in Linux.
+
+Stitching It All Together
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows the various connections described above:
+
+.. image:: raspberry-pi-4b-mtda-connections.png
+
+Configuring MTDA
+~~~~~~~~~~~~~~~~
+
+A configuration file should be created on the Raspberry Pi 4 Model B. Use ``ssh`` to
+connect with the ``mtda`` user and then ``sudo`` to get elevated privileges::
+
+    $ ssh mtda@172.17.0.2
+    The authenticity of host '172.17.0.2 (172.17.0.2)' can't be established.
+    ECDSA key fingerprint is SHA256:X4hTqfSmfG1bet2Bg/MfU1fNMgp30T+6SkAwLXZbJTQ.
+    Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+    Warning: Permanently added '172.17.0.2' (ECDSA) to the list of known hosts.
+    mtda@172.17.0.2's password: mtda 
+    Linux mtda 4.19.0-11-armmp #1 SMP Debian 4.19.146-1 (2020-09-17) armv7l
+
+    The programs included with the Debian GNU/Linux system are free software;
+    the exact distribution terms for each program are described in the
+    individual files in /usr/share/doc/*/copyright.
+
+    Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+    permitted by applicable law.
+    Last login: Sun Sep 27 18:40:42 2020 from 172.17.0.100
+    $ sudo -s
+    [sudo] password for mtda: mtda
+    #
+
+Use ``vi`` to create an initial configuration::
+
+    # vi /etc/mtda/config
+
+Hit ``i`` to enter the input mode and type the following configuration::
+
+    [console]
+    variant=usbf
+
+    [power]
+    variant=gpio
+    gpio=gpiochip0@529
+
+    [keyboard]
+    variant=hid
+    device=/dev/hidg0
+
+    [storage]
+    variant=usbf
+    file=/dev/sda
+
+Hit ``ESC`` to leave the input mode and type ``:x`` to exit. You should be back
+to the shell and may restart the agent::
+
+    # sync
+    # systemctl restart mtda
+
+Clients may now connect to the MTDA agent, control the power input of the Device
+Under Test and remotely access its console.
+
 NanoPi R1
 ---------
 
