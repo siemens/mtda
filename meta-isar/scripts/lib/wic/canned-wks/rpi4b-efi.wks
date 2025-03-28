@@ -8,4 +8,4 @@
 part /boot --source bootimg-efi-isar --use-uuid --sourceparams "loader=systemd-boot" --label efi --part-type EF00 --align 8192
 part /     --source rootfs --use-uuid --fstype ext4 --mkfs-extraopts "-T default" --label mtdaroot --align 8192 --exclude-path boot/
 
-bootloader --ptable gpt --timeout 3 --append "rootwait console=ttyS1,115200 module_blacklist=vc4"
+bootloader --ptable gpt --timeout 3 --append "rootwait console=ttyS1,115200 module_blacklist=vc4,bluetooth"
