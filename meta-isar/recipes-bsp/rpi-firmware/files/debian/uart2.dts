@@ -1,0 +1,24 @@
+// Enable the UART2 on GPIO 0-3
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2711";
+
+	fragment@0 {
+		target-path = "/aliases";
+		__overlay__ {
+			serial2 = "/soc/serial@7e201400";
+		};
+	};
+
+	fragment@1 {
+		target = <&uart2>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart2_gpio0>, <&uart2_ctsrts_gpio2>;
+			uart-has-rtscts;
+			status = "okay";
+		};
+	};
+};

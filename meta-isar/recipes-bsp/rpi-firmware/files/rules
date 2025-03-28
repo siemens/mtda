@@ -2,6 +2,7 @@
 
 override_dh_auto_build:
 	dtc -O dtb -b 0 -@ debian/aliases.dts -o boot/overlays/aliases.dtbo
+	dtc -O dtb -b 0 -@ debian/uart2.dts -o boot/overlays/uart2.dtbo
 
 %:
 	dh $@
