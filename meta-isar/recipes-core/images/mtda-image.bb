@@ -56,6 +56,7 @@ IMAGE_PREINSTALL += "                    \
     wireless-tools                       \
     bluetooth                            \
     python3-libgpiod                     \
+    gpiod                                \
 "
 
 IMAGE_PREINSTALL:remove:ubuntu-noble = "pdudaemon-client"
