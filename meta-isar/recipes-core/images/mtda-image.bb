@@ -70,6 +70,10 @@ IMAGE_PREINSTALL:append:lava = " lava-dispatcher"
 # Expand root file-system
 IMAGE_INSTALL:append = " expand-on-first-boot "
 
+# Having zstd enables initrd compression with zstd
+# which leads to much faster decompression times on slow hardware
+IMAGE_PREINSTALL:append = " zstd"
+
 # Create a "mtda" user account with "mtda" as the default password
 USERS += "mtda"
 GROUPS += "mtda"
