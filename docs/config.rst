@@ -161,8 +161,8 @@ General settings
       accept connections from the machine running the MTDA service.
       Change to ``0.0.0.0`` to accept connections from anywhere.
 
-Console and Monitor settings
-----------------------------
+Console, Monitor & Keyboard settings
+------------------------------------
 
 The ``[console]`` and ``[monitor]`` sections respectively configure the user
 and monitor consoles for interacting with the device under test. The monitor
@@ -220,6 +220,15 @@ supports the following settings:
 
 * ``timeout``: integer [optional]
     Timeout (in seconds) for each connect.
+
+``hid`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``hid`` driver emulates keyboard presses via the ``usbf`` driver:
+
+* ``device``: string [optional]
+    Name of the kernel hid device (default: ``/dev/hidg0``). The device will
+    be created on use.
 
 Power settings
 --------------
