@@ -462,7 +462,9 @@ the DUT as a Mass Storage device. The following settings are supported:
 * ``file``: string [optional]
   File for the shared storage: a loopback device will be created to make
   sure that writes to the shared storage do not cause this file to
-  expand and leave the host without free space.
+  expand and leave the host without free space. If the file does not exist,
+  it is automatically created with a fixed size of 8GB. It also can be created
+  manually by running ``truncate -s 2G storage.img``.
 
 Timeout settings
 ----------------
