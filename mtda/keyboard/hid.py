@@ -17,6 +17,7 @@ import time
 # Local imports
 from mtda.keyboard.controller import KeyboardController
 from mtda.support.usb import Composite
+import mtda.constants as CONSTS
 
 
 class HidKeyboardController(KeyboardController):
@@ -41,8 +42,10 @@ class HidKeyboardController(KeyboardController):
         result = Composite.configure('keyboard', conf)
         if 'device' in conf:
             self.dev = conf['device']
-            self.mtda.debug(4, "keyboard.hid."
-                               f"configure(): will use {self.dev}")
+        else:
+            self.dev = CONSTS.HID_KEYBOARD_DEVICE
+        self.mtda.debug(4, "keyboard.hid."
+                           f"configure(): will use {self.dev}")
 
         self.mtda.debug(3, f"keyboard.hid.configure(): {result}")
         return result

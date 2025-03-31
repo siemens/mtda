@@ -24,6 +24,7 @@ class DEFAULTS:
     SESSION_TIMEOUT = 5
     WWW_HOST = '127.0.0.1'
     WWW_PORT = 5000
+    HID_KEYBOARD_DEVICE = "/dev/hidg0"
 
 
 class EVENTS:
