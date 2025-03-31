@@ -41,7 +41,7 @@ class QemuController(Image):
         if os.path.exists(self.file) is False:
             sparse = pathlib.Path(self.file)
             sparse.touch()
-            os.truncate(str(sparse), 8*1024*1024*1024)
+            os.truncate(str(sparse), CONSTS.IMAGE_FILESIZE)
         if 'name' in conf:
             self.name = conf['name']
 

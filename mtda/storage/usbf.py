@@ -13,6 +13,7 @@
 import os
 import stat
 import subprocess
+import pathlib
 
 # Local imports
 import mtda.constants as CONSTS
@@ -52,6 +53,12 @@ class UsbFunctionController(Image):
             self.device = conf['device']
         if 'file' in conf:
             self.file = conf['file']
+            d = os.path.dirname(self.file)
+            os.makedirs(d, mode=0o755, exist_ok=True)
+            if not os.path.exists(self.file):
+                sparse = pathlib.Path(self.file)
+                sparse.touch()
+                os.truncate(str(sparse), CONSTS.IMAGE_FILESIZE)
 
         if self.device is not None and self.file is not None:
             self.mtda.debug(1, "storage.usbf.configure(): "
