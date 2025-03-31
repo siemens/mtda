@@ -25,6 +25,7 @@ class DEFAULTS:
     WWW_HOST = '127.0.0.1'
     WWW_PORT = 5000
     HID_KEYBOARD_DEVICE = "/dev/hidg0"
+    IMAGE_FILESIZE = 8*1024*1024*1024
 
 
 class EVENTS:
