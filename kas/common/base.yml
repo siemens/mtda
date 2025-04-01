@@ -21,14 +21,10 @@ repos:
       meta-isar:
   isar:
     url: https://github.com/ilbers/isar.git
-    commit: d46adc844a74ba55c4b9521b7d7da9b5a47b489e
+    commit: 13ccc2c2fc6d846a3409b0b1107c7c1aa096de8c
     layers:
       meta:
       meta-isar:
-    patches:
-      01-wicvars-efi:
-        repo: mtda
-        path: patches/isar/0001-wic-add-IMAGE_EFI_BOOT_FILES-to-WICVARS.patch
 
 bblayers_conf_header:
   base: |
