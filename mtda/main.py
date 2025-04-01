@@ -955,14 +955,14 @@ class MultiTenantDeviceAccess:
         session = kwargs.get("session", None)
         self.session_ping(session)
         if self.storage_locked(session) is False:
-            result, writing, written = self.storage_status(session)
+            result, writing, written = self.storage_status(session=session)
             if result in [CONSTS.STORAGE.ON_HOST, CONSTS.STORAGE.ON_NETWORK]:
                 if self.storage.to_target() is True:
                     self._storage_event(CONSTS.STORAGE.ON_TARGET)
             elif result == CONSTS.STORAGE.ON_TARGET:
                 if self.storage.to_host() is True:
                     self._storage_event(CONSTS.STORAGE.ON_HOST)
-        result, writing, written = self.storage_status(session)
+        result, writing, written = self.storage_status(session=session)
         return result
 
         self.mtda.debug(3, f"main.storage_swap(): {str(result)}")
