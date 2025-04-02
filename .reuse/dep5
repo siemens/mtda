@@ -150,3 +150,7 @@ License: MIT
 Files: mtda/share/nginx-multi-mtda.conf
 Copyright: 2023 Siemens AG
 License: MIT
+
+Files: patches/cip-core/*
+Copyright: 2025 Siemens AG
+License: MIT
