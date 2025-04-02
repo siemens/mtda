@@ -1,0 +1,110 @@
+From 7abe0a2c503c2d00ea0840be079a1a3927101757 Mon Sep 17 00:00:00 2001
+From: Felix Moessbauer <felix.moessbauer@siemens.com>
+Date: Mon, 24 Mar 2025 13:43:41 +0100
+Subject: [PATCH 1/1] ebg-efi: add support to deploy additional files on boot
+ partition
+
+Some embedded systems (like the RPi 4b) cannot directly boot EFI.
+Instead, they use a staged approach where a first stage loader then
+loads the EFI provider, which then boots the efi target. For that, both
+the first-stage loader, as well as additional config files need to be
+added to the initial boot partition.
+
+The bootimg-efi-isar already supports this for both grub and
+systemd-boot by adding files to the IMAGE_EFI_BOOT_FILES bitbake
+variable. We now add the same support to the EBG wic plugin, by copying
+the code 1:1 to efibootguard-efi.py.
+
+Note, that by design these files are only copied to the ebg boot
+partition, but not to the A/B kernel partitions. While we are not yet
+EFI bootet, only a single partition is scanned by the firmware loader.
+Once we bootet EFI, there is no need for the additional files anymore.
+
+Signed-off-by: Felix Moessbauer <felix.moessbauer@siemens.com>
+---
+ .../wic/plugins/source/efibootguard-efi.py    | 52 +++++++++++++++++++
+ 1 file changed, 52 insertions(+)
+
+diff --git a/scripts/lib/wic/plugins/source/efibootguard-efi.py b/scripts/lib/wic/plugins/source/efibootguard-efi.py
+index 48f7523..cce948e 100644
+--- a/scripts/lib/wic/plugins/source/efibootguard-efi.py
++++ b/scripts/lib/wic/plugins/source/efibootguard-efi.py
+@@ -29,9 +29,12 @@
+ 
+ import logging
+ import os
++import re
++from glob import glob
+ 
+ msger = logging.getLogger('wic')
+ 
++from wic import WicError
+ from wic.pluginbase import SourcePlugin
+ from wic.misc import exec_cmd, get_bitbake_var, BOOTDD_EXTRA_SPACE
+ 
+@@ -42,6 +45,51 @@ class EfibootguardEFIPlugin(SourcePlugin):
+ 
+     name = 'efibootguard-efi'
+ 
++    @classmethod
++    def _deploy_additional_boot_files(cls, boot_files, kernel_dir, part_rootfs_dir):
++        # based on bootimg-efi-isar.py to get consistent behavior
++        # list of tuples (src_name, dst_name)
++        deploy_files = []
++        for src_entry in re.findall(r'[\w;\-\./\*]+', boot_files):
++            if ';' in src_entry:
++                dst_entry = tuple(src_entry.split(';'))
++                if not dst_entry[0] or not dst_entry[1]:
++                    raise WicError('Malformed boot file entry: %s' % src_entry)
++            else:
++                dst_entry = (src_entry, src_entry)
++
++            msger.debug('Destination entry: %r', dst_entry)
++            deploy_files.append(dst_entry)
++
++            install_task = []
++            for deploy_entry in deploy_files:
++                src, dst = deploy_entry
++                if '*' in src:
++                    # by default install files under their basename
++                    entry_name_fn = os.path.basename
++                    if dst != src:
++                        # unless a target name was given, then treat name
++                        # as a directory and append a basename
++                        entry_name_fn = lambda name: \
++                                        os.path.join(dst,
++                                                     os.path.basename(name))
++
++                    srcs = glob(os.path.join(kernel_dir, src))
++
++                    msger.debug('Globbed sources: %s', ', '.join(srcs))
++                    for entry in srcs:
++                        src = os.path.relpath(entry, kernel_dir)
++                        entry_dst_name = entry_name_fn(entry)
++                        install_task.append((src, entry_dst_name))
++                else:
++                    install_task.append((src, dst))
++
++            for src_path, dst_path in install_task:
++                install_cmd = "install -m 0644 -D %s %s" \
++                              % (os.path.join(kernel_dir, src_path),
++                                 os.path.join(part_rootfs_dir, dst_path))
++                exec_cmd(install_cmd)
++
+     @classmethod
+     def do_prepare_partition(cls, part, source_params, creator, cr_workdir,
+                              oe_builddir, deploy_dir, kernel_dir,
+@@ -100,6 +148,10 @@ class EfibootguardEFIPlugin(SourcePlugin):
+                                                name)
+         exec_cmd(cp_to_deploy_cmd, True)
+ 
++        boot_files = get_bitbake_var("IMAGE_EFI_BOOT_FILES")
++        if boot_files:
++            cls._deploy_additional_boot_files(boot_files, kernel_dir, part_rootfs_dir)
++
+         efi_part_image = "%s/%s.%s.img" % (cr_workdir, part.label, part.lineno)
+         part.prepare_rootfs_msdos(efi_part_image, cr_workdir, oe_builddir,
+                                   part_rootfs_dir, native_sysroot, None)
+-- 
+2.49.0
+
