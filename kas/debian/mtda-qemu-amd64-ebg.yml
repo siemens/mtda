@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# Debian image to run MTDA on x86_64
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2025 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+build_system: isar
+machine: qemuamd64-ebg
+
+header:
+  version: 17
+  includes:
+    - kas/debian/bookworm-base.yml
+    - kas/opt/ab-rootfs.yml

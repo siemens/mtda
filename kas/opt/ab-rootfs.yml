@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------------------
+# Optional support for a/b updatable images
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2025 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+header:
+  version: 14
+
+repos:
+  mtda:
+    layers:
+      meta-isar-extra:
+
+  cip-core:
+    url: https://gitlab.com/cip-project/cip-core/isar-cip-core.git
+    branch: master
+    commit: f2ea1d97db84b577ad673cd702b2426c5880f3ec
+
+local_conf_header:
+  partition-uuids: |
+    ABROOTFS_PART_UUID_A = "c93410ea-c6ad-477f-b5c8-af9c845d85c1"
+    ABROOTFS_PART_UUID_B = "6435ce18-ce4d-4095-a50b-fd6635f7ebfd"
+  abrootfs-image: |
+    ABROOTFS_IMAGE_RECIPE = "mtda-image-immutable"
+
+target: mtda-image-immutable
