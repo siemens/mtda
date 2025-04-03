@@ -120,6 +120,8 @@ class Application:
             else:
                 self.screen.capture_stop()
                 self.screen.print(b"\r\n*** Screen capture stopped ***\r\n")
+        elif c == 'h':
+            self.console_help()
         elif c == 'i':
             self.target_info()
         elif c == 'm':
@@ -157,6 +159,25 @@ class Application:
             server.toggle_timestamps()
         elif c == 'u':
             server.usb_toggle(1)
+
+    def console_help(self):
+        server = self.client()
+        server.console_print(
+            "\r\n*** Console help ***\r\n"
+            "  a: acquire target\r\n"
+            "  b: send console to pastebin\r\n"
+            "  c: toggle screen capture\r\n"
+            "  h: print this help message\r\n"
+            "  i: print target info\r\n"
+            "  m: switch between console and monitor\r\n"
+            "  p: toggle target on/off\r\n"
+            "  q: quit\r\n"
+            "  r: release target\r\n"
+            "  s: toggle storage between target/host\r\n"
+            "  t: toggle prefix console log with timestamp\r\n"
+            "  u: toggle usb device\r\n"
+            "\r\n"
+        )
 
     def console_pastebin(self):
         client = self.agent
@@ -419,7 +440,7 @@ class Application:
               socket.gethostname(), host.version, ""))
         print("Remote         : %s (%s)%30s\r" % (
               remote, remote_version, ""))
-        print(f"Prefix key:    : ctrl-{prefix_key}\r")
+        print(f"Prefix key:    : ctrl-{prefix_key} ('h' for help)\r")
         print(f"Session        : {session}\r")
         print("Target         : %-6s%s%s\r" % (tgt_status, locked, uptime))
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
