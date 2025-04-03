@@ -93,7 +93,7 @@ class Client:
         return self._agent.console_remote(host, screen)
 
     def console_toggle(self):
-        return self._agent.console_toggle(self._session)
+        return self._agent.console_toggle(session=self._session)
 
     def debug(self, level, msg):
         if self._agent:
@@ -287,7 +287,7 @@ class Client:
     def target_lock(self, retries=0):
         status = False
         while status is False:
-            status = self._impl.target_lock(self._session)
+            status = self._impl.target_lock(session=self._session)
             if retries <= 0 or status is True:
                 break
             retries = retries - 1
