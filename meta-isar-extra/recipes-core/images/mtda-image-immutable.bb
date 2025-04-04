@@ -13,3 +13,6 @@ require recipes-core/images/mtda-image.bb
 
 # get a hostname via DHCP
 IMAGE_INSTALL:remove = "mtda-hostname"
+
+# register with WFX backend
+IMAGE_INSTALL += "swupdate-config-wfx"
