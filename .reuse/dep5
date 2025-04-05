@@ -151,6 +151,10 @@ Files: mtda/share/nginx-multi-mtda.conf
 Copyright: 2023 Siemens AG
 License: MIT
 
+Files: meta-isar-extra/recipes-conf/swupdate-config-wfx/files/wfx.conf.tmpl
+Copyright: 2025 Siemens AG
+License: MIT
+
 Files: patches/cip-core/*
 Copyright: 2025 Siemens AG
 License: MIT

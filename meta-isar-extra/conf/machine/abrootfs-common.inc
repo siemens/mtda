@@ -14,6 +14,12 @@ INITRAMFS_INSTALL += " \
 IMAGE_TYPEDEP:wic += "squashfs"
 IMAGE_FSTYPES += "swu"
 
+# list of compatible hardware revisions
+SWU_HW_COMPAT ?= "mtda-${MACHINE}"
+# the hardware revision of the current machine
+MACHINE_HW_VERSION ?= "mtda-${MACHINE}"
+IMAGE_INSTALL += "swupdate-config-${MACHINE}"
+
 # the squashfs is already compressed. Do not compress externally
 SWU_COMPRESSION_TYPE = ""
 # compress the initrd with zstd to speedup decompression
