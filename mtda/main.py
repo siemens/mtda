@@ -1039,7 +1039,8 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
-    def toggle_timestamps(self):
+    def toggle_timestamps(self, **kwargs):
+        # kwargs: might be called with session parameter
         self.mtda.debug(3, "main.toggle_timestamps()")
 
         if self.console_logger is not None:
