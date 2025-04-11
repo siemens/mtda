@@ -9,8 +9,8 @@ DISTRO_ARCH ?= "arm64"
 
 KERNEL_NAME ?= "arm64"
 
-IMAGE_FSTYPES ??= "wic"
-WKS_FILE ??= "rpi4b-efi.wks"
+IMAGE_FSTYPES ?= "wic"
+WKS_FILE ?= "rpi4b-efi.wks"
 
 IMAGER_BUILD_DEPS = "u-boot-config-rpi4b"
 IMAGER_INSTALL:wic += "${IMAGER_BUILD_DEPS}"
