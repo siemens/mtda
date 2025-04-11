@@ -397,12 +397,11 @@ class Image(StorageController):
                              (cur_range["first"] - writtenBlocks)
                              * blksize - self.overlap)
                 self.handle.seek(nbytes, io.SEEK_CUR)
-            self.overlap -= min(self.overlap, nbytes)
             self.writtenBytes += nbytes
+            self.overlap = self.writtenBytes % blksize
             offset += nbytes
             remaining -= nbytes
 
-        self.overlap = self.writtenBytes % blksize
         return offset
 
     def _validate_and_reset_range(self):
