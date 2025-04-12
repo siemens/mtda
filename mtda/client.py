@@ -346,6 +346,8 @@ class ImageFile:
             time.sleep(0.5)
         self._socket.close()
         self._socket = None
+        if outputsize and written != outputsize:
+            raise IOError(f'image write failed: wrote {written} out of {outputsize} bytes')
 
     def path(self):
         return self._path
