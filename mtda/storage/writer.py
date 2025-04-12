@@ -138,6 +138,7 @@ class AsyncImageWriter:
         last_read = 0
         received = 0
         tries = CONSTS.WRITER.RECV_RETRIES
+        fail_reason = ""
         self._exiting = False
         self._failed = False
         self._receiving = True
@@ -188,11 +189,13 @@ class AsyncImageWriter:
 
                 if tries == 0:
                     self._failed = True
+                    fail_reason = "too many retries"
                     break
 
             except Exception as e:
                 import traceback
                 self._failed = True
+                fail_reason = str(e)
                 mtda.debug(1, f"storage.writer.worker(): {e}")
                 mtda.debug(1, traceback.format_exc())
                 break
@@ -205,12 +208,11 @@ class AsyncImageWriter:
             self._stream = None
 
         if self._failed is False:
-            event = CONSTS.STORAGE.INITIALIZED
+            mtda._storage_event(CONSTS.STORAGE.INITIALIZED)
         else:
-            event = CONSTS.STORAGE.CORRUPTED
             mtda.debug(1, "storage.writer.worker(): "
                           "write or decompression error!")
-        mtda._storage_event(event)
+            mtda._storage_event(CONSTS.STORAGE.CORRUPTED, fail_reason)
 
         mtda.debug(3, "storage.writer.worker(): exit")
 
