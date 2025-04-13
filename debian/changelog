@@ -1,8 +1,33 @@
-mtda (0.37-0) testing; urgency=medium
+mtda (0.37-1) testing; urgency=medium
 
-  * development version
+  [ Felix Moessbauer ]
+  * rpi: switch to 6.12 kernel from bookworm backports
+  * rpi: use broadcom firmware from backports
+  * rpi: add target to support EFI booting
+  * image: add gpiod as useful for debugging
+  * image: add zstd utility to image
+  * hid: use hidg0 if no device is provided
+  * hid: document keyboard device parameter
+  * usbf: auto-create file if not available
+  * isar: update ISAR to be patch-free again
+  * rpi: add support for a/b rootfs update
+  * cli: add key to print help message
+  * pass session by named argument
+  * swupdate: add a/b updatable image
+  * swupdate: add support to use WFX backend
+  * add kwargs to toggle_timestamps method
+  * bmap: correctly handle range end with overlap
+  * storage: check if image is fully written
+  * storage: add reason to storage write failed event
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 24 Mar 2025 13:30:00 +0100
+  [ Cedric Hombourger ]
+  * storage: reduce buffer size from 1 MiB to 512 KiB
+  * storage: pass session to storage_status() as keyword
+
+  [ Shivaschandra KL ]
+  * docs: Add Raspberry Pi 4 Model B support
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 13 Apr 2025 20:30:00 +0100
 
 mtda (0.36-1) testing; urgency=medium
 
