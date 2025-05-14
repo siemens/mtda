@@ -155,6 +155,64 @@ may be sent to the QEMU monitor using the ``command`` command::
 
     $ mtda-cli command hostfwd_add tcp::8080-:8080
 
+Keyboard
+~~~~~~~~
+
+The assist board has the capability. to act as keyboard to the DUT,general usage is
+``mtda-cli keyboard write characters....`` Some special characters are supported and 
+need to be enclosed between < and >
+
+For instance: ``mtda-cli keyboard write "<down><enter>hello world<enter>"``
+
+.. list-table:: Special Keys
+   :widths: 20 80
+   :header-rows: 1   
+   
+   * - Supported Special Keys
+     - String
+   * - Backspace
+     - <backspace>
+   * - Caps Lock
+     - <capslock>
+   * - Enter
+     - <enter>
+   * - Tab
+     - <tab>
+   * - Escape
+     - <esc>
+   * - F1
+     - <f1>
+   * - F2
+     - <f2>
+   * - F3
+     - <f3>
+   * - F4
+     - <f4>
+   * - F5
+     - <f5>
+   * - F6
+     - <f6>
+   * - F7
+     - <f7>
+   * - F8
+     - <f8>
+   * - F9
+     - <f9>
+   * - F10
+     - <f10>
+   * - F11
+     - <f11>
+   * - F12
+     - <f12>
+   * - Left
+     - <left>
+   * - Right
+     - <right>
+   * - Up
+     - <up>
+   * - Down
+     - <down>
+
 Interactive
 -----------
 
