@@ -202,6 +202,12 @@ class Composite:
             if not os.path.exists(config):
                 os.symlink(path, config, True)
 
+    ecm_function = {
+        "name": "ecm.usb0",
+        "configured": False,
+        "enabled": False
+    }
+
     hid_function = {
         "name": "hid.usb0",
         "configured": False,
@@ -265,6 +271,7 @@ class Composite:
 
     functions = {
         "console": console_function,
+        "network": ecm_function,
         "monitor": monitor_function,
         "keyboard": hid_function,
         "storage": ms_function
