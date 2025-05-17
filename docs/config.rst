@@ -466,6 +466,23 @@ the DUT as a Mass Storage device. The following settings are supported:
   it is automatically created with a fixed size of 8GB. It also can be created
   manually by running ``truncate -s 2G storage.img``.
 
+Network settings
+----------------
+
+The ``[network]`` section configures a controllable network link between the
+agent and the device under test. The driver is selected with the ``variant``
+setting. Driver-specific settings are detailed below.
+
+``usbf`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``usbf`` driver adds an ECM function to USB composite device exposed to
+the DUT. The following settings are supported:
+
+* ``ipv4``: string [optional]
+  The IPv4 address to be set when the network interface is brought up
+  (defaults to ``192.168.7.1/24``)
+
 Timeout settings
 ----------------
 

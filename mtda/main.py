@@ -57,6 +57,7 @@ class MultiTenantDeviceAccess:
         self.video = None
         self.mtda = self
         self.name = socket.gethostname()
+        self.network = None
         self.assistant = None
         self.power = None
         self.power_on_script = None
@@ -126,21 +127,37 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, f"main.command(): {str(result)}")
         return result
 
+    def _composite_needed(self):
+        if self.console is not None and self.console.variant == 'usbf':
+            return True
+        if self.monitor is not None and self.monitor.variant == 'usbf':
+            return True
+        if self.storage is not None and self.storage.variant == 'usbf':
+            return True
+        if self.network is not None and self.network.variant == 'usbf':
+            return True
+        if self.keyboard is not None and self.keyboard.variant == 'hid':
+            return True
+        return False
+
     def _composite_start(self):
         self.mtda.debug(3, "main._composite_start()")
 
         result = True
-        storage = self.storage
-        from mtda.support.usb import Composite
-        if storage is not None and storage.variant == 'usbf':
-            status, _, _ = self.storage_status()
-            enabled = status == CONSTS.STORAGE.ON_TARGET
-            self.mtda.debug(3, "main._composite_start(): "
-                               f"with storage? {enabled}")
-            Composite.storage_toggle(enabled)
+        if self._composite_needed():
+            from mtda.support.usb import Composite
+
+            if self.storage is not None and self.storage.variant == 'usbf':
+                status, _, _ = self.storage_status()
+                enabled = status == CONSTS.STORAGE.ON_TARGET
+                self.mtda.debug(3, "main._composite_start(): "
+                                   f"with storage? {enabled}")
+                Composite.storage_toggle(enabled)
+
             result = Composite.install()
-        elif self.keyboard is not None:
-            result = Composite.install()
+            if result is True:
+                if self.network is not None and self.network.variant == 'usbf':
+                    result = self.network.up()
 
         self.mtda.debug(3, f"main._composite_start(): {result}")
         return result
@@ -149,8 +166,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main._composite_stop()")
 
         result = None
-        storage = self.storage
-        if storage is not None and storage.variant == 'usbf':
+        if self._composite_needed():
             from mtda.support.usb import Composite
             Composite.remove()
 
@@ -1220,6 +1236,10 @@ class MultiTenantDeviceAccess:
             self.monitor_logger.reset_timer()
             self.monitor_logger.pause()
 
+        # bring network down
+        if self.network is not None:
+            self.network.down()
+
         # release keyboard
         if self.keyboard is not None:
             self.keyboard.idle()
@@ -1487,8 +1507,8 @@ class MultiTenantDeviceAccess:
             self.load_ui_config(parser)
         if self.is_remote is False and is_server is True:
             # load and configure core sub-systems
-            subsystems = ['power', 'console', 'storage', 'monitor', 'keyboard',
-                          'video', 'assistant']
+            subsystems = ['power', 'console', 'storage', 'monitor', 'network',
+                          'keyboard', 'video', 'assistant']
             for sub in subsystems:
                 if parser.has_section(sub):
                     try:
@@ -1766,6 +1786,13 @@ class MultiTenantDeviceAccess:
             self.monitor_logger = ConsoleLogger(
                 self, self.monitor, socket, self.power, b'MON')
             self.monitor_logger.start()
+
+        if self.network is not None:
+            status = self.network.probe()
+            if status is False:
+                print('Probe of the %s network failed!' % (
+                      self.network.variant), file=sys.stderr)
+                return False
 
         if self.keyboard is not None:
             status = self.keyboard.probe()
