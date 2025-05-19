@@ -479,6 +479,11 @@ setting. Driver-specific settings are detailed below.
 The ``usbf`` driver adds an ECM function to USB composite device exposed to
 the DUT. The following settings are supported:
 
+* ``dhcp``: boolean [optional]
+  Whether to offer an IPv4 address to the Device Under Test (it will be the
+  next IPv4 address after the address set from the `ipv4` setting).
+  (defaults to ``true``)
+
 * ``ipv4``: string [optional]
   The IPv4 address to be set when the network interface is brought up
   (defaults to ``192.168.7.1/24``)
