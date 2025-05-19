@@ -157,7 +157,7 @@ class MultiTenantDeviceAccess:
             result = Composite.install()
             if result is True:
                 if self.network is not None and self.network.variant == 'usbf':
-                    result = self.network.up()
+                    self.network.up()
 
         self.mtda.debug(3, f"main._composite_start(): {result}")
         return result
