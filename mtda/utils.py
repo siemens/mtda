@@ -9,7 +9,11 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
+import os
+import psutil
+import signal
 import threading
+import time
 import mtda.constants as CONSTS
 
 
@@ -32,6 +36,20 @@ class RepeatTimer(threading.Timer):
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
+
+
+class System():
+    def kill(name, pid, timeout=3):
+        pid = int(pid)
+        tries = timeout
+        if psutil.pid_exists(pid):
+            os.kill(pid, signal.SIGTERM)
+        while tries > 0 and psutil.pid_exists(pid):
+            time.sleep(1)
+            tries = tries - 1
+        if psutil.pid_exists(pid):
+            os.kill(pid, signal.SIGKILL)
+        return psutil.pid_exists(pid)
 
 
 class SystemdDeviceUnit():

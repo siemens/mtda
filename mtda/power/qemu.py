@@ -15,7 +15,6 @@ import os
 import pathlib
 import psutil
 import re
-import signal
 import tempfile
 import threading
 import time
@@ -23,6 +22,7 @@ import multiprocessing
 
 # Local imports
 from mtda.power.controller import PowerController
+from mtda.utils import System
 
 
 class QemuController(PowerController):
@@ -268,19 +268,6 @@ class QemuController(PowerController):
                                    "({0})".format(result))
         return False
 
-    def kill(self, name, pid, timeout=3):
-        tries = timeout
-        if psutil.pid_exists(pid):
-            self.mtda.debug(2, f"terminating {name} [{pid}] using SIGTERM")
-            os.kill(pid, signal.SIGTERM)
-        while tries > 0 and psutil.pid_exists(pid):
-            time.sleep(1)
-            tries = tries - 1
-        if psutil.pid_exists(pid):
-            self.mtda.debug(2, f"terminating {name} [{pid}] using SIGKILL")
-            os.kill(pid, signal.SIGKILL)
-        return psutil.pid_exists(pid)
-
     def stop(self):
         self.mtda.debug(3, "power.qemu.stop()")
 
@@ -288,17 +275,17 @@ class QemuController(PowerController):
         result = True
 
         if self.pidOfQemu is not None:
-            result = self.kill("qemu", self.pidOfQemu)
+            result = System.kill("qemu", self.pidOfQemu)
             if result:
                 self.pidOfQemu = None
 
         if self.pidOfSwTpm is not None:
-            result = self.kill("swtpm", self.pidOfSwTpm)
+            result = System.kill("swtpm", self.pidOfSwTpm)
             if result:
                 self.pidOfSwTpm = None
 
         if self.pidOfWebsockify is not None:
-            result = self.kill("websockify", self.pidOfWebsockify)
+            result = System.kill("websockify", self.pidOfWebsockify)
             if result:
                 self.pidOfWebsockify = None
 
