@@ -28,6 +28,7 @@ class UsbFunctionController(NetworkController):
         self.dhcp = True
         self.dhcp_pid_file = None
         self.forward_rules = None
+        self.gateway = True
         self.ipv4 = "192.168.7.1/24"
         self.peer = None
         self.mtda = mtda
@@ -43,6 +44,8 @@ class UsbFunctionController(NetworkController):
             self.dhcp = bool(strtobool(conf['dhcp']))
         if 'forward' in conf:
             self.forward_rules = self._parse_forward(conf['forward'])
+        if 'gateway' in conf:
+            self.gateway = bool(strtobool(conf['gateway']))
         if 'peer' in conf:
             self.peer = ipaddress.IPv4Address(conf['peer'])
 
@@ -165,6 +168,22 @@ class UsbFunctionController(NetworkController):
                    'MASQUERADE']
             subprocess.check_call(cmd)
 
+    def _gateway_rules(self, remove=False):
+        opt = '-A' if remove is False else '-D'
+
+        cmd = ['/sbin/iptables', '-t', 'nat', opt, 'POSTROUTING', '!', '-o',
+               self.device, '-j', 'MASQUERADE']
+        subprocess.check_call(cmd)
+
+        cmd = ['/sbin/iptables', opt, 'FORWARD', '-i', self.device,
+               '-j', 'ACCEPT']
+        subprocess.check_call(cmd)
+
+        cmd = ['/sbin/iptables', opt, 'FORWARD', '-o', self.device,
+               '-m', 'state', '--state', 'RELATED,ESTABLISHED',
+               '-j', 'ACCEPT']
+        subprocess.check_call(cmd)
+
     """ Bring-up the network interface"""
     def up(self):
         self.mtda.debug(3, "network.usbf.up()")
@@ -202,6 +221,10 @@ class UsbFunctionController(NetworkController):
         if self.forward_rules:
             self._apply_forward_rules()
 
+        self.mtda.debug(2, f"gateway for {self.device}? {self.gateway}")
+        if self.gateway:
+            self._gateway_rules()
+
         self.mtda.debug(3, "network.usbf.up: exit")
 
     """ Bring-down the network interface"""
@@ -212,6 +235,8 @@ class UsbFunctionController(NetworkController):
             self.mtda.debug(2, "network.usbf.down: "
                                f"bringing {self.device} down")
 
+            if self.gateway:
+                self._gateway_rules(remove=True)
             if self.forward_rules:
                 self._remove_forward_rules()
             if self.dhcp is True:
