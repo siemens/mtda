@@ -490,6 +490,10 @@ the DUT. The following settings are supported:
   `tcp:2222:22,tcp:8080:80` to forward SSH and HTTP requests received on ports
   `2222` and `8080` respectively to ports `22` and `80` on the Device.
 
+* ``gateway``: boolean [optional]
+  Whether to act as a gateway and forward traffic from the Device Under Test
+  to remote (e.g. Internet) hosts (defaults to ``true``)
+
 * ``ipv4``: string [optional]
   The IPv4 address to be set when the network interface is brought up
   (defaults to ``192.168.7.1/24``)
