@@ -480,13 +480,23 @@ The ``usbf`` driver adds an ECM function to USB composite device exposed to
 the DUT. The following settings are supported:
 
 * ``dhcp``: boolean [optional]
-  Whether to offer an IPv4 address to the Device Under Test (it will be the
-  next IPv4 address after the address set from the `ipv4` setting).
+  Whether to offer an IPv4 address to the Device Under Test
   (defaults to ``true``)
+
+* ``forward``: string [optional]
+  A comma separated list of NAT forwarding rules from the agent to the Device
+  Under Test. Each rule is of the form `<protocol>:<agent-port>:<device-port>`
+  with `protocol` being either `tcp` or `udp`. Example:
+  `tcp:2222:22,tcp:8080:80` to forward SSH and HTTP requests received on ports
+  `2222` and `8080` respectively to ports `22` and `80` on the Device.
 
 * ``ipv4``: string [optional]
   The IPv4 address to be set when the network interface is brought up
   (defaults to ``192.168.7.1/24``)
+
+* ``peer``: string [optional]
+  The IPv4 address of the Device Under Test. (defaults to the next IPv4 address
+  after the address set with the `ipv4` setting).
 
 Timeout settings
 ----------------
