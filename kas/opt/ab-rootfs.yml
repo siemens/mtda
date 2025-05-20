@@ -18,12 +18,7 @@ repos:
 
   cip-core:
     url: https://gitlab.com/cip-project/cip-core/isar-cip-core.git
-    branch: master
-    commit: f2ea1d97db84b577ad673cd702b2426c5880f3ec
-    patches:
-      01-ebg-additional-files:
-        repo: mtda
-        path: patches/cip-core/0001-ebg-efi-add-support-to-deploy-additional-files-on-bo.patch
+    commit: 8a1e4f0b1e699f7bef02c1ddbee90daa08efc32d
 
 local_conf_header:
   partition-uuids: |
