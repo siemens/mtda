@@ -15,6 +15,10 @@ Files: kas-container
 Copyright: 2021 Siemens AG
 License: MIT
 
+Files: kas/**/*.lock.yml
+Copyright: 2025 Siemens AG
+License: MIT
+
 Files: configs/qemu-ovmf-vars.fd
 Copyright: 2025 Siemens AG
 License: MIT
