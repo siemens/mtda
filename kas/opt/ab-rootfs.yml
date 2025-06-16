@@ -18,7 +18,7 @@ repos:
 
   cip-core:
     url: https://gitlab.com/cip-project/cip-core/isar-cip-core.git
-    commit: 8a1e4f0b1e699f7bef02c1ddbee90daa08efc32d
+    branch: next
 
 local_conf_header:
   partition-uuids: |
