@@ -1,3 +1,4 @@
+.kas_shell_history
 .pybuild
 .tox
 *.buildinfo
