@@ -1,8 +1,20 @@
-mtda (0.38-0) testing; urgency=medium
+mtda (0.38-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * initial support for USB ECM function
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sat, 17 May 2025 09:00:00 +0100
+  [ Felix Moessbauer ]
+  * update ISAR and isar-cip-core and use kas lock files to pin versions
+  * update kas-container to 4.8.1
+
+  [ Badrikesh Prusty ]
+  * add .kas_shell_history to .gitignore
+  * pull sd-mux-ctrl sources from Debian
+
+  [ Shivaschandra KL ]
+  * Documentation:: add missing keyboard section
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 06 Jul 2025 08:00:00 +0100
 
 mtda (0.37-1) testing; urgency=medium
 
