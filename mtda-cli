@@ -273,6 +273,16 @@ class Application:
 
         cmds[args.subcommand](args)
 
+    def mouse_move(self, args):
+        self.client().mouse_move(args.x, args.y, args.buttons)
+
+    def mouse_cmd(self, args):
+        cmds = {
+           'move': self.mouse_move
+        }
+
+        cmds[args.subcommand](args)
+
     def monitor_cmd(self, args):
         cmds = {
            'send': self.monitor_send,
@@ -652,6 +662,37 @@ class Application:
             metavar="key",
             type=str,
             help="Keyboard Key"
+        )
+
+        # subcommand: mouse
+        cmd = self.mouse_cmd
+        p = subparsers.add_parser(
+            "mouse",
+            help="Generate a mouse move/click event",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser(
+            "move", help="Generate a mouse move/click event"
+        )
+        s.add_argument(
+            "x",
+            metavar="x",
+            type=int,
+            help="absolute x coordinate"
+        )
+        s.add_argument(
+            "y",
+            metavar="y",
+            type=int,
+            help="absolute y coordinate"
+        )
+        s.add_argument(
+            "buttons",
+            metavar="buttons",
+            type=int,
+            help="buttons"
         )
 
         # subcommand: monitor

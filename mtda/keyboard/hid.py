@@ -43,7 +43,7 @@ class HidKeyboardController(KeyboardController):
         if 'device' in conf:
             self.dev = conf['device']
         else:
-            self.dev = CONSTS.HID_KEYBOARD_DEVICE
+            self.dev = CONSTS.USB.HID_KEYBOARD
         self.mtda.debug(4, "keyboard.hid."
                            f"configure(): will use {self.dev}")
 

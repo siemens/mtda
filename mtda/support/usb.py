@@ -11,7 +11,9 @@
 
 import atexit
 import os
+import stat
 import threading
+import mtda.constants as CONSTS
 
 
 class Composite:
@@ -107,6 +109,14 @@ class Composite:
             write(udc, "")
         return True
 
+    def _create_node(spec, target):
+        dev = open(spec).read().strip().split(':')
+        dev = os.makedev(int(dev[0]), int(dev[1]))
+        mode = 0o660
+        if os.path.exists(target):
+            os.unlink(target)
+        os.mknod(target, stat.S_IFCHR | mode, dev)
+
     def _install():
         if Composite._installed is True:
             return True
@@ -154,6 +164,15 @@ class Composite:
             write(lun + "file", file)
             Composite.debug(2, "composite."
                                f"install(): storage device/file: {file}")
+
+        if Composite.functions['keyboard']['enabled'] is True:
+            dev = path + "/functions/hid.usb0/dev"
+            Composite._create_node(dev, CONSTS.USB.HID_KEYBOARD)
+
+        if Composite.functions['mouse']['enabled'] is True:
+            dev = path + "/functions/hid.usb1/dev"
+            Composite._create_node(dev, CONSTS.USB.HID_MOUSE)
+
         Composite._installed = Composite._enable()
         return Composite._installed
 
@@ -175,6 +194,10 @@ class Composite:
             os.rmdir(os.path.join(path, "functions", function))
         os.rmdir(os.path.join(path, "strings", lang))
         os.rmdir(path)
+
+        for dev in [CONSTS.USB.HID_KEYBOARD, CONSTS.USB.HID_MOUSE]:
+            if os.path.exists(dev):
+                os.unlink(dev)
 
         Composite._installed = False
 
@@ -208,7 +231,7 @@ class Composite:
         "enabled": False
     }
 
-    hid_function = {
+    kbd_function = {
         "name": "hid.usb0",
         "configured": False,
         "enabled": False,
@@ -251,6 +274,43 @@ class Composite:
         ]
     }
 
+    mouse_function = {
+        "name": "hid.usb1",
+        "configured": False,
+        "enabled": False,
+        "protocol": "0",
+        "subclass": "0",
+        "report_length": "5",  # 1 byte buttons + 2x 16-bit absolute coords
+        "report_desc": [
+            0x05, 0x01,        # USAGE_PAGE (Generic Desktop)
+            0x09, 0x02,        # USAGE (Mouse)
+            0xa1, 0x01,        # COLLECTION (Application)
+            0x09, 0x01,        # USAGE (Pointer)
+            0xa1, 0x00,        # COLLECTION (Physical)
+            0x05, 0x09,        # USAGE_PAGE (Button)
+            0x19, 0x01,        # USAGE_MINIMUM (Button 1)
+            0x29, 0x03,        # USAGE_MAXIMUM (Button 3)
+            0x15, 0x00,        # LOGICAL_MINIMUM (0)
+            0x25, 0x01,        # LOGICAL_MAXIMUM (1)
+            0x95, 0x03,        # REPORT_COUNT (3)
+            0x75, 0x01,        # REPORT_SIZE (1)
+            0x81, 0x02,        # INPUT (Data,Var,Abs)
+            0x95, 0x01,        # REPORT_COUNT (1)
+            0x75, 0x05,        # REPORT_SIZE (5)
+            0x81, 0x03,        # INPUT (Cnst,Var,Abs) ; padding
+            0x05, 0x01,        # USAGE_PAGE (Generic Desktop)
+            0x09, 0x30,        # USAGE (X)
+            0x09, 0x31,        # USAGE (Y)
+            0x16, 0x00, 0x00,  # LOGICAL_MINIMUM (0)
+            0x26, 0xFF, 0x7F,  # LOGICAL_MAXIMUM (32767)
+            0x75, 0x10,        # REPORT_SIZE (16)
+            0x95, 0x02,        # REPORT_COUNT (2)
+            0x81, 0x02,        # INPUT (Data,Var,Abs)
+            0xc0,              # END_COLLECTION
+            0xc0               # END_COLLECTION
+        ]
+    }
+
     console_function = {
         "name": "acm.GS0",
         "configured": False,
@@ -273,7 +333,8 @@ class Composite:
         "console": console_function,
         "network": ecm_function,
         "monitor": monitor_function,
-        "keyboard": hid_function,
+        "keyboard": kbd_function,
+        "mouse": mouse_function,
         "storage": ms_function
     }
 
