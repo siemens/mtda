@@ -54,6 +54,7 @@ class MultiTenantDeviceAccess:
         self.env = {}
         self.fuse = False
         self.keyboard = None
+        self.mouse = None
         self.video = None
         self.mtda = self
         self.name = socket.gethostname()
@@ -137,6 +138,8 @@ class MultiTenantDeviceAccess:
         if self.network is not None and self.network.variant == 'usbf':
             return True
         if self.keyboard is not None and self.keyboard.variant == 'hid':
+            return True
+        if self.mouse is not None and self.mouse.variant == 'hid':
             return True
         return False
 
@@ -569,6 +572,19 @@ class MultiTenantDeviceAccess:
                 self.keyboard.write(key)
 
         self.mtda.debug(3, f"main.keyboard_write(): {result}")
+        return result
+
+    @Pyro4.expose
+    def mouse_move(self, x, y, buttons, **kwargs):
+        self.mtda.debug(3, "main.mouse_move()")
+
+        result = None
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+        if self.mouse is not None:
+            self.mouse.move(x, y, buttons)
+
+        self.mtda.debug(3, f"main.mouse_move(): {result}")
         return result
 
     def monitor_remote(self, host, screen):
@@ -1244,6 +1260,10 @@ class MultiTenantDeviceAccess:
         if self.keyboard is not None:
             self.keyboard.idle()
 
+        # release mouse
+        if self.mouse is not None:
+            self.mouse.idle()
+
         result = True
         if self.power is not None:
             result = self.power.off()
@@ -1508,7 +1528,7 @@ class MultiTenantDeviceAccess:
         if self.is_remote is False and is_server is True:
             # load and configure core sub-systems
             subsystems = ['power', 'console', 'storage', 'monitor', 'network',
-                          'keyboard', 'video', 'assistant']
+                          'keyboard', 'mouse', 'video', 'assistant']
             for sub in subsystems:
                 if parser.has_section(sub):
                     try:
@@ -1799,6 +1819,13 @@ class MultiTenantDeviceAccess:
             if status is False:
                 print('Probe of the %s keyboard failed!' % (
                       self.keyboard.variant), file=sys.stderr)
+                return False
+
+        if self.mouse is not None:
+            status = self.mouse.probe()
+            if status is False:
+                print('Probe of the %s mouse failed!' % (
+                      self.mouse.variant), file=sys.stderr)
                 return False
 
         if self.assistant is not None:
