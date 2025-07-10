@@ -47,6 +47,11 @@ class MDNS:
     TYPE = '_MTDA._tcp.local.'
 
 
+class MOUSE:
+    MAX_X = 32767
+    MAX_Y = 32767
+
+
 class POWER:
     OFF = "OFF"
     ON = "ON"

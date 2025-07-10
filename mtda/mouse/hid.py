@@ -87,8 +87,17 @@ class HidMouseController(MouseController):
         return result
 
     def move(self, x, y, buttons=0):
+        self.mtda.debug(3, f"mouse.hid.move({x}, {y}, {buttons})")
+
+        x = int(x * CONSTS.MOUSE.MAX_X)
+        y = int(y * CONSTS.MOUSE.MAX_Y)
         report = struct.pack('<BHH', buttons, x, y)
-        return self._write(report)
+
+        self.mtda.debug(4, f"mouse.hid.move(): {report.hex(' ')}")
+        result = self._write(report)
+
+        self.mtda.debug(3, f"mouse.hid.move(): {result}")
+        return result
 
 
 def instantiate(mtda):

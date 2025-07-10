@@ -259,6 +259,16 @@ SPDX-License-Identifier: MIT
             url = selfpath + url.match('(?:http|https)://.*?/(.*)')[1]
           }
           video.innerHTML = '<img src="' + url + '" />'
+          videoWindow.body.addEventListener('mousedown', function(event) {
+            const rect = event.target.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+            $.getJSON('./mouse-move', {
+              x: x, y: y, buttons: 1, session: localStorage.getItem('session')
+            }, function(key) {
+              // do nothing
+            });
+          });
           document.getElementById('vnc_status').innerHTML = '<span style="color: green;"><b>Video</b></span>';
         }
       }
