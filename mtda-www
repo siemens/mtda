@@ -68,7 +68,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
             fmt = mtda.video_format()
             if fmt is not None:
-                url = mtda.video_url(host=self.request.host)
+                from urllib.parse import urlparse
+                url = urlparse(f'http://{self.request.host}')
+                url = mtda.video_url(host=url.hostname)
                 self.write_message({"video-info": {"format": fmt, "url": url}})
 
     def on_message(self, message):
