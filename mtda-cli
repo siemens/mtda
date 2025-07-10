@@ -679,14 +679,14 @@ class Application:
         s.add_argument(
             "x",
             metavar="x",
-            type=int,
-            help="absolute x coordinate"
+            type=float,
+            help="absolute x coordinate as percentage"
         )
         s.add_argument(
             "y",
             metavar="y",
-            type=int,
-            help="absolute y coordinate"
+            type=float,
+            help="absolute y coordinate as percentage"
         )
         s.add_argument(
             "buttons",

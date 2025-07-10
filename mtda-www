@@ -132,6 +132,19 @@ class KeyboardInputHandler(BaseHandler):
         self.result_as_json({"result": result})
 
 
+class MouseEventHandler(BaseHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        result = ''
+        x = float(self.get_argument("x", 0))
+        y = float(self.get_argument("y", 0))
+        buttons = int(self.get_argument("buttons", 0))
+        mtda.mouse_move(x, y, buttons)
+        if buttons > 0:
+            mtda.mouse_move(x, y, 0)
+        self.result_as_json({"result": result})
+
+
 class PowerToggleHandler(BaseHandler):
     def get(self):
         mtda = self.application.settings['mtda']
@@ -287,6 +300,7 @@ class Service:
             }),
             (r"/mtda", WebSocketHandler),
             (r"/keyboard-input", KeyboardInputHandler),
+            (r"/mouse-move", MouseEventHandler),
             (r"/power-toggle", PowerToggleHandler),
             (r"/storage-close", StorageCloseHandler),
             (r"/storage-open", StorageOpenHandler),
