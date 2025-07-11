@@ -147,6 +147,15 @@ the block device when done:
 
     $ nbd-client -d /dev/nbd0
 
+When using the `usbf` storage driver, a Copy-on-Write device may be
+configured to receive all changes. When the storage is returned to
+the host, changes may be either committed or reverted using the
+`commit` or `rollback`::
+
+
+    $ mtda-cli storage host
+    $ mtda-cli storage commit # or rollback
+
 Monitor commands
 ~~~~~~~~~~~~~~~~
 

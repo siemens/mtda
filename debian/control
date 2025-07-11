@@ -20,6 +20,7 @@ Multi-Arch: foreign
 Depends: mtda-common,
          dnsmasq-base,
          iptables,
+         kpartx,
          python3-daemon,
          python3-gevent,
          python3-libgpiod,
