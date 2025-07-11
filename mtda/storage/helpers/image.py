@@ -133,6 +133,8 @@ class Image(StorageController):
         p = pathlib.Path(self.file)
         if p.is_block_device() is True:
             self.device = self.file
+            cmd = ['/sbin/kpartx', '-av', self.device]
+            subprocess.check_call(cmd)
             result = True
         else:
             cmd = ["losetup", "-f", "--show", "-P", self.file]
@@ -225,15 +227,16 @@ class Image(StorageController):
     def open(self):
         self.mtda.debug(3, "storage.helpers.image.open()")
         with self.lock:
-            result = self._open_impl()
+            result = True
+            if self._status() == CONSTS.STORAGE.ON_HOST:
+                if self.handle is None:
+                    result = self._open()
         self.mtda.debug(3, f"storage.helpers.image.open(): {str(result)}")
         return result
 
-    def _open_impl(self):
-        if self._status() == CONSTS.STORAGE.ON_HOST:
-            if self.handle is None:
-                self.handle = open(self.file, "r+b")
-                self.handle.seek(0, 0)
+    def _open(self):
+        self.handle = open(self.file, "r+b")
+        self.handle.seek(0, 0)
         return True
 
     def path(self):

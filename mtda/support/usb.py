@@ -70,11 +70,7 @@ class Composite:
     def _configure(what, conf):
         result = True
         if what == 'storage':
-            # keep this logic in sync with usbf handler (prefer file)
-            if 'file' in conf:
-                Composite._storage = conf['file']
-            elif 'device' in conf:
-                Composite._storage = conf['device']
+            Composite._storage = conf['_device_']
         if what in Composite.functions:
             Composite.functions[what]['configured'] = True
             Composite.functions[what]['enabled'] = True

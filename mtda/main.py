@@ -737,6 +737,40 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
+    def storage_commit(self, **kwargs):
+        self.mtda.debug(3, "main.storage_commit()")
+
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+
+        result = False
+        if self.storage is not None:
+            if self.storage_locked(session):
+                raise RuntimeError('cannot commit changes, '
+                                   'storage is locked!')
+            result = self.storage.commit()
+
+        self.mtda.debug(3, f"main.storage_commit(): {result}")
+        return result
+
+    @Pyro4.expose
+    def storage_rollback(self, **kwargs):
+        self.mtda.debug(3, "main.storage_rollback()")
+
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+
+        result = False
+        if self.storage is not None:
+            if self.storage_locked(session):
+                raise RuntimeError('cannot rollback changes, '
+                                   'storage is locked!')
+            result = self.storage.rollback()
+
+        self.mtda.debug(3, f"main.storage_rollback(): {result}")
+        return result
+
+    @Pyro4.expose
     def storage_flush(self, size, **kwargs):
         self.mtda.debug(3, f"main.storage_flush({size})")
 
@@ -1536,6 +1570,8 @@ class MultiTenantDeviceAccess:
                         if hasattr(self, hook):
                             postconf = getattr(self, hook)
                         self.load_subsystem(sub, parser, postconf)
+                    except RuntimeError:
+                        self.error(f"configuration of {sub} failed!")
                     except configparser.NoOptionError:
                         self.error(f"variant not defined for '{sub}'!")
                     except ImportError:

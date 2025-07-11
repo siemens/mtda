@@ -454,6 +454,10 @@ the DUT as a Mass Storage device. The following settings are supported:
   specified block device was found. A warning is issued if the input
   is not a block device.
 
+* ``cow``: string [optional]
+  Block device to receive writes to the shared storage in lieu of the source
+  ``device``. Changes may be either committed or reverted.
+
 * ``file``: string [optional]
   File for the shared storage: a loopback device will be created to make
   sure that writes to the shared storage do not cause this file to
