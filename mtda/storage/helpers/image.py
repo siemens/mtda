@@ -325,6 +325,7 @@ class Image(StorageController):
                     # No bmap
                     result = self.handle.write(data)
 
+        self.mtda.notify_write()
         self.mtda.debug(3, f"storage.helpers.image.write(): {str(result)}")
         return result
 
