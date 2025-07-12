@@ -37,7 +37,6 @@ class Image(StorageController):
     def __init__(self, mtda):
         self.mtda = mtda
         self.handle = None
-        self.isfuse = False
         self.isloop = False
         self.bmapDict = None
         self.crtBlockRange = 0
@@ -103,26 +102,13 @@ class Image(StorageController):
                                        .format(m))
                     m = os.path.join(basedir, m)
                     cmd = ["/bin/umount", m]
-                    if os.geteuid() != 0:
-                        cmd.insert(0, "sudo")
                     if os.system(" ".join(cmd)) == 0:
                         os.rmdir(m)
-            if self.isfuse:
-                device = self.device[:-1]
-                self.mtda.debug(2, "storage.helpers.image.umount(): "
-                                   "removing FUSE mount '{0}'".format(device))
-                cmd = ["/bin/umount", device]
-                if os.system(" ".join(cmd)) == 0:
-                    os.rmdir(device)
-                    self.device = None
-                    self.isfuse = False
-            elif self.isloop:
+            if self.isloop:
                 self.mtda.debug(2, "storage.helpers.image.umount(): "
                                    "removing loopback device '{0}'"
                                    .format(self.device))
                 cmd = ["losetup", "-d", self.device]
-                if os.geteuid() != 0:
-                    cmd.insert(0, "sudo")
                 if os.system(" ".join(cmd)) == 0:
                     self.device = None
                     self.isloop = False
@@ -143,27 +129,13 @@ class Image(StorageController):
         self.mtda.debug(3, "storage.helpers.image._get_partitions()")
 
         self.device = None
-        self.isfuse = False
         self.isloop = False
         p = pathlib.Path(self.file)
-        if self.mtda.fuse is True and os.path.exists("/usr/bin/partitionfs"):
-            device = os.path.join(
-                "/run", "user", str(os.getuid()), "mtda", "storage", "0")
-            os.makedirs(device, exist_ok=True)
-            cmd = f"/usr/bin/partitionfs -s {self.file} {device}"
-            self.mtda.debug(2, "storage.helpers"
-                               f".image._get_partitions(): {cmd}")
-            result = (os.system(cmd)) == 0
-            if result:
-                self.device = device + "/"
-                self.isfuse = True
-        elif p.is_block_device() is True:
+        if p.is_block_device() is True:
             self.device = self.file
             result = True
         else:
             cmd = ["losetup", "-f", "--show", "-P", self.file]
-            if os.geteuid() != 0:
-                cmd.insert(0, "sudo")
             device = subprocess.check_output(cmd).decode("utf-8").strip()
             result = device != ""
             if result:
@@ -188,22 +160,6 @@ class Image(StorageController):
             os.makedirs(mountpoint, exist_ok=True)
             if pathlib.Path(path).is_block_device():
                 cmd = ["/bin/mount", path, mountpoint]
-                if os.geteuid() != 0:
-                    cmd.insert(0, "sudo")
-            elif self.isfuse:
-                cmd = None
-                fstype = subprocess.check_output(["/usr/bin/file", path])
-                fstype = fstype.decode("utf-8").strip()
-                if 'ext4 filesystem' in fstype:
-                    cmd = ["/usr/bin/fusext2", path, mountpoint, "-o", "rw+"]
-                elif 'FAT (32 bit)' in fstype:
-                    cmd = ["/usr/bin/fusefat", path, mountpoint]
-                else:
-                    self.mtda.debug(1, "storage.helpers.image."
-                                       f"_mount_part(): {fstype}")
-                    self.mtda.debug(1, "storage.helpers.image."
-                                       "_mount_part(): "
-                                       "file-system not supported")
             if cmd:
                 cmd = " ".join(cmd)
                 self.mtda.debug(2, "storage.helpers.image._mount_part(): "

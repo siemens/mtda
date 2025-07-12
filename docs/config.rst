@@ -27,11 +27,6 @@ General settings
       Level of debug messages to print out while running (set to 0 to turn all
       debug messages off).
 
-  * ``fuse``: boolean [optional]
-      Enable support for mounting partitions from the shared device using FUSE
-      instead of ``losetup`` and ``mount``. This feature is experimental and
-      requires ``partitionfs``, ``fuseext2`` and ``fusefat``.
-
   * ``name``: string [optional]
       Name of this agent on the network (defaults to hostname).
 
