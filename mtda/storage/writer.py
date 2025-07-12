@@ -130,17 +130,35 @@ class AsyncImageWriter:
         self.mtda.debug(3, f"storage.writer.stop(): {result}")
         return result
 
+    def notify_write(self):
+        now = time.monotonic()
+        elapsed = now - self._last_notification
+        if elapsed < CONSTS.WRITER.NOTIFY_SECONDS:
+            return
+
+        mtda = self.mtda
+        mtda.session_ping(self._session)
+
+        written = self.written
+        speed = (written - self._last_written) / elapsed
+        details = f'{self._received} {self._size} {speed} {written}'
+        self.mtda.debug(2, "storage.writer.notify_write(): "
+                           f"progress event: {details}")
+        mtda._storage_event(f'{CONSTS.STORAGE.WRITING} {details}')
+        self._last_notification = now
+        self._last_written = written
+
     def worker(self):
         self.mtda.debug(3, "storage.writer.worker()")
 
         mtda = self.mtda
-        last_notification = time.monotonic()
-        last_read = 0
-        received = 0
         tries = CONSTS.WRITER.RECV_RETRIES
         fail_reason = ""
         self._exiting = False
-        self._failed = False
+        self._failed = True
+        self._last_notification = time.monotonic()
+        self._last_written = 0
+        self._received = 0
         self._receiving = True
         self._written = 0
         self._writing = True
@@ -150,25 +168,17 @@ class AsyncImageWriter:
                 if len(chunk) == 0:
                     mtda.debug(2, "storage.writer.worker(): empty chunk "
                                   "transfer complete")
+                    self._failed = False
                     break
-                received += len(chunk)
-
-                now = time.monotonic()
-                if (now - last_notification) >= CONSTS.WRITER.NOTIFY_SECONDS:
-                    speed = (received - last_read) / (now - last_notification)
-                    mtda._storage_event(f'{CONSTS.STORAGE.WRITING} '
-                                        f'{received} {self._size} {speed}')
-                    last_notification = now
-                    last_read = received
+                self._received += len(chunk)
 
                 tries = CONSTS.WRITER.RECV_RETRIES
-                mtda.session_ping(self._session)
                 self._write(chunk)
 
             except RetryException:
                 tries = tries - 1
                 if self._receiving is False:
-                    if self._size > 0 and received == self._size:
+                    if self._size > 0 and self._received == self._size:
                         mtda.debug(2, "storage.writer.worker(): "
                                       "transfer complete")
                         break
@@ -185,7 +195,7 @@ class AsyncImageWriter:
                     total = f" / {self._size}"
 
                 mtda.debug(1, f"storage.writer.worker(): timeout!{retries} "
-                              f"(recv'd {received}{total})")
+                              f"(recv'd {self._received}{total})")
 
                 if tries == 0:
                     self._failed = True

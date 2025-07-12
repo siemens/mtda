@@ -93,6 +93,7 @@ class DockerController(StorageController):
             if self._handle is not None:
                 result = self._handle.write(data)
 
+        self.mtda.notify_write()
         self.mtda.debug(3, f"storage.docker.write(): {result}")
         return result
 
