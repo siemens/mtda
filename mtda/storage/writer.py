@@ -130,10 +130,10 @@ class AsyncImageWriter:
         self.mtda.debug(3, f"storage.writer.stop(): {result}")
         return result
 
-    def notify_write(self):
+    def notify_write(self, force=False):
         now = time.monotonic()
         elapsed = now - self._last_notification
-        if elapsed < CONSTS.WRITER.NOTIFY_SECONDS:
+        if force is False and elapsed < CONSTS.WRITER.NOTIFY_SECONDS:
             return
 
         mtda = self.mtda

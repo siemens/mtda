@@ -11,6 +11,7 @@
 # ---------------------------------------------------------------------------
 
 # System imports
+import os
 import requests
 import time
 import sys
@@ -23,6 +24,53 @@ from mtda.client import Client
 from mtda.console.screen import ScreenOutput
 
 
+def human_readable_bytes(size):
+    if size < 1024*1024:
+        return f"{int(size / 1024):d} KiB"
+    elif size < 1024*1024*1024:
+        return f"{int(size / 1024 / 1024):d} MiB"
+    else:
+        return f"{size / 1024 / 1024 / 1024:.2f} GiB"
+
+
+class AppOutput(ScreenOutput):
+    def __init__(self, app):
+        super().__init__(self)
+        self.app = app
+
+    def on_event(self, event):
+        event = event.split()
+
+        if len(event) != 6:
+            return
+        if event[0] != 'STORAGE' and event[1] != 'WRITING':
+            return
+
+        app = self.app
+        image = app.imgname
+        bytes_read = int(event[2])
+        bytes_total = int(event[3])
+        speed = float(event[4])
+        bytes_written = int(event[5])
+
+        self._progress(image, bytes_read, bytes_total, bytes_written, speed)
+
+    def _progress(self, imgname, totalread,
+                  inputsize, totalwritten, speed):
+        progress = int((float(totalread) / float(inputsize)) * float(100))
+        blocks = int(round((20 * progress) / 100))
+        spaces = ' ' * (20 - blocks)
+        blocks = '#' * blocks
+        speed = human_readable_bytes(speed)
+        totalread = human_readable_bytes(totalread)
+        totalwritten = human_readable_bytes(totalwritten)
+        sys.stdout.write("\r{0}: [{1}] {2}% ({3} read, "
+                         "{4} written, {5} MiB/s) ".format(
+                             imgname, str(blocks + spaces), progress,
+                             totalread, totalwritten, speed))
+        sys.stdout.flush()
+
+
 class Application:
 
     def __init__(self):
@@ -30,7 +78,7 @@ class Application:
         self.remote = None
         self.exiting = False
         self.channel = "console"
-        self.screen = ScreenOutput(self)
+        self.screen = AppOutput(self)
 
     def client(self):
         return self.agent
@@ -365,54 +413,34 @@ class Application:
             return 1
         return 0
 
-    def _human_readable_size(self, size):
-        if size < 1024*1024:
-            return f"{int(size / 1024):d} KiB"
-        elif size < 1024*1024*1024:
-            return f"{int(size / 1024 / 1024):d} MiB"
-        else:
-            return f"{size / 1024 / 1024 / 1024:.2f} GiB"
-
-    def _storage_write_cb(self, imgname, totalread,
-                          inputsize, totalwritten, imagesize):
-        if imagesize:
-            progress = \
-                int((float(totalwritten) / float(imagesize)) * float(100))
-        else:
-            progress = int((float(totalread) / float(inputsize)) * float(100))
-        blocks = int(round((20 * progress) / 100))
-        spaces = ' ' * (20 - blocks)
-        blocks = '#' * blocks
-        elapsed = time.monotonic() - self.start_time
-        speed = round((totalwritten / 1024 / 1024) / elapsed, 2)
-        totalread = self._human_readable_size(totalread)
-        totalwritten = self._human_readable_size(totalwritten)
-        sys.stdout.write("\r{0}: [{1}] {2}% ({3} read, "
-                         "{4} written, {5} MiB/s) ".format(
-                             imgname, str(blocks + spaces), progress,
-                             totalread, totalwritten, speed))
-        sys.stdout.flush()
-
     def storage_update(self, args=None):
-        self.start_time = time.monotonic()
-        status = self.agent.storage_update(
-            args.destination, args.source, self._storage_write_cb
-        )
-        sys.stdout.write("\n")
-        sys.stdout.flush()
+        result = 0
+        client = self.agent
+        self.imgname = os.path.basename(args.source)
+        try:
+            client.monitor_remote(self.remote, self.screen)
 
-        if status is False:
-            print("'storage update' failed!", file=sys.stderr)
-            return 1
-        return 0
+            self.agent.storage_update(args.destination, args.source)
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+        except Exception as e:
+            msg = e.msg if hasattr(e, 'msg') else str(e)
+            print(f"\n'storage update' failed! ({msg})",
+                  file=sys.stderr)
+            result = 1
+        finally:
+            client.monitor_remote(self.remote, None)
+        return result
 
     def storage_write(self, args=None):
         result = 0
+        client = self.agent
+        self.imgname = os.path.basename(args.image)
+
         try:
-            self.start_time = time.monotonic()
-            self.agent.storage_write_image(
-                args.image, self._storage_write_cb
-            )
+            client.monitor_remote(self.remote, self.screen)
+
+            self.agent.storage_write_image(args.image)
             sys.stdout.write("\n")
             sys.stdout.flush()
         except Exception as e:
@@ -420,6 +448,8 @@ class Application:
             print(f"\n'storage write' failed! ({msg})",
                   file=sys.stderr)
             result = 1
+        finally:
+            client.monitor_remote(self.remote, None)
         return result
 
     def target_uptime(self):
@@ -453,7 +483,7 @@ class Application:
         session = client.session()
         storage_status, writing, written = client.storage_status()
         writing = "WRITING" if writing is True else "IDLE"
-        written = self._human_readable_size(written)
+        written = human_readable_bytes(written)
         tgt_status = client.target_status()
         uptime = ""
         if tgt_status == "ON":
