@@ -780,6 +780,7 @@ class MultiTenantDeviceAccess:
             result = False
         else:
             result = self._writer.flush(size)
+            self._writer.notify_write(force=True)
 
         self.mtda.debug(3, f"main.storage_flush(): {result}")
         return result
