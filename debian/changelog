@@ -1,8 +1,13 @@
-mtda (0.39-0) testing; urgency=medium
+mtda (0.39-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * mouse: initial support for HID mouse controller
+  * www: do not include www port in call to video_url
+  * storage: remove experimental fuse/partitionfs code
+  * storage: add initial support for commit/rollback to usbf
+  * storage: progress updates on writes (vs reads)
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 09 Jul 2025 21:30:00 +0100
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 13 Jul 2025 08:30:00 +0100
 
 mtda (0.38-1) testing; urgency=medium
 
