@@ -164,6 +164,12 @@ class Env:
 
 
 class Storage:
+    def commit():
+        return pytest.mtda.storage_commit()
+
+    def rollback():
+        return pytest.mtda.storage_rollback()
+
     def to_host():
         return pytest.mtda.storage_to_host()
 
