@@ -324,8 +324,8 @@ class Image(StorageController):
                 else:
                     # No bmap
                     result = self.handle.write(data)
+                    self.mtda.notify_write(size=len(data))
 
-        self.mtda.notify_write()
         self.mtda.debug(3, f"storage.helpers.image.write(): {str(result)}")
         return result
 
@@ -382,4 +382,6 @@ class Image(StorageController):
     def _write_with_chksum(self, data):
         if self.rangeChkSum:
             self.rangeChkSum.update(data)
-        return self.handle.write(data)
+        result = self.handle.write(data)
+        self.mtda.notify_write(size=len(data))
+        return result
