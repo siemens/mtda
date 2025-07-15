@@ -119,13 +119,19 @@ class KeyboardInputHandler(BaseHandler):
             "left": "<left>", "right": "<right>",
             "up": "<up>", "down": "<down>"
         }
+
         if input_key in key_map:
             input_key = key_map[input_key]
+
+        shift = self.get_argument('shift', 'false') == 'true'
+        if input_key.isupper() and shift is False:
+            input_key = input_key.lower()
+            shift = True
 
         result = mtda.keyboard_press(
                   input_key,
                   ctrl=self.get_argument('ctrl', 'false') == 'true',
-                  shift=self.get_argument('shift', 'false') == 'true',
+                  shift=shift,
                   alt=self.get_argument('alt', 'false') == 'true',
                   meta=self.get_argument('meta', 'false') == 'true'
                   )
