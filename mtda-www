@@ -117,7 +117,8 @@ class KeyboardInputHandler(BaseHandler):
             "\b": "<backspace>", "    ": "<tab>", "caps": "<capslock>",
             "\n": "<enter>",
             "left": "<left>", "right": "<right>",
-            "up": "<up>", "down": "<down>"
+            "up": "<up>", "down": "<down>",
+            "<space>": " "
         }
 
         if input_key in key_map:
