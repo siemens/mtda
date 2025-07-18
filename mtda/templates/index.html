@@ -103,8 +103,8 @@ SPDX-License-Identifier: MIT
         videoWindow = new WinBox("Video", {
             html: "<div id=video></div>",
             class: ["no-close", "no-full", "no-max", "modern"],
-            width: "1360px",
-            height: "768px",
+            minwidth: "1360px",
+            minheight: "768px",
             hidden: true
         });
         uploadWindow = new WinBox("Upload", {
@@ -294,7 +294,7 @@ SPDX-License-Identifier: MIT
           if(selfpath.startsWith('/device')){
             url = selfpath + url.match('(?:http|https)://.*?/(.*)')[1]
           }
-          video.innerHTML = '<img src="' + url + '" />'
+          video.innerHTML = '<img width="100%" height="100%" src="' + url + '" />'
           videoWindow.body.addEventListener('mousedown', function(event) {
             const rect = event.target.getBoundingClientRect();
             const x = (event.clientX - rect.left) / rect.width;
