@@ -1,8 +1,18 @@
-mtda (0.40-0) testing; urgency=medium
+mtda (0.40-1) testing; urgency=medium
 
   * development version
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 14 Jul 2025 07:00:00 +0200
+  [ Cedric Hombourger ]
+  * www: re-introduce the virtual keyboard
+  * www: make the video stream fit its window without scrollbars
+
+  [ Shivaschandra KL ]
+  www: handle special keys
+
+  [ Badrikesh Prusty ]
+  debian: remove unused .install file
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 18 Jul 2025 15:00:00 +0200
 
 mtda (0.39-1) testing; urgency=medium
 
