@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!---
+Copyright (C) 2025 Siemens AG
+SPDX-License-Identifier: MIT
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MTDA API</title>
+  <link rel="stylesheet" type="text/css" href="/assets/swagger-ui.css">
+  <script src="/assets/swagger-ui-bundle.js"></script>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script>
+    window.onload = function() {
+      SwaggerUIBundle({
+        url: "/api/docs",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    }
+  </script>
+</body>
+</html>

@@ -86,6 +86,7 @@ SPDX-License-Identifier: MIT
           <li><a href="#" id=storage-toggle><i id=storage-status-icon class="large material-icons">no_sim</i></a></li>
           <li><a href="#" id=storage-write><i id=storage-write-icon class="large material-icons">upload_file</i></a></li>
           <li><a href="#" id=keyboard-show><i class="large material-icons">keyboard</i></a></li>
+          <li><a href="#" id=swagger-open><i class="large material-icons">functions</i></a></li>
           <li id="mtda_status">Connecting...</li>
           <li id="vnc_status">Loading Video</li>
           <li id="mtda_version">&nbsp;</li>
@@ -219,6 +220,17 @@ SPDX-License-Identifier: MIT
             });
           }, '');
           return false;
+        });
+        $('a#swagger-open').bind('click', function() {
+          new WinBox({
+            title: "MTDA API Documentation",
+            url: "/api/swagger",
+            width: '800px',
+            height: '600px',
+            x: "center",
+            y: "center",
+            class: "modern"
+          });
         });
       });
     </script>

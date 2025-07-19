@@ -151,6 +151,21 @@ Files: mtda/assets/addon-fit.js
 Copyright: 2017-2022 The xterm.js authors.
 License: MIT
 
+Files: mtda/assets/swagger-ui-bundle.js
+Copyright: 2018 Jed Watson.
+Copyright: 2013-2018 Viacheslav Lotsmanov
+Copyright: Feross Aboukhadijeh <https://feross.org>
+Copyright: 2017-2021 Joachim Wester
+Copyright: 2014-2015, Jon Schlinkert
+Copyright: Cure53 and other contributors
+Copyright: Facebook, Inc. and its affiliates
+Copyright: Meta Platforms, Inc. and affiliates
+License: MIT
+
+Files: mtda/assets/swagger-ui.css
+Copyright: Copyright 2020-2021 SmartBear Software Inc.
+License: Apache-2.0
+
 Files: mtda/share/nginx-multi-mtda.conf
 Copyright: 2023 Siemens AG
 License: MIT

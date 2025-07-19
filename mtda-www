@@ -102,11 +102,67 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json.dumps(response))
 
+# ---------------------------------------------------------------------------
+# /keyboard-input
+# ---------------------------------------------------------------------------
+
 
 class KeyboardInputHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Send keyboard input",
+        "parameters": [{
+            "name": "input",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "Key to be pressed"
+        }, {
+            "name": "shift",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "boolean",
+                "default": False
+            },
+            "description": "Whether shift modifier is pressed"
+        }, {
+            "name": "ctrl",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "boolean",
+                "default": False
+            },
+            "description": "Whether ctrl modifier is pressed"
+        }, {
+            "name": "alt",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "boolean",
+                "default": False
+            },
+            "description": "Whether alt modifier is pressed"
+        }, {
+            "name": "meta",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "boolean",
+                "default": False
+            },
+            "description": "Whether meta modifier is pressed"
+        }], "responses": {
+            "204": {
+                "description": "Key press event sent"
+            },
+            "400": {
+                "description": "Invalid input parameter"
+            }
+        }}}
+
     def get(self):
         mtda = self.application.settings['mtda']
-        result = ''
         input_key = self.get_argument("input", "")
 
         key_map = {
@@ -129,43 +185,144 @@ class KeyboardInputHandler(BaseHandler):
             input_key = input_key.lower()
             shift = True
 
-        result = mtda.keyboard_press(
+        mtda.keyboard_press(
                   input_key,
                   ctrl=self.get_argument('ctrl', 'false') == 'true',
                   shift=shift,
                   alt=self.get_argument('alt', 'false') == 'true',
                   meta=self.get_argument('meta', 'false') == 'true'
                   )
-        self.result_as_json({"result": result})
+        self.set_status(204)
+        self.finish()
+
+# ---------------------------------------------------------------------------
+# /mouse-move
+# ---------------------------------------------------------------------------
 
 
 class MouseEventHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Send a mouse move event",
+        "parameters": [{
+            "name": "x",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "number",
+                "default": 0
+            },
+            "description": "X coordinate as a percentage"
+        }, {
+            "name": "y",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "number",
+                "default": 0
+            },
+            "description": "Y coordinate as a percentage"
+        }, {
+            "name": "buttons",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "number",
+                "default": 0
+            },
+            "description": "bitmask of buttons pressed"
+        }], "responses": {
+            "204": {
+                "description": "Mouse event sent"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
     def get(self):
         mtda = self.application.settings['mtda']
-        result = ''
         x = float(self.get_argument("x", 0))
         y = float(self.get_argument("y", 0))
         buttons = int(self.get_argument("buttons", 0))
         mtda.mouse_move(x, y, buttons)
         if buttons > 0:
             mtda.mouse_move(x, y, 0)
-        self.result_as_json({"result": result})
+        self.set_status(204)
+        self.finish()
+
+# ---------------------------------------------------------------------------
+# /power-toggle
+# ---------------------------------------------------------------------------
 
 
 class PowerToggleHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Toggle power for the Device Under Test",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Power toggled"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
     def get(self):
         mtda = self.application.settings['mtda']
-        result = ''
         if mtda is not None:
             sid = self.get_argument('session')
             result = mtda.target_toggle(session=sid)
-        self.result_as_json({"result": result})
+            self.result_as_json({"status": result})
+        else:
+            self.set_status(503)
+            self.finish()
+
+# ---------------------------------------------------------------------------
+# /storage-open
+# ---------------------------------------------------------------------------
 
 
 class StorageOpenHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Open the shared storage to upload a file",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }, {
+            "name": "file",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "name of the file to be uploaded"
+        }, {
+            "name": "size",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "number",
+                "default": 0
+            },
+            "description": "size of the file in bytes"
+        }], "responses": {
+            "204": {
+                "description": "Storage opened"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
     def get(self):
         mtda = self.application.settings['mtda']
-        result = ''
         if mtda is not None:
             compr = CONSTS.IMAGE.RAW.value
             file = self.get_argument('file')
@@ -181,27 +338,73 @@ class StorageOpenHandler(BaseHandler):
             sid = self.get_argument('session')
             zmq_socket = mtda.storage_open(size, session=sid)
             self.application.settings['sockets'][sid] = zmq_socket
+            self.set_status(204)
+        else:
+            self.set_status(503)
+        self.finish()
 
-        self.result_as_json({"result": result})
+# ---------------------------------------------------------------------------
+# /storage-close
+# ---------------------------------------------------------------------------
 
 
 class StorageCloseHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Close (release) shared storage",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Shared storage closed"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
     def get(self):
         mtda = self.application.settings['mtda']
-        result = ''
         if mtda is not None:
             sid = self.get_argument('session')
-            result = mtda.storage_close(session=sid)
+            mtda.storage_close(session=sid)
             if sid in self.application.settings['sockets']:
                 del self.application.settings['sockets'][sid]
-        self.result_as_json({"result": result})
+            self.set_status(204)
+        else:
+            self.set_status(503)
+        self.finish()
+
+# ---------------------------------------------------------------------------
+# /power-toggle
+# ---------------------------------------------------------------------------
 
 
-class StorageToggleHandler(tornado.web.RequestHandler):
+class StorageToggleHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Toggle storage between the host and device",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Storage toggled"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
     def get(self):
         mtda = self.application.settings['mtda']
-        result = ''
         if mtda is not None:
+            result = ''
             sid = self.get_argument('session')
             status, _, _ = mtda.storage_status(session=sid)
             if status == CONSTS.STORAGE.ON_HOST:
@@ -216,7 +419,10 @@ class StorageToggleHandler(tornado.web.RequestHandler):
                         if mtda.storage_to_host()
                         else 'TARGET'
                 )
-        self.write(result)
+            self.result_as_json({"status": result})
+        else:
+            self.set_status(503)
+            self.finish()
 
 
 class WebConsole(RemoteConsole):
@@ -276,6 +482,34 @@ class WebOutput(ScreenOutput):
         loop.add_callback(self._send_to_clients, message)
 
 
+class OpenAPIHandler(tornado.web.RequestHandler):
+    def get(self):
+        mtda = self.application.settings['mtda']
+        self.set_header("Content-Type", "application/json")
+        spec = {
+            "openapi": "3.0.0",
+            "info": {
+                "title": "MTDA API",
+                "version": mtda.agent_version(),
+                "description": "MTDA Web Service API"
+            },
+            "paths": {
+                "/keyboard-input": KeyboardInputHandler.spec,
+                "/mouse-move": MouseEventHandler.spec,
+                "/power-toggle": PowerToggleHandler.spec,
+                "/storage-open": StorageOpenHandler.spec,
+                "/storage-close": StorageCloseHandler.spec,
+                "/storage-toggle": StorageToggleHandler.spec
+            }
+        }
+        self.write(spec)
+
+
+class SwaggerUIHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("swagger.html")
+
+
 class Service:
     def __init__(self):
         self.mtda = Client('localhost')
@@ -299,6 +533,8 @@ class Service:
         BASE_DIR = os.path.dirname(os.path.abspath(CONSTS.__file__))
         self.application = tornado.web.Application([
             (r"/", MainHandler),
+            (r"/api/docs", OpenAPIHandler),
+            (r"/api/swagger", SwaggerUIHandler),
             (r"/assets/(.*)", AssetsHandler, {
                 "path": os.path.join(BASE_DIR, "assets")
             }),
