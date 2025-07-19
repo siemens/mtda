@@ -32,39 +32,42 @@ class KeyboardController(object):
         return
 
     @abc.abstractmethod
-    def backspace(self, repeat=1):
+    def backspace(self, repeat=1, ctrl=False, shift=False, alt=False,
+                  meta=False):
         return False
 
     @abc.abstractmethod
-    def esc(self, repeat=1):
+    def esc(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def enter(self, repeat=1):
+    def enter(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def down(self, repeat=1):
+    def down(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def left(self, repeat=1):
+    def left(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def capsLock(self, repeat=1):
+    def capsLock(self, repeat=1, ctrl=False, shift=False, alt=False,
+                 meta=False):
         return False
 
     @abc.abstractmethod
-    def right(self, repeat=1):
+    def right(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def up(self, repeat=1):
+    def up(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
+    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False,
+              meta=False):
         return False
 
     @abc.abstractmethod
@@ -72,53 +75,53 @@ class KeyboardController(object):
         return
 
     @abc.abstractmethod
-    def f1(self, repeat=1):
+    def f1(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f2(self, repeat=1):
+    def f2(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f3(self, repeat=1):
+    def f3(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f4(self, repeat=1):
+    def f4(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f5(self, repeat=1):
+    def f5(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f6(self, repeat=1):
+    def f6(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f7(self, repeat=1):
+    def f7(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f8(self, repeat=1):
+    def f8(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f9(self, repeat=1):
+    def f9(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f10(self, repeat=1):
+    def f10(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f11(self, repeat=1):
+    def f11(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def f12(self, repeat=1):
+    def f12(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False
 
     @abc.abstractmethod
-    def tab(self, repeat=1):
+    def tab(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         return False

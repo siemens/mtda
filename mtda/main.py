@@ -540,7 +540,7 @@ class MultiTenantDeviceAccess:
         if self.keyboard is not None:
             special_key = self._keyboard_special_key(key)
             if special_key is not None:
-                result = special_key()
+                result = special_key(repeat, ctrl, shift, alt, meta)
             else:
                 result = self.keyboard.press(key, repeat, ctrl, shift,
                                              alt, meta)
