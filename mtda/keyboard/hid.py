@@ -86,7 +86,8 @@ class HidKeyboardController(KeyboardController):
         self.mtda.debug(3, f"keyboard.hid.idle(): {result}")
         return result
 
-    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
+    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False,
+              meta=False):
         self.mtda.debug(3, "keyboard.hid.press()")
 
         bsl = '\\'
@@ -119,7 +120,8 @@ class HidKeyboardController(KeyboardController):
         elif key in shift_keys:
             return self.send(shift_keys[key], repeat, ctrl, True, alt, meta)
 
-    def send(self, key, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
+    def send(self, key, repeat=1, ctrl=False, shift=False, alt=False,
+             meta=False):
         self.mtda.debug(3, "keyboard.hid.send()")
 
         if os.path.exists(self.dev) is False:
@@ -162,110 +164,91 @@ class HidKeyboardController(KeyboardController):
                 break
         return result
 
-    def backspace(self, repeat=1):
+    def backspace(self, repeat=1, ctrl=False, shift=False, alt=False,
+                  meta=False):
         self.mtda.debug(3, "keyboard.hid.backspace()")
+        return self.send(0x2a, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x2a, repeat)
-
-    def capsLock(self, repeat=1):
+    def capsLock(self, repeat=1, ctrl=False, shift=False, alt=False,
+                 meta=False):
         self.mtda.debug(3, "keyboard.hid.capsLock()")
+        return self.send(0x39, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x39, repeat)
-
-    def enter(self, repeat=1):
+    def enter(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.enter()")
+        return self.send(0x28, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x28, repeat)
-
-    def esc(self, repeat=1):
+    def esc(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.esc()")
+        return self.send(0x29, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x29, repeat)
-
-    def down(self, repeat=1):
+    def down(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.down()")
+        return self.send(0x51, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x51, repeat)
-
-    def left(self, repeat=1):
+    def left(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.left()")
+        return self.send(0x50, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x50, repeat)
-
-    def right(self, repeat=1):
+    def right(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.right()")
+        return self.send(0x4f, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x4f, repeat)
-
-    def up(self, repeat=1):
+    def up(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.up()")
+        return self.send(0x52, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x52, repeat)
-
-    def f1(self, repeat=1):
+    def f1(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f1()")
+        return self.send(0x3a, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x3a, repeat)
-
-    def f2(self, repeat=1):
+    def f2(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f2()")
+        return self.send(0x3b, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x3b, repeat)
-
-    def f3(self, repeat=1):
+    def f3(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f3()")
+        return self.send(0x3c, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x3c, repeat)
-
-    def f4(self, repeat=1):
+    def f4(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f4()")
+        return self.send(0x3d, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x3d, repeat)
-
-    def f5(self, repeat=1):
+    def f5(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f5()")
+        return self.send(0x3e, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x3e, repeat)
-
-    def f6(self, repeat=1):
+    def f6(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f6()")
+        return self.send(0x3f, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x3f, repeat)
-
-    def f7(self, repeat=1):
+    def f7(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f7()")
+        return self.send(0x40, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x40, repeat)
-
-    def f8(self, repeat=1):
+    def f8(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f8()")
+        return self.send(0x41, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x41, repeat)
-
-    def f9(self, repeat=1):
+    def f9(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f9()")
+        return self.send(0x42, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x42, repeat)
-
-    def f10(self, repeat=1):
+    def f10(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f10())")
+        return self.send(0x43, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x43, repeat)
-
-    def f11(self, repeat=1):
+    def f11(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f11()")
+        return self.send(0x44, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x44, repeat)
-
-    def f12(self, repeat=1):
+    def f12(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.f12()")
+        return self.send(0x45, repeat, ctrl, shift, alt, meta)
 
-        return self.send(0x45, repeat)
-
-    def tab(self, repeat=1):
+    def tab(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.tab()")
-
-        return self.send(0x2b, repeat)
+        return self.send(0x2b, repeat, ctrl, shift, alt, meta)
 
     def write(self, what):
         self.mtda.debug(3, "keyboard.hid.write()")

@@ -39,7 +39,8 @@ class QemuController(KeyboardController):
     def idle(self):
         return True
 
-    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
+    def press(self, key, repeat=1, ctrl=False, shift=False, alt=False,
+              meta=False):
         self.mtda.debug(3, "keyboard.qemu.press()")
 
         symbols = {
@@ -72,89 +73,91 @@ class QemuController(KeyboardController):
             time.sleep(0.1)
         return result
 
-    def backspace(self, repeat=1):
+    def backspace(self, repeat=1, ctrl=False, shift=False, alt=False,
+                  meta=False):
         self.mtda.debug(3, "keyboard.qemu.backspace()")
-        return self.press("backspace", repeat)
+        return self.press("backspace", repeat, ctrl, shift, alt, meta)
 
-    def enter(self, repeat=1):
+    def enter(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.enter()")
-        return self.press("ret", repeat)
+        return self.press("ret", repeat, ctrl, shift, alt, meta)
 
-    def esc(self, repeat=1):
+    def esc(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.esc()")
-        return self.press("esc", repeat)
+        return self.press("esc", repeat, ctrl, shift, alt, meta)
 
-    def down(self, repeat=1):
+    def down(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.down()")
-        return self.press("down", repeat)
+        return self.press("down", repeat, ctrl, shift, alt, meta)
 
-    def left(self, repeat=1):
+    def left(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.left()")
-        return self.press("left", repeat)
+        return self.press("left", repeat, ctrl, shift, alt, meta)
 
-    def capsLock(self, repeat=1):
+    def capsLock(self, repeat=1, ctrl=False, shift=False, alt=False,
+                 meta=False):
         self.mtda.debug(3, "keyboard.qemu.capsLock()")
-        return self.press("caps_lock", repeat)
+        return self.press("caps_lock", repeat, ctrl, shift, alt, meta)
 
-    def right(self, repeat=1):
+    def right(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.right()")
-        return self.press("right", repeat)
+        return self.press("right", repeat, ctrl, shift, alt, meta)
 
-    def up(self, repeat=1):
+    def up(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.up()")
-        return self.press("up", repeat)
+        return self.press("up", repeat, ctrl, shift, alt, meta)
 
-    def f1(self, repeat=1):
+    def f1(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f1()")
-        return self.press("f1", repeat)
+        return self.press("f1", repeat, ctrl, shift, alt, meta)
 
-    def f2(self, repeat=1):
+    def f2(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f2()")
-        return self.press("f2", repeat)
+        return self.press("f2", repeat, ctrl, shift, alt, meta)
 
-    def f3(self, repeat=1):
+    def f3(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f3()")
-        return self.press("f3", repeat)
+        return self.press("f3", repeat, ctrl, shift, alt, meta)
 
-    def f4(self, repeat=1):
+    def f4(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f4()")
-        return self.press("f4", repeat)
+        return self.press("f4", repeat, ctrl, shift, alt, meta)
 
-    def f5(self, repeat=1):
+    def f5(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f5()")
-        return self.press("f5", repeat)
+        return self.press("f5", repeat, ctrl, shift, alt, meta)
 
-    def f6(self, repeat=1):
+    def f6(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f6()")
-        return self.press("f6", repeat)
+        return self.press("f6", repeat, ctrl, shift, alt, meta)
 
-    def f7(self, repeat=1):
+    def f7(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f7()")
-        return self.press("f7", repeat)
+        return self.press("f7", repeat, ctrl, shift, alt, meta)
 
-    def f8(self, repeat=1):
+    def f8(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f8()")
-        return self.press("f8", repeat)
+        return self.press("f8", repeat, ctrl, shift, alt, meta)
 
-    def f9(self, repeat=1):
+    def f9(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f9()")
-        return self.press("f9", repeat)
+        return self.press("f9", repeat, ctrl, shift, alt, meta)
 
-    def f10(self, repeat=1):
+    def f10(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f10()")
-        return self.press("f10", repeat)
+        return self.press("f10", repeat, ctrl, shift, alt, meta)
 
-    def f11(self, repeat=1):
+    def f11(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f11()")
-        return self.press("f11", repeat)
+        return self.press("f11", repeat, ctrl, shift, alt, meta)
 
-    def f12(self, repeat=1):
+    def f12(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.f12()")
-        return self.press("f12", repeat)
+        return self.press("f12", repeat, ctrl, shift, alt, meta)
 
-    def tab(self, repeat=1):
+    def tab(self, repeat=1, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.tab()")
-        return self.press("tab", repeat)
+        return self.press("tab", repeat, ctrl, shift, alt, meta)
 
     def write(self, str):
         self.mtda.debug(3, "keyboard.qemu.write()")
