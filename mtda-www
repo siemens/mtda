@@ -42,6 +42,10 @@ class NoVNCHandler(tornado.web.StaticFileHandler):
     pass
 
 
+class PyodideHandler(tornado.web.StaticFileHandler):
+    pass
+
+
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     clients = set()
 
@@ -540,6 +544,9 @@ class Service:
             }),
             (r"/novnc/(.*)", NoVNCHandler, {
                 "path": "/usr/share/novnc"
+            }),
+            (r"/pyodide/(.*)", PyodideHandler, {
+                "path": "/opt/pyodide"
             }),
             (r"/mtda", WebSocketHandler),
             (r"/keyboard-input", KeyboardInputHandler),

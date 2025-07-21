@@ -34,6 +34,7 @@ RDEPENDS:${PN} = "                       \
     python3-hap-python                   \
     mjpg-streamer                        \
     mtda                                 \
+    pyodide                              \
     sd-mux-ctrl                          \
 "
 # Ubuntu noble ships sd-mux-ctrl package
