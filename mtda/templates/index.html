@@ -131,6 +131,7 @@ SPDX-License-Identifier: MIT
           <li><a href="#" id=storage-toggle><i id=storage-status-icon class="large material-icons">no_sim</i></a></li>
           <li><a href="#" id=storage-write><i id=storage-write-icon class="large material-icons">upload_file</i></a></li>
           <li><a href="#" id=keyboard-show><i class="large material-icons">keyboard</i></a></li>
+          <li><a href="#" id=python-open><i class="large material-icons">code</i></a></li>
           <li><a href="#" id=swagger-open><i class="large material-icons">functions</i></a></li>
           <li id="mtda_status">Connecting...</li>
           <li id="vnc_status">Loading Video</li>
@@ -138,6 +139,254 @@ SPDX-License-Identifier: MIT
         </ul>
     </div>
     <script src="./assets/winbox.bundle.min.js"></script>
+    <script src="./pyodide/pyodide.js"></script>
+    <script>
+      class PythonTerminal {
+        constructor() {
+          const uniqueId = `winbox-${([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+          )}`;
+
+          this.pyodide = null;
+          this.terminal = null;
+          this.currentLine = '';
+          this.history = [];
+          this.historyIndex = 0;
+          this.multiLineMode = false;
+          this.multiLineBuffer = [];
+
+          this.winbox = new WinBox({
+            title: "Python Terminal",
+            class: ["no-full", "modern"],
+            html: `<div id=${uniqueId} style='height: 100%;'></div>`,
+            width: "600px",
+            height: "400px",
+            onresize: () => {
+              if (this.fitAddon) {
+                this.fitAddon.fit();
+              }
+            }
+          });
+
+          this.initTerminal(uniqueId);
+          this.initPyodide();
+          this.winbox.focus();
+        }
+
+        async initTerminal(id) {
+          this.terminal = new Terminal({
+            convertEol: true,
+            cursorBlink: true,
+            fontSize: 14,
+            fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+            theme: {
+              background: '#000000',
+              foreground: '#f8f8f8',
+              cursor: '#f8f8f8'
+            }
+          });
+
+          this.fitAddon = new FitAddon.FitAddon();
+          this.terminal.loadAddon(this.fitAddon);
+
+          this.terminal.open(document.getElementById(id));
+          this.fitAddon.fit();
+
+          this.terminal.onKey(({ key, domEvent }) => {
+            const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
+
+            if (domEvent.keyCode === 13) { // Enter
+              this.handleEnter();
+            } else if (domEvent.keyCode === 8) { // Backspace
+              if (this.currentLine.length > 0) {
+                this.currentLine = this.currentLine.slice(0, -1);
+                this.terminal.write('\b \b');
+              }
+            } else if (domEvent.keyCode === 38) { // Up arrow
+              this.handleHistory('up');
+            } else if (domEvent.keyCode === 40) { // Down arrow
+              this.handleHistory('down');
+            } else if (domEvent.keyCode === 9) { // Tab
+              domEvent.preventDefault();
+              this.handleTab();
+            } else if (printable) {
+              this.currentLine += key;
+              this.terminal.write(key);
+            }
+          });
+        }
+
+        async initPyodide() {
+          try {
+            this.pyodide = await loadPyodide({
+              stdout: (text) => this.terminal.write(text),
+              stderr: (text) => this.terminal.write(`\x1b[31m${text}\x1b[0m`)
+            });
+            await this.setupPython();
+            this.showPrompt();
+          } catch (error) {
+            this.terminal.write(`\x1b[31mError loading Python: ${error.message}\x1b[0m\r\n`);
+          }
+        }
+
+        async setupPython() {
+          try {
+            const response = await fetch('./assets/www.py');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const pythonCode = await response.text();
+            await this.pyodide.runPythonAsync(pythonCode);
+          } catch (error) {
+            console.error('Failed to load Python code:', error);
+          }
+        }
+
+        showPrompt() {
+          this.terminal.write(this.multiLineMode ? '... ' : '>>> ');
+          this.currentLine = '';
+        }
+
+        async handleEnter() {
+          this.terminal.write('\r\n');
+
+          const trimmed = this.currentLine.trim();
+
+          if (this.multiLineMode) {
+            if (trimmed === '') {
+              // Empty line: try to execute the multi-line block
+              const code = this.multiLineBuffer.join('\n');
+              try {
+                const result = await this.pyodide.runPythonAsync(code);
+                if (result !== undefined) {
+                  this.terminal.write(`${result}\r\n`);
+                }
+              } catch (error) {
+                this.terminal.write(`\x1b[31m${error.message}\x1b[0m\r\n`);
+              }
+              this.multiLineMode = false;
+              this.multiLineBuffer = [];
+            } else {
+              // Still building the multi-line block
+              this.multiLineBuffer.push(this.currentLine);
+            }
+            this.showPrompt();
+            return;
+          }
+
+          if (trimmed !== '') {
+            this.history.push(this.currentLine);
+            this.historyIndex = this.history.length;
+            this.multiLineBuffer = [this.currentLine];
+
+            const code = this.multiLineBuffer.join('\n');
+            if (await this.isIncomplete(code)) {
+              this.multiLineMode = true;
+            } else {
+              try {
+                const result = await this.pyodide.runPythonAsync(code);
+                if (result !== undefined) {
+                  this.terminal.write(`${result}\r\n`);
+                }
+              } catch (error) {
+                this.terminal.write(`\x1b[31m${error.message}\x1b[0m\r\n`);
+              }
+              this.multiLineBuffer = [];
+            }
+          }
+
+          this.showPrompt();
+        }
+
+        async oldhandleEnter() {
+          this.terminal.write('\r\n');
+
+          if (this.currentLine.trim()) {
+            this.history.push(this.currentLine);
+            this.historyIndex = this.history.length;
+
+            this.multiLineBuffer.push(this.currentLine);
+
+            const code = this.multiLineBuffer.join('\n');
+            if (await this.isIncomplete(code)) {
+              this.multiLineMode = true;
+              this.terminal.write('... ');
+              this.currentLine = '';
+              return;
+            }
+
+            try {
+              const result = await this.pyodide.runPythonAsync(code);
+              if (result !== undefined) {
+                this.terminal.write(`${result}\r\n`);
+              }
+            } catch (error) {
+              this.terminal.write(`\x1b[31m${error.message}\x1b[0m\r\n`);
+            }
+
+            this.multiLineMode = false;
+            this.multiLineBuffer = [];
+          }
+
+          this.showPrompt();
+        }
+
+        async isIncomplete(code) {
+          try {
+            return await this.pyodide.runPythonAsync(`
+              import codeop
+              compiled = codeop.compile_command("""${code}""", symbol="exec")
+              compiled is None
+            `);
+          } catch (e) {
+            return false;
+         }
+        }
+
+        handleHistory(direction) {
+          if (direction === 'up' && this.historyIndex > 0) {
+            this.historyIndex--;
+          } else if (direction === 'down' && this.historyIndex < this.history.length) {
+            this.historyIndex++;
+          }
+
+          while (this.currentLine.length > 0) {
+            this.terminal.write('\b \b');
+            this.currentLine = this.currentLine.slice(0, -1);
+          }
+
+          if (this.historyIndex < this.history.length) {
+            this.currentLine = this.history[this.historyIndex];
+            this.terminal.write(this.currentLine);
+          }
+        }
+
+        async handleTab() {
+          const text = this.currentLine.split(' ').pop();
+          if (text) {
+            try {
+              const completions = JSON.parse(
+                await this.pyodide.runPythonAsync(`get_completions("${text}")`)
+              );
+
+              if (completions.length === 1) {
+                const completion = completions[0].slice(text.length);
+                this.currentLine += completion;
+                this.terminal.write(completion);
+              } else if (completions.length > 1) {
+                this.terminal.write('\r\n');
+                this.terminal.write(completions.join('  '));
+                this.terminal.write('\r\n');
+                this.showPrompt();
+                this.terminal.write(this.currentLine);
+              }
+            } catch (error) {
+              console.error('Tab completion error:', error);
+            }
+          }
+        }
+      }
+    </script>
     <script type=text/javascript>
         consoleWindow = new WinBox("Console", {
             html: "<div id=console></div>",
@@ -201,8 +450,6 @@ SPDX-License-Identifier: MIT
         });
         var xferChart;
         var xferSeries = new TimeSeries();
-
-        consoleWindow.focus()
     </script>
     <script src="./assets/jquery.min.js"></script>
     <script src="./assets/keyboard.js"></script>
@@ -280,6 +527,20 @@ SPDX-License-Identifier: MIT
             });
           }, '');
           return false;
+        });
+        $('a#python-open').bind('click', function() {
+		new PythonTerminal();
+        });
+        $('a#old-python-open').bind('click', function() {
+          new WinBox({
+            title: "Python",
+            url: "/pyodide/console.html",
+            width: '640px',
+            height: '480px',
+            x: "center",
+            y: "center",
+            class: "modern"
+          });
         });
         $('a#swagger-open').bind('click', function() {
           new WinBox({

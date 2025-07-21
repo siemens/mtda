@@ -111,6 +111,7 @@ Depends: mtda-service,
          python3-systemd,
          python3-tornado,
          novnc,
+         pyodide,
          websockify
 Description: web-based user-interface for MTDA
  Provide a simple web-base user-interface to interact with
