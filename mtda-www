@@ -107,6 +107,248 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(json.dumps(response))
 
 # ---------------------------------------------------------------------------
+# /console-clear
+# ---------------------------------------------------------------------------
+
+
+class ConsoleClearHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Clear the console ring buffer",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Console ring buffer cleared"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            mtda.console_clear(session=sid)
+            self.set_status(204)
+        else:
+            self.set_status(503)
+        self.finish()
+
+# ---------------------------------------------------------------------------
+# /console-dump
+# ---------------------------------------------------------------------------
+
+
+class ConsoleDumpHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Dump contents of the console ring buffer",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Console ring buffer returned"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            content = mtda.console_dump(session=sid)
+            self.result_as_json({"content": content})
+        else:
+            self.set_status(503)
+            self.finish()
+
+# ---------------------------------------------------------------------------
+# /console-flush
+# ---------------------------------------------------------------------------
+
+
+class ConsoleFlushHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Flush and return previous contents of the console "
+                   "ring buffer",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Console ring buffer returned (and cleared)"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            content = mtda.console_flush(session=sid)
+            self.result_as_json({"content": content})
+        else:
+            self.set_status(503)
+            self.finish()
+
+# ---------------------------------------------------------------------------
+# /console-head
+# ---------------------------------------------------------------------------
+
+
+class ConsoleHeadHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Get the first line from the console ring-buffer",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "First line of the console ring buffer returned"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            content = mtda.console_head(session=sid)
+            self.result_as_json({"content": content})
+        else:
+            self.set_status(503)
+            self.finish()
+
+# ---------------------------------------------------------------------------
+# /console-lines
+# ---------------------------------------------------------------------------
+
+
+class ConsoleLinesHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Get the number of lines available in the console "
+                   "ring-buffer",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Number of lines returned"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            count = mtda.console_lines(session=sid)
+            self.result_as_json({"count": count})
+        else:
+            self.set_status(503)
+            self.finish()
+
+# ---------------------------------------------------------------------------
+# /console-send
+# ---------------------------------------------------------------------------
+
+
+class ConsoleSendHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Get the number of lines available in the console "
+                   "ring-buffer",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }, {
+            "name": "what",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "text to send to the console"
+        }], "responses": {
+            "204": {
+                "description": "Text sent to the console"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            what = self.get_argument('what', strip=False)
+            mtda.console_send(what, session=sid)
+            self.set_status(204)
+        else:
+            self.set_status(503)
+        self.finish()
+
+# ---------------------------------------------------------------------------
+# /console-tail
+# ---------------------------------------------------------------------------
+
+
+class ConsoleTailHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Get the last line from the console ring-buffer",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Last line of the console ring buffer returned"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            content = mtda.console_tail(session=sid)
+            self.result_as_json({"content": content})
+        else:
+            self.set_status(503)
+            self.finish()
+
+
+# ---------------------------------------------------------------------------
 # /keyboard-input
 # ---------------------------------------------------------------------------
 
@@ -498,6 +740,13 @@ class OpenAPIHandler(tornado.web.RequestHandler):
                 "description": "MTDA Web Service API"
             },
             "paths": {
+                "/console-clear": ConsoleClearHandler.spec,
+                "/console-dump": ConsoleDumpHandler.spec,
+                "/console-flush": ConsoleFlushHandler.spec,
+                "/console-head": ConsoleHeadHandler.spec,
+                "/console-lines": ConsoleLinesHandler.spec,
+                "/console-send": ConsoleSendHandler.spec,
+                "/console-tail": ConsoleTailHandler.spec,
                 "/keyboard-input": KeyboardInputHandler.spec,
                 "/mouse-move": MouseEventHandler.spec,
                 "/power-toggle": PowerToggleHandler.spec,
@@ -549,6 +798,13 @@ class Service:
                 "path": "/opt/pyodide"
             }),
             (r"/mtda", WebSocketHandler),
+            (r"/console-clear", ConsoleClearHandler),
+            (r"/console-dump", ConsoleDumpHandler),
+            (r"/console-flush", ConsoleFlushHandler),
+            (r"/console-head", ConsoleHeadHandler),
+            (r"/console-lines", ConsoleLinesHandler),
+            (r"/console-send", ConsoleSendHandler),
+            (r"/console-tail", ConsoleTailHandler),
             (r"/keyboard-input", KeyboardInputHandler),
             (r"/mouse-move", MouseEventHandler),
             (r"/power-toggle", PowerToggleHandler),
