@@ -212,6 +212,45 @@ class Support:
 
 
 class Target:
+    @staticmethod
+    async def off():
+        """
+        Power OFF the target device
+
+        Returns:
+            bool: True if the request was successful
+        """
+        response = await Support.get("/target-off",
+                                     {"session": PY_SESSION_ID})
+        return response.ok
+
+    @staticmethod
+    async def on():
+        """
+        Power ON the target device
+
+        Returns:
+            bool: True if the request was successful
+        """
+        response = await Support.get("/target-on",
+                                     {"session": PY_SESSION_ID})
+        return response.ok
+
+    @staticmethod
+    async def status():
+        """
+        Query status of the target devide ("ON" or "OFF")
+
+        Returns:
+            str: the current state ("ON", "OFF" or "???")
+        """
+        response = await Support.get_data("/target-status",
+                                          {"session": PY_SESSION_ID})
+        if 'result' in response:
+            return response['result']['status']
+        return '???'
+
+    @staticmethod
     async def toggle():
         """
         Toggle the power state of the target.
@@ -224,3 +263,17 @@ class Target:
         if 'result' in response:
             return response['result']['status']
         return '???'
+
+    @staticmethod
+    async def uptime():
+        """
+        Query uptime of the target devide (in seconds)
+
+        Returns:
+            float: seconds since the target device was powered ON
+        """
+        response = await Support.get_data("/target-uptime",
+                                          {"session": PY_SESSION_ID})
+        if 'result' in response:
+            return float(response['result']['uptime'])
+        return None

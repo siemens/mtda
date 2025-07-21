@@ -670,6 +670,138 @@ class StorageToggleHandler(BaseHandler):
             self.set_status(503)
             self.finish()
 
+# ---------------------------------------------------------------------------
+# /target-off
+# ---------------------------------------------------------------------------
+
+
+class TargetOffHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Turn OFF the target device",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Target powered OFF"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            mtda.target_off(session=sid)
+            self.set_status(204)
+        else:
+            self.set_status(503)
+        self.finish()
+
+# ---------------------------------------------------------------------------
+# /target-on
+# ---------------------------------------------------------------------------
+
+
+class TargetOnHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Turn ON the target device",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Target powered ON"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            mtda.target_on(session=sid)
+            self.set_status(204)
+        else:
+            self.set_status(503)
+        self.finish()
+
+# ---------------------------------------------------------------------------
+# /target-status
+# ---------------------------------------------------------------------------
+
+
+class TargetStatusHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Query state of the target device (ON or OFF)",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Status of the target device"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            status = mtda.target_status(session=sid)
+            self.result_as_json({"status": status})
+        else:
+            self.set_status(503)
+            self.finish()
+
+# ---------------------------------------------------------------------------
+# /target-uptime
+# ---------------------------------------------------------------------------
+
+
+class TargetUptimeHandler(BaseHandler):
+    spec = {"get": {
+        "summary": "Query the uptime of the target device",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "200": {
+                "description": "Uptime of the target device (in seconds)"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is not None:
+            sid = self.get_argument('session')
+            uptime = mtda.target_uptime(session=sid)
+            self.result_as_json({"uptime": uptime})
+        else:
+            self.set_status(503)
+            self.finish()
+
 
 class WebConsole(RemoteConsole):
     def _context(self):
@@ -752,7 +884,11 @@ class OpenAPIHandler(tornado.web.RequestHandler):
                 "/power-toggle": PowerToggleHandler.spec,
                 "/storage-open": StorageOpenHandler.spec,
                 "/storage-close": StorageCloseHandler.spec,
-                "/storage-toggle": StorageToggleHandler.spec
+                "/storage-toggle": StorageToggleHandler.spec,
+                "/target-off": TargetOffHandler.spec,
+                "/target-on": TargetOnHandler.spec,
+                "/target-status": TargetStatusHandler.spec,
+                "/target-uptime": TargetUptimeHandler.spec
             }
         }
         self.write(spec)
@@ -811,6 +947,10 @@ class Service:
             (r"/storage-close", StorageCloseHandler),
             (r"/storage-open", StorageOpenHandler),
             (r"/storage-toggle", StorageToggleHandler),
+            (r"/target-off", TargetOffHandler),
+            (r"/target-on", TargetOnHandler),
+            (r"/target-status", TargetStatusHandler),
+            (r"/target-uptime", TargetUptimeHandler),
         ], template_path=os.path.join(BASE_DIR, "templates"),
            mtda=self.mtda, sockets={}, debug=False)
 
