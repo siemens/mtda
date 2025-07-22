@@ -456,6 +456,11 @@ SPDX-License-Identifier: MIT
     <script src="./assets/keysight.js"></script>
     <script type=text/javascript>
       window.addEventListener("keydown", function(event) {
+        // check if the video window is active or ignore keydown event
+        if (!videoWindow || !videoWindow.focused) {
+          // do nothing
+        }
+
         var key = keysight(event)
         const specialKeys = {
         "Escape": "<esc>",
