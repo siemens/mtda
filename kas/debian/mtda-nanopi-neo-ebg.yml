@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# Debian image to run MTDA on the NanoPI NEO (via EFI, EBG)
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (c) Siemens AG, 2025
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+build_system: isar
+machine: nanopi-neo-ebg
+
+header:
+  version: 17
+  includes:
+    - kas/debian/bookworm-base.yml
+    - kas/opt/ab-rootfs.yml
