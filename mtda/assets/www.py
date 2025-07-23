@@ -157,7 +157,6 @@ class Console:
             exp_list.append(re.compile(expr))
 
         while timeout > 0:
-            await asyncio.sleep(intervals)
             if flush is True:
                 contents += await Console.flush()
             else:
@@ -173,6 +172,7 @@ class Console:
                     break
             if result is not None:
                 break
+            await asyncio.sleep(intervals)
             timeout -= intervals
         return result
 

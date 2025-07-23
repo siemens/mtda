@@ -138,7 +138,6 @@ class Console:
             exp_list.append(re.compile(expr))
 
         while timeout > 0:
-            time.sleep(intervals)
             if flush is True:
                 contents += pytest.mtda.console_flush()
             else:
@@ -154,6 +153,7 @@ class Console:
                     break
             if result is not None:
                 break
+            time.sleep(intervals)
             timeout -= intervals
         return result
 
