@@ -4,8 +4,10 @@ Requires=mtda.service
 After=mtda.service
 
 [Service]
-Environment=HOST=localhost PORT=9080
-ExecStart=/usr/libexec/mtda/www --host $HOST --port $PORT
+Environment=HOST=localhost
+Environment=PORT=9080
+Environment=WORKERS=10
+ExecStart=/usr/libexec/mtda/www --host $HOST --port $PORT --workers $WORKERS
 Restart=always
 StandardOutput=journal
 StandardError=journal

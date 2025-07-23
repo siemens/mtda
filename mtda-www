@@ -21,12 +21,30 @@ import tornado.escape
 import os
 import uuid
 import zmq.asyncio
+import concurrent.futures
+import Pyro4.errors
+import logging
+import abc
+import functools
 
 from mtda.client import Client
 from mtda.utils import Compression
 import mtda.constants as CONSTS
 from mtda.console.remote import RemoteConsole
 from mtda.console.screen import ScreenOutput
+
+# ---------------------------------------------------------------------------
+# Configure basic logging for better visibility of errors
+# ---------------------------------------------------------------------------
+
+
+logging.basicConfig(level=logging.INFO,
+                    format='# %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Core Tornado Handlers (not directly interacting with MTDA)
+# ---------------------------------------------------------------------------
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -46,8 +64,132 @@ class PyodideHandler(tornado.web.StaticFileHandler):
     pass
 
 
+class BaseHandler(tornado.web.RequestHandler):
+    """
+    Base handler providing a utility method for JSON responses.
+    """
+    def result_as_json(self, result):
+        response = {"result": result}
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(response))
+
+
+class RemoteCallHandler(BaseHandler, metaclass=abc.ABCMeta):
+    """
+    Base handler for API endpoints that interact with remote services
+    Handles common logic for offloading blocking calls to a thread pool
+    and centralized error handling for remote interactions.
+    """
+    async def get(self):
+        mtda = self.application.settings['mtda']
+        if mtda is None:
+            logger.error(f"service missing for {self.__class__.__name__}.")
+            self.set_status(503)  # Service Unavailable
+            self.write({"error": "MTDA service not available."})
+            self.finish()
+            return
+
+        try:
+            # Perform the specific remote service interaction.
+            # It should return a tuple: (status, dict_or_None)
+            status, response = await self._handle_remote_request(mtda)
+
+            self.set_status(status)
+            if response is not None:
+                self.result_as_json(response)
+            # For 204 No Content, we just set status and finish, no body needed
+        except Pyro4.errors.TimeoutError:
+            logger.warning("Remote service timed out for "
+                           f"{self.__class__.__name__}")
+            self.set_status(504)  # Gateway Timeout
+            self.write({"error": "Remote service timed out."})
+        except Exception as e:
+            logger.exception("An unexpected error occurred in "
+                             f"{self.__class__.__name__}: {e}")
+            self.set_status(500)  # Internal Server Error
+            self.write({"error": f"An internal server error occurred: {e}"})
+        finally:
+            self.finish()
+
+    async def blocking_call(self, func, *args, **kwargs):
+        """
+        Shorthand to run a blocking function in the application's
+        ThreadPoolExecutor.  Automatically uses functools.partial
+        to handle arguments.
+        """
+        return await tornado.ioloop.IOLoop.current().run_in_executor(
+            self.application.executor,
+            functools.partial(func, *args, **kwargs)
+        )
+
+    @abc.abstractmethod
+    async def _handle_remote_request(self, remote_service_proxy):
+        """
+        Abstract method to be implemented by subclasses.
+        This method should contain the specific logic for interacting
+        with the remote service. It should parse its own arguments
+        (using self.get_argument) and call the appropriate remote
+        service method using `await self.blocking_call`
+
+        Args:
+            remote_service_proxy: The remote service proxy
+
+        Returns:
+            A tuple (status, response).
+            - status (int): The HTTP status code to set (e.g., 200, 204).
+            - response (dict or None): The data to return as JSON, or None.
+        """
+        pass
+
+# ---------------------------------------------------------------------------
+# WebSocket Handler
+# ---------------------------------------------------------------------------
+
+
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     clients = set()
+
+    async def blocking_call(self, func, *args, **kwargs):
+        return await tornado.ioloop.IOLoop.current().run_in_executor(
+            self.application.executor,
+            functools.partial(func, *args, **kwargs)
+        )
+
+    async def _initialize(self, mtda):
+        try:
+            version = await self.blocking_call(mtda.agent_version)
+            self.write_message({"mtda-version": {"version": version}})
+
+            console_output = await self.blocking_call(mtda.console_dump)
+            self.write_message({"console-output": {"output": console_output}})
+
+            power_status = await self.blocking_call(mtda.target_status)
+            self.write_message({"POWER": {"event": power_status}})
+
+            status, _, _ = await self.blocking_call(mtda.storage_status)
+            self.write_message({"STORAGE": {"event": status}})
+
+            fmt = await self.blocking_call(mtda.video_format)
+            if fmt is not None:
+                from urllib.parse import urlparse
+                url = urlparse(f'http://{self.request.host}')
+                video_url = await self.blocking_call(
+                        mtda.video_url, host=url.hostname
+                )
+                self.write_message(
+                        {"video-info": {"format": fmt, "url": video_url}}
+                )
+
+        except Pyro4.errors.TimeoutError:
+            logger.warning("timeout during WebSocket for session "
+                           f"{self.session_id}.")
+            self.write_message({"error": "timeout during WebSocket "
+                                "initialization"})
+        except Exception as e:
+            logger.exception("Error during WebSocket initialization "
+                             f"for session {self.session_id}: {e}")
+            self.write_message({"error": "Failed to initialize WebSocket: "
+                                f"{e}"})
 
     def open(self):
         self.session_id = uuid.uuid4().hex
@@ -55,63 +197,66 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         WebSocketHandler.clients.add(self)
         mtda = self.application.settings['mtda']
         if mtda is not None:
-            self.write_message(
-                    {"session": {"id": self.session_id}}
+            self.write_message({"session": {"id": self.session_id}})
+            tornado.ioloop.IOLoop.current().add_callback(
+                    self._initialize, mtda
             )
-            self.write_message(
-                    {"mtda-version": {"version": mtda.agent_version()}}
-            )
-            self.write_message(
-                    {"console-output": {"output": mtda.console_dump()}}
-            )
-            self.write_message(
-                    {"POWER": {"event": mtda.target_status()}}
-            )
-            status, _, _ = mtda.storage_status()
-            self.write_message({"STORAGE": {"event": status}})
-
-            fmt = mtda.video_format()
-            if fmt is not None:
-                from urllib.parse import urlparse
-                url = urlparse(f'http://{self.request.host}')
-                url = mtda.video_url(host=url.hostname)
-                self.write_message({"video-info": {"format": fmt, "url": url}})
+        else:
+            logger.error("MTDA service is not initialized for WebSocket")
+            self.write_message({"error": "MTDA service not available."})
+            self.close()  # Close connection if service is not available
 
     def on_message(self, message):
         mtda = self.application.settings['mtda']
         if mtda is not None:
             sid = self.session_id
             if isinstance(message, bytes):
-                mtda.debug(4, f"www.ws.on_message({len(message)} bytes, "
-                           f"session={sid})")
+                logger.debug(f"www.ws.on_message({len(message)} bytes, "
+                             f"session={sid})")
                 sockets = self.application.settings['sockets']
                 if sid in sockets:
                     sockets[sid].send(message)
                 else:
-                    mtda.debug(1, f'no data socket for session {sid}!')
+                    logger.debug(f'no data socket for session {sid}!')
             else:
                 data = tornado.escape.json_decode(message)
-                mtda.debug(4, f"www.ws.on_message({data})")
+                logger.debug(f"www.ws.on_message({data})")
                 if 'console-input' in data:
-                    input = data['console-input']['input']
-                    mtda.console_send(input, raw=False, session=sid)
+                    input_data = data['console-input']['input']
+
+                    async def _send_console_input():
+                        try:
+                            await self.blocking_call(
+                                mtda.console_send, input_data,
+                                raw=False, session=sid
+                            )
+                        except Pyro4.errors.TimeoutError:
+                            logger.warning("timeout for console_send "
+                                           f"for session {sid}.")
+                            self.write_message(
+                                    {"error": "console send timed out"}
+                            )
+                        except Exception as e:
+                            logger.exception("Error sending console input "
+                                             f"for session {sid}: {e}")
+                            self.write_message(
+                                    {"error": "Error sending console"
+                                              f"console input: {e}"}
+                            )
+
+                    tornado.ioloop.IOLoop.current().add_callback(
+                            _send_console_input
+                    )
 
     def on_close(self):
         WebSocketHandler.clients.remove(self)
-
-
-class BaseHandler(tornado.web.RequestHandler):
-    def result_as_json(self, result):
-        response = {"result": result}
-        self.set_header("Content-Type", "application/json")
-        self.write(json.dumps(response))
 
 # ---------------------------------------------------------------------------
 # /console-clear
 # ---------------------------------------------------------------------------
 
 
-class ConsoleClearHandler(BaseHandler):
+class ConsoleClearHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Clear the console ring buffer",
         "parameters": [{
@@ -129,22 +274,19 @@ class ConsoleClearHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            mtda.console_clear(session=sid)
-            self.set_status(204)
-        else:
-            self.set_status(503)
-        self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        await self.blocking_call(
+            mtda.console_clear, session=sid
+        )
+        return 204, None
 
 # ---------------------------------------------------------------------------
 # /console-dump
 # ---------------------------------------------------------------------------
 
 
-class ConsoleDumpHandler(BaseHandler):
+class ConsoleDumpHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Dump contents of the console ring buffer",
         "parameters": [{
@@ -162,22 +304,19 @@ class ConsoleDumpHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            content = mtda.console_dump(session=sid)
-            self.result_as_json({"content": content})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        content = await self.blocking_call(
+            mtda.console_dump, session=sid
+        )
+        return 200, {"content": content}
 
 # ---------------------------------------------------------------------------
 # /console-flush
 # ---------------------------------------------------------------------------
 
 
-class ConsoleFlushHandler(BaseHandler):
+class ConsoleFlushHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Flush and return previous contents of the console "
                    "ring buffer",
@@ -196,22 +335,19 @@ class ConsoleFlushHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            content = mtda.console_flush(session=sid)
-            self.result_as_json({"content": content})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        content = await self.blocking_call(
+            mtda.console_flush, session=sid
+        )
+        return 200, {"content": content}
 
 # ---------------------------------------------------------------------------
 # /console-head
 # ---------------------------------------------------------------------------
 
 
-class ConsoleHeadHandler(BaseHandler):
+class ConsoleHeadHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Get the first line from the console ring-buffer",
         "parameters": [{
@@ -229,22 +365,19 @@ class ConsoleHeadHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            content = mtda.console_head(session=sid)
-            self.result_as_json({"content": content})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        content = await self.blocking_call(
+            mtda.console_head, session=sid
+        )
+        return 200, {"content": content}
 
 # ---------------------------------------------------------------------------
 # /console-lines
 # ---------------------------------------------------------------------------
 
 
-class ConsoleLinesHandler(BaseHandler):
+class ConsoleLinesHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Get the number of lines available in the console "
                    "ring-buffer",
@@ -263,22 +396,19 @@ class ConsoleLinesHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            count = mtda.console_lines(session=sid)
-            self.result_as_json({"count": count})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        count = await self.blocking_call(
+            mtda.console_lines, session=sid
+        )
+        return 200, {"count": count}
 
 # ---------------------------------------------------------------------------
 # /console-send
 # ---------------------------------------------------------------------------
 
 
-class ConsoleSendHandler(BaseHandler):
+class ConsoleSendHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Get the number of lines available in the console "
                    "ring-buffer",
@@ -303,23 +433,20 @@ class ConsoleSendHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            what = self.get_argument('what', strip=False)
-            mtda.console_send(what, session=sid)
-            self.set_status(204)
-        else:
-            self.set_status(503)
-        self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        what = self.get_argument('what', strip=False)
+        await self.blocking_call(
+            mtda.console_send, what, session=sid
+        )
+        return 204, None
 
 # ---------------------------------------------------------------------------
 # /console-tail
 # ---------------------------------------------------------------------------
 
 
-class ConsoleTailHandler(BaseHandler):
+class ConsoleTailHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Get the last line from the console ring-buffer",
         "parameters": [{
@@ -337,23 +464,19 @@ class ConsoleTailHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            content = mtda.console_tail(session=sid)
-            self.result_as_json({"content": content})
-        else:
-            self.set_status(503)
-            self.finish()
-
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        content = await self.blocking_call(
+            mtda.console_tail, session=sid
+        )
+        return 200, {"content": content}
 
 # ---------------------------------------------------------------------------
 # /keyboard-input
 # ---------------------------------------------------------------------------
 
 
-class KeyboardInputHandler(BaseHandler):
+class KeyboardInputHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Send keyboard input",
         "parameters": [{
@@ -407,8 +530,7 @@ class KeyboardInputHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
+    async def _handle_remote_request(self, mtda):
         input_key = self.get_argument("input", "")
 
         key_map = {
@@ -431,22 +553,22 @@ class KeyboardInputHandler(BaseHandler):
             input_key = input_key.lower()
             shift = True
 
-        mtda.keyboard_press(
-                  input_key,
-                  ctrl=self.get_argument('ctrl', 'false') == 'true',
-                  shift=shift,
-                  alt=self.get_argument('alt', 'false') == 'true',
-                  meta=self.get_argument('meta', 'false') == 'true'
-                  )
-        self.set_status(204)
-        self.finish()
+        await self.blocking_call(
+            mtda.keyboard_press,
+            input_key,
+            ctrl=self.get_argument('ctrl', 'false') == 'true',
+            shift=shift,
+            alt=self.get_argument('alt', 'false') == 'true',
+            meta=self.get_argument('meta', 'false') == 'true'
+        )
+        return 204, None
 
 # ---------------------------------------------------------------------------
-# /mouse-move
+# /mouse-event
 # ---------------------------------------------------------------------------
 
 
-class MouseEventHandler(BaseHandler):
+class MouseEventHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Send a mouse move event",
         "parameters": [{
@@ -485,23 +607,22 @@ class MouseEventHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
+    async def _handle_remote_request(self, mtda):
         x = float(self.get_argument("x", 0))
         y = float(self.get_argument("y", 0))
         buttons = int(self.get_argument("buttons", 0))
-        mtda.mouse_move(x, y, buttons)
+
+        await self.blocking_call(mtda.mouse_move, x, y, buttons)
         if buttons > 0:
-            mtda.mouse_move(x, y, 0)
-        self.set_status(204)
-        self.finish()
+            await self.blocking_call(mtda.mouse_move, x, y, 0)
+        return 204, None
 
 # ---------------------------------------------------------------------------
 # /power-toggle
 # ---------------------------------------------------------------------------
 
 
-class PowerToggleHandler(BaseHandler):
+class PowerToggleHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Toggle power for the Device Under Test",
         "parameters": [{
@@ -519,22 +640,19 @@ class PowerToggleHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            result = mtda.target_toggle(session=sid)
-            self.result_as_json({"status": result})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        result = await self.blocking_call(
+            mtda.target_toggle, session=sid
+        )
+        return 200, {"status": result}
 
 # ---------------------------------------------------------------------------
 # /storage-open
 # ---------------------------------------------------------------------------
 
 
-class StorageOpenHandler(BaseHandler):
+class StorageOpenHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Open the shared storage to upload a file",
         "parameters": [{
@@ -567,34 +685,31 @@ class StorageOpenHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            compr = CONSTS.IMAGE.RAW.value
-            file = self.get_argument('file')
-            try:
-                size = int(self.get_argument('size', 0))
-            except ValueError:
-                size = 0
-            if file:
-                mtda.debug(2, f'file to be uploaded: {file}')
-                compr = Compression.from_extension(file)
-            mtda.storage_compression(compr)
+    async def _handle_remote_request(self, mtda):
+        compr = CONSTS.IMAGE.RAW.value
+        file = self.get_argument('file')
+        try:
+            size = int(self.get_argument('size', 0))
+        except ValueError:
+            size = 0
+        if file:
+            logger.debug(f'file to be uploaded: {file}')
+            compr = Compression.from_extension(file)
+            await self.blocking_call(mtda.storage_compression, compr)
 
-            sid = self.get_argument('session')
-            zmq_socket = mtda.storage_open(size, session=sid)
-            self.application.settings['sockets'][sid] = zmq_socket
-            self.set_status(204)
-        else:
-            self.set_status(503)
-        self.finish()
+        sid = self.get_argument('session')
+        zmq_socket = await self.blocking_call(
+            mtda.storage_open, size, session=sid
+        )
+        self.application.settings['sockets'][sid] = zmq_socket
+        return 204, None
 
 # ---------------------------------------------------------------------------
 # /storage-close
 # ---------------------------------------------------------------------------
 
 
-class StorageCloseHandler(BaseHandler):
+class StorageCloseHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Close (release) shared storage",
         "parameters": [{
@@ -612,24 +727,21 @@ class StorageCloseHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            mtda.storage_close(session=sid)
-            if sid in self.application.settings['sockets']:
-                del self.application.settings['sockets'][sid]
-            self.set_status(204)
-        else:
-            self.set_status(503)
-        self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        await self.blocking_call(
+            mtda.storage_close, session=sid
+        )
+        if sid in self.application.settings['sockets']:
+            del self.application.settings['sockets'][sid]
+        return 204, None
 
 # ---------------------------------------------------------------------------
-# /power-toggle
+# /storage-toggle
 # ---------------------------------------------------------------------------
 
 
-class StorageToggleHandler(BaseHandler):
+class StorageToggleHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Toggle storage between the host and device",
         "parameters": [{
@@ -647,35 +759,19 @@ class StorageToggleHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            result = ''
-            sid = self.get_argument('session')
-            status, _, _ = mtda.storage_status(session=sid)
-            if status == CONSTS.STORAGE.ON_HOST:
-                result = (
-                        'TARGET'
-                        if mtda.storage_to_target()
-                        else 'HOST'
-                )
-            elif status == CONSTS.STORAGE.ON_TARGET:
-                result = (
-                        'HOST'
-                        if mtda.storage_to_host()
-                        else 'TARGET'
-                )
-            self.result_as_json({"status": result})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        status = await self.blocking_call(
+            mtda.storage_toggle, session=sid
+        )
+        return 200, {"status": status}
 
 # ---------------------------------------------------------------------------
 # /target-off
 # ---------------------------------------------------------------------------
 
 
-class TargetOffHandler(BaseHandler):
+class TargetOffHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Turn OFF the target device",
         "parameters": [{
@@ -693,22 +789,19 @@ class TargetOffHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            mtda.target_off(session=sid)
-            self.set_status(204)
-        else:
-            self.set_status(503)
-        self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        await self.blocking_call(
+            mtda.target_off, session=sid
+        )
+        return 204, None
 
 # ---------------------------------------------------------------------------
 # /target-on
 # ---------------------------------------------------------------------------
 
 
-class TargetOnHandler(BaseHandler):
+class TargetOnHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Turn ON the target device",
         "parameters": [{
@@ -726,22 +819,19 @@ class TargetOnHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            mtda.target_on(session=sid)
-            self.set_status(204)
-        else:
-            self.set_status(503)
-        self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        await self.blocking_call(
+            mtda.target_on, session=sid
+        )
+        return 204, None
 
 # ---------------------------------------------------------------------------
 # /target-status
 # ---------------------------------------------------------------------------
 
 
-class TargetStatusHandler(BaseHandler):
+class TargetStatusHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Query state of the target device (ON or OFF)",
         "parameters": [{
@@ -759,22 +849,19 @@ class TargetStatusHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            status = mtda.target_status(session=sid)
-            self.result_as_json({"status": status})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        status = await self.blocking_call(
+            mtda.target_status, session=sid
+        )
+        return 200, {"status": status}
 
 # ---------------------------------------------------------------------------
 # /target-uptime
 # ---------------------------------------------------------------------------
 
 
-class TargetUptimeHandler(BaseHandler):
+class TargetUptimeHandler(RemoteCallHandler):
     spec = {"get": {
         "summary": "Query the uptime of the target device",
         "parameters": [{
@@ -792,15 +879,12 @@ class TargetUptimeHandler(BaseHandler):
             }
         }}}
 
-    def get(self):
-        mtda = self.application.settings['mtda']
-        if mtda is not None:
-            sid = self.get_argument('session')
-            uptime = mtda.target_uptime(session=sid)
-            self.result_as_json({"uptime": uptime})
-        else:
-            self.set_status(503)
-            self.finish()
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        uptime = self.blocking_call(
+            mtda.target_uptime, session=sid
+        )
+        return 200, {"uptime": uptime}
 
 
 class WebConsole(RemoteConsole):
@@ -859,44 +943,75 @@ class WebOutput(ScreenOutput):
         loop = tornado.ioloop.IOLoop.current()
         loop.add_callback(self._send_to_clients, message)
 
+# ---------------------------------------------------------------------------
+# OpenAPI / Swagger UI Handlers
+# ---------------------------------------------------------------------------
+
 
 class OpenAPIHandler(tornado.web.RequestHandler):
-    def get(self):
+    async def blocking_call(self, func, *args, **kwargs):
+        return await tornado.ioloop.IOLoop.current().run_in_executor(
+            self.application.executor,
+            functools.partial(func, *args, **kwargs)
+        )
+
+    async def get(self):
         mtda = self.application.settings['mtda']
+        if mtda is None:
+            self.set_status(503)
+            self.write({"error": "MTDA service not available."})
+            self.finish()
+            return
+
         self.set_header("Content-Type", "application/json")
-        spec = {
-            "openapi": "3.0.0",
-            "info": {
-                "title": "MTDA API",
-                "version": mtda.agent_version(),
-                "description": "MTDA Web Service API"
-            },
-            "paths": {
-                "/console-clear": ConsoleClearHandler.spec,
-                "/console-dump": ConsoleDumpHandler.spec,
-                "/console-flush": ConsoleFlushHandler.spec,
-                "/console-head": ConsoleHeadHandler.spec,
-                "/console-lines": ConsoleLinesHandler.spec,
-                "/console-send": ConsoleSendHandler.spec,
-                "/console-tail": ConsoleTailHandler.spec,
-                "/keyboard-input": KeyboardInputHandler.spec,
-                "/mouse-move": MouseEventHandler.spec,
-                "/power-toggle": PowerToggleHandler.spec,
-                "/storage-open": StorageOpenHandler.spec,
-                "/storage-close": StorageCloseHandler.spec,
-                "/storage-toggle": StorageToggleHandler.spec,
-                "/target-off": TargetOffHandler.spec,
-                "/target-on": TargetOnHandler.spec,
-                "/target-status": TargetStatusHandler.spec,
-                "/target-uptime": TargetUptimeHandler.spec
+        try:
+            version = await self.blocking_call(mtda.agent_version)
+            spec = {
+                "openapi": "3.0.0",
+                "info": {
+                    "title": "MTDA API",
+                    "version": version,
+                    "description": "MTDA Web Service API"
+                },
+                "paths": {
+                    "/console-clear": ConsoleClearHandler.spec,
+                    "/console-dump": ConsoleDumpHandler.spec,
+                    "/console-flush": ConsoleFlushHandler.spec,
+                    "/console-head": ConsoleHeadHandler.spec,
+                    "/console-lines": ConsoleLinesHandler.spec,
+                    "/console-send": ConsoleSendHandler.spec,
+                    "/console-tail": ConsoleTailHandler.spec,
+                    "/keyboard-input": KeyboardInputHandler.spec,
+                    "/mouse-move": MouseEventHandler.spec,
+                    "/power-toggle": PowerToggleHandler.spec,
+                    "/storage-open": StorageOpenHandler.spec,
+                    "/storage-close": StorageCloseHandler.spec,
+                    "/storage-toggle": StorageToggleHandler.spec,
+                    "/target-off": TargetOffHandler.spec,
+                    "/target-on": TargetOnHandler.spec,
+                    "/target-status": TargetStatusHandler.spec,
+                    "/target-uptime": TargetUptimeHandler.spec
+                }
             }
-        }
-        self.write(spec)
+            self.write(spec)
+        except Pyro4.errors.TimeoutError:
+            logger.warning("Pyro4 timeout fetching agent version for OpenAPI.")
+            self.set_status(504)
+            self.write({"error": "timeout while fetching API version"})
+        except Exception as e:
+            logger.exception(f"Error fetching service version: {e}")
+            self.set_status(500)
+            self.write({"error": f"An internal server error occurred: {e}"})
+        self.finish()
 
 
 class SwaggerUIHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("swagger.html")
+
+# ---------------------------------------------------------------------------
+# Main Service Application
+# ---------------------------------------------------------------------------
 
 
 class Service:
@@ -913,12 +1028,26 @@ class Service:
                 "--port",
                 type=int,
                 default=CONSTS.DEFAULTS.WWW_PORT)
+        parser.add_argument(
+                "--workers",
+                type=int,
+                default=CONSTS.DEFAULTS.WWW_WORKERS)
         args = parser.parse_args()
         self._host = args.host
         self._port = args.port
+        self._workers = args.workers
+
+    async def blocking_call(self, func, *args, **kwargs):
+        return await tornado.ioloop.IOLoop.current().run_in_executor(
+            self.application.executor,
+            functools.partial(func, *args, **kwargs)
+        )
 
     async def run(self):
         self.parse_args()
+        self.executor = concurrent.futures.ThreadPoolExecutor(
+                max_workers=self._workers
+        )
         BASE_DIR = os.path.dirname(os.path.abspath(CONSTS.__file__))
         self.application = tornado.web.Application([
             (r"/", MainHandler),
@@ -954,19 +1083,31 @@ class Service:
         ], template_path=os.path.join(BASE_DIR, "templates"),
            mtda=self.mtda, sockets={}, debug=False)
 
-        output = WebOutput(self.application, self.mtda)
-        conport = self.mtda.console_port()
-        remote = self.mtda.remote()
+        # Pass the executor to the application settings for our handlers
+        self.application.executor = self.executor
 
         # Connect both the console and monitor to our custom output
-        console = WebConsole(remote, conport, output)
-        asyncio.create_task(console.reader())
-        monitor = WebMonitor(remote, conport, output)
-        asyncio.create_task(monitor.reader())
+        try:
+            conport = await self.blocking_call(self.mtda.console_port)
+            remote = await self.blocking_call(self.mtda.remote)
+            output = WebOutput(self.application, self.mtda)
+            console = WebConsole(remote, conport, output)
+            asyncio.create_task(console.reader())
+            monitor = WebMonitor(remote, conport, output)
+            asyncio.create_task(monitor.reader())
+        except Exception as e:
+            logger.error(f"Failed to initialize MTDA console/monitor: {e}")
+            raise
 
-        self.mtda.start()
+        try:
+            await self.blocking_call(self.mtda.start)
+        except Exception as e:
+            logger.error(f"Failed to start MTDA client: {e}")
+            raise
+
         self.application.listen(self._port, self._host)
-
+        logger.info("www server listening on "
+                    f"http://{self._host}:{self._port}")
         await asyncio.Event().wait()
 
 

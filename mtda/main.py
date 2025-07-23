@@ -980,6 +980,27 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
+    def storage_toggle(self, **kwargs):
+        self.mtda.debug(3, "main.storage_status()")
+
+        result = CONSTS.STORAGE.UNKNOWN
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+        if self.storage is None:
+            self.mtda.debug(4, "storage_toggle(): no shared storage device")
+        else:
+            status, _, _ = self.storage_status()
+            if status in (CONSTS.STORAGE.ON_HOST, CONSTS.STORAGE.ON_NETWORK):
+                if self.storage_to_target(session=session):
+                    result = CONSTS.STORAGE.ON_TARGET
+            elif status == CONSTS.STORAGE.ON_TARGET:
+                if self.storage_to_host(session=session):
+                    result = CONSTS.STORAGE.ON_HOST
+
+        self.mtda.debug(3, f"main.storage_toggle(): {result}")
+        return result
+
+    @Pyro4.expose
     def storage_to_host(self, **kwargs):
         self.mtda.debug(3, "main.storage_to_host()")
 
@@ -1757,8 +1778,14 @@ class MultiTenantDeviceAccess:
 
     def load_www_config(self, parser):
         self.mtda.debug(3, "main.load_www_config()")
-        self._www_host = parser.get('www', 'host', fallback='localhost')
-        self._www_port = int(parser.get('www', 'port', fallback=0))
+        self._www_host = parser.get('www', 'host',
+                                    fallback=CONSTS.DEFAULTS.WWW_HOST)
+        self._www_port = int(
+                parser.get('www', 'port',
+                           fallback=CONSTS.DEFAULTS.WWW_PORT))
+        self._www_workers = int(
+                parser.get('www', 'workers',
+                           fallback=CONSTS.DEFAULTS.WWW_WORKERS))
 
     def notify(self, what, info):
         self.mtda.debug(4, f"main.notify({what},{info})")
