@@ -35,6 +35,7 @@ RDEPENDS:${PN} = "                       \
     mjpg-streamer                        \
     mtda                                 \
     pyodide                              \
+    pytest-whl                           \
     sd-mux-ctrl                          \
 "
 # Ubuntu noble ships sd-mux-ctrl package

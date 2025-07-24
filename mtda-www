@@ -64,6 +64,10 @@ class PyodideHandler(tornado.web.StaticFileHandler):
     pass
 
 
+class WheelHandler(tornado.web.StaticFileHandler):
+    pass
+
+
 class BaseHandler(tornado.web.RequestHandler):
     """
     Base handler providing a utility method for JSON responses.
@@ -1207,6 +1211,9 @@ class Service:
             }),
             (r"/pyodide/(.*)", PyodideHandler, {
                 "path": "/opt/pyodide"
+            }),
+            (r"/whl/(.*)", PyodideHandler, {
+                "path": "/opt/whl"
             }),
             (r"/mtda", WebSocketHandler),
             (r"/console-clear", ConsoleClearHandler),
