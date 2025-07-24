@@ -298,39 +298,6 @@ SPDX-License-Identifier: MIT
           this.showPrompt();
         }
 
-        async oldhandleEnter() {
-          this.terminal.write('\r\n');
-
-          if (this.currentLine.trim()) {
-            this.history.push(this.currentLine);
-            this.historyIndex = this.history.length;
-
-            this.multiLineBuffer.push(this.currentLine);
-
-            const code = this.multiLineBuffer.join('\n');
-            if (await this.isIncomplete(code)) {
-              this.multiLineMode = true;
-              this.terminal.write('... ');
-              this.currentLine = '';
-              return;
-            }
-
-            try {
-              const result = await this.pyodide.runPythonAsync(code);
-              if (result !== undefined) {
-                this.terminal.write(`${result}\r\n`);
-              }
-            } catch (error) {
-              this.terminal.write(`\x1b[31m${error.message}\x1b[0m\r\n`);
-            }
-
-            this.multiLineMode = false;
-            this.multiLineBuffer = [];
-          }
-
-          this.showPrompt();
-        }
-
         async isIncomplete(code) {
           try {
             return await this.pyodide.runPythonAsync(`
