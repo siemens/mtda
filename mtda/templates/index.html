@@ -218,10 +218,10 @@ SPDX-License-Identifier: MIT
 
         async initPyodide() {
           try {
-            this.pyodide = await loadPyodide({
-              stdout: (text) => this.terminal.write(text),
-              stderr: (text) => this.terminal.write(`\x1b[31m${text}\x1b[0m`)
-            });
+            this.putc = (c) => this.terminal.write(new Uint8Array([c]));
+            this.pyodide = await loadPyodide();
+            this.pyodide.setStdout({ raw: (c) => this.putc(c) });
+            this.pyodide.setStderr({ raw: (c) => this.putc(c) });
 
             // Load extra Python packages/wheels
             const packages = [
