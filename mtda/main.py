@@ -93,6 +93,7 @@ class MultiTenantDeviceAccess:
         self._uptime = 0
         self._www_host = None
         self._www_port = None
+        self._www_workers = None
         self.version = __version__
 
         # Config file in /etc/mtda/config
@@ -1111,13 +1112,17 @@ class MultiTenantDeviceAccess:
 
         result = None
         etcdir = '/etc/systemd/system/mtda-www.service.d/'
-        if self._www_port or self._www_host:
+        if self._www_port or self._www_host or self._www_workers:
             os.makedirs(etcdir, exist_ok=True)
             dropin = os.path.join(etcdir, 'www.conf')
             with open(dropin, 'w') as f:
                 f.write('[Service]\n')
-                f.write(f'Environment=HOST={self._www_host} '
-                        f'PORT={self._www_port}\n')
+                if self._www_host:
+                    f.write(f'Environment=HOST={self._www_host}\n')
+                if self._www_port:
+                    f.write(f'Environment=PORT={self._www_port}\n')
+                if self._www_workers:
+                    f.write(f'Environment=WORKERS={self._www_workers}\n')
         else:
             import shutil
             shutil.rmtree(etcdir, ignore_errors=True)
