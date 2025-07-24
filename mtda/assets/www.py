@@ -178,6 +178,30 @@ class Console:
 
 
 class Storage:
+    async def commit():
+        """
+        Commit changes made to the shared storage to disk.
+        Note: shared storage shall be assigned to the HOST.
+
+        Returns:
+            bool: True if the request was successful
+        """
+        response = await Support.get("/storage-commit",
+                                     {"session": PY_SESSION_ID})
+        return response.ok
+
+    async def rollback():
+        """
+        Rollback changes made to the shared storage to disk.
+        Note: shared storage shall be assigned to the HOST.
+
+        Returns:
+            bool: True if the request was successful
+        """
+        response = await Support.get("/storage-rollback",
+                                     {"session": PY_SESSION_ID})
+        return response.ok
+
     async def toggle():
         """
         Toggle the shared storage between the HOST and TARGET
@@ -190,6 +214,28 @@ class Storage:
         if 'result' in response:
             return response['result']['status']
         return '???'
+
+    async def to_host():
+        """
+        Move shared storage to the HOST
+
+        Returns:
+            bool: True if the request was successful
+        """
+        response = await Support.get("/storage-to-host",
+                                     {"session": PY_SESSION_ID})
+        return response.ok
+
+    async def to_target():
+        """
+        Move shared storage to the TARGET
+
+        Returns:
+            bool: True if the request was successful
+        """
+        response = await Support.get("/storage-to-target",
+                                     {"session": PY_SESSION_ID})
+        return response.ok
 
 
 class Support:

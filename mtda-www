@@ -737,6 +737,71 @@ class StorageCloseHandler(RemoteCallHandler):
         return 204, None
 
 # ---------------------------------------------------------------------------
+# /storage-commit
+# ---------------------------------------------------------------------------
+
+
+class StorageCommitHandler(RemoteCallHandler):
+    spec = {"get": {
+        "summary": "Commit changes made to the shared storage",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Changes to the shared storage committed to disk"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            },
+            "500": {
+                "description": "Changes to the shared storage could not be "
+                               "committed to disk"
+            }
+        }}}
+
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        await self.blocking_call(mtda.storage_commit, session=sid)
+        return 204, None
+
+# ---------------------------------------------------------------------------
+# /storage-rollback
+# ---------------------------------------------------------------------------
+
+
+class StorageRollbackHandler(RemoteCallHandler):
+    spec = {"get": {
+        "summary": "Rollback changes made to the shared storage",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Changes to the shared storage were rolled "
+                               "back"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            },
+            "500": {
+                "description": "Changes to the shared storage could not be "
+                               "rolled back"
+            }
+        }}}
+
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        await self.blocking_call(mtda.storage_rollback, session=sid)
+        return 204, None
+
+# ---------------------------------------------------------------------------
 # /storage-toggle
 # ---------------------------------------------------------------------------
 
@@ -765,6 +830,74 @@ class StorageToggleHandler(RemoteCallHandler):
             mtda.storage_toggle, session=sid
         )
         return 200, {"status": status}
+
+# ---------------------------------------------------------------------------
+# /storage-to-host
+# ---------------------------------------------------------------------------
+
+
+class StorageToHostHandler(RemoteCallHandler):
+    spec = {"get": {
+        "summary": "Transfer shared storage to the HOST",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Shared storage on HOST"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            },
+            "405": {
+                "description": "Shared storage could not be transferred "
+                               "to HOST"
+            }
+        }}}
+
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        status = await self.blocking_call(
+            mtda.storage_to_host, session=sid
+        )
+        return 204 if status else 405, None
+
+# ---------------------------------------------------------------------------
+# /storage-to-target
+# ---------------------------------------------------------------------------
+
+
+class StorageToTargetHandler(RemoteCallHandler):
+    spec = {"get": {
+        "summary": "Transfer shared storage to the TARGET",
+        "parameters": [{
+            "name": "session",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "session ID"
+        }], "responses": {
+            "204": {
+                "description": "Shared storage on HOST"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            },
+            "405": {
+                "description": "Shared storage could not be transferred "
+                               "to TARGET"
+            }
+        }}}
+
+    async def _handle_remote_request(self, mtda):
+        sid = self.get_argument('session')
+        status = await self.blocking_call(
+            mtda.storage_to_target, session=sid
+        )
+        return 204 if status else 405, None
 
 # ---------------------------------------------------------------------------
 # /target-off
@@ -986,7 +1119,11 @@ class OpenAPIHandler(tornado.web.RequestHandler):
                     "/power-toggle": PowerToggleHandler.spec,
                     "/storage-open": StorageOpenHandler.spec,
                     "/storage-close": StorageCloseHandler.spec,
+                    "/storage-commit": StorageCommitHandler.spec,
+                    "/storage-rollback": StorageRollbackHandler.spec,
                     "/storage-toggle": StorageToggleHandler.spec,
+                    "/storage-to-host": StorageToHostHandler.spec,
+                    "/storage-to-target": StorageToTargetHandler.spec,
                     "/target-off": TargetOffHandler.spec,
                     "/target-on": TargetOnHandler.spec,
                     "/target-status": TargetStatusHandler.spec,
@@ -1074,8 +1211,12 @@ class Service:
             (r"/mouse-move", MouseEventHandler),
             (r"/power-toggle", PowerToggleHandler),
             (r"/storage-close", StorageCloseHandler),
+            (r"/storage-commit", StorageCommitHandler),
             (r"/storage-open", StorageOpenHandler),
+            (r"/storage-rollback", StorageRollbackHandler),
             (r"/storage-toggle", StorageToggleHandler),
+            (r"/storage-to-host", StorageToHostHandler),
+            (r"/storage-to-target", StorageToTargetHandler),
             (r"/target-off", TargetOffHandler),
             (r"/target-on", TargetOnHandler),
             (r"/target-status", TargetStatusHandler),
