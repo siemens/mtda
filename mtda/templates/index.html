@@ -222,6 +222,18 @@ SPDX-License-Identifier: MIT
               stdout: (text) => this.terminal.write(text),
               stderr: (text) => this.terminal.write(`\x1b[31m${text}\x1b[0m`)
             });
+
+            // Load extra Python packages/wheels
+            const packages = [
+              "/whl/pluggy-1.6.0-py3-none-any.whl",
+              "/whl/pygments-2.19.2-py3-none-any.whl",
+              "/whl/iniconfig-2.1.0-py3-none-any.whl",
+              "/whl/pytest-8.4.1-py3-none-any.whl"
+            ];
+            for (const pkgPath of packages) {
+              await this.pyodide.loadPackage(pkgPath, { checkIntegrity: false });
+            }
+
             await this.setupPython();
             this.showPrompt();
           } catch (error) {
