@@ -240,6 +240,14 @@ class Storage:
 
 class Support:
     @staticmethod
+    def init_user_workspace():
+        import os
+        import shutil
+        if os.path.exists("/user"):
+            shutil.rmtree("/user")
+        os.mkdir("/user")
+
+    @staticmethod
     def sanitize_params(params):
         return {k: quote(str(v), safe='') for k, v in params.items()}
 

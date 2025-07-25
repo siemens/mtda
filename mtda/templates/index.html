@@ -121,6 +121,11 @@ SPDX-License-Identifier: MIT
         background-position: center;
         background-repeat: no-repeat;
       }
+      .wb-upload {
+        background-image: url('data:image/svg+xml,%3Csvg width="16" height="16" viewBox=%220 0 16 16%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M8 11V5M8 5L5.5 7.5M8 5L10.5 7.5%22 stroke=%22%23FF5F57%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E');
+        background-position: center;
+        background-repeat: no-repeat;
+      }
     </style>
   </head>
   <body>
@@ -236,6 +241,7 @@ SPDX-License-Identifier: MIT
 
             await this.setupPython();
             this.showPrompt();
+            this.addUploadButton();
           } catch (error) {
             this.terminal.write(`\x1b[31mError loading Python: ${error.message}\x1b[0m\r\n`);
           }
@@ -261,7 +267,6 @@ SPDX-License-Identifier: MIT
 
         async handleEnter() {
           this.terminal.write('\r\n');
-
           const trimmed = this.currentLine.trim();
 
           if (this.multiLineMode) {
@@ -319,7 +324,7 @@ SPDX-License-Identifier: MIT
             `);
           } catch (e) {
             return false;
-         }
+          }
         }
 
         handleHistory(direction) {
@@ -363,6 +368,44 @@ SPDX-License-Identifier: MIT
               console.error('Tab completion error:', error);
             }
           }
+        }
+
+        addUploadButton() {
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = '.zip';
+          fileInput.style.display = 'none';
+          document.body.appendChild(fileInput);
+
+          fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+              const arrayBuffer = await file.arrayBuffer();
+              const data = new Uint8Array(arrayBuffer);
+              const fileName = file.name;
+              const tmpFile = `/tmp/${fileName}`;
+
+              await this.pyodide.runPythonAsync('Support.init_user_workspace()');
+              this.pyodide.FS.writeFile(tmpFile, new Uint8Array(arrayBuffer), { encoding: 'binary' });
+              await this.pyodide.unpackArchive(this.pyodide.FS.readFile(tmpFile), 'zip', { extractDir: '/user' });
+              this.pyodide.FS.unlink(tmpFile);
+              this.terminal.write(`\r\n\x1b[32m${fileName} Uploaded and extracted to /user\x1b[0m\r\n`);
+            } catch (err) {
+              this.terminal.write(`\r\n\x1b[31mFailed to extract zip: ${err.message}\x1b[0m\r\n`);
+            } finally {
+              this.showPrompt();
+              fileInput.value = '';
+            }
+          });
+
+          this.winbox.addControl({
+            index: 0,
+            class: 'wb-upload',
+            title: 'Upload ZIP to /user',
+            click: () => fileInput.click()
+          });
         }
       }
     </script>
