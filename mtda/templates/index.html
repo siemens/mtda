@@ -240,6 +240,7 @@ SPDX-License-Identifier: MIT
             }
 
             await this.setupPython();
+            await this.setupPytest();
             this.showPrompt();
             this.addUploadButton();
           } catch (error) {
@@ -249,12 +250,28 @@ SPDX-License-Identifier: MIT
 
         async setupPython() {
           try {
+            this.pyodide.FS.mkdir('/opt');
             const response = await fetch('./assets/www.py');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const pythonCode = await response.text();
             await this.pyodide.runPythonAsync(pythonCode);
+          } catch (error) {
+            console.error('Failed to load Python code:', error);
+          }
+        }
+
+        async setupPytest() {
+          try {
+            const response = await fetch('./assets/pytest.py');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const pythonCode = await response.text();
+            this.pyodide.FS.mkdir('/opt/mtda');
+            this.pyodide.FS.writeFile('/opt/mtda/__init__.py', '');
+            this.pyodide.FS.writeFile('/opt/mtda/pytest.py', pythonCode);
           } catch (error) {
             console.error('Failed to load Python code:', error);
           }
@@ -387,7 +404,7 @@ SPDX-License-Identifier: MIT
               const fileName = file.name;
               const tmpFile = `/tmp/${fileName}`;
 
-              await this.pyodide.runPythonAsync('Support.init_user_workspace()');
+              await this.pyodide.runPythonAsync('init_user_workspace()');
               this.pyodide.FS.writeFile(tmpFile, new Uint8Array(arrayBuffer), { encoding: 'binary' });
               await this.pyodide.unpackArchive(this.pyodide.FS.readFile(tmpFile), 'zip', { extractDir: '/user' });
               this.pyodide.FS.unlink(tmpFile);
