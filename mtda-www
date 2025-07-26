@@ -1014,7 +1014,7 @@ class TargetUptimeHandler(RemoteCallHandler):
 
     async def _handle_remote_request(self, mtda):
         sid = self.get_argument('session')
-        uptime = self.blocking_call(
+        uptime = await self.blocking_call(
             mtda.target_uptime, session=sid
         )
         return 200, {"uptime": uptime}
