@@ -1117,6 +1117,8 @@ class MultiTenantDeviceAccess:
             dropin = os.path.join(etcdir, 'www.conf')
             with open(dropin, 'w') as f:
                 f.write('[Service]\n')
+                if self.debug_level:
+                    f.write('Environment=DEBUG_ARG=--debug\n')
                 if self._www_host:
                     f.write(f'Environment=HOST={self._www_host}\n')
                 if self._www_port:

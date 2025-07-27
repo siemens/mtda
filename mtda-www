@@ -92,7 +92,10 @@ class RemoteCallHandler(BaseHandler, metaclass=abc.ABCMeta):
         try:
             # Perform the specific remote service interaction.
             # It should return a tuple: (status, dict_or_None)
+            logger.debug(f"Remote call {self.__class__.__name__}")
             status, response = await self._handle_remote_request(mtda)
+            logger.debug(f"Remote call {self.__class__.__name__} returned: "
+                         f"status={status} response={response}")
 
             self.set_status(status)
             if response is not None:
@@ -1158,6 +1161,10 @@ class Service:
     def parse_args(self):
         parser = argparse.ArgumentParser(description='mtda.www settings')
         parser.add_argument(
+                '--debug',
+                action='store_true',
+                help='Enable debug logs')
+        parser.add_argument(
                 "--host",
                 type=str,
                 default=CONSTS.DEFAULTS.WWW_HOST)
@@ -1170,6 +1177,8 @@ class Service:
                 type=int,
                 default=CONSTS.DEFAULTS.WWW_WORKERS)
         args = parser.parse_args()
+        if args.debug:
+            logger.setLevel(logging.DEBUG)
         self._host = args.host
         self._port = args.port
         self._workers = args.workers
