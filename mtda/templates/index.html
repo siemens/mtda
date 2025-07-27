@@ -264,14 +264,18 @@ SPDX-License-Identifier: MIT
 
         async setupPytest() {
           try {
-            const response = await fetch('./assets/pytest.py');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const pythonCode = await response.text();
             this.pyodide.FS.mkdir('/opt/mtda');
             this.pyodide.FS.writeFile('/opt/mtda/__init__.py', '');
-            this.pyodide.FS.writeFile('/opt/mtda/pytest.py', pythonCode);
+
+            const modules = [ "asyncio", "pytest" ];
+            for (const module of modules) {
+              var response = await fetch(`./assets/${module}.py`);
+              if (!response.ok) {
+                throw new Error(`Could not fetch ${module}.py: ${response.status}`);
+              }
+              var pythonCode = await response.text();
+              this.pyodide.FS.writeFile(`/opt/mtda/${module}.py`, pythonCode);
+            }
           } catch (error) {
             console.error('Failed to load Python code:', error);
           }
