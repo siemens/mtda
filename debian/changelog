@@ -1,22 +1,33 @@
-mtda (0.41-0) testing; urgency=medium
+mtda (0.41-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * www: add OpenAPI specs and swagger UI
+  * www: add shortcuts to switch TTYs
+  * www: add a Python terminal with preliminary support for running pytest
+  * www: check if the video window is focused to process keydown events
+  * www: add a --debug option to the tornado application
+  * keyboard: allow modifier keys for special keys
+  * ci: remove uploads to PyPI
+  * ci: add nanopi and bbb images to the GitHub Release page
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sat, 19 Jul 2025 06:00:00 +0200
+  [ Badrikesh Prusty ]
+  * kas: update cip-core SRCREV to 6417136a to fix build issue
+  * add cip-core to .gitignore
+  * kas: initial support for a/b rootfs update
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 27 Jul 2025 23:30:00 +0200
 
 mtda (0.40-1) testing; urgency=medium
-
-  * development version
 
   [ Cedric Hombourger ]
   * www: re-introduce the virtual keyboard
   * www: make the video stream fit its window without scrollbars
 
   [ Shivaschandra KL ]
-  www: handle special keys
+  * www: handle special keys
 
   [ Badrikesh Prusty ]
-  debian: remove unused .install file
+  * debian: remove unused .install file
 
  -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 18 Jul 2025 15:00:00 +0200
 
