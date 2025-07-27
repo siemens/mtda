@@ -7,7 +7,7 @@ After=mtda.service
 Environment=HOST=localhost
 Environment=PORT=9080
 Environment=WORKERS=10
-ExecStart=/usr/libexec/mtda/www --host $HOST --port $PORT --workers $WORKERS
+ExecStart=/usr/libexec/mtda/www $DEBUG_ARG --host $HOST --port $PORT --workers $WORKERS
 Restart=always
 StandardOutput=journal
 StandardError=journal
