@@ -7,7 +7,17 @@ device on or off (assuming an IP/USB power switch is available), plug USB device
 or out (also requiring special hardware) or simply access its console (in most cases
 serial).
 
-A sample setup is depicted below:
+The following images illustrate two setup configurations.
+
+Raspberry Pi 4 setup (Recommended):
+
+![Raspberry Pi 4 setup](docs/raspberry-pi-4b-mtda-connections.png)
+
+> [!NOTE]  
+> Raspberry Pi 4 is recommended due to its modern architecture, better CPU, more RAM, USB 3.0 ports, gigabit ethernet making it 
+> more suitable for MTDA. 
+
+NanoPI setup:
 
 ![NanoPI setup](docs/neo_block_diagram.png)
 
