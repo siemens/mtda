@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on NanoPI variants
+# Base kas file for all configurations based on Debian trixie
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -9,17 +9,13 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-build_system: isar
-machine: qemuamd64
-
 header:
   version: 17
-  includes:
-    - kas/common/base.yml
-    - kas/debian/bookworm-base.yml
 
-target:
-  - mc:nanopi-neo:mtda-image
-  - mc:rpi4b:mtda-image
-  - mc:debian-qemu-amd64:mtda
-  - mc:debian-qemu-amd64:qemu-packages
+distro: mtda-trixie
+
+bblayers_conf_header:
+  trixie-override: |
+    DISTRO:forcevariable = "mtda-trixie"
+  apt-fury-mtda: |
+    MTDA_APT_URI ?= "https://apt.fury.io/mtda-trixie/"

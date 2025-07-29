@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Build Debian images for bookworm
+# Build Debian images for trixie
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -16,7 +16,7 @@ header:
   version: 17
   includes:
     - kas/common/base.yml
-    - kas/debian/bookworm-base.yml
+    - kas/debian/trixie-base.yml
 
 target:
   - mc:beaglebone-black:mtda-image
@@ -24,5 +24,3 @@ target:
   - mc:rpi4b:mtda-image
   - mc:debian-qemu-amd64:mtda
   - mc:debian-qemu-amd64:qemu-packages
-  - mc:ubuntu-qemu-amd64:mtda
-  - mc:ubuntu-qemu-amd64:qemu-packages
