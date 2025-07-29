@@ -124,6 +124,7 @@ tizen
 Tizen's
 TPM
 tpmtool
+trixie
 ttyS
 UDP
 UI
