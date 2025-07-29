@@ -21,6 +21,11 @@ repos:
     branch: next
 
 local_conf_header:
+  swu-signed: |
+    SWU_SIGNED:trixie = "1"
+    PREFERRED_PROVIDER_swupdate-certificates-key = "swupdate-certificates-key-snakeoil"
+    PREFERRED_PROVIDER_swupdate-certificates = "swupdate-certificates-snakeoil"
+    PREFERRED_PROVIDER_swupdate-signer = "swupdate-signer-empty"
   partition-uuids: |
     ABROOTFS_PART_UUID_A = "c93410ea-c6ad-477f-b5c8-af9c845d85c1"
     ABROOTFS_PART_UUID_B = "6435ce18-ce4d-4095-a50b-fd6635f7ebfd"

@@ -1,20 +1,21 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on the Raspberry Pi 4 Model B (via EFI, EBG)
+# Base kas file for all configurations based on Debian trixie
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (c) Siemens AG, 2025
+# Copyright (C) 2025 Siemens AG
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-build_system: isar
-machine: rpi4b-ebg
-
 header:
   version: 17
-  includes:
-    - kas/common/base.yml
-    - kas/debian/bookworm-base.yml
-    - kas/opt/ab-rootfs.yml
+
+distro: mtda-trixie
+
+bblayers_conf_header:
+  trixie-override: |
+    DISTRO:forcevariable = "mtda-trixie"
+  apt-fury-mtda: |
+    MTDA_APT_URI ?= "https://apt.fury.io/mtda-trixie/"

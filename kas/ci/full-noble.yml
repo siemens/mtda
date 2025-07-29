@@ -1,20 +1,23 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on the Raspberry Pi 4 Model B (via EFI, EBG)
+# Build Ubuntu packages for noble
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (c) Siemens AG, 2025
+# Copyright (C) 2025 Siemens AG
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
 build_system: isar
-machine: rpi4b-ebg
+distro: ubuntu-noble
+machine: qemuamd64
 
 header:
   version: 17
   includes:
     - kas/common/base.yml
-    - kas/debian/bookworm-base.yml
-    - kas/opt/ab-rootfs.yml
+
+target:
+  - mc:ubuntu-qemu-amd64:mtda
+  - mc:ubuntu-qemu-amd64:qemu-packages
