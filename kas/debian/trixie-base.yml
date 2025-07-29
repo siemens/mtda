@@ -1,0 +1,21 @@
+# ---------------------------------------------------------------------------
+# Base kas file for all configurations based on Debian trixie
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2025 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+header:
+  version: 17
+
+distro: mtda-trixie
+
+bblayers_conf_header:
+  distro-override: |
+    DISTRO:forcevariable = "mtda-trixie"
+  apt-fury-mtda: |
+    MTDA_APT_URI ?= "https://apt.fury.io/mtda-trixie/"

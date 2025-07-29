@@ -1,0 +1,23 @@
+# ---------------------------------------------------------------------------
+# Build Ubuntu packages for noble
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2025 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+build_system: isar
+distro: ubuntu-noble
+machine: qemuamd64
+
+header:
+  version: 17
+  includes:
+    - kas/common/base.yml
+
+target:
+  - mc:ubuntu-qemu-amd64:mtda
+  - mc:ubuntu-qemu-amd64:qemu-packages

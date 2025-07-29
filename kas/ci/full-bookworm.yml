@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------------------
+# Build Debian images for bookworm
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2025 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+build_system: isar
+machine: qemuamd64
+
+header:
+  version: 17
+  includes:
+    - kas/common/base.yml
+    - kas/debian/bookworm-base.yml
+
+target:
+  - mc:beaglebone-black:mtda-image
+  - mc:nanopi-neo:mtda-image
+  - mc:rpi4b:mtda-image
+  - mc:debian-qemu-amd64:mtda
+  - mc:debian-qemu-amd64:qemu-packages
