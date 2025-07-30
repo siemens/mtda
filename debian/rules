@@ -37,7 +37,9 @@ override_dh_auto_install:
 	mv debian/tmp/usr debian/mtda-service/
 	install -m 0755 -d debian/mtda-service/usr/sbin
 	mv debian/mtda-service/usr/bin/mtda-service debian/mtda-service/usr/sbin/
-	mv debian/mtda-service/usr/bin/mtda-systemd-helper debian/mtda-service/usr/sbin/
+	:
+	install -m 0755 -d debian/mtda-systemd-helper/usr/sbin
+	mv debian/mtda-service/usr/bin/mtda-systemd-helper debian/mtda-systemd-helper/usr/sbin/
 	:
 	install -m 0755 -d debian/mtda-client/usr/bin
 	mv debian/mtda-service/usr/bin/mtda-cli debian/mtda-client/usr/bin/
@@ -76,6 +78,7 @@ override_dh_auto_install:
 	install -m 0644 configs/10-www.conf debian/mtda-www/etc/mtda/config.d/
 
 override_dh_installsystemd:
-	dh_installsystemd -p mtda-www --name=mtda-www
+	dh_installsystemd -p mtda-www mtda-www.service
 	dh_installsystemd -p mtda-service --name=mtda
-	dh_installsystemd -p mtda-service --name=mtda-config
+	dh_installsystemd -p mtda-systemd-helper mtda-systemd-helper.path
+	dh_installsystemd -p mtda-systemd-helper mtda-systemd-helper.service
