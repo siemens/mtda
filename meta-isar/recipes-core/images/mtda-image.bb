@@ -26,10 +26,6 @@ IMAGE_INSTALL:append:beaglebone-black = " u-boot-script-${DISTRO}-${MACHINE}"
 # Custom u-boot script for the nanopi-neo
 IMAGE_INSTALL:append:nanopi-neo = " u-boot-script-${DISTRO}-${MACHINE}"
 
-# Custom u-boot and script for the nanopi-r1
-DEPENDS:append:nanopi-r1 = " u-boot-nanopi-r1"
-IMAGE_INSTALL:append:nanopi-r1 = " u-boot-script-${DISTRO}-${MACHINE}"
-
 IMAGE_INSTALL += "                       \
     mtda                                 \
     mtda-www                             \
