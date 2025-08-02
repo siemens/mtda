@@ -75,7 +75,7 @@ class PowerSwitch(Accessory):
         self.mtda.debug(3, "mtda.assistant.homekit.setup_message()")
 
         pincode = self.driver.state.pincode.decode()
-        result = self.mtda.env_set('homekit-setup-code', pincode, 'homekit')
+        result = self.mtda.env_set('homekit-setup-code', pincode)
 
         self.mtda.debug(3, "mtda.assistant.homekit."
                            f"setup_message(): {str(result)}")

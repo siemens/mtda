@@ -14,12 +14,12 @@ Raspberry Pi 4 setup (Recommended):
 ![Raspberry Pi 4 setup](docs/raspberry-pi-4b-mtda-connections.png)
 
 > [!NOTE]  
-> Raspberry Pi 4 is recommended due to its modern architecture, better CPU, more RAM, USB 3.0 ports, gigabit ethernet making it 
+> Raspberry Pi 4 is recommended due to its modern architecture, better CPU, more RAM, USB 3.0 ports, gigabit Ethernet making it 
 > more suitable for MTDA. 
 
-NanoPI setup:
+NanoPi setup:
 
-![NanoPI setup](docs/neo_block_diagram.png)
+![NanoPi setup](docs/neo_block_diagram.png)
 
 # Badges
 

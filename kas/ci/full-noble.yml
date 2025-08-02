@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on the NanoPI R1
+# Build Ubuntu packages for noble
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -10,9 +10,14 @@
 # ---------------------------------------------------------------------------
 
 build_system: isar
-machine: nanopi-r1
+distro: ubuntu-noble
+machine: qemuamd64
 
 header:
   version: 17
   includes:
-    - kas/debian/bookworm-base.yml
+    - kas/common/base.yml
+
+target:
+  - mc:ubuntu-qemu-amd64:mtda
+  - mc:ubuntu-qemu-amd64:qemu-packages

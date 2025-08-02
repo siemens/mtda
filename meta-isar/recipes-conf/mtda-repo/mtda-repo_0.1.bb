@@ -1,5 +1,5 @@
 # This Isar layer is part of MTDA
-# Copyright (c) 2023 Siemens AG
+# Copyright (c) 2025 Siemens AG
 # SPDX-License-Identifier: MIT
 
 DESCRIPTION = "inject mtda binary package feeds into runtime image"

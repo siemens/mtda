@@ -16,7 +16,6 @@ import lockfile
 import netifaces
 import os
 import os.path
-import Pyro4
 import signal
 import sys
 import socket
@@ -26,6 +25,12 @@ from systemd import daemon as sd
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
 import mtda.constants as CONSTS
+
+# Pyro
+try:
+    from Pyro5.compatibility import Pyro4
+except ImportError:
+    import Pyro4
 
 
 class Application:

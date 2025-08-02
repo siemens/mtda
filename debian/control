@@ -18,6 +18,7 @@ Package: mtda-service
 Architecture: all
 Multi-Arch: foreign
 Depends: mtda-common,
+         mtda-systemd-helper,
          dnsmasq-base,
          iptables,
          kpartx,
@@ -42,6 +43,13 @@ Suggests: nbd-server
 Description: Multi-Tenant Device Access service
  Provide the infrastructure for running MTDA as a systemd
  service.
+
+Package: mtda-systemd-helper
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda-common
+Description: handle dynamic config fragments and restart mtda-service
+ on config changes.
 
 Package: mtda
 Architecture: all
@@ -72,7 +80,7 @@ Package: mtda-common
 Architecture: all
 Multi-Arch: foreign
 Depends: python3:any (>= 3.7~),
-         python3-pyro4
+         python3-pyro5 | python3-pyro4
 Description: common modules for Multi-Tenant Device Access
  Modules shared between the service and the client.
 
