@@ -616,7 +616,9 @@ SPDX-License-Identifier: MIT
       term.open(document.getElementById("console"));
       termfit.fit();
       term.onData((data) => {
-        socket.emit("console-input", { input: data });
+        socket.send(JSON.stringify({
+          "console-input": { input: data }
+        }));
       });
       consoleWindow.onresize = function(w, h) {
         termfit.fit()
