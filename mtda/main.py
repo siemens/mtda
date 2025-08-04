@@ -14,7 +14,6 @@ import configparser
 import glob
 import importlib
 import os
-import Pyro4
 import socket
 import subprocess
 import sys
@@ -25,6 +24,12 @@ import time
 # Local imports
 import mtda.constants as CONSTS
 from mtda import __version__
+
+# Pyro
+try:
+    from Pyro5.compatibility import Pyro4
+except ImportError:
+    import Pyro4
 
 
 DEFAULT_PREFIX_KEY = 'ctrl-a'
