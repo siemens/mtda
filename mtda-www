@@ -22,7 +22,6 @@ import os
 import uuid
 import zmq.asyncio
 import concurrent.futures
-import Pyro4.errors
 import logging
 import abc
 import functools
@@ -32,6 +31,12 @@ from mtda.utils import Compression
 import mtda.constants as CONSTS
 from mtda.console.remote import RemoteConsole
 from mtda.console.screen import ScreenOutput
+
+# Pyro
+try:
+    import Pyro5.errors as PyroErrors
+except ImportError:
+    import Pyro4.errors as PyroErrors
 
 # ---------------------------------------------------------------------------
 # Configure basic logging for better visibility of errors
@@ -102,10 +107,10 @@ class RemoteCallHandler(BaseHandler, metaclass=abc.ABCMeta):
                          f"status={status} response={response}")
 
             self.set_status(status)
+            # For 204 No Content, we just set status and finish, no body needed
             if response is not None:
                 self.result_as_json(response)
-            # For 204 No Content, we just set status and finish, no body needed
-        except Pyro4.errors.TimeoutError:
+        except PyroErrors.TimeoutError:
             logger.warning("Remote service timed out for "
                            f"{self.__class__.__name__}")
             self.set_status(504)  # Gateway Timeout
@@ -187,7 +192,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                         {"video-info": {"format": fmt, "url": video_url}}
                 )
 
-        except Pyro4.errors.TimeoutError:
+        except PyroErrors.TimeoutError:
             logger.warning("timeout during WebSocket for session "
                            f"{self.session_id}.")
             self.write_message({"error": "timeout during WebSocket "
@@ -237,7 +242,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                                 mtda.console_send, input_data,
                                 raw=False, session=sid
                             )
-                        except Pyro4.errors.TimeoutError:
+                        except PyroErrors.TimeoutError:
                             logger.warning("timeout for console_send "
                                            f"for session {sid}.")
                             self.write_message(
@@ -1138,7 +1143,7 @@ class OpenAPIHandler(tornado.web.RequestHandler):
                 }
             }
             self.write(spec)
-        except Pyro4.errors.TimeoutError:
+        except PyroErrors.TimeoutError:
             logger.warning("Pyro4 timeout fetching agent version for OpenAPI.")
             self.set_status(504)
             self.write({"error": "timeout while fetching API version"})
