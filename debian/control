@@ -72,7 +72,7 @@ Package: mtda-common
 Architecture: all
 Multi-Arch: foreign
 Depends: python3:any (>= 3.7~),
-         python3-pyro4
+         python3-pyro5 | python3-pyro4
 Description: common modules for Multi-Tenant Device Access
  Modules shared between the service and the client.
 

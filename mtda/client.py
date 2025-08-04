@@ -11,7 +11,6 @@
 
 
 import os
-import Pyro4
 import random
 import socket
 import subprocess
@@ -23,6 +22,12 @@ import zstandard as zstd
 from mtda.main import MultiTenantDeviceAccess
 from mtda.utils import Compression
 import mtda.constants as CONSTS
+
+# Pyro
+try:
+    from Pyro5.compatibility import Pyro4
+except ImportError:
+    import Pyro4
 
 
 class Client:
