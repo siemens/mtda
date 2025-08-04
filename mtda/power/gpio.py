@@ -11,10 +11,14 @@
 
 # System imports
 import gpiod
+from gpiod.line import Direction, Value
 from operator import itemgetter
 
 # Local imports
 from mtda.power.controller import PowerController
+
+
+GPIOD_V2 = hasattr(gpiod, "chip")
 
 
 class GpioPowerController(PowerController):
@@ -27,7 +31,11 @@ class GpioPowerController(PowerController):
         self.mtda = mtda
         self.lines = []
         self.gpiopair = []
+        if GPIOD_V2:
+            self.HIGH = Value.ACTIVE
+            self.LOW = Value.INACTIVE
         self.trigger = self.HIGH
+        self.reset = self.LOW
 
     def configure(self, conf):
         self.mtda.debug(3, "power.gpio.configure()")
@@ -57,27 +65,35 @@ class GpioPowerController(PowerController):
         if not self.gpiopair:
             raise ValueError("GPIO chip(s) and pin(s) pair not configured")
 
-        for chip, pin in self.gpiopair:
+        for chipname, pin in self.gpiopair:
             pin = int(pin)
-            chip = gpiod.Chip(chip, gpiod.Chip.OPEN_BY_NAME)
-            self.mtda.debug(3, "this is chip {} and pin is {} "
-                               "power.gpio.configure(): ".format(chip, pin))
-            self.lines.append(chip.get_line(pin))
+            self.mtda.debug(3, "power.gpio.probe(): "
+                               f"chip {chipname} pin {pin}")
+            if GPIOD_V2 is True:
+                config = {
+                    pin: gpiod.LineSettings(direction=Direction.OUTPUT)
+                }
+                line = gpiod.request_lines(f"/dev/{chipname}",
+                                           consumer="mtda",
+                                           config=config)
+            else:
+                chip = gpiod.Chip(chipname, gpiod.Chip.OPEN_BY_NAME)
+                line = chip.get_line(pin)
+            self.lines.append(line)
 
         for line in self.lines:
             try:
-                if line.is_used() is False:
-                    self.mtda.debug(3, f"power.gpiochip{chip}@pin{pin} "
-                                       "is free for use")
-                    line.request(consumer='mtda', type=gpiod.LINE_REQ_DIR_OUT)
-                else:
-                    raise ValueError("gpiochip{}@pin{} is in use by other "
-                                     "service" .format(chip, pin))
-            except OSError:
-                self.mtda.debug(3, f"line {line} is not configured correctly")
+                if GPIOD_V2 is False:
+                    if not line.is_used():
+                        self.mtda.debug(3, "power.gpio line is free for use")
+                        line.request(consumer='mtda',
+                                     type=gpiod.LINE_REQ_DIR_OUT)
+                    else:
+                        raise ValueError("GPIO line is in use by another service")
+            except Exception as e:
+                self.mtda.debug(3, f"GPIO line request failed: {e}")
 
         result = True
-
         self.mtda.debug(3, f"power.gpio.probe(): {result}")
         return result
 
@@ -95,7 +111,10 @@ class GpioPowerController(PowerController):
         result = False
 
         for line in self.lines:
-            line.set_value(self.trigger)
+            if GPIOD_V2 is True:
+                line.set_value(line.offsets[0], self.trigger)
+            else:
+                line.set_value(self.trigger)
         result = self.status() == self.POWER_ON
 
         self.mtda.debug(3, f"power.gpio.on(): {result}")
@@ -107,7 +126,10 @@ class GpioPowerController(PowerController):
         result = False
 
         for line in self.lines:
-            line.set_value(self.trigger ^ 1)
+            if GPIOD_V2 is True:
+                line.set_value(line.offsets[0], self.reset)
+            else:
+                line.set_value(self.reset)
         result = self.status() == self.POWER_OFF
 
         self.mtda.debug(3, f"power.gpio.off(): {result}")
@@ -120,7 +142,10 @@ class GpioPowerController(PowerController):
         result = self.POWER_UNSURE
 
         for line in self.lines:
-            value = line.get_value()
+            if GPIOD_V2 is True:
+                value = line.get_value(line.offsets[0])
+            else:
+                value = line.get_value()
             if value == self.trigger:
                 value = self.POWER_ON
             else:
