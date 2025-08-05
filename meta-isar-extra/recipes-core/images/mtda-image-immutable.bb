@@ -5,7 +5,9 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-SWU_SIGNED = "0"
+# On trixie, swu signing is mandatory. We currently sign with the
+# snakeoil keys. If needed, custom keys can be selected as well.
+SWU_SIGNED = "1"
 
 require recipes-core/images/efibootguard.inc
 require recipes-core/images/swupdate.inc

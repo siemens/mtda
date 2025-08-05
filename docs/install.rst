@@ -1,6 +1,24 @@
 Installation
 ============
 
+Using apt on Debian 13
+----------------------
+
+Set up MTDA apt repository::
+
+   # Add MTDA's GPG key:
+   $ sudo install -m 0755 -d /etc/apt/keyrings
+   $ curl -fsSL https://apt.fury.io/mtda-trixie/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/mtda.gpg
+   $ sudo chmod a+r /etc/apt/keyrings/mtda.gpg
+
+   # Add repository to Apt sources
+   $ echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/mtda.gpg] https://apt.fury.io/mtda-trixie/ /" | sudo tee /etc/apt/sources.list.d/mtda.list
+
+Packages for Debian 13 (trixie) may be installed as follows::
+
+   $ sudo apt-get update
+   $ sudo apt-get install -y mtda
+
 Using apt on Debian 12
 ----------------------
 

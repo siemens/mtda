@@ -26,5 +26,9 @@ local_conf_header:
     ABROOTFS_PART_UUID_B = "6435ce18-ce4d-4095-a50b-fd6635f7ebfd"
   abrootfs-image: |
     ABROOTFS_IMAGE_RECIPE = "mtda-image-immutable"
+  swu-signing: |
+    PREFERRED_PROVIDER_swupdate-certificates = "swupdate-certificates-snakeoil"
+    PREFERRED_PROVIDER_swupdate-certificates-key = "swupdate-certificates-key-snakeoil"
+    PREFERRED_PROVIDER_swupdate-signer = "swupdate-signer-cms"
 
 target: mtda-image-immutable

@@ -14,7 +14,6 @@ import configparser
 import glob
 import importlib
 import os
-import Pyro4
 import socket
 import subprocess
 import sys
@@ -25,6 +24,12 @@ import time
 # Local imports
 import mtda.constants as CONSTS
 from mtda import __version__
+
+# Pyro
+try:
+    from Pyro5.compatibility import Pyro4
+except ImportError:
+    import Pyro4
 
 
 DEFAULT_PREFIX_KEY = 'ctrl-a'
@@ -1035,6 +1040,20 @@ class MultiTenantDeviceAccess:
 
         self.mtda.debug(3, f"main.storage_to_target(): {str(result)}")
         return result
+
+    @Pyro4.expose
+    def storage_to_sysupdate(self, **kwags):
+        # TODO: currently there is no way to go back!
+        from mtda.storage.swupdate import SWUpdate
+        from mtda.storage.writer import AsyncImageWriter
+
+        # TODO: we need to overwrite the global storage object,
+        # as internal calls rely on mtda.storage_status()
+        self.storage = SWUpdate(self)
+        self._writer = AsyncImageWriter(self, self.storage)
+        # TODO: this is technically not true, but this value
+        # is checked all over the place
+        self._storage_event(CONSTS.STORAGE.ON_HOST)
 
     @Pyro4.expose
     def storage_swap(self, **kwargs):

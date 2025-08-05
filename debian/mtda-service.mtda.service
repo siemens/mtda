@@ -1,6 +1,6 @@
 [Unit]
 Description=Multi-Tenant Device Access
-After=network-online.target mtda-config.service
+After=network-online.target mtda-systemd-helper.service
 Wants=network-online.target
 ConditionPathExists=/etc/mtda/config
 

@@ -10,10 +10,12 @@
 # ---------------------------------------------------------------------------
 
 build_system: isar
+machine: qemuamd64
 
 header:
   version: 17
   includes:
+    - kas/common/base.yml
     - kas/debian/bookworm-base.yml
 
 target:

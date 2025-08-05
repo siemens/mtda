@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on NanoPI variants
+# Build Debian images for trixie
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -10,11 +10,13 @@
 # ---------------------------------------------------------------------------
 
 build_system: isar
+machine: qemuamd64
 
 header:
   version: 17
   includes:
-    - kas/debian/bookworm-base.yml
+    - kas/common/base.yml
+    - kas/debian/trixie-base.yml
 
 target:
   - mc:beaglebone-black:mtda-image
@@ -22,5 +24,3 @@ target:
   - mc:rpi4b:mtda-image
   - mc:debian-qemu-amd64:mtda
   - mc:debian-qemu-amd64:qemu-packages
-  - mc:ubuntu-qemu-amd64:mtda
-  - mc:ubuntu-qemu-amd64:qemu-packages

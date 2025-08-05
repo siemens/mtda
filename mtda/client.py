@@ -11,7 +11,6 @@
 
 
 import os
-import Pyro4
 import random
 import socket
 import subprocess
@@ -23,6 +22,12 @@ import zstandard as zstd
 from mtda.main import MultiTenantDeviceAccess
 from mtda.utils import Compression
 import mtda.constants as CONSTS
+
+# Pyro
+try:
+    from Pyro5.compatibility import Pyro4
+except ImportError:
+    import Pyro4
 
 
 class Client:
@@ -268,6 +273,21 @@ class Client:
             print(f"Error parsing '{bmap_path}', probably not a bmap 2.0 file")
             return None
         return bmapDict
+
+    def system_update_image(self, path, callback=None):
+        blksz = self._agent.blksz
+        impl = self._impl
+        session = self._session
+
+        # Get file handler from specified path
+        file = ImageFile.new(path, impl, session, blksz, callback)
+        self.storage_open(file.size)
+        try:
+            file.prepare(self._data, file.size)
+            file.copy()
+            file.flush()
+        finally:
+            self.storage_close()
 
     def start(self):
         return self._agent.start()

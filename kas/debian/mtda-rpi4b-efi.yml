@@ -15,4 +15,5 @@ machine: rpi4b-efi
 header:
   version: 17
   includes:
+    - kas/common/base.yml
     - kas/debian/bookworm-base.yml
