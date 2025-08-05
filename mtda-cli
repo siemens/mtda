@@ -452,6 +452,37 @@ class Application:
             client.monitor_remote(self.remote, None)
         return result
 
+    def system_cmd(self, args):
+        cmds = {
+           'update': self.system_update
+        }
+
+        return cmds[args.subcommand](args)
+
+    def system_update(self, args=None):
+        result = 0
+        client = self.agent
+        self.imgname = os.path.basename(args.image)
+        # TODO: there is currently no way back!
+        client.storage_to_sysupdate()
+
+        try:
+            client.monitor_remote(self.remote, self.screen)
+
+            client.system_update_image(args.image)
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            msg = e.msg if hasattr(e, 'msg') else str(e)
+            print(f"\n'system update' failed! ({msg})",
+                  file=sys.stderr)
+            result = 1
+        finally:
+            client.monitor_remote(self.remote, None)
+        return result
+
     def target_uptime(self):
         result = ""
         uptime = self.client().target_uptime()
@@ -831,6 +862,25 @@ class Application:
             metavar="image",
             type=str,
             help="Path to image file"
+        )
+
+        cmd = self.system_cmd
+        p = subparsers.add_parser(
+            "system",
+            help="Interact with the mtda system",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser(
+            "update",
+            help="Update the mtda system"
+        )
+        s.add_argument(
+            "image",
+            metavar="image",
+            type=str,
+            help="Path to swu file"
         )
 
         # subcommand: target
