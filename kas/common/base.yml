@@ -12,7 +12,6 @@
 header:
   version: 17
 
-machine: qemuamd64
 target: mtda-image
 
 repos:

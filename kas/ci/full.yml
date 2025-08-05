@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Debian image to run MTDA on NanoPI variants
+# Build Debian images for bookworm
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -10,10 +10,12 @@
 # ---------------------------------------------------------------------------
 
 build_system: isar
+machine: qemuamd64
 
 header:
   version: 17
   includes:
+    - kas/common/base.yml
     - kas/debian/bookworm-base.yml
 
 target:
