@@ -11,7 +11,9 @@
 
 header:
   version: 17
-  includes:
-    - kas/common/base.yml
 
 distro: mtda-bookworm
+
+bblayers_conf_header:
+  distro-override: |
+    DISTRO:forcevariable = "mtda-bookworm"
