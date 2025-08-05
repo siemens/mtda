@@ -274,6 +274,21 @@ class Client:
             return None
         return bmapDict
 
+    def system_update_image(self, path, callback=None):
+        blksz = self._agent.blksz
+        impl = self._impl
+        session = self._session
+
+        # Get file handler from specified path
+        file = ImageFile.new(path, impl, session, blksz, callback)
+        self.storage_open(file.size)
+        try:
+            file.prepare(self._data, file.size)
+            file.copy()
+            file.flush()
+        finally:
+            self.storage_close()
+
     def start(self):
         return self._agent.start()
 
