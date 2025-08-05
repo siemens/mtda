@@ -71,8 +71,12 @@ IMAGE_INSTALL:append = " expand-on-first-boot "
 IMAGE_PREINSTALL:append = " zstd"
 
 # Create a "mtda" user account with "mtda" as the default password
-USERS += "mtda"
+# For ab-rootfs update, we assign a stable uid/gid
 GROUPS += "mtda"
+GROUP_mtda[gid] = "1001"
+
+USERS += "mtda"
+USER_mtda[uid] = "1001"
 USER_mtda[gid] = "mtda"
 USER_mtda[home] = "/home/mtda"
 USER_mtda[comment] = "Multi-Tenant Device Access"
