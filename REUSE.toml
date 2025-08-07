@@ -1,0 +1,256 @@
+version = 1
+SPDX-PackageName = "MTDA"
+SPDX-PackageSupplier = "Cedric Hombourger <cedric.hombourger@siemens.com>"
+SPDX-PackageDownloadLocation = "https://github.com/siemens/mtda"
+
+[[annotations]]
+path = ".gitignore"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "**.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "kas-container"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "kas/**/**.lock.yml"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "configs/qemu-ovmf-vars.fd"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "debian/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "docs/.gitignore"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "docs/**.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "docs/**.rst"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "docs/jqc3f-05vdc.jpg"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "docs/**_pinout.jpg"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-conf/hostname/files/postinst"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-conf/network/files/90-systemd-networkd-disabled.preset"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-crypto/gnutls/files/changelog.tmpl"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/compression/python-zstandard/**.patch"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/crypto/files/curve25519-donna-1.3/debian/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/crypto/files/curve25519-donna-1.3/debian/source/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/crypto/files/ed25519-1.5/debian/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/crypto/files/ed25519-1.5/debian/source/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-multimedia/mjpg-streamer/files/git/mjpg-streamer-experimental/debian/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/net/files/hap-python-**/debian/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/net/files/hap-python-**/debian/source/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/qt5/files/py3qterm-0.4/debian/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-bsp/rpi-firmware/files/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-bsp/u-boot-config-rpi4b/files/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/recipes-python/kconfiglib/files/kconfiglib-14.1.0/debian/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar/conf/distro/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/jquery.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2005, 2013 jQuery Foundation and other contributors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/smoothie.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2010-2018, Joe Walnes and Drew Noakes"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/material_icons.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016-2023 Google"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "mtda/assets/material_icons.ttf"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016-2023 Google"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "mtda/assets/socket.io.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2014-2021 Guillermo Rauch"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/modern.min.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021-2023 Thomas Wilkerling"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "mtda/assets/winbox.bundle.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021-2023 Thomas Wilkerling"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "mtda/assets/xterm.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2017-2022 The xterm.js authors."
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/xterm.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2017-2022 The xterm.js authors."
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/addon-fit.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2017-2022 The xterm.js authors."
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/swagger-ui-bundle.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2018 Jed Watson.", "2013-2018 Viacheslav Lotsmanov", "Feross Aboukhadijeh <https://feross.org>", "2017-2021 Joachim Wester", "2014-2015, Jon Schlinkert", "Cure53 and other contributors", "Facebook, Inc. and its affiliates", "Meta Platforms, Inc. and affiliates"]
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "mtda/assets/swagger-ui.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright 2020-2021 SmartBear Software Inc."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "mtda/share/nginx-multi-mtda.conf"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "meta-isar-extra/recipes-conf/swupdate-config-wfx/files/wfx.conf.tmpl"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "patches/cip-core/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Siemens AG"
+SPDX-License-Identifier = "MIT"
