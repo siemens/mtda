@@ -14,11 +14,22 @@ scripts_dir=$(dirname ${0})
 source_dir=$(readlink -f ${scripts_dir}/..)
 tests_dir=${source_dir}/tests
 service_pid=
+www_pid=
 tmp_dir=
 
 trap cleanup EXIT SIGINT
 
 cleanup() {
+    if [ -n "${www_pid}" ]; then
+        kill -TERM ${www_pid}
+        wait ${www_pid}
+        www_pid=
+    fi
+
+    if [ -f ${tmp_dir}/www-debug.log ]; then
+	cat ${tmp_dir}/www-debug.log
+    fi
+
     if [ -n "${service_pid}" ]; then
         kill -TERM ${service_pid}
         wait ${service_pid}
@@ -72,8 +83,12 @@ du -sh *.tar*
 echo "# starting mtda in the background"
 ${source_dir}/mtda-service -n 2>debug.log &
 service_pid=${!}
+sleep 10
 
-sleep 30
+echo "# starting mtda-www in the background"
+${source_dir}/mtda-www --debug --port 55558 2>www-debug.log &
+www_pid=${!}
+sleep 10
 
 export TEST_IMAGE=${tmp_dir}/alpine.tar
 ${PYTEST} -v ${tests_dir}
