@@ -64,6 +64,7 @@ and testers to remotely access and control hardware devices.
         "psutil",
         "requests",
         "systemd-python>=234",
+        "tornado",
         "zstandard>=0.14",
         "zeroconf>=0.28.6"
     ],
