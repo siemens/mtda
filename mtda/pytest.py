@@ -231,5 +231,11 @@ class Target:
     def status():
         return pytest.mtda.target_status()
 
+    def toggle():
+        pytest.output.clear_power()
+        result = pytest.mtda.target_toggle()
+        pytest.output.wait_power()
+        return result
+
     def uptime():
         return pytest.mtda.target_uptime()
