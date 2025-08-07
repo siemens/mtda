@@ -13,6 +13,7 @@ import re
 
 
 class Consts:
+    BASE_URL = "http://localhost:55558"
     # Timeouts (in seconds)
     BOOT_TIMEOUT = 5*60
     PASSWORD_TIMEOUT = 30
