@@ -805,7 +805,7 @@ class StorageCommitHandler(RemoteCallHandler):
             mtda.storage_commit(session=session)
 
         sid = self.get_argument('session')
-        self.blocking_call(storage_commit, session=sid)
+        await self.blocking_call(storage_commit, session=sid)
         return 204, None
 
 # ---------------------------------------------------------------------------
@@ -842,7 +842,7 @@ class StorageRollbackHandler(RemoteCallHandler):
             mtda.storage_rollback(session=session)
 
         sid = self.get_argument('session')
-        self.blocking_call(storage_rollback, session=sid)
+        await self.blocking_call(storage_rollback, session=sid)
         return 204, None
 
 # ---------------------------------------------------------------------------
@@ -874,7 +874,7 @@ class StorageToggleHandler(RemoteCallHandler):
             return mtda.storage_toggle(session=session)
 
         sid = self.get_argument('session')
-        status = self.blocking_call(storage_toggle, session=sid)
+        status = await self.blocking_call(storage_toggle, session=sid)
         return 200, {"status": status}
 
 # ---------------------------------------------------------------------------
@@ -910,7 +910,7 @@ class StorageToHostHandler(RemoteCallHandler):
             mtda.storage_to_host(session=session)
 
         sid = self.get_argument('session')
-        self.blocking_call(storage_to_host, session=sid)
+        await self.blocking_call(storage_to_host, session=sid)
         return 204, None
 
 # ---------------------------------------------------------------------------
@@ -946,7 +946,7 @@ class StorageToTargetHandler(RemoteCallHandler):
             mtda.storage_to_target(session=session)
 
         sid = self.get_argument('session')
-        self.blocking_call(storage_to_target, session=sid)
+        await self.blocking_call(storage_to_target, session=sid)
         return 204, None
 
 # ---------------------------------------------------------------------------
@@ -978,7 +978,7 @@ class TargetOffHandler(RemoteCallHandler):
             mtda.target_off(session=session)
 
         sid = self.get_argument('session')
-        self.blocking_call(target_off, session=sid)
+        await self.blocking_call(target_off, session=sid)
         return 204, None
 
 # ---------------------------------------------------------------------------
@@ -1010,7 +1010,7 @@ class TargetOnHandler(RemoteCallHandler):
             mtda.target_on(session=session)
 
         sid = self.get_argument('session')
-        self.blocking_call(target_on, session=sid)
+        await self.blocking_call(target_on, session=sid)
         return 204, None
 
 # ---------------------------------------------------------------------------
@@ -1042,7 +1042,7 @@ class TargetStatusHandler(RemoteCallHandler):
             return mtda.target_status(session=session)
 
         sid = self.get_argument('session')
-        status = self.blocking_call(target_status, session=sid)
+        status = await self.blocking_call(target_status, session=sid)
         return 200, {"status": status}
 
 # ---------------------------------------------------------------------------
@@ -1074,7 +1074,7 @@ class TargetUptimeHandler(RemoteCallHandler):
             return mtda.target_uptime(session=session)
 
         sid = self.get_argument('session')
-        uptime = self.blocking_call(target_uptime, session=sid)
+        uptime = await self.blocking_call(target_uptime, session=sid)
         return 200, {"uptime": uptime}
 
 
