@@ -11,7 +11,7 @@
 # ---------------------------------------------------------------------------
 
 build_dir=${1:-build}
-distro=${2:-jammy}
+distro=${2:-noble}
 signer=${3:-D26CC6417E10F45C61C83B38FA5C9FECC03529BF}
 tmp_dir=""
 
@@ -56,7 +56,7 @@ allow_unsigned_uploads = 0
 EOF
 
 build_dir=$(readlink -f ${build_dir})
-for p in $(find ${build_dir}/tmp/work/ubuntu-${distro}-* -maxdepth 5 -name '*.dsc')
+for p in $(find ${build_dir}/tmp/deploy/isar-apt/ubuntu-${distro}-*/apt -maxdepth 6 -name '*.dsc')
 do
     dir=$(dirname ${p})
     name=$(basename ${p})
