@@ -388,8 +388,22 @@ class ImageFile:
         return 0
 
     def _write_to_storage(self, data):
-        self._socket.send(data)
-        self._totalsent += len(data)
+        backoff = 0
+        while True:
+            try:
+                self._socket.send(data, zmq.DONTWAIT)
+                self._totalsent += len(data)
+                break
+            except zmq.Again:
+                backoff_wait = min(CONSTS.WRITER.SEND_BACKOFF_BASE * 2 ** backoff,
+                                   CONSTS.WRITER.SEND_MAX_WAIT)
+                # avoid frequent RPC calls
+                if backoff_wait == CONSTS.WRITER.SEND_MAX_WAIT:
+                    _, writing, written = self._agent.storage_status()
+                    if not writing:
+                        raise IOError(f'image write failed: wrote {written} out of {self._outputsize} bytes')
+                time.sleep(backoff_wait)
+                backoff += 1
 
 
 class ImageLocal(ImageFile):
