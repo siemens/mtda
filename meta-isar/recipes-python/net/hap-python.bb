@@ -7,14 +7,14 @@
 
 inherit dpkg
 
-PV = "4.9.1"
+PV = "4.9.2"
 
 SRC_URI = " \
-    git://github.com/ikalchev/HAP-python.git;protocol=https;branch=master;destsuffix=${PN}-${PV}/ \
+    git://github.com/ikalchev/HAP-python.git;protocol=https;branch=dev;destsuffix=${PN}-${PV}/ \
     file://${PN}-${PV} \
 "
 
-SRCREV = "5265b54f707a50df72d25de5c24529b74eac4c63"
+SRCREV = "86ed133f258c770fb348232b1cab4b781139fd95"
 
 PROVIDES += "python3-hap-python"
 do_build[deptask] += "do_deploy_deb"
