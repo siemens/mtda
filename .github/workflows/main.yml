@@ -51,18 +51,22 @@ jobs:
         if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/v')
         run: |
           ./kas-container build kas/ci/fast.yml
+          sudo rm -rf --one-file-system build/tmp/work
       - name: Build Full CI targets for bookworm
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
         run: |
           ./kas-container build kas/ci/full-bookworm.yml
+          sudo rm -rf --one-file-system build/tmp/work
       - name: Build Full CI targets for trixie
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
         run: |
           ./kas-container build kas/ci/full-trixie.yml
+          sudo rm -rf --one-file-system build/tmp/work
       - name: Build Full CI targets for noble
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
         run: |
           ./kas-container build kas/ci/full-noble.yml
+          sudo rm -rf --one-file-system build/tmp/work
       - name: Upload NanoPI images
         uses: actions/upload-artifact@v4
         if: startsWith(github.ref, 'refs/tags/v')
