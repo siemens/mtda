@@ -1,8 +1,28 @@
-mtda (0.42-0) testing; urgency=medium
+mtda (0.42-1) testing; urgency=medium
 
-  * development version
+  [ Cedric Hombourger ]
+  * support for Debian trixie
+  * support both Pyro version 4 and 5
+  * power: support for python3-libgpiod v2
+  * update hap-python from 4.9.1 to 4.9.2
+  * update pyodide from 0.28.0 to 0.28.1
+  * remove support for the nanopi-r1
+  * pytest: add Target.toggle()
+  * www: use socket.send for input into the console
+  * www: create a Pyro proxy from the worker thread
+  * www: add missing await for several self.blocking_call()
+  * various kas and ci fixes
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 28 Jul 2025 07:00:00 +0200
+  [ Felix Moessbauer ]
+  * abrootfs: assign stable uid / gid for mtda
+  * kas: add abrootfs support on trixie
+  * storage: break on storage errors during transmission
+
+  [ Gourav Singh ]
+  * Update the Raspberry Pi 4 diagram and promote it as recommended
+    setup
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 10 Aug 2025 07:00:00 +0200
 
 mtda (0.41-1) testing; urgency=medium
 
