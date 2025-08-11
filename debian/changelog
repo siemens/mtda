@@ -1,3 +1,11 @@
+mtda (0.42.1-1) testing; urgency=medium
+
+  [ Cedric Hombourger ]
+  * upload rpi4b images rather than beaglebone-black
+  * compress nanopi and rpi4b images before uploading them
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 11 Aug 2025 15:30:00 +0200
+
 mtda (0.42-1) testing; urgency=medium
 
   [ Cedric Hombourger ]
