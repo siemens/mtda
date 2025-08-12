@@ -682,17 +682,6 @@ class MultiTenantDeviceAccess:
         self.notify(CONSTS.EVENTS.STORAGE, status)
 
     @Pyro4.expose
-    def storage_bytes_written(self, **kwargs):
-        self.mtda.debug(3, "main.storage_bytes_written()")
-
-        session = kwargs.get("session", None)
-        self.session_ping(session)
-        result = self._writer.written
-
-        self.mtda.debug(3, f"main.storage_bytes_written(): {str(result)}")
-        return result
-
-    @Pyro4.expose
     def storage_compression(self, compression, **kwargs):
         self.mtda.debug(3, "main.storage_compression()")
 
