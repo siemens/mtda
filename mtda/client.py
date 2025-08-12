@@ -158,7 +158,7 @@ class Client:
                 else:
                     raise
 
-    def storage_update(self, dest, src=None, callback=None, **kwargs):
+    def storage_update(self, dest, src=None, **kwargs):
         session = kwargs.get('session', self._session)
 
         path = dest if src is None else src
@@ -172,7 +172,7 @@ class Client:
         impl = self._impl
 
         # Get file handler from specified path
-        file = ImageFile.new(path, impl, session, blksz, callback)
+        file = ImageFile.new(path, impl, session, blksz)
 
         try:
             # Prepare for download/copy
@@ -190,13 +190,13 @@ class Client:
             # Storage may be closed now
             self.storage_close()
 
-    def storage_write_image(self, path, callback=None):
+    def storage_write_image(self, path):
         blksz = self._agent.blksz
         impl = self._impl
         session = self._session
 
         # Get file handler from specified path
-        file = ImageFile.new(path, impl, session, blksz, callback)
+        file = ImageFile.new(path, impl, session, blksz)
 
         # Open the shared storage device so we own it
         # It also prevents us from loading a new bmap file while
@@ -311,16 +311,15 @@ class Client:
 class ImageFile:
     """ Base class for image files (local or remote) """
 
-    def new(path, agent, session, blksz, callback=None):
+    def new(path, agent, session, blksz):
         if path.startswith('s3:'):
-            return ImageS3(path, agent, session, blksz, callback)
+            return ImageS3(path, agent, session, blksz)
         else:
-            return ImageLocal(path, agent, session, blksz, callback)
+            return ImageLocal(path, agent, session, blksz)
 
-    def __init__(self, path, agent, session, blksz, callback=None):
+    def __init__(self, path, agent, session, blksz):
         self._agent = agent
         self._blksz = blksz
-        self._callback = callback
         self._imgname = os.path.basename(path)
         self._inputsize = 0
         self._path = path
@@ -334,18 +333,12 @@ class ImageFile:
     def flush(self):
         # Wait for background writes to complete
         agent = self._agent
-        callback = self._callback
-        imgname = self._imgname
-        inputsize = self._inputsize
-        totalread = self._totalread
         outputsize = self._outputsize
 
         self._socket.send(b'')
         agent.storage_flush(self._totalsent)
         while True:
-            status, writing, written = agent.storage_status()
-            if callback is not None:
-                callback(imgname, totalread, inputsize, written, outputsize)
+            _, writing, written = agent.storage_status()
             if writing is False:
                 break
             time.sleep(0.5)
@@ -370,18 +363,6 @@ class ImageFile:
         self._agent.storage_compression(compr)
         self._lastreport = time.time()
         self._totalread = 0
-
-    def progress(self):
-        # Report progress via callback
-        callback = self._callback
-        imgname = self._imgname
-        inputsize = self._inputsize
-        totalread = self._totalread
-        outputsize = self._outputsize
-        if callback is not None and time.time() - self._lastreport >= 1:
-            _, _, written = self._agent.storage_status()
-            callback(imgname, totalread, inputsize, written, outputsize)
-            self._lastreport = time.time()
 
     @property
     def size(self):
@@ -410,8 +391,8 @@ class ImageLocal(ImageFile):
     """ An image from the local file-system to be copied over to the shared
         storage. """
 
-    def __init__(self, path, agent, session, blksz, callback=None):
-        super().__init__(path, agent, session, blksz, callback)
+    def __init__(self, path, agent, session, blksz):
+        super().__init__(path, agent, session, blksz)
 
     def bmap(self, path):
         if os.path.exists(path):
@@ -434,8 +415,6 @@ class ImageLocal(ImageFile):
 
         try:
             while (data := inputstream.read(self._blksz)):
-                self._totalread = image.tell()
-                self.progress()
                 self._write_to_storage(data)
 
         finally:
@@ -453,8 +432,8 @@ class ImageLocal(ImageFile):
 class ImageS3(ImageFile):
     """ An image to be downloaded from a S3 bucket """
 
-    def __init__(self, path, agent, session, blksz, callback=None):
-        super().__init__(path, agent, session, blksz, callback)
+    def __init__(self, path, agent, session, blksz):
+        super().__init__(path, agent, session, blksz)
         self._object = None
 
         from urllib.parse import urlparse
@@ -514,7 +493,6 @@ class ImageS3(ImageFile):
         self._totalread += dataread
 
         # Write block to shared storage device
-        self.progress()
         self._write_to_storage(data)
 
         return dataread
