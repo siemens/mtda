@@ -1812,9 +1812,9 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(4, f"main.notify: {result}")
         return result
 
-    def notify_write(self):
+    def notify_write(self, size=0):
         if self._writer:
-            self._writer.notify_write()
+            self._writer.notify_write(size=size)
 
     def start(self):
         self.mtda.debug(3, "main.start()")
