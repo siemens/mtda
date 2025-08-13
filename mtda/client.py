@@ -333,15 +333,13 @@ class ImageFile:
     def flush(self):
         # Wait for background writes to complete
         agent = self._agent
-        outputsize = self._outputsize
 
         self._socket.send(b'')
-        agent.storage_flush(self._totalsent)
-        _, _, written = agent.storage_status()
+        success = agent.storage_flush(self._totalsent)
         self._socket.close()
         self._socket = None
-        if outputsize and written != outputsize:
-            raise IOError(f'image write failed: wrote {written} out of {outputsize} bytes')
+        if not success:
+            raise IOError('image write failed!')
 
     def path(self):
         return self._path
