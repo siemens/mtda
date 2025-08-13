@@ -219,6 +219,11 @@ class AsyncImageWriter:
             self._stream.close()
             self._stream = None
 
+        # Issue a write event to notify subscribers about final counters
+        # This needs to happen before the INITIALIZED / CORRUPTED event,
+        # as this is used to inform the subscribers about termination of
+        # the write operation.
+        self.notify_write(force=True)
         if self._failed is False:
             mtda._storage_event(CONSTS.STORAGE.INITIALIZED)
         else:
