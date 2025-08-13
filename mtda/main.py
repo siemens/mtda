@@ -79,7 +79,6 @@ class MultiTenantDeviceAccess:
         self._storage_owner = None
         self._storage_status = CONSTS.STORAGE.UNKNOWN
         self._writer = None
-        self._writer_data = None
         self.blksz = CONSTS.WRITER.READ_SIZE
         self.usb_switches = []
         self.ctrlport = 5556
@@ -720,7 +719,6 @@ class MultiTenantDeviceAccess:
                 subprocess.check_call(cmd)
 
             self._writer.stop()
-            self._writer_data = None
             self._storage_opened = not self.storage.close()
             self._storage_owner = None
             result = (self._storage_opened is False)
