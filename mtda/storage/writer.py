@@ -103,6 +103,7 @@ class AsyncImageWriter:
         self._session = session
         self._size = size
         self._stream = stream
+        self._written = 0
 
         result = stream.prepare()
         self._thread = threading.Thread(target=self.worker,
@@ -130,7 +131,9 @@ class AsyncImageWriter:
         self.mtda.debug(3, f"storage.writer.stop(): {result}")
         return result
 
-    def notify_write(self, force=False):
+    def notify_write(self, size=0, force=False):
+        self._written += size
+
         now = time.monotonic()
         elapsed = now - self._last_notification
         if force is False and elapsed < CONSTS.WRITER.NOTIFY_SECONDS:
@@ -139,14 +142,13 @@ class AsyncImageWriter:
         mtda = self.mtda
         mtda.session_ping(self._session)
 
-        written = self.written
-        speed = (written - self._last_written) / elapsed
-        details = f'{self._received} {self._size} {speed} {written}'
+        speed = (self._written - self._last_written) / elapsed
+        details = f'{self._received} {self._size} {speed} {self._written}'
         self.mtda.debug(2, "storage.writer.notify_write(): "
                            f"progress event: {details}")
         mtda._storage_event(f'{CONSTS.STORAGE.WRITING} {details}')
         self._last_notification = now
-        self._last_written = written
+        self._last_written = self._written
 
     def worker(self):
         self.mtda.debug(3, "storage.writer.worker()")
@@ -217,6 +219,11 @@ class AsyncImageWriter:
             self._stream.close()
             self._stream = None
 
+        # Issue a write event to notify subscribers about final counters
+        # This needs to happen before the INITIALIZED / CORRUPTED event,
+        # as this is used to inform the subscribers about termination of
+        # the write operation.
+        self.notify_write(force=True)
         if self._failed is False:
             mtda._storage_event(CONSTS.STORAGE.INITIALIZED)
         else:
@@ -332,7 +339,4 @@ class AsyncImageWriter:
 
     @property
     def written(self):
-        written = self.storage.tell()
-        if written is not None:
-            self._written = written
         return self._written
