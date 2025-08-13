@@ -337,11 +337,7 @@ class ImageFile:
 
         self._socket.send(b'')
         agent.storage_flush(self._totalsent)
-        while True:
-            _, writing, written = agent.storage_status()
-            if writing is False:
-                break
-            time.sleep(0.5)
+        _, _, written = agent.storage_status()
         self._socket.close()
         self._socket = None
         if outputsize and written != outputsize:
