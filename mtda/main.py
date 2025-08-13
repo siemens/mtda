@@ -1042,8 +1042,6 @@ class MultiTenantDeviceAccess:
                 if self.storage.to_host() is True:
                     self._storage_event(CONSTS.STORAGE.ON_HOST)
         result, writing, written = self.storage_status(session=session)
-        return result
-
         self.mtda.debug(3, f"main.storage_swap(): {str(result)}")
         return result
 
