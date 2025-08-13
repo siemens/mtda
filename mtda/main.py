@@ -79,7 +79,6 @@ class MultiTenantDeviceAccess:
         self._storage_owner = None
         self._storage_status = CONSTS.STORAGE.UNKNOWN
         self._writer = None
-        self._writer_data = None
         self.blksz = CONSTS.WRITER.READ_SIZE
         self.usb_switches = []
         self.ctrlport = 5556
@@ -731,7 +730,6 @@ class MultiTenantDeviceAccess:
                 subprocess.check_call(cmd)
 
             self._writer.stop()
-            self._writer_data = None
             self._storage_opened = not self.storage.close()
             self._storage_owner = None
             result = (self._storage_opened is False)
@@ -1056,8 +1054,6 @@ class MultiTenantDeviceAccess:
                 if self.storage.to_host() is True:
                     self._storage_event(CONSTS.STORAGE.ON_HOST)
         result, writing, written = self.storage_status(session=session)
-        return result
-
         self.mtda.debug(3, f"main.storage_swap(): {str(result)}")
         return result
 
