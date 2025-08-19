@@ -339,6 +339,7 @@ class Image(StorageController):
     def _write_with_bmap(self, data):
         cur_range = self.bmapDict["BlockMap"][self.crtBlockRange]
         blksize = self.bmapDict["BlockSize"]
+        imageBytes = self.bmapDict["ImageSize"]
         # offset within the data buffer
         offset = 0
         # remaining bytes in data buffer
@@ -355,7 +356,8 @@ class Image(StorageController):
                 cur_last_block = cur_range["last"] + 1
                 end = min(remaining, (cur_last_block - writtenBlocks) * blksize - self.overlap)
                 nbytes = self._write_with_chksum(data[offset:offset + end])
-                if self.writtenBytes + nbytes == cur_last_block * blksize:
+                # either we completed our range, or we are at the end of the image
+                if self.writtenBytes + nbytes in [cur_last_block * blksize, imageBytes]:
                     self._validate_and_reset_range()
                 self.mtda.notify_write(size=nbytes, mapped=self.mappedBytes)
             else:
