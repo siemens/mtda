@@ -379,16 +379,19 @@ class Image(StorageController):
         if not self.rangeChkSum:
             return
         cur_range = self.bmapDict["BlockMap"][self.crtBlockRange]
+        first = cur_range['first']
+        last = cur_range['last']
         obs_chksum = self.rangeChkSum.hexdigest()
         exp_chksum = cur_range['chksum']
+        self.mtda.debug(2, "storage.helpers.image._validate_and_reset_range(): "
+                           f"checksum of range {first}:{last} is {obs_chksum}")
         if exp_chksum == obs_chksum:
             self.rangeChkSum = self._get_hasher_by_name()
             return
         raise BmapWriteError(
             "checksum mismatch for blocks range %d-%d: "
             "calculated %s, should be %s"
-            % (cur_range['first'], cur_range['last'],
-               obs_chksum, exp_chksum))
+            % (first, last, obs_chksum, exp_chksum))
 
     def _write_with_chksum(self, data):
         if self.rangeChkSum:
