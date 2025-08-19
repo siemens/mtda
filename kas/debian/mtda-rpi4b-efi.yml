@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 
 build_system: isar
-machine: rpi4b-efi
+machine: rpi-arm64-v8-efi
 
 header:
   version: 17
