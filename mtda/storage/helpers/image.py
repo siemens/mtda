@@ -41,6 +41,7 @@ class Image(StorageController):
         self.bmapDict = None
         self.crtBlockRange = 0
         self.writtenBytes = 0
+        self.mappedBytes = 0
         self.overlap = 0
         self.rangeChkSum = None
         self.lock = threading.Lock()
@@ -268,9 +269,15 @@ class Image(StorageController):
         self.bmapDict = bmapDict
         self.crtBlockRange = 0
         self.writtenBytes = 0
+        self.mappedBytes = 0
         self.overlap = 0
         if bmapDict is not None:
+            blocksize = bmapDict["BlockSize"]
+            # bytes missing in the last block until it is full
+            last_block_missing = -bmapDict["ImageSize"] % blocksize
             self.rangeChkSum = self._get_hasher_by_name()
+            # the last block is not full, if the imagesize is not a multiple of the blocksize
+            self.mappedBytes = bmapDict["MappedBlocksCount"] * blocksize - last_block_missing
 
     def supports_hotplug(self):
         return False
@@ -350,6 +357,7 @@ class Image(StorageController):
                           (cur_range["last"] - writtenBlocks + 1)
                           * blksize - self.overlap)
                 nbytes = self._write_with_chksum(data[offset:offset + end])
+                self.mtda.notify_write(size=nbytes, mapped=self.mappedBytes)
             else:
                 # the range already got incremented, hence we need to iterate
                 # until the begin of the current range
@@ -357,11 +365,11 @@ class Image(StorageController):
                              (cur_range["first"] - writtenBlocks)
                              * blksize - self.overlap)
                 self.handle.seek(nbytes, io.SEEK_CUR)
+                self.mtda.notify_write(seek=nbytes, mapped=self.mappedBytes)
             self.writtenBytes += nbytes
             self.overlap = self.writtenBytes % blksize
             offset += nbytes
             remaining -= nbytes
-            self.mtda.notify_write(size=nbytes)
 
         return offset
 

@@ -37,6 +37,9 @@ class AsyncImageWriter:
         self._receiving = False
         self._writing = False
         self._written = 0
+        self._seeked = 0
+        # number of mapped bytes, if available
+        self._mapped = 0
         self._zdec = None
 
     @property
@@ -104,6 +107,8 @@ class AsyncImageWriter:
         self._size = size
         self._stream = stream
         self._written = 0
+        self._seeked = 0
+        self._mapped = 0
 
         result = stream.prepare()
         self._thread = threading.Thread(target=self.worker,
@@ -131,8 +136,13 @@ class AsyncImageWriter:
         self.mtda.debug(3, f"storage.writer.stop(): {result}")
         return result
 
-    def notify_write(self, size=0, force=False):
+    def notify_write(self, size=0, seek=0, mapped=0, force=False):
         self._written += size
+        self._seeked += seek
+        # mapped is not expected to change on write, but we need to
+        # cache it, as not all callers provide that information.
+        if mapped:
+            self._mapped = mapped
 
         now = time.monotonic()
         elapsed = now - self._last_notification
@@ -143,7 +153,13 @@ class AsyncImageWriter:
         mtda.session_ping(self._session)
 
         speed = (self._written - self._last_written) / elapsed
-        details = f'{self._received} {self._size} {speed} {self._written}'
+        # If we have information about the output data stream, we use that for progress
+        # reporting (seeking is free). If we don't have it, report input stream progress
+        if self._mapped:
+            details = f'{self._written} {self._mapped} {speed} {self.written}'
+        else:
+            details = f'{self._received} {self._size} {speed} {self.written}'
+
         self.mtda.debug(2, "storage.writer.notify_write(): "
                            f"progress event: {details}")
         mtda._storage_event(f'{CONSTS.STORAGE.WRITING} {details}')
@@ -339,4 +355,7 @@ class AsyncImageWriter:
 
     @property
     def written(self):
-        return self._written
+        """
+        All processed bytes
+        """
+        return self._written + self._seeked
