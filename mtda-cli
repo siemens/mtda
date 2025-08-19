@@ -48,9 +48,12 @@ class AppOutput(ScreenOutput):
 
         app = self.app
         image = app.imgname
+        # If the backend has information about the bytes to write (i.e. the mapped bytes)
+        # read and total refer to the output stream writes (without seeks) and mapped bytes.
         bytes_read = int(event[2])
         bytes_total = int(event[3])
         speed = float(event[4])
+        # bytes written contains the total processed bytes of the output stream (writes + seeks)
         bytes_written = int(event[5])
 
         self._progress(image, bytes_read, bytes_total, bytes_written, speed)
