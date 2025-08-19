@@ -68,7 +68,7 @@ class AppOutput(ScreenOutput):
         totalread = human_readable_bytes(totalread)
         totalwritten = human_readable_bytes(totalwritten)
         sys.stdout.write("\r{0}: [{1}] {2}% ({3} read, "
-                         "{4} written, {5} MiB/s) ".format(
+                         "{4} written, {5}/s) ".format(
                              imgname, str(blocks + spaces), progress,
                              totalread, totalwritten, speed))
         sys.stdout.flush()
