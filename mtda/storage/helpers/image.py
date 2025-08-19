@@ -346,17 +346,17 @@ class Image(StorageController):
         while remaining:
             writtenBlocks = self.writtenBytes // blksize
             if writtenBlocks > cur_range["last"]:
-                self._validate_and_reset_range()
                 self.crtBlockRange += 1
                 cur_range = self.bmapDict["BlockMap"][self.crtBlockRange]
 
             if writtenBlocks >= cur_range["first"]:
                 # bmap ranges are inclusive. Exclusive ranges like [from, to)
                 # are easier to handle, hence add one block
-                end = min(remaining,
-                          (cur_range["last"] - writtenBlocks + 1)
-                          * blksize - self.overlap)
+                cur_last_block = cur_range["last"] + 1
+                end = min(remaining, (cur_last_block - writtenBlocks) * blksize - self.overlap)
                 nbytes = self._write_with_chksum(data[offset:offset + end])
+                if self.writtenBytes + nbytes == cur_last_block * blksize:
+                    self._validate_and_reset_range()
                 self.mtda.notify_write(size=nbytes, mapped=self.mappedBytes)
             else:
                 # the range already got incremented, hence we need to iterate
