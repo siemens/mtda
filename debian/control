@@ -48,6 +48,8 @@ Package: mtda-systemd-helper
 Architecture: all
 Multi-Arch: foreign
 Depends: mtda-common
+Replaces: mtda-service (<< 0.42)
+Breaks: mtda-service (<< 0.42)
 Description: handle dynamic config fragments and restart mtda-service
  on config changes.
 
