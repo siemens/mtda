@@ -256,3 +256,43 @@ The following key bindings may be used to control MTDA from the interactive cons
  * ``Ctrl-a`` + ``s``: swap the shared storage device between the host and target
  * ``Ctrl-a`` + ``t``: toggle display of timestamps
  * ``Ctrl-a`` + ``u``: toggle the 1st USB port on/off
+
+Interactive Web UI
+------------------
+
+The MTDA Web UI may be used to interact directly with the device under test if the
+[video] and [www] sections are configured in the Configuration settings file.
+
+Connections
+~~~~~~~~~~
+
+ * Connect HDMI Video Capture card to the MTDA agent's USB port.
+ * Connect the other end of the capture card to the device under test display port.
+ * Follow Video capture settings under the Configuration section of the document.
+
+ .. image:: www-connections.jpg
+
+Usage
+~~~~
+
+ * Open a browser and enter the following URL to access the MTDA Web UI
+     ``http://<MTDA-AGENT-IPC>:<PORT>``
+
+   Where <PORT> is as configured in the [www] section of the configuration settings.
+   Default is 9080.
+ * A web UI with MTDA control options and video stream console will be loaded as shown:
+
+ .. image:: www-1.png
+
+ * Hover mouse over the right panel to access the MTDA controls
+
+ .. image:: www-3.png
+
+ * The highlighted section in the panel is used for following actions on clicking it:
+
+    * 1] Turn ON/OFF the device under test
+    * 2] Toggle storage to host or target
+    * 3] Provides option to upload image file to write to storage if connected towards host
+    * 4] Opens a virtual keyboard to control the device under test
+    * 5] Opens a python terminal for quick prototyping test scripts with MTDA
+    * 6] Opens a window of MTDA REST API documentation
