@@ -3,4 +3,4 @@ header:
 overrides:
     repos:
         cip-core:
-            commit: 8116ab220fd5054ae918c0bf2e3d3e3f3d1de914
+            commit: 269faa05911286b1c55f4ca3ba08b46d878f903e
