@@ -1,8 +1,30 @@
-mtda (0.43-0) testing; urgency=medium
+mtda (0.43-1) testing; urgency=medium
 
-  *  debian: open development window for version 0.43
+  [ Anantha K R ]
+  * docs: document mtda-www usage
+  * debian: resolve file conflict between mtda-service and mtda-systemd-helper
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 11 Aug 2025 21:30:00 +0200
+  [ Cedric Hombourger ]
+  * report actual bytes written and seeked (vs position)
+  * use /usr/share/ovmf/OVMF.fd for bookworm and trixie
+
+  [ Felix Moessbauer ]
+  * cli: typo error on progress reporting
+  * storage: make progress reporting more linear
+  * storage: drop unused storage_bytes_written
+  * storage: only rely on writing events for progress
+  * storage: issue write event prior to termination event
+  * storage: avoid call to storage_status on flush
+  * storage: drop unused _writer_data member
+  * storage: drop stray early return on storage_swap
+  * storage: validate checksum of last range as well
+  * storage: validate last block range on partial blocks
+  * storage: log range checksum validation
+  * switch target over to rpi-arm64-v8-efi
+  * www: set y-min of transfert chart to 0
+  * kas: update isar layers
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Wed, 24 Sep 2025 08:00:00 +0200
 
 mtda (0.42.2-1) testing; urgency=medium
 
