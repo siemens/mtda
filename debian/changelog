@@ -1,3 +1,9 @@
+mtda (0.44-0) testing; urgency=medium
+
+  *  debian: open development window for version 0.44
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 16 Nov 2025 11:00:00 +0200
+
 mtda (0.43-1) testing; urgency=medium
 
   [ Anantha K R ]
