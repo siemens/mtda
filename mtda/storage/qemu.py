@@ -11,7 +11,7 @@
 
 # System imports
 import os
-import pathlib
+import subprocess
 
 # Local imports
 import mtda.constants as CONSTS
@@ -23,6 +23,7 @@ class QemuController(Image):
     def __init__(self, mtda):
         super().__init__(mtda)
         self.file = "usb-storage.img"
+        self.cow = None
         self.id = None
         self.name = "usb-storage"
         self.mode = CONSTS.STORAGE.ON_TARGET
@@ -34,14 +35,18 @@ class QemuController(Image):
         self.lock.acquire()
 
         result = True
+        self.size = CONSTS.DEFAULTS.IMAGE_FILESIZE / 1024 / 1024
         if 'file' in conf:
             self.file = os.path.realpath(conf['file'])
+        if 'cow' in conf:
+            self.cow = os.path.realpath(conf['cow'])
+        if 'size' in conf:
+            self.size = int(conf['size']) * 1024
         d = os.path.dirname(self.file)
         os.makedirs(d, mode=0o755, exist_ok=True)
         if os.path.exists(self.file) is False:
-            sparse = pathlib.Path(self.file)
-            sparse.touch()
-            os.truncate(str(sparse), CONSTS.IMAGE_FILESIZE)
+            subprocess.check_call(['qemu-img', 'create', '-f', 'raw',
+                                   self.file, f'{self.size}M'])
         if 'name' in conf:
             self.name = conf['name']
 
@@ -54,7 +59,11 @@ class QemuController(Image):
 
         result = True
         if self.id is None:
-            self.id = self.qemu.usb_add(self.name, self.file)
+            if self.cow and not os.path.exists(self.cow):
+                self.rollback()
+            self.id = self.qemu.usb_add(
+                    self.name,
+                    self.cow if self.cow else self.file)
             if self.id is None:
                 self.mtda.debug(1, "storage.qemu._add(): "
                                    "usb storage could not be added!")
@@ -91,6 +100,17 @@ class QemuController(Image):
         self.mtda.debug(3, f"storage.qemu.probe(): {str(result)}")
         self.lock.release()
         return result
+
+    def commit(self):
+        if self.cow:
+            cmd = ['qemu-img', 'commit', self.cow]
+            subprocess.check_call(cmd)
+
+    def rollback(self):
+        if self.cow:
+            cmd = ['qemu-img', 'create', '-F', 'raw', '-f', 'qcow2',
+                   '-b', self.file, self.cow, f'{self.size}M']
+            subprocess.check_call(cmd)
 
     def supports_hotplug(self):
         return True

@@ -738,6 +738,9 @@ class MultiTenantDeviceAccess:
 
         result = False
         if self.storage is not None:
+            if not hasattr(self.storage, 'commit'):
+                raise NotImplementedError('commit is not supported for '
+                                          f'{self.storage.variant}')
             if self.storage_locked(session):
                 raise RuntimeError('cannot commit changes, '
                                    'storage is locked!')
@@ -755,6 +758,9 @@ class MultiTenantDeviceAccess:
 
         result = False
         if self.storage is not None:
+            if not hasattr(self.storage, 'rollback'):
+                raise NotImplementedError('rollback is not supported for '
+                                          f'{self.storage.variant}')
             if self.storage_locked(session):
                 raise RuntimeError('cannot rollback changes, '
                                    'storage is locked!')

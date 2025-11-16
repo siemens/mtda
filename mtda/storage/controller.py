@@ -80,9 +80,3 @@ class StorageController(object):
     def write(self, data):
         """ Write data to the shared storage device"""
         return False
-
-    def commit(self):
-        raise RuntimeError('commit is not supported')
-
-    def rollback(self):
-        raise RuntimeError('rollback is not supported')
