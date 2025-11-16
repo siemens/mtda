@@ -412,6 +412,24 @@ either from the device under test or from the host running the MTDA agent. The
 driver is selected with the ``variant`` setting. Driver-specific settings are
 detailed below.
 
+``qemu`` driver settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``qemu`` driver may only be used with the ``qemu`` power controller. The
+following settings are supported:
+
+* ``file``: string [optional]
+  Path to the ``raw`` image to be used as virtual USB mass storage (defaults
+  to ``/var/lib/mtda/usb-shared-storage.raw``
+
+* ``cow``: string [optional]
+  Path to the ``qcow2`` image where changes happening at run-time will be
+  written to. These changes may be written to the base image using `storage
+  commit` or reverted with `storage rollback`.
+
+* ``size``: integer [optional]
+  Size in GiB of the virtual USB shared storage device (defaults to 8).
+
 ``samsung`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

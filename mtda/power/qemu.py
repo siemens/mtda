@@ -15,6 +15,7 @@ import os
 import pathlib
 import psutil
 import re
+import subprocess
 import tempfile
 import threading
 import time
@@ -207,11 +208,15 @@ class QemuController(PowerController):
                                  "%s" % (self.pflash_rw, e))
         if len(self.drives) > 0:
             for drv, size in self.drives:
-                options += f" -drive file={drv},media=disk,format=raw"
+                options += f" -drive file={drv},media=disk,format=qcow2"
+                if os.path.exists(drv) is True:
+                    cmd = ['qemu-img', 'info', drv]
+                    info = subprocess.check_output(cmd, encoding="utf-8")
+                    if 'qcow2' not in info:
+                        os.unlink(drv)
                 if os.path.exists(drv) is False:
-                    sparse = pathlib.Path(drv)
-                    sparse.touch()
-                    os.truncate(str(sparse), size*1024*1024*1024)
+                    subprocess.check_call(['qemu-img', 'create', '-f', 'qcow2',
+                                           drv, f'{size}G'])
         if self.watchdog is not None:
             options += f" -device {self.watchdog},id=watchdog0"
 
