@@ -333,8 +333,11 @@ class ImageFile:
     def flush(self):
         # Wait for background writes to complete
         agent = self._agent
-
         self._socket.send(b'')
+        writing = True
+        while writing:
+            _, writing, written = agent.storage_status()
+            time.sleep(0.5)
         success = agent.storage_flush(self._totalsent)
         self._socket.close()
         self._socket = None
