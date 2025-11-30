@@ -29,6 +29,9 @@ MTDA_FILES = " \
     tox.ini \
     "
 
+# no need for cross-compiling as only arch=all packages are generated
+DPKG_ARCH = "all"
+
 # Here's our list of custom packages
 RDEPENDS:${PN} = "                       \
     python3-hap-python                   \
