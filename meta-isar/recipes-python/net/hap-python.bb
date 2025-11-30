@@ -16,5 +16,7 @@ SRC_URI = " \
 
 SRCREV = "86ed133f258c770fb348232b1cab4b781139fd95"
 
+DPKG_ARCH = "all"
+
 PROVIDES += "python3-hap-python"
 do_build[deptask] += "do_deploy_deb"
