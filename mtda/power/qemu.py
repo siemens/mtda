@@ -23,7 +23,7 @@ import multiprocessing
 
 # Local imports
 from mtda.power.controller import PowerController
-from mtda.utils import System
+from mtda.utils import Size, System
 
 
 class QemuController(PowerController):
@@ -38,7 +38,7 @@ class QemuController(PowerController):
         self.hostname = "mtda-kvm"
         self.lock = threading.Lock()
         self.machine = None
-        self.memory = 512
+        self.memory = Size.to_bytes(512, 'MiB')
         self.mtda = mtda
         self.novnc = "/usr/share/novnc"
         self.pflash_ro = None
@@ -66,7 +66,7 @@ class QemuController(PowerController):
         if 'machine' in conf:
             self.machine = conf['machine']
         if 'memory' in conf:
-            self.memory = int(conf['memory'])
+            self.memory = Size.to_bytes(conf['memory'], 'MiB')
         if 'pflash_ro' in conf:
             self.pflash_ro = os.path.realpath(conf['pflash_ro'])
         if 'pflash_rw' in conf:
@@ -74,7 +74,7 @@ class QemuController(PowerController):
         if 'storage' in conf and 'storage.0' not in conf:
             conf['storage.0'] = conf['storage']
         if 'storage.size' in conf and 'storage.0.size' not in conf:
-            conf['storage.0.size'] = conf['storage.size']
+            conf['storage.0.size'] = Size.to_bytes(conf['storage.size'], 'GiB')
         if 'swtpm' in conf:
             self.swtpm = os.path.realpath(conf['swtpm'])
         elif os.path.exists(self.swtpm) is False:
@@ -87,7 +87,7 @@ class QemuController(PowerController):
             sizekey = f'storage.{n}.size'
             if key in conf:
                 path = os.path.realpath(conf[key])
-                size = int(conf[sizekey]) if sizekey in conf else 16
+                size = Size.to_bytes(conf[sizekey], 'GiB') if sizekey in conf else 16 * 1024**3
                 self.drives.append((path, size))
                 n = n + 1
             else:
@@ -149,7 +149,7 @@ class QemuController(PowerController):
         atexit.register(self.stop)
 
         # base options
-        options = "-daemonize -S -m %d" % self.memory
+        options = f"-daemonize -S -m {int(self.memory / 1024**2)}"
         options += " -chardev pipe,id=monitor,path=/tmp/qemu-mtda"
         options += " -monitor chardev:monitor"
         options += " -serial pipe:/tmp/qemu-serial"
@@ -201,13 +201,14 @@ class QemuController(PowerController):
                     # writeable copy at the same size.
                     sparse = pathlib.Path(self.pflash_rw)
                     sparse.touch()
-                    os.truncate(str(sparse), 2*1024*1024)
+                    os.truncate(str(sparse), 2*1024**2)
             except Exception as e:
                 raise ValueError("Writeable pflash file (%s) does not exist "
                                  "or is not a file and cannot be created: "
                                  "%s" % (self.pflash_rw, e))
         if len(self.drives) > 0:
             for drv, size in self.drives:
+                size = int(size / 1024**3)
                 options += f" -drive file={drv},media=disk,format=qcow2"
                 if os.path.exists(drv) is True:
                     cmd = ['qemu-img', 'info', drv]

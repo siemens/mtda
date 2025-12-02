@@ -16,6 +16,7 @@ import subprocess
 # Local imports
 import mtda.constants as CONSTS
 from mtda.storage.helpers.image import Image
+from mtda.utils import Size
 
 
 class QemuController(Image):
@@ -35,18 +36,18 @@ class QemuController(Image):
         self.lock.acquire()
 
         result = True
-        self.size = CONSTS.DEFAULTS.IMAGE_FILESIZE / 1024 / 1024
+        self.size = CONSTS.DEFAULTS.IMAGE_FILESIZE
         if 'file' in conf:
             self.file = os.path.realpath(conf['file'])
         if 'cow' in conf:
             self.cow = os.path.realpath(conf['cow'])
         if 'size' in conf:
-            self.size = int(conf['size']) * 1024
+            self.size = Size.to_bytes(conf['size'], 'MiB')
         d = os.path.dirname(self.file)
         os.makedirs(d, mode=0o755, exist_ok=True)
         if os.path.exists(self.file) is False:
             subprocess.check_call(['qemu-img', 'create', '-f', 'raw',
-                                   self.file, f'{self.size}M'])
+                                   self.file, f'{int(self.size / 1024**2)}M'])
         if 'name' in conf:
             self.name = conf['name']
 

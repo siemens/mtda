@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2025 Siemens AG
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -11,6 +11,7 @@
 
 import os
 import psutil
+import re
 import signal
 import threading
 import time
@@ -36,6 +37,46 @@ class RepeatTimer(threading.Timer):
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
+
+
+class Size:
+    @staticmethod
+    def to_bytes(value, default_suffix: str = "") -> int:
+        """
+        Convert strings like '10K', '5MB', '2GiB', '42'
+        """
+
+        if isinstance(value, (int, float)):
+            value = str(value)
+        value = value.strip()
+
+        m = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)\s*([A-Za-z]*)", value)
+        if not m:
+            raise ValueError(f"Invalid size format: {value}")
+
+        number, suffix = m.groups()
+        number = float(number)
+        if not suffix and default_suffix:
+            suffix = default_suffix
+
+        suffix = suffix.upper()
+        MULTIPLIERS = {
+            "":     1,
+            "B":    1,
+            "K":    1000,
+            "KB":   1000,
+            "M":    1000**2,
+            "MB":   1000**2,
+            "G":    1000**3,
+            "GB":   1000**3,
+            "KIB":  1024,
+            "MIB":  1024**2,
+            "GIB":  1024**3,
+        }
+
+        if suffix not in MULTIPLIERS:
+            raise ValueError(f"Unknown size suffix: '{suffix}'")
+        return int(number * MULTIPLIERS[suffix])
 
 
 class System():

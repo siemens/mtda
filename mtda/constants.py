@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2021 Siemens Digital Industries Software
+# Copyright (C) 2025 Siemens AG
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
@@ -25,7 +25,7 @@ class DEFAULTS:
     WWW_HOST = '127.0.0.1'
     WWW_PORT = 5000
     WWW_WORKERS = 10
-    IMAGE_FILESIZE = 8*1024*1024*1024
+    IMAGE_FILESIZE = 8*1024**3
 
 
 class EVENTS:
@@ -95,7 +95,7 @@ class USB:
 
 
 class WRITER:
-    HIGH_WATER_MARK = 16*1024*1024
+    HIGH_WATER_MARK = 16*1024**2
     RECV_RETRIES = 5
     RECV_TIMEOUT = 5
     SEND_BACKOFF_BASE = 0.1
