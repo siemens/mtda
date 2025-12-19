@@ -35,7 +35,13 @@ A sample configuration is shipped with the code and may be copied to your
 system::
 
     $ sudo install -m 0755 -d /etc/mtda
+	
+Download source code from https://github.com/siemens/mtda 
+    
+	$ cd mtda 
     $ sudo install -m 0644 configs/qemu.ini /etc/mtda/config
+
+For Debian Trixie host, update firmware image name in /etc/mtda/config to OVMF_CODE_4M.fd 
 
 Alternatively, get prebuilt packages for Debian as follows::
 
