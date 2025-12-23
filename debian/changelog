@@ -1,8 +1,20 @@
-mtda (0.44-0) testing; urgency=medium
+mtda (0.44-1) testing; urgency=medium
 
-  *  debian: open development window for version 0.44
+  [ Cedric Hombourger ]
+  * storage: remove tell() since no longer used
+  * storage: implement commit/rollback for qemu
+  * consistently store sizes in bytes
+  * update pyodide from 0.28.1 to 0.29.0
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 16 Nov 2025 11:00:00 +0200
+  [ Felix Moessbauer ]
+  * isar: update all layer dependencies
+  * mtda-git: do not cross compile
+  * hap-python: do not cross compile
+
+  [ Shivaschandra KL ]
+  * storage_flush called before write complete
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 23 Dec 2025 13:00:00 +0200
 
 mtda (0.43-1) testing; urgency=medium
 
