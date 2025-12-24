@@ -93,8 +93,9 @@ class AsyncImageWriter:
         self._receiving = False
         self._size = size
 
-        self.mtda.debug(2, "storage.writer.flush(): waiting on thread...")
-        self._thread.join()
+        if self._thread is not None:
+            self.mtda.debug(2, "storage.writer.flush(): waiting on thread...")
+            self._thread.join()
         result = not self._failed
 
         self.mtda.debug(3, f"storage.writer.flush(): {result}")
