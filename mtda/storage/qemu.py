@@ -15,7 +15,7 @@ import subprocess
 
 # Local imports
 import mtda.constants as CONSTS
-from mtda.storage.helpers.image import Image
+from mtda.storage.helpers.image import Image, MissingCowDeviceError
 from mtda.utils import Size
 
 
@@ -103,15 +103,23 @@ class QemuController(Image):
         return result
 
     def commit(self, ignore_missing=False):
-        if self.cow:
-            cmd = ['qemu-img', 'commit', self.cow]
-            subprocess.check_call(cmd)
+        if self.cow is None:
+            if ignore_missing:
+                return
+            raise MissingCowDeviceError('commit')
+
+        cmd = ['qemu-img', 'commit', self.cow]
+        subprocess.check_call(cmd)
 
     def rollback(self, ignore_missing=False):
-        if self.cow:
-            cmd = ['qemu-img', 'create', '-F', 'raw', '-f', 'qcow2',
-                   '-b', self.file, self.cow, f'{self.size}M']
-            subprocess.check_call(cmd)
+        if self.cow is None:
+            if ignore_missing:
+                return
+            raise MissingCowDeviceError('rollback')
+
+        cmd = ['qemu-img', 'create', '-F', 'raw', '-f', 'qcow2',
+               '-b', self.file, self.cow, f'{self.size}M']
+        subprocess.check_call(cmd)
 
     def supports_hotplug(self):
         return True
