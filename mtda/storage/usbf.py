@@ -19,7 +19,7 @@ import time
 
 # Local imports
 import mtda.constants as CONSTS
-from mtda.storage.helpers.image import Image
+from mtda.storage.helpers.image import Image, MissingCowDeviceError
 from mtda.support.usb import Composite
 from mtda.utils import SystemdDeviceUnit
 
@@ -147,9 +147,11 @@ class UsbFunctionController(Image):
         dropin = os.path.join(dir, 'auto-dep-storage-cow.conf')
         SystemdDeviceUnit.create_device_dependency(dropin, self.cow_device)
 
-    def rollback(self):
+    def rollback(self, ignore_missing=False):
         if self.cow_device is None:
-            raise FileNotFoundError('no CoW device was configured!')
+            if ignore_missing:
+                return
+            raise MissingCowDeviceError('rollback')
 
         subprocess.run(['/sbin/kpartx', '-dv', f"/dev/mapper/{DM_COW}"])
         cmd = ['/sbin/dmsetup', 'remove', DM_COW]
@@ -164,9 +166,11 @@ class UsbFunctionController(Image):
                f"{self.base_device} {self.cow_device} P 8"]
         subprocess.check_call(cmd)
 
-    def commit(self):
+    def commit(self, ignore_missing=False):
         if self.cow_device is None:
-            raise FileNotFoundError('no CoW device was configured!')
+            if ignore_missing:
+                return
+            raise MissingCowDeviceError('commit')
 
         # Trigger merge
         cmd = ['/sbin/dmsetup', 'suspend', DM_BASE]

@@ -24,6 +24,7 @@ import time
 # Local imports
 import mtda.constants as CONSTS
 from mtda import __version__
+from mtda.storage.helpers.image import MissingCowDeviceError
 
 # Pyro
 try:
@@ -744,7 +745,10 @@ class MultiTenantDeviceAccess:
             if self.storage_locked(session):
                 raise RuntimeError('cannot commit changes, '
                                    'storage is locked!')
-            result = self.storage.commit()
+            try:
+                result = self.storage.commit()
+            except MissingCowDeviceError as e:
+                raise OSError(str(e)) from e
 
         self.mtda.debug(3, f"main.storage_commit(): {result}")
         return result
@@ -764,7 +768,10 @@ class MultiTenantDeviceAccess:
             if self.storage_locked(session):
                 raise RuntimeError('cannot rollback changes, '
                                    'storage is locked!')
-            result = self.storage.rollback()
+            try:
+                result = self.storage.rollback()
+            except MissingCowDeviceError as e:
+                raise OSError(str(e)) from e
 
         self.mtda.debug(3, f"main.storage_rollback(): {result}")
         return result
