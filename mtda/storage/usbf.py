@@ -147,8 +147,10 @@ class UsbFunctionController(Image):
         dropin = os.path.join(dir, 'auto-dep-storage-cow.conf')
         SystemdDeviceUnit.create_device_dependency(dropin, self.cow_device)
 
-    def rollback(self):
+    def rollback(self, ignore_missing=False):
         if self.cow_device is None:
+            if ignore_missing:
+                return
             raise MissingCowDeviceError('rollback')
 
         subprocess.run(['/sbin/kpartx', '-dv', f"/dev/mapper/{DM_COW}"])
@@ -164,8 +166,10 @@ class UsbFunctionController(Image):
                f"{self.base_device} {self.cow_device} P 8"]
         subprocess.check_call(cmd)
 
-    def commit(self):
+    def commit(self, ignore_missing=False):
         if self.cow_device is None:
+            if ignore_missing:
+                return
             raise MissingCowDeviceError('commit')
 
         # Trigger merge

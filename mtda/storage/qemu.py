@@ -102,12 +102,12 @@ class QemuController(Image):
         self.lock.release()
         return result
 
-    def commit(self):
+    def commit(self, ignore_missing=False):
         if self.cow:
             cmd = ['qemu-img', 'commit', self.cow]
             subprocess.check_call(cmd)
 
-    def rollback(self):
+    def rollback(self, ignore_missing=False):
         if self.cow:
             cmd = ['qemu-img', 'create', '-F', 'raw', '-f', 'qcow2',
                    '-b', self.file, self.cow, f'{self.size}M']

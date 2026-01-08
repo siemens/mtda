@@ -69,7 +69,7 @@ class Image(StorageController):
             self.handle = None
             self.bmapDict = None
             if hasattr(self, 'rollback'):
-                self.rollback()
+                self.rollback(ignore_missing=True)
             try:
                 subprocess.check_output(["sync"])
             except subprocess.CalledProcessError:
