@@ -719,7 +719,15 @@ class StorageOpenHandler(RemoteCallHandler):
             }
         }}}
 
-    async def _handle_remote_request(self, mtda):
+    async def _handle_remote_request(self):
+        @remote_call
+        def storage_compression(mtda, compr):
+            return mtda.storage_compression(compr)
+
+        @remote_call
+        def storage_open(mtda, size, session):
+            return mtda.storage_open(size, session=session)
+
         compr = CONSTS.IMAGE.RAW.value
         file = self.get_argument('file')
         try:
@@ -729,11 +737,11 @@ class StorageOpenHandler(RemoteCallHandler):
         if file:
             logger.debug(f'file to be uploaded: {file}')
             compr = Compression.from_extension(file)
-            await self.blocking_call(mtda.storage_compression, compr)
+            await self.blocking_call(storage_compression, compr)
 
         sid = self.get_argument('session')
         zmq_socket = await self.blocking_call(
-            mtda.storage_open, size, session=sid
+            storage_open, size, session=sid
         )
         self.application.settings['sockets'][sid] = zmq_socket
         return 204, None
