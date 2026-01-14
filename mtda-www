@@ -26,7 +26,7 @@ import logging
 import functools
 
 from mtda.client import Client
-from mtda.utils import Compression
+from mtda.utils import BmapUtils, Compression
 import mtda.constants as CONSTS
 from mtda.console.remote import RemoteConsole
 from mtda.console.screen import ScreenOutput
@@ -120,6 +120,9 @@ class RemoteCallHandler(BaseHandler):
             self.write({"error": str(e)})
         finally:
             self.finish()
+
+    async def post(self):
+        await self.get()
 
     async def blocking_call(self, func, *args, **kwargs):
         """
@@ -682,6 +685,60 @@ class PowerToggleHandler(RemoteCallHandler):
         return 200, {"status": status}
 
 # ---------------------------------------------------------------------------
+# /storage-set-bmap
+# ---------------------------------------------------------------------------
+
+
+class StorageBmapHandler(RemoteCallHandler):
+    spec = {"post": {
+        "summary": "Set the bmap file corresponding to the current file",
+        "requestBody": {
+            "required": True,
+            "content": {
+                "multipart/form-data": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "filename": {
+                                "type": "string",
+                                "format": "binary"
+                            },
+                            "session": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["filename", "session"]
+                    }
+                }
+            }
+        },
+        "responses": {
+            "204": {
+                "description": "bmap file set"
+            },
+            "400": {
+                "description": "Invalid input parameters"
+            }
+        }}}
+
+    async def _handle_remote_request(self):
+        @remote_call
+        def storage_bmap_dict(mtda, bmap, session):
+            mtda.storage_bmap_dict(bmap, session=session)
+
+        import xml.etree.ElementTree as ET
+
+        sid = self.get_argument('session')
+        file_info = self.request.files.get('filename')[0]
+        file_content = file_info['body'].decode('utf-8')
+        filename = file_info['filename']
+
+        bmap_xml = ET.fromstring(file_content)
+        bmap = BmapUtils.parseBmap(bmap_xml, filename)
+        await self.blocking_call(storage_bmap_dict, bmap, session=sid)
+        return 204, None
+
+# ---------------------------------------------------------------------------
 # /storage-open
 # ---------------------------------------------------------------------------
 
@@ -1174,6 +1231,7 @@ class OpenAPIHandler(RemoteCallHandler):
                     "/keyboard-input": KeyboardInputHandler.spec,
                     "/mouse-move": MouseEventHandler.spec,
                     "/power-toggle": PowerToggleHandler.spec,
+                    "/storage-set-bmap": StorageBmapHandler.spec,
                     "/storage-open": StorageOpenHandler.spec,
                     "/storage-close": StorageCloseHandler.spec,
                     "/storage-commit": StorageCommitHandler.spec,
@@ -1288,6 +1346,7 @@ class Service:
             (r"/keyboard-input", KeyboardInputHandler),
             (r"/mouse-move", MouseEventHandler),
             (r"/power-toggle", PowerToggleHandler),
+            (r"/storage-set-bmap", StorageBmapHandler),
             (r"/storage-close", StorageCloseHandler),
             (r"/storage-commit", StorageCommitHandler),
             (r"/storage-open", StorageOpenHandler),

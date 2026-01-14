@@ -461,7 +461,7 @@ SPDX-License-Identifier: MIT
           });
         }
         uploadWindow = new WinBox("Upload", {
-            html: "<div id=dropzone>Drag and drop your file here</div><button id='upload' disabled></button>",
+            html: "<div id=dropzone>Drag and drop your files here (e.g. image + bmap)</div><button id='upload' disabled></button>",
             class: ["no-full", "no-max", "modern"],
             width: "600px",
             height: "340px",
@@ -634,17 +634,35 @@ SPDX-License-Identifier: MIT
       const upload = document.getElementById('upload');
       const CHUNK_SIZE = 512 * 1024;
       let selectedFile = null;
+      let selectedBmapFile = null;
       let maySend = false;
 
-      $(function() {
-        $('#upload').bind('click', function() {
-          $.getJSON('./storage-open', {
+      async function storage_set_bmap() {
+        const formData = new FormData();
+        formData.append('filename', selectedBmapFile);
+        formData.append('session', localStorage.getItem('session'));
+
+        await fetch('./storage-set-bmap', {
+          method: 'POST',
+          body: formData
+        });
+      }
+
+      async function storage_open() {
+          await new Promise(done => $.getJSON('./storage-open', {
                   file: selectedFile.name,
                   size: selectedFile.size,
                   session: localStorage.getItem('session')
-          }, function(data) {
-            // do nothing
-          });
+            }, function (data) { done(); }));
+      }
+
+      $(function() {
+        $('#upload').bind('click', function() {
+          if (selectedBmapFile) {
+            storage_set_bmap().then(storage_open());
+          } else {
+            storage_open();
+          }
           return false;
         });
       });
@@ -843,11 +861,26 @@ SPDX-License-Identifier: MIT
 
       dropzone.addEventListener('drop', (event) => {
         const files = event.dataTransfer.files;
-        if (files.length) {
-          selectedFile = files[0];
+        selectedFile = null;
+        selectedBmapFile = null;
+        for (const f of files) {
+            if (f.name.endsWith('.bmap'))
+              selectedBmapFile = f;
+            else
+              selectedFile = f;
+        }
+        if (selectedFile && selectedBmapFile) {
+          console.log(`will upload ${selectedFile.name} with bmap ${selectedBmapFile.name}`);
+          dropzone.textContent = `${selectedFile.name} (+ bmap)`;
+          upload.disabled = false;
+        } else if (selectedFile) {
           console.log('will upload '+selectedFile.name);
           dropzone.textContent = `${selectedFile.name}`;
           upload.disabled = false;
+        } else if (selectedBmapFile) {
+          console.log('only bmap file provided '+selectedBmapFile.name);
+          dropzone.textContent = `Only bmap file ${selectedBmapFile.name} provided`;
+          upload.disabled = true;
         }
       });
 
