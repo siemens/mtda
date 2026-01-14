@@ -18,6 +18,38 @@ import time
 import mtda.constants as CONSTS
 
 
+class BmapUtils:
+    def parseBmap(bmap, bmap_path):
+        try:
+            bmapDict = {}
+            bmapDict["BlockSize"] = int(
+                bmap.find("BlockSize").text.strip())
+            bmapDict["BlocksCount"] = int(
+                bmap.find("BlocksCount").text.strip())
+            bmapDict["MappedBlocksCount"] = int(
+                bmap.find("MappedBlocksCount").text.strip())
+            bmapDict["ImageSize"] = int(
+                bmap.find("ImageSize").text.strip())
+            bmapDict["ChecksumType"] = \
+                bmap.find("ChecksumType").text.strip()
+            bmapDict["BmapFileChecksum"] = \
+                bmap.find("BmapFileChecksum").text.strip()
+            bmapDict["BlockMap"] = []
+            for child in bmap.find("BlockMap").findall("Range"):
+                range = child.text.strip().split("-")
+                first = range[0]
+                last = range[0] if len(range) == 1 else range[1]
+                bmapDict["BlockMap"].append({
+                    "first": int(first),
+                    "last": int(last),
+                    "chksum": child.attrib["chksum"]
+                })
+        except Exception:
+            print(f"Error parsing '{bmap_path}', probably not a bmap 2.0 file")
+            return None
+        return bmapDict
+
+
 class Compression:
     def from_extension(path):
         if path.endswith(".bz2"):

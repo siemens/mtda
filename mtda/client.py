@@ -20,7 +20,7 @@ import zmq
 import zstandard as zstd
 
 from mtda.main import MultiTenantDeviceAccess
-from mtda.utils import Compression
+from mtda.utils import Compression, BmapUtils
 import mtda.constants as CONSTS
 
 # Pyro
@@ -216,7 +216,7 @@ class Client:
 
                     bmap = ET.fromstring(bmap)
                     print(f"Discovered bmap file '{bmap_path}'")
-                    bmapDict = self.parseBmap(bmap, bmap_path)
+                    bmapDict = BmapUtils.parseBmap(bmap, bmap_path)
                     self._impl.storage_bmap_dict(bmapDict)
                     image_size = bmapDict['ImageSize']
                     break
@@ -243,36 +243,6 @@ class Client:
             # Storage may be closed now
             self.storage_close()
             self._impl.storage_bmap_dict(None)
-
-    def parseBmap(self, bmap, bmap_path):
-        try:
-            bmapDict = {}
-            bmapDict["BlockSize"] = int(
-                bmap.find("BlockSize").text.strip())
-            bmapDict["BlocksCount"] = int(
-                bmap.find("BlocksCount").text.strip())
-            bmapDict["MappedBlocksCount"] = int(
-                bmap.find("MappedBlocksCount").text.strip())
-            bmapDict["ImageSize"] = int(
-                bmap.find("ImageSize").text.strip())
-            bmapDict["ChecksumType"] = \
-                bmap.find("ChecksumType").text.strip()
-            bmapDict["BmapFileChecksum"] = \
-                bmap.find("BmapFileChecksum").text.strip()
-            bmapDict["BlockMap"] = []
-            for child in bmap.find("BlockMap").findall("Range"):
-                range = child.text.strip().split("-")
-                first = range[0]
-                last = range[0] if len(range) == 1 else range[1]
-                bmapDict["BlockMap"].append({
-                    "first": int(first),
-                    "last": int(last),
-                    "chksum": child.attrib["chksum"]
-                })
-        except Exception:
-            print(f"Error parsing '{bmap_path}', probably not a bmap 2.0 file")
-            return None
-        return bmapDict
 
     def start(self):
         return self._agent.start()
