@@ -1,3 +1,18 @@
+mtda (0.45-1) testing; urgency=medium
+
+  [ Felix Moessbauer ]
+  * storage: handle missing CoW device cases
+  * www: allow to flash image with bmap file
+
+  [ Badrikesh Prusty ]
+  * update dependencies (isar, cip-core and kas-container)
+
+  [ Benedikt Niedermayr ]
+  * update dependencies (isar, cip-core)
+  * rpi4b-ebg: upgrade to trixie
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 03 Feb 2026 09:00:00 +0200
+
 mtda (0.44-1) testing; urgency=medium
 
   [ Cedric Hombourger ]

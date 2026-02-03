@@ -3,12 +3,12 @@
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
-# Copyright (C) 2025 Siemens AG
+# Copyright (C) 2026 Siemens AG
 #
 # ---------------------------------------------------------------------------
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
 __license__ = 'MIT'
-__copyright__ = 'Copyright (C) 2025 Siemens AG'
-__version__ = '0.44'
+__copyright__ = 'Copyright (C) 2026 Siemens AG'
+__version__ = '0.45'
