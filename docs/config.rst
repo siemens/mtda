@@ -101,7 +101,7 @@ General settings
 
   * ``power off``: string [optional]
       Execute a Python script when the device is powered off.
-     
+
   * ``power on``: string [optional]
       Execute a Python script when the device is powered on such as the
       following::
@@ -114,7 +114,7 @@ General settings
       This sample script would instruct MTDA to wait for the ``Hit any key to
       stop autoboot`` on the ``monitor`` interface before sending a space and
       sending a custom boot command.
- 
+
 * ``storage``: section [optional]
     Configure a shared storage driver that may be swapped between the device
     attached to MTDA and the host running the agent. The driver will be
@@ -254,7 +254,7 @@ from Anel. The following settings are supported:
     The username as configured in the web interface (defaults to ``admin``).
 
 * ``password``: string [optional]
-    The password as configured in the web interface (defaults to ``amel``).
+    The password as configured in the web interface (defaults to ``anel``).
 
 * ``port_in``: integer [optional]
     The receive port of the UDP api as configured in the web interface
