@@ -182,6 +182,23 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
+    def capture_screen(self):
+        self.mtda.debug(3, f"main.capture_screen()")
+        result = None
+        if self.video is not None:
+            if self.video.variant == "mjpg_streamer":
+                url = self.video.url() +  "/?action=snapshot"
+                self.mtda.debug(3, f"main.capture_screen(): {url} ")
+                try:
+                    result = requests.get(url, timeout=5)
+                    result.raise_for_status()
+                    return result.content
+                except Exception as e:
+                    self.mtda.debug(3, f"main.captue screenshot(): {e} ")
+         self.mtda.debug(3, f"main.captue screenshot(): {result} ")
+         return result
+
+    @Pyro4.expose
     def config_set_power_timeout(self, timeout, **kwargs):
         self.mtda.debug(3, "main.config_set_power_timeout()")
 
@@ -1560,6 +1577,8 @@ class MultiTenantDeviceAccess:
         self.session_ping(session)
         if self.video is not None:
             result = self.video.url(host, opts)
+            if self.video.variant == "mjpg_streamer":
+                result = result + "/?action=stream"
 
         self.mtda.debug(3, f"main.video_url(): {result}")
         return result

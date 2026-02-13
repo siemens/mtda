@@ -82,6 +82,9 @@ class Client:
             return wrapper
         return attr
 
+    def capture_screen(self, filename):
+        return self._impl.capture_screen()
+
     def console_prefix_key(self):
         return self._agent.console_prefix_key()
 

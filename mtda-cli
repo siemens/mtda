@@ -17,6 +17,7 @@ import time
 import sys
 import socket
 from argparse import ArgumentParser, RawTextHelpFormatter
+from pathlib import Path
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
@@ -88,6 +89,27 @@ class Application:
 
     def debug(self, level, msg):
         self.client().debug(level, msg)
+    
+    def capture_screen(self,args):
+        file_name = args.capture_file_name
+        file_path = Path(args.capture_file_name)
+        parent_dir = file_path.parent
+        valid_extensions = ('.png', '.jpg', '.jpeg')
+        if not file_name.lower().endswith(valid_extensions):
+            print(f"'{input_string}' is not a valid image path (must end in .png ,.jpg or .jpeg).")
+            return False
+        if parent_dir.exists() and parent_dir.is_dir():
+            print(f"Path leading to '{file_path.name}' is valid. Proceeding with capture...")
+        else:
+            print(f"Error: The directory '{parent_dir}' does not exist.")
+            return False
+        response = self.client().capture_screen()
+        if response is not None:
+            with open(file_name, "wb") as f:
+                f.write(response)
+            print(f"Captured image saved at {file_name}")
+        else:
+            print("Failed to capture image")
 
     def command_cmd(self, args):
         result = self.client().command(args.cmd_command)
@@ -610,6 +632,20 @@ class Application:
         )
         p.add_argument(
             "cmd_command", metavar="cmd", type=str, help="Command to send"
+        )
+        p.set_defaults(func=cmd)
+        
+        # subcommand: capture
+        cmd = self.capture_screen
+        p = subparsers.add_parser(
+            "capture",
+            help="This utility helps you to capture screenshot of current diplay on monitor.\n"
+        )
+        p.add_argument(
+            "capture_file_name",
+            metavar="capture_file_name",
+            type=str,
+            help="Filename to store the captured image, .png or .jpg"
         )
         p.set_defaults(func=cmd)
 

@@ -154,7 +154,7 @@ class MJPGStreamerVideoController(VideoController):
             host = socket.getfqdn()
             self.mtda.debug(3, "video.mjpg_streamer."
                                f"url: using host='{str(host)}'")
-        result = f"http://{host}:{self.port}/?action=stream"
+        result = f"http://{host}:{self.port}"
 
         self.mtda.debug(3, f"video.mjpg_streamer.url(): {str(result)}")
         return result
