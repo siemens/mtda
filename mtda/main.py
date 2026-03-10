@@ -414,6 +414,7 @@ class MultiTenantDeviceAccess:
     def console_tail(self, **kwargs):
         self.mtda.debug(3, "main.console_tail()")
 
+        result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
         if self.console_locked(session) is False and \
