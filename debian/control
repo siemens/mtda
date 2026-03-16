@@ -6,6 +6,7 @@ Build-Depends: debhelper (>=10) | dh-systemd,
                dh-python,
                libpython3-all-dev,
                python3-all-dev:any,
+               python3-grpc-tools,
                python3-setuptools,
                python3-sphinx:native <!nodoc>,
                python3-sphinx-rtd-theme:native <!nodoc>
@@ -32,7 +33,6 @@ Depends: mtda-common,
          python3-systemd,
          python3-usb,
          python3-zeroconf,
-         python3-zmq,
          python3-zstandard,
          usbrelay,
          ${misc:Depends},
@@ -82,7 +82,7 @@ Package: mtda-common
 Architecture: all
 Multi-Arch: foreign
 Depends: python3:any (>= 3.7~),
-         python3-pyro5 | python3-pyro4
+         python3-grpcio
 Description: common modules for Multi-Tenant Device Access
  Modules shared between the service and the client.
 

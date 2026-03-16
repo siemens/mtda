@@ -45,6 +45,7 @@ gnutls
 googlegroups
 gpg
 GPIO
+gRPC
 GStreamer
 hombourger
 homekit

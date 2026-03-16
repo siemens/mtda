@@ -206,12 +206,7 @@ class ConsoleLogger:
     # Print bytes to the console (local or remote)
     def _print(self, data):
         if self.prints is True:
-            if self.socket is not None:
-                self.mtda.publish(self.topic, data)
-            else:
-                # Write to stdout if received are not pushed to the network
-                sys.stdout.buffer.write(data)
-                sys.stdout.buffer.flush()
+            self.mtda.publish(self.topic, data)
 
     # Print a string to the console (local or remote)
     def print(self, data):

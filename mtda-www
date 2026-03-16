@@ -20,7 +20,6 @@ import tornado.ioloop
 import tornado.escape
 import os
 import uuid
-import zmq.asyncio
 import concurrent.futures
 import logging
 import functools
@@ -31,11 +30,10 @@ import mtda.constants as CONSTS
 from mtda.console.remote import RemoteConsole
 from mtda.console.screen import ScreenOutput
 
-# Pyro
-try:
-    import Pyro5.errors as PyroErrors
-except ImportError:
-    import Pyro4.errors as PyroErrors
+# gRPC
+import grpc
+import grpc.aio
+from mtda.grpc import mtda_pb2, mtda_pb2_grpc
 
 # ---------------------------------------------------------------------------
 # Configure basic logging for better visibility of errors
@@ -109,7 +107,7 @@ class RemoteCallHandler(BaseHandler):
             # For 204 No Content, we just set status and finish, no body needed
             if response is not None:
                 self.result_as_json(response)
-        except PyroErrors.TimeoutError:
+        except grpc.RpcError:
             logger.warning("Remote service timed out for "
                            f"{self.__class__.__name__}")
             self.set_status(504)  # Gateway Timeout
@@ -201,7 +199,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 logger.debug(f"www.ws.open: send {msg}")
                 self.write_message(msg)
 
-        except PyroErrors.TimeoutError:
+        except grpc.RpcError:
             logger.warning("timeout during WebSocket for session "
                            f"{self.session_id}.")
             self.write_message({"error": "timeout during WebSocket "
@@ -244,7 +242,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                     tornado.ioloop.IOLoop.current().add_callback(
                             console_send, data, sid
                     )
-                except PyroErrors.TimeoutError:
+                except grpc.RpcError:
                     logger.warning("timeout for console_send "
                                    f"for session {sid}.")
                     self.write_message(
@@ -1144,27 +1142,36 @@ class TargetUptimeHandler(RemoteCallHandler):
 
 
 class WebConsole(RemoteConsole):
-    def _context(self):
-        return zmq.asyncio.Context()
+    """Async variant of RemoteConsole for use inside the Tornado/asyncio
+    event loop.  Uses grpc.aio so the stream can be awaited directly."""
 
     async def reader(self):
-        self.connect()
-        try:
-            while self.exiting is False:
-                topic, data = await self.socket.recv_multipart()
-                self.dispatch(topic, data)
-        except zmq.error.ContextTerminated:
-            self.socket = None
+        target = f"{self.host}:{self.port}"
+        while not self.exiting:
+            try:
+                async with grpc.aio.insecure_channel(target) as channel:
+                    stub = mtda_pb2_grpc.MtdaServiceStub(channel)
+                    stream = stub.Subscribe(mtda_pb2.Empty())
+                    topics = self._topics()
+                    async for msg in stream:
+                        if self.exiting:
+                            return
+                        # Normalise topic to bytes for consistent comparison
+                        topic = msg.topic
+                        if isinstance(topic, str):
+                            topic = topic.encode("utf-8")
+                        if topic in topics:
+                            self.dispatch(topic, msg.data)
+            except grpc.aio.AioRpcError:
+                if self.exiting:
+                    return
+                await asyncio.sleep(1)
 
 
 class WebMonitor(WebConsole):
-    def __init__(self, host, port, screen):
-        super().__init__(host, port, screen)
-        self.topic = CONSTS.CHANNEL.MONITOR
+    """Like WebConsole but subscribes to the MON (monitor) topic."""
 
-    def _subscribe(self):
-        super()._subscribe()
-        self.socket.setsockopt(zmq.SUBSCRIBE, CONSTS.CHANNEL.EVENTS)
+    TOPICS = {CONSTS.CHANNEL.MONITOR, CONSTS.CHANNEL.EVENTS}
 
 
 class WebOutput(ScreenOutput):
@@ -1246,8 +1253,8 @@ class OpenAPIHandler(RemoteCallHandler):
                 }
             }
             self.write(spec)
-        except PyroErrors.TimeoutError:
-            logger.warning("Pyro4 timeout fetching agent version for OpenAPI.")
+        except grpc.RpcError:
+            logger.warning("gRPC timeout fetching agent version for OpenAPI.")
             self.set_status(504)
             self.write({"error": "timeout while fetching API version"})
         except Exception as e:
@@ -1303,8 +1310,8 @@ class Service:
 
     async def run(self):
         @remote_call
-        def console_port(mtda):
-            return mtda.console_port()
+        def mtda_ctrlport(mtda):
+            return mtda.ctrlport()
 
         @remote_call
         def mtda_remote(mtda):
@@ -1364,23 +1371,24 @@ class Service:
         # Pass the executor to the application settings for our handlers
         self.application.executor = self.executor
 
-        # Connect both the console and monitor to our custom output
-        try:
-            conport = await self.blocking_call(console_port)
-            remote = await self.blocking_call(mtda_remote)
-            output = WebOutput(self.application, self.mtda)
-            console = WebConsole(remote, conport, output)
-            asyncio.create_task(console.reader())
-            monitor = WebMonitor(remote, conport, output)
-            asyncio.create_task(monitor.reader())
-        except Exception as e:
-            logger.error(f"Failed to initialize MTDA console/monitor: {e}")
-            raise
-
         try:
             await self.blocking_call(mtda_start)
         except Exception as e:
             logger.error(f"Failed to start MTDA client: {e}")
+            raise
+
+        # Connect both the console and monitor to our custom output.
+        # Done after mtda_start so the gRPC server is already listening.
+        try:
+            ctrlport = await self.blocking_call(mtda_ctrlport)
+            remote = await self.blocking_call(mtda_remote)
+            output = WebOutput(self.application, self.mtda)
+            console = WebConsole(remote, ctrlport, output)
+            asyncio.create_task(console.reader())
+            monitor = WebMonitor(remote, ctrlport, output)
+            asyncio.create_task(monitor.reader())
+        except Exception as e:
+            logger.error(f"Failed to initialize MTDA console/monitor: {e}")
             raise
 
         self.application.listen(self._port, self._host)

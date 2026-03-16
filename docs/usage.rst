@@ -279,7 +279,7 @@ Usage
      ``http://<MTDA-AGENT-IPC>:<PORT>``
 
    Where <PORT> is as configured in the [www] section of the configuration settings.
-   Default is 9080.
+   Default is 5000.
  * A web UI with MTDA control options and video stream console will be loaded as shown:
 
  .. image:: www-1.png

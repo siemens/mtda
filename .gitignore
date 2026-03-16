@@ -5,6 +5,8 @@
 *.changes
 *.img
 *.pyc
+*_pb2.py
+*_pb2_grpc.py
 *.swp
 build
 cip-core
