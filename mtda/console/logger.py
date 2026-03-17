@@ -115,29 +115,32 @@ class ConsoleLogger:
             p = self._prompt
         return p
 
-    def run(self, cmd):
+    def run(self, cmd, timeout=30):
         self.rx_lock.acquire()
-        self._clear()
+        try:
+            self._clear()
 
-        # Send a break to get a prompt
-        self.write(b'\x03')
+            # Send a break to get a prompt
+            self.write(b'\x03')
 
-        # Wait for a prompt
-        self.rx_cond.wait_for(self._matchprompt)
+            # Wait for a prompt
+            if not self.rx_cond.wait_for(self._matchprompt, timeout):
+                return None
 
-        # Send requested command
-        self._clear()
-        self.write(f"{cmd}\n".encode())
+            # Send requested command
+            self._clear()
+            self.write(f"{cmd}\n".encode())
 
-        # Wait for the command to complete
-        self.rx_cond.wait_for(self._matchprompt)
+            # Wait for the command to complete
+            if not self.rx_cond.wait_for(self._matchprompt, timeout):
+                return None
 
-        # Strip first line (command we sent) and flush received bytes
-        self._head()
-        data = self._dump(flush=True)
+            # Strip first line (command we sent) and flush received bytes
+            self._head()
+            data = self._dump(flush=True)
+        finally:
+            self.rx_lock.release()
 
-        # Release and return command output
-        self.rx_lock.release()
         return data
 
     def _tail(self, discard=True):
