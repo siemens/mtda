@@ -10,7 +10,7 @@ command. A remote agent may be specified on the command line using the
 The remote may be alternatively specified in the ``[remote]]`` section
 of the local configuration file.
 
-Power commands 
+Power commands
 ~~~~~~~~~~~~~~
 
 When MTDA is configured with a ``[power]`` control block in its configuration,
@@ -168,15 +168,15 @@ Keyboard
 ~~~~~~~~
 
 The assist board has the capability. to act as keyboard to the DUT,general usage is
-``mtda-cli keyboard write characters....`` Some special characters are supported and 
+``mtda-cli keyboard write characters....`` Some special characters are supported and
 need to be enclosed between < and >
 
 For instance: ``mtda-cli keyboard write "<down><enter>hello world<enter>"``
 
 .. list-table:: Special Keys
    :widths: 20 80
-   :header-rows: 1   
-   
+   :header-rows: 1
+
    * - Supported Special Keys
      - String
    * - Backspace

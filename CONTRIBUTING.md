@@ -13,6 +13,12 @@ Contribution Checklist
 
 - follow the existing coding style (run `pycodestyle` on changed files) [**required**]
 
+- if `mtda/grpc/mtda.proto` is modified, the Python stubs
+  (`mtda_pb2.py`, `mtda_pb2_grpc.py`) are **not** committed — they are
+  generated automatically during `python setup.py build` / `pip install`.
+  The CI will verify that `grpc_tools.protoc` can still consume the updated
+  `.proto` without errors.
+
 - add the required copyright header to each new file introduced, see
   [licensing information](COPYING) [**required**]
 

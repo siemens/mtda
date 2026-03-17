@@ -120,14 +120,14 @@ class ConsoleLogger:
         self._clear()
 
         # Send a break to get a prompt
-        self.write("\3")
+        self.write(b'\x03')
 
         # Wait for a prompt
         self.rx_cond.wait_for(self._matchprompt)
 
         # Send requested command
         self._clear()
-        self.write(f"{cmd}\n")
+        self.write(f"{cmd}\n".encode())
 
         # Wait for the command to complete
         self.rx_cond.wait_for(self._matchprompt)
@@ -183,12 +183,8 @@ class ConsoleLogger:
         self.mtda.debug(3, f"console.logger.wait: {str(result)}")
         return result
 
-    def write(self, data, raw=False):
+    def write(self, data):
         try:
-            if raw is False:
-                data = codecs.escape_decode(bytes(data, "utf-8"))[0]
-            else:
-                data = bytes(data, "utf-8")
             self.console.write(data)
         except IOError as e:
             print(f"write error on the console ({e.strerror})!",
@@ -206,12 +202,7 @@ class ConsoleLogger:
     # Print bytes to the console (local or remote)
     def _print(self, data):
         if self.prints is True:
-            if self.socket is not None:
-                self.mtda.publish(self.topic, data)
-            else:
-                # Write to stdout if received are not pushed to the network
-                sys.stdout.buffer.write(data)
-                sys.stdout.buffer.flush()
+            self.mtda.publish(self.topic, data)
 
     # Print a string to the console (local or remote)
     def print(self, data):

@@ -1,0 +1,374 @@
+// ---------------------------------------------------------------------------
+// MTDA gRPC service definition
+// ---------------------------------------------------------------------------
+//
+// This software is a part of MTDA.
+// Copyright (C) 2026 Siemens AG
+//
+// ---------------------------------------------------------------------------
+// SPDX-License-Identifier: MIT
+// ---------------------------------------------------------------------------
+
+syntax = "proto3";
+
+package mtda;
+
+// ---------------------------------------------------------------------------
+// Common wrappers
+// ---------------------------------------------------------------------------
+
+// Generic empty request (for RPCs that take no parameters beyond session)
+message Empty {}
+
+// Generic bool response
+message BoolResponse {
+    bool value = 1;
+}
+
+// Generic string response (nullable - use has_value to detect None)
+message StringResponse {
+    bool has_value = 1;
+    string value   = 2;
+}
+
+// Generic int response
+message Int32Response {
+    int32 value = 1;
+}
+
+// Generic float response
+message FloatResponse {
+    double value = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Agent
+// ---------------------------------------------------------------------------
+
+message AgentVersionResponse {
+    string version = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Power / command
+// ---------------------------------------------------------------------------
+
+message CommandRequest {
+    string args = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
+message SetPowerTimeoutRequest {
+    int32 timeout = 1;
+}
+
+message SetSessionTimeoutRequest {
+    int32 timeout = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Console
+// ---------------------------------------------------------------------------
+
+message ConsolePrintRequest {
+    string data = 1;
+}
+
+message ConsolePromptRequest {
+    string new_prompt = 1;   // empty string means "get current"
+    bool   get_only   = 2;
+}
+
+message ConsoleRunRequest {
+    string cmd = 1;
+}
+
+message ConsoleSendRequest {
+    bytes  data = 1;
+    bool   raw  = 2;
+}
+
+message ConsoleWaitRequest {
+    string what    = 1;
+    double timeout = 2;  // seconds; 0 means use server default
+}
+
+// Streaming response — each message carries one line of output
+message ConsoleLineResponse {
+    string line = 1;
+}
+
+message ConsoleLinesResponse {
+    int32 lines = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Env
+// ---------------------------------------------------------------------------
+
+message EnvGetRequest {
+    string name    = 1;
+    string default = 2;
+}
+
+message EnvSetRequest {
+    string name  = 1;
+    string value = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Events / console subscription
+// ---------------------------------------------------------------------------
+
+// A single pushed message from the server's event/console stream.
+// topic is one of "CON", "MON", or "EVT".
+message EventMessage {
+    string topic = 1;
+    bytes  data  = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Keyboard
+// ---------------------------------------------------------------------------
+
+message KeyboardPressRequest {
+    string key    = 1;
+    int32  repeat = 2;
+    bool   ctrl   = 3;
+    bool   shift  = 4;
+    bool   alt    = 5;
+    bool   meta   = 6;
+}
+
+message KeyboardWriteRequest {
+    string what = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Mouse
+// ---------------------------------------------------------------------------
+
+message MouseMoveRequest {
+    int32 x       = 1;
+    int32 y       = 2;
+    int32 buttons = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Monitor
+// ---------------------------------------------------------------------------
+
+message MonitorSendRequest {
+    bytes  data = 1;
+    bool   raw  = 2;
+}
+
+message MonitorWaitRequest {
+    string what    = 1;
+    double timeout = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Storage
+// ---------------------------------------------------------------------------
+
+message StorageCompressionRequest {
+    string compression = 1;
+}
+
+// BmapDict is serialised as a JSON string to avoid duplicating its schema
+message StorageBmapDictRequest {
+    bool   has_dict = 1;
+    string json     = 2;
+}
+
+message StorageFlushRequest {
+    int64 size = 1;
+}
+
+message StorageMountRequest {
+    string part    = 1;
+    bool   has_part = 2;
+}
+
+message StorageOpenRequest {
+    int64  size        = 1;
+}
+
+// Returned by StorageOpen and StorageUpdate.
+// Clients should send image data via the StorageWrite client-streaming RPC.
+message StorageOpenResponse {}
+
+message StorageUpdateRequest {
+    string dst  = 1;
+    int64  size = 2;
+}
+
+// A single chunk of image data streamed from client to server.
+// An empty data field signals end-of-transfer.
+message StorageChunkRequest {
+    bytes data = 1;
+}
+
+message StorageWriteResponse {
+    bool ok = 1;
+}
+
+message StorageStatusResponse {
+    string status  = 1;
+    bool   writing = 2;
+    int64  written = 3;
+}
+
+message StorageToggleResponse {
+    string status = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Target / power
+// ---------------------------------------------------------------------------
+
+message TargetStatusResponse {
+    string status = 1;
+}
+
+message TargetUptimeResponse {
+    double uptime = 1;
+}
+
+// ---------------------------------------------------------------------------
+// USB
+// ---------------------------------------------------------------------------
+
+message UsbClassRequest {
+    string class_name = 1;
+}
+
+message UsbIndexRequest {
+    int32 ndx = 1;
+}
+
+message UsbStatusResponse {
+    string status = 1;
+}
+
+message UsbPortsResponse {
+    int32 ports = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Video
+// ---------------------------------------------------------------------------
+
+message VideoUrlRequest {
+    string host = 1;
+    string opts = 2;
+    bool   has_opts = 3;
+}
+
+message VideoFormatResponse {
+    bool   has_value = 1;
+    string value     = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
+
+service MtdaService {
+
+    // --- Agent ---
+    rpc AgentVersion       (Empty)                   returns (AgentVersionResponse);
+
+    // --- Power / command ---
+    rpc Command            (CommandRequest)           returns (BoolResponse);
+
+    // --- Config ---
+    rpc ConfigSetPowerTimeout   (SetPowerTimeoutRequest)   returns (Int32Response);
+    rpc ConfigSetSessionTimeout (SetSessionTimeoutRequest) returns (Int32Response);
+
+    // --- Console ---
+    rpc ConsoleClear       (Empty)                   returns (StringResponse);
+    rpc ConsoleDump        (Empty)                   returns (StringResponse);
+    rpc ConsoleFlush       (Empty)                   returns (StringResponse);
+    rpc ConsoleHead        (Empty)                   returns (StringResponse);
+    rpc ConsoleLines       (Empty)                   returns (ConsoleLinesResponse);
+    rpc ConsolePrint       (ConsolePrintRequest)     returns (StringResponse);
+    rpc ConsolePrompt      (ConsolePromptRequest)    returns (StringResponse);
+    rpc ConsoleRun         (ConsoleRunRequest)       returns (StringResponse);
+    rpc ConsoleSend        (ConsoleSendRequest)      returns (StringResponse);
+    rpc ConsoleTail        (Empty)                   returns (StringResponse);
+    rpc ConsoleToggle      (Empty)                   returns (Empty);
+    // Blocking wait — streams back lines as they appear, terminates when
+    // the waited-for string is matched or the timeout expires.
+    rpc ConsoleWait        (ConsoleWaitRequest)      returns (stream ConsoleLineResponse);
+
+    // --- Env ---
+    rpc EnvGet             (EnvGetRequest)           returns (StringResponse);
+    rpc EnvSet             (EnvSetRequest)           returns (StringResponse);
+
+    // --- Events / console subscription ---
+    // Long-lived server-streaming RPC that pushes console bytes and async
+    // events to the client as they occur.  Replaces the ZMQ PUB socket.
+    rpc Subscribe          (Empty)                   returns (stream EventMessage);
+
+    // --- Keyboard ---
+    rpc KeyboardPress      (KeyboardPressRequest)    returns (StringResponse);
+    rpc KeyboardWrite      (KeyboardWriteRequest)    returns (StringResponse);
+
+    // --- Mouse ---
+    rpc MouseMove          (MouseMoveRequest)        returns (StringResponse);
+
+    // --- Monitor ---
+    rpc MonitorSend        (MonitorSendRequest)      returns (StringResponse);
+    rpc MonitorWait        (MonitorWaitRequest)      returns (stream ConsoleLineResponse);
+
+    // --- Storage ---
+    rpc StorageBmapDict    (StorageBmapDictRequest)  returns (BoolResponse);
+    rpc StorageClose       (Empty)                   returns (BoolResponse);
+    rpc StorageCommit      (Empty)                   returns (BoolResponse);
+    rpc StorageCompression (StorageCompressionRequest) returns (StringResponse);
+    rpc StorageFlush       (StorageFlushRequest)     returns (BoolResponse);
+    rpc StorageMount       (StorageMountRequest)     returns (BoolResponse);
+    rpc StorageNetwork     (Empty)                   returns (BoolResponse);
+    rpc StorageOpen        (StorageOpenRequest)      returns (StorageOpenResponse);
+    rpc StorageRollback    (Empty)                   returns (BoolResponse);
+    rpc StorageStatus      (Empty)                   returns (StorageStatusResponse);
+    rpc StorageSwap        (Empty)                   returns (StorageToggleResponse);
+    rpc StorageToHost      (Empty)                   returns (BoolResponse);
+    rpc StorageToTarget    (Empty)                   returns (BoolResponse);
+    rpc StorageToggle      (Empty)                   returns (StorageToggleResponse);
+    rpc StorageUpdate      (StorageUpdateRequest)    returns (StorageOpenResponse);
+    // Client-streaming RPC: client sends image chunks, server writes to storage.
+    // An empty StorageChunkRequest.data signals end-of-transfer.
+    rpc StorageWrite       (stream StorageChunkRequest) returns (StorageWriteResponse);
+
+    // --- Target ---
+    rpc TargetLock         (Empty)                   returns (BoolResponse);
+    rpc TargetLocked       (Empty)                   returns (BoolResponse);
+    rpc TargetOff          (Empty)                   returns (BoolResponse);
+    rpc TargetOn           (Empty)                   returns (BoolResponse);
+    rpc TargetStatus       (Empty)                   returns (TargetStatusResponse);
+    rpc TargetToggle       (Empty)                   returns (TargetStatusResponse);
+    rpc TargetUnlock       (Empty)                   returns (BoolResponse);
+    rpc TargetUptime       (Empty)                   returns (TargetUptimeResponse);
+    rpc ToggleTimestamps   (Empty)                   returns (BoolResponse);
+
+    // --- USB ---
+    rpc UsbFindByClass     (UsbClassRequest)         returns (StringResponse);
+    rpc UsbHasClass        (UsbClassRequest)         returns (BoolResponse);
+    rpc UsbOff             (UsbIndexRequest)         returns (Empty);
+    rpc UsbOffByClass      (UsbClassRequest)         returns (BoolResponse);
+    rpc UsbOn              (UsbIndexRequest)         returns (Empty);
+    rpc UsbOnByClass       (UsbClassRequest)         returns (BoolResponse);
+    rpc UsbPorts           (Empty)                   returns (UsbPortsResponse);
+    rpc UsbStatus          (UsbIndexRequest)         returns (UsbStatusResponse);
+    rpc UsbToggle          (UsbIndexRequest)         returns (Empty);
+
+    // --- Video ---
+    rpc VideoFormat        (Empty)                   returns (VideoFormatResponse);
+    rpc VideoUrl           (VideoUrlRequest)         returns (StringResponse);
+}

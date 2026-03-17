@@ -10,27 +10,419 @@
 # ---------------------------------------------------------------------------
 
 
+import codecs
+import json
 import os
+import queue
 import random
 import socket
 import subprocess
 import tempfile
+import threading
 import time
-import zmq
 import zstandard as zstd
 
+import grpc
+
 from mtda.main import MultiTenantDeviceAccess
+from mtda.grpc import mtda_pb2, mtda_pb2_grpc
 from mtda.utils import Compression, BmapUtils
 import mtda.constants as CONSTS
 
-# Pyro
-try:
-    from Pyro5.compatibility import Pyro4
-except ImportError:
-    import Pyro4
+
+class _GrpcImpl:
+    """Thin wrapper around the generated gRPC stub that presents the same
+    call interface as MultiTenantDeviceAccess (plain Python return values)
+    so that the rest of client.py needs no changes."""
+
+    def __init__(self, stub, session, timeout):
+        self._stub = stub
+        self._session = session
+        self._timeout = timeout
+
+    def _meta(self):
+        return (('mtda-session', self._session),) if self._session else ()
+
+    def _call(self, method, request):
+        return method(request, metadata=self._meta(),
+                      timeout=self._timeout)
+
+    # --- Agent ---
+
+    def agent_version(self, **kwargs):
+        return self._call(self._stub.AgentVersion,
+                          mtda_pb2.Empty()).version or None
+
+    # --- Power / command ---
+
+    def command(self, args, **kwargs):
+        return self._call(self._stub.Command,
+                          mtda_pb2.CommandRequest(args=args)).value
+
+    # --- Config ---
+
+    def config_set_power_timeout(self, timeout, **kwargs):
+        return self._call(self._stub.ConfigSetPowerTimeout,
+                          mtda_pb2.SetPowerTimeoutRequest(
+                              timeout=timeout)).value
+
+    def config_set_session_timeout(self, timeout, **kwargs):
+        return self._call(self._stub.ConfigSetSessionTimeout,
+                          mtda_pb2.SetSessionTimeoutRequest(
+                              timeout=timeout)).value
+
+    # --- Console ---
+
+    def console_clear(self, **kwargs):
+        r = self._call(self._stub.ConsoleClear, mtda_pb2.Empty())
+        return r.value if r.has_value else None
+
+    def console_dump(self, **kwargs):
+        r = self._call(self._stub.ConsoleDump, mtda_pb2.Empty())
+        return r.value if r.has_value else None
+
+    def console_flush(self, **kwargs):
+        r = self._call(self._stub.ConsoleFlush, mtda_pb2.Empty())
+        return r.value if r.has_value else None
+
+    def console_head(self, **kwargs):
+        r = self._call(self._stub.ConsoleHead, mtda_pb2.Empty())
+        return r.value if r.has_value else None
+
+    def console_lines(self, **kwargs):
+        return self._call(self._stub.ConsoleLines, mtda_pb2.Empty()).lines
+
+    def console_print(self, data, **kwargs):
+        r = self._call(self._stub.ConsolePrint,
+                       mtda_pb2.ConsolePrintRequest(data=data))
+        return r.value if r.has_value else None
+
+    def console_prompt(self, newPrompt=None, **kwargs):
+        req = mtda_pb2.ConsolePromptRequest(
+            new_prompt=newPrompt or '',
+            get_only=(newPrompt is None))
+        r = self._call(self._stub.ConsolePrompt, req)
+        return r.value if r.has_value else None
+
+    def console_run(self, cmd, **kwargs):
+        r = self._call(self._stub.ConsoleRun,
+                       mtda_pb2.ConsoleRunRequest(cmd=cmd))
+        return r.value if r.has_value else None
+
+    def console_send(self, data, raw=False, **kwargs):
+        if not isinstance(data, bytes):
+            if raw is False:
+                data = codecs.escape_decode(bytes(data, "utf-8"))[0]
+            else:
+                data = data.encode("utf-8")
+        r = self._call(self._stub.ConsoleSend,
+                       mtda_pb2.ConsoleSendRequest(data=data, raw=raw))
+        return r.value if r.has_value else None
+
+    def console_tail(self, **kwargs):
+        r = self._call(self._stub.ConsoleTail, mtda_pb2.Empty())
+        return r.value if r.has_value else None
+
+    def console_toggle(self, **kwargs):
+        self._call(self._stub.ConsoleToggle, mtda_pb2.Empty())
+
+    def console_wait(self, what, timeout=None, **kwargs):
+        req = mtda_pb2.ConsoleWaitRequest(
+            what=what, timeout=float(timeout or 0))
+        lines = [r.line for r in self._stub.ConsoleWait(
+            req, metadata=self._meta(), timeout=self._timeout)]
+        return '\n'.join(lines) if lines else None
+
+    # --- Env ---
+
+    def env_get(self, name, default=None, **kwargs):
+        r = self._call(self._stub.EnvGet,
+                       mtda_pb2.EnvGetRequest(name=name,
+                                              default=default or ''))
+        return r.value if r.has_value else None
+
+    def env_set(self, name, value, **kwargs):
+        r = self._call(self._stub.EnvSet,
+                       mtda_pb2.EnvSetRequest(name=name, value=value))
+        return r.value if r.has_value else None
+
+    # --- Keyboard ---
+
+    def keyboard_press(self, key, repeat=1, ctrl=False, shift=False,
+                       alt=False, meta=False, **kwargs):
+        r = self._call(self._stub.KeyboardPress,
+                       mtda_pb2.KeyboardPressRequest(
+                           key=key, repeat=repeat,
+                           ctrl=ctrl, shift=shift, alt=alt, meta=meta))
+        return r.value if r.has_value else None
+
+    def keyboard_write(self, what, **kwargs):
+        r = self._call(self._stub.KeyboardWrite,
+                       mtda_pb2.KeyboardWriteRequest(what=what))
+        return r.value if r.has_value else None
+
+    # --- Mouse ---
+
+    def mouse_move(self, x, y, buttons, **kwargs):
+        r = self._call(self._stub.MouseMove,
+                       mtda_pb2.MouseMoveRequest(x=x, y=y, buttons=buttons))
+        return r.value if r.has_value else None
+
+    # --- Monitor ---
+
+    def monitor_send(self, data, raw=False, **kwargs):
+        if not isinstance(data, bytes):
+            if raw is False:
+                data = codecs.escape_decode(bytes(data, "utf-8"))[0]
+            else:
+                data = data.encode("utf-8")
+        r = self._call(self._stub.MonitorSend,
+                       mtda_pb2.MonitorSendRequest(data=data, raw=raw))
+        return r.value if r.has_value else None
+
+    def monitor_wait(self, what, timeout=None, **kwargs):
+        req = mtda_pb2.MonitorWaitRequest(
+            what=what, timeout=float(timeout or 0))
+        lines = [r.line for r in self._stub.MonitorWait(
+            req, metadata=self._meta(), timeout=self._timeout)]
+        return '\n'.join(lines) if lines else None
+
+    # --- Storage ---
+
+    def storage_bmap_dict(self, bmapDict, **kwargs):
+        if bmapDict is None:
+            req = mtda_pb2.StorageBmapDictRequest(has_dict=False, json='')
+        else:
+            req = mtda_pb2.StorageBmapDictRequest(
+                has_dict=True, json=json.dumps(bmapDict))
+        return self._call(self._stub.StorageBmapDict, req).value
+
+    def storage_close(self, **kwargs):
+        return self._call(self._stub.StorageClose, mtda_pb2.Empty()).value
+
+    def storage_commit(self, **kwargs):
+        return self._call(self._stub.StorageCommit, mtda_pb2.Empty()).value
+
+    def storage_compression(self, compression, **kwargs):
+        r = self._call(self._stub.StorageCompression,
+                       mtda_pb2.StorageCompressionRequest(
+                           compression=str(int(compression)) if compression is not None else ''))
+        return r.value if r.has_value else None
+
+    def storage_flush(self, size, **kwargs):
+        return self._call(self._stub.StorageFlush,
+                          mtda_pb2.StorageFlushRequest(size=size)).value
+
+    def storage_mount(self, part=None, **kwargs):
+        req = mtda_pb2.StorageMountRequest(
+            part=part or '', has_part=(part is not None))
+        return self._call(self._stub.StorageMount, req).value
+
+    def storage_network(self, **kwargs):
+        return self._call(self._stub.StorageNetwork, mtda_pb2.Empty()).value
+
+    def storage_open(self, size=0, **kwargs):
+        self._call(self._stub.StorageOpen,
+                   mtda_pb2.StorageOpenRequest(size=size))
+        return None
+
+    def storage_rollback(self, **kwargs):
+        return self._call(self._stub.StorageRollback, mtda_pb2.Empty()).value
+
+    def storage_status(self, **kwargs):
+        r = self._call(self._stub.StorageStatus, mtda_pb2.Empty())
+        return r.status, r.writing, r.written
+
+    def storage_swap(self, **kwargs):
+        return self._call(self._stub.StorageSwap, mtda_pb2.Empty()).status
+
+    def storage_to_host(self, **kwargs):
+        return self._call(self._stub.StorageToHost, mtda_pb2.Empty()).value
+
+    def storage_to_target(self, **kwargs):
+        return self._call(self._stub.StorageToTarget, mtda_pb2.Empty()).value
+
+    def storage_toggle(self, **kwargs):
+        return self._call(self._stub.StorageToggle, mtda_pb2.Empty()).status
+
+    def storage_update(self, dst, size, **kwargs):
+        self._call(self._stub.StorageUpdate,
+                   mtda_pb2.StorageUpdateRequest(dst=dst, size=size))
+        return None
+
+    # --- Target ---
+
+    def target_lock(self, **kwargs):
+        return self._call(self._stub.TargetLock, mtda_pb2.Empty()).value
+
+    def target_locked(self, **kwargs):
+        return self._call(self._stub.TargetLocked, mtda_pb2.Empty()).value
+
+    def target_off(self, **kwargs):
+        return self._call(self._stub.TargetOff, mtda_pb2.Empty()).value
+
+    def target_on(self, **kwargs):
+        return self._call(self._stub.TargetOn, mtda_pb2.Empty()).value
+
+    def target_status(self, **kwargs):
+        return self._call(self._stub.TargetStatus, mtda_pb2.Empty()).status
+
+    def target_toggle(self, **kwargs):
+        return self._call(self._stub.TargetToggle, mtda_pb2.Empty()).status
+
+    def target_unlock(self, **kwargs):
+        return self._call(self._stub.TargetUnlock, mtda_pb2.Empty()).value
+
+    def target_uptime(self, **kwargs):
+        return self._call(self._stub.TargetUptime, mtda_pb2.Empty()).uptime
+
+    def toggle_timestamps(self, **kwargs):
+        return self._call(
+            self._stub.ToggleTimestamps, mtda_pb2.Empty()).value
+
+    # --- USB ---
+
+    def usb_find_by_class(self, className, **kwargs):
+        r = self._call(self._stub.UsbFindByClass,
+                       mtda_pb2.UsbClassRequest(class_name=className))
+        return r.value if r.has_value else None
+
+    def usb_has_class(self, className, **kwargs):
+        return self._call(self._stub.UsbHasClass,
+                          mtda_pb2.UsbClassRequest(
+                              class_name=className)).value
+
+    def usb_off(self, ndx, **kwargs):
+        self._call(self._stub.UsbOff, mtda_pb2.UsbIndexRequest(ndx=ndx))
+
+    def usb_off_by_class(self, className, **kwargs):
+        return self._call(self._stub.UsbOffByClass,
+                          mtda_pb2.UsbClassRequest(
+                              class_name=className)).value
+
+    def usb_on(self, ndx, **kwargs):
+        self._call(self._stub.UsbOn, mtda_pb2.UsbIndexRequest(ndx=ndx))
+
+    def usb_on_by_class(self, className, **kwargs):
+        return self._call(self._stub.UsbOnByClass,
+                          mtda_pb2.UsbClassRequest(
+                              class_name=className)).value
+
+    def usb_ports(self, **kwargs):
+        return self._call(self._stub.UsbPorts, mtda_pb2.Empty()).ports
+
+    def usb_status(self, ndx, **kwargs):
+        return self._call(self._stub.UsbStatus,
+                          mtda_pb2.UsbIndexRequest(ndx=ndx)).status
+
+    def usb_toggle(self, ndx, **kwargs):
+        self._call(self._stub.UsbToggle, mtda_pb2.UsbIndexRequest(ndx=ndx))
+
+    # --- Video ---
+
+    def video_format(self, **kwargs):
+        r = self._call(self._stub.VideoFormat, mtda_pb2.Empty())
+        return r.value if r.has_value else None
+
+    def video_url(self, host='', opts=None, **kwargs):
+        req = mtda_pb2.VideoUrlRequest(
+            host=host or '',
+            opts=opts or '',
+            has_opts=(opts is not None))
+        r = self._call(self._stub.VideoUrl, req)
+        return r.value if r.has_value else None
+
+    def close(self):
+        if hasattr(self, '_channel'):
+            self._channel.close()
+
+
+class _LocalStorageSocket:
+    """Socket-like adapter for local (in-process) storage writes.
+
+    Calls impl.storage_write(data) which enqueues the chunk into the
+    QueueDataStream that was set up by storage_open().  An empty bytes
+    sentinel (b'') signals end-of-transfer to the background writer."""
+
+    def __init__(self, impl, session):
+        self._impl = impl
+        self._session = session
+
+    def send(self, data, flags=0):
+        self._impl.storage_write(data, session=self._session)
+
+    def close(self):
+        pass  # nothing to tear down
+
+
+class _GrpcStorageSocket:
+    """Socket-like adapter that streams image chunks to the server via the
+    gRPC StorageWrite client-streaming RPC.
+
+    A background thread drives the streaming call; chunks are fed to it via
+    an internal queue.  send() enqueues a chunk (blocking on back-pressure);
+    an empty bytes sentinel (b'') signals end-of-transfer and causes the
+    stream to be closed when close() is called."""
+
+    def __init__(self, stub, session, timeout):
+        self._stub = stub
+        self._session = session
+        self._timeout = timeout
+        hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.READ_SIZE)
+        self._queue = queue.Queue(maxsize=hwm)
+        self._result = None
+        self._thread = threading.Thread(target=self._run, daemon=True,
+                                        name='grpc-storage-write')
+        self._thread.start()
+
+    def _chunk_iter(self):
+        while True:
+            chunk = self._queue.get()
+            yield mtda_pb2.StorageChunkRequest(data=chunk)
+            if not chunk:
+                break
+
+    def _run(self):
+        meta = (('mtda-session', self._session),) if self._session else ()
+        try:
+            resp = self._stub.StorageWrite(
+                self._chunk_iter(),
+                metadata=meta,
+                timeout=None,  # no timeout for streaming bulk transfer
+            )
+            self._result = resp.ok
+        except Exception:
+            self._result = False
+
+    def send(self, data, flags=0):
+        """Enqueue a chunk.  Blocks if the queue is full (back-pressure)."""
+        self._queue.put(data)
+
+    def close(self):
+        """Wait for the streaming RPC to finish."""
+        self._thread.join()
 
 
 class Client:
+
+    @staticmethod
+    def _generate_session():
+        """Return a session name from the system word list, $MTDA_SESSION, or a
+        host/user fallback.  Only ASCII words are considered so the result is
+        always safe to use as a gRPC metadata value."""
+        HOST = socket.gethostname()
+        USER = os.getenv("USER")
+        WORDS = "/usr/share/dict/words"
+        if os.path.exists(WORDS):
+            words = [w for w in open(WORDS).read().splitlines() if w.isascii()]
+            name = random.choice(words)
+            if name.endswith("'s"):
+                name = name.replace("'s", "")
+        elif USER is not None and HOST is not None:
+            name = f"{USER}@{HOST}"
+        else:
+            name = "mtda"
+        return os.getenv('MTDA_SESSION', name)
 
     def __init__(self, host=None, session=None, config_files=None,
                  timeout=CONSTS.RPC.TIMEOUT):
@@ -41,34 +433,24 @@ class Client:
         :param config_files: configuration filenames
         :param timeout: RPC timeout in seconds
         """
+        if session is None:
+            session = Client._generate_session()
+
         agent = MultiTenantDeviceAccess()
         agent.load_config(host, config_files=config_files)
         if agent.remote is not None:
-            uri = f"PYRO:mtda.main@{agent.remote}:{agent.ctrlport}"
-            Pyro4.config.SERIALIZER = "marshal"
-            self._impl = Pyro4.Proxy(uri)
-            self._impl._pyroTimeout = timeout
+            target = f'{agent.remote}:{agent.ctrlport}'
+            channel = grpc.insecure_channel(target)
+            stub = mtda_pb2_grpc.MtdaServiceStub(channel)
+            impl = _GrpcImpl(stub, session, timeout)
+            impl._channel = channel
+            self._impl = impl
         else:
             self._impl = agent
-        self._agent = agent
-        self._data = None
 
-        if session is None:
-            HOST = socket.gethostname()
-            USER = os.getenv("USER")
-            WORDS = "/usr/share/dict/words"
-            if os.path.exists(WORDS):
-                WORDS = open(WORDS).read().splitlines()
-                name = random.choice(WORDS)
-                if name.endswith("'s"):
-                    name = name.replace("'s", "")
-            elif USER is not None and HOST is not None:
-                name = f"{USER}@{HOST}"
-            else:
-                name = "mtda"
-            self._session = os.getenv('MTDA_SESSION', name)
-        else:
-            self._session = session
+        self._agent = agent
+        self._session = session
+        self._data = None
 
     def __getattr__(self, name):
         if self._impl is None:
@@ -130,33 +512,19 @@ class Client:
 
     def storage_open(self, size=0, **kwargs):
         session = kwargs.get('session', self._session)
-        port = self._impl.storage_open(size, session=session)
-        return self._storage_socket(port)
+        self._impl.storage_open(size, session=session)
+        self._data = self._storage_socket()
+        return self._data
 
-    def _storage_socket(self, port):
-        tries = 60
-        while tries > 0:
-            tries = tries - 1
-            try:
-                host = self.remote()
-                context = zmq.Context()
-                socket = context.socket(zmq.PUSH)
-                hwm = int(
-                        CONSTS.WRITER.HIGH_WATER_MARK
-                        /
-                        CONSTS.WRITER.READ_SIZE
-                )
-                socket.setsockopt(zmq.SNDHWM, hwm)
-                socket.setsockopt(zmq.MAXMSGSIZE, CONSTS.WRITER.READ_SIZE)
-                socket.connect(f'tcp://{host}:{port}')
-                self._data = socket
-                return socket
-            except Exception:
-                if tries > 0:
-                    time.sleep(1)
-                    pass
-                else:
-                    raise
+    def _storage_socket(self):
+        if isinstance(self._impl, _GrpcImpl):
+            return _GrpcStorageSocket(
+                self._impl._stub,
+                self._impl._session,
+                self._impl._timeout,
+            )
+        else:
+            return _LocalStorageSocket(self._impl, self._session)
 
     def storage_update(self, dest, src=None, **kwargs):
         session = kwargs.get('session', self._session)
@@ -165,8 +533,8 @@ class Client:
         st = os.stat(path)
         size = st.st_size
 
-        port = self._impl.storage_update(dest, size, session=session)
-        self._storage_socket(port)
+        self._impl.storage_update(dest, size, session=session)
+        self._data = self._storage_socket()
 
         blksz = self._agent.blksz
         impl = self._impl
@@ -256,6 +624,9 @@ class Client:
     def remote(self):
         return self._agent.remote
 
+    def ctrlport(self):
+        return self._agent.ctrlport
+
     def session(self):
         return self._session
 
@@ -301,16 +672,16 @@ class ImageFile:
         return None
 
     def flush(self):
-        # Wait for background writes to complete
+        # Signal end-of-transfer, then wait for background writes to complete
         agent = self._agent
         self._socket.send(b'')
+        self._socket.close()
+        self._socket = None
         writing = True
         while writing:
             _, writing, written = agent.storage_status()
             time.sleep(0.5)
         success = agent.storage_flush(self._totalsent)
-        self._socket.close()
-        self._socket = None
         if not success:
             raise IOError('image write failed!')
 
@@ -336,22 +707,8 @@ class ImageFile:
         return 0
 
     def _write_to_storage(self, data):
-        backoff = 0
-        while True:
-            try:
-                self._socket.send(data, zmq.DONTWAIT)
-                self._totalsent += len(data)
-                break
-            except zmq.Again:
-                backoff_wait = min(CONSTS.WRITER.SEND_BACKOFF_BASE * 2 ** backoff,
-                                   CONSTS.WRITER.SEND_MAX_WAIT)
-                # avoid frequent RPC calls
-                if backoff_wait == CONSTS.WRITER.SEND_MAX_WAIT:
-                    _, writing, written = self._agent.storage_status()
-                    if not writing:
-                        raise IOError(f'image write failed: wrote {written} out of {self._outputsize} bytes')
-                time.sleep(backoff_wait)
-                backoff += 1
+        self._socket.send(data)
+        self._totalsent += len(data)
 
 
 class ImageLocal(ImageFile):

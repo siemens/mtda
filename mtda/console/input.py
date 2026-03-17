@@ -10,9 +10,12 @@
 # ---------------------------------------------------------------------------
 
 # System imports
+import array
 import atexit
 import codecs
 import fcntl
+import os
+import select
 import termios
 import sys
 import tty
@@ -34,16 +37,25 @@ class ConsoleInput:
         if sys.stdin.isatty():
             new = termios.tcgetattr(self.fd)
             new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
-            new[6][termios.VMIN] = 1
+            new[6][termios.VMIN] = 0
             new[6][termios.VTIME] = 0
             termios.tcsetattr(self.fd, termios.TCSANOW, new)
             tty.setraw(sys.stdin)
 
     def getkey(self):
-        c = sys.stdin.read(1)
-        if c == chr(0x7f):
-            c = chr(8)  # map the BS key (which yields DEL) to backspace
-        return c
+        # Block until at least one byte is available, then ask the kernel
+        # exactly how many bytes can be read without blocking (FIONREAD) and
+        # drain them all in one read.  This naturally batches multi-byte
+        # sequences so they are forwarded in a single console_send RPC
+        # instead of N separate ones, which would fragment the sequence
+        # and confuse TUI programs.
+        select.select([self.fd], [], [])
+        buf = array.array('i', [0])
+        fcntl.ioctl(self.fd, termios.FIONREAD, buf)
+        n = max(buf[0], 1)
+        data = os.read(self.fd, n)
+        # Map DEL (0x7f, sent by the Backspace key on most terminals) to BS
+        return data.replace(b'\x7f', b'\x08')
 
     def cancel(self):
         if sys.stdin.isatty():

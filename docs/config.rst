@@ -83,19 +83,13 @@ General settings
       ``pduclient``, ``qemu``, ``shellcmd`` and ``usbrelay``.
 
 * ``remote``: section [optional]
-    Specify the host and ports to connect to when using a MTDA client (such as
+    Specify the host and port to connect to when using a MTDA client (such as
     ``mtda-cli``).
 
   * ``control``: integer [optional]
-      Remote port listening for control commands (defaults to ``5556``).
-
-  * ``console``: integer [optional]
-      Remote port to connect to in order to get console messages (defaults to
-      ``5557``).
-
-  * ``data``: integer [optional]
-      Remote port for data transfers between the client and agent (defaults to
-      ``0`` for a dynamic port assignment).
+      Remote port listening for gRPC requests (defaults to ``5556``). All
+      traffic — control commands, console streaming and data transfers — flows
+      over this single port.
 
   * ``host``: string [optional]
       Remote host name or ip to connect to as a client to interact with the

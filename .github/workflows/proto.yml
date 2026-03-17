@@ -1,0 +1,36 @@
+# ---------------------------------------------------------------------------
+# Verify mtda.proto is valid and the build step can generate stubs from it
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2026 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+name: Proto stubs
+
+on:
+  pull_request:
+    paths:
+      - 'mtda/grpc/mtda.proto'
+
+jobs:
+  check-stubs:
+    name: Verify stubs can be generated from mtda.proto
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install grpcio-tools
+        run: pip3 install grpcio-tools
+
+      - name: Generate stubs
+        run: |
+          python3 -m grpc_tools.protoc \
+            -I mtda/grpc \
+            --python_out=mtda/grpc \
+            --grpc_python_out=mtda/grpc \
+            mtda/grpc/mtda.proto

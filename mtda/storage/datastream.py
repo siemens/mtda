@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 
 import abc
-import zmq
+import queue
 
 import mtda.constants as CONSTS
 from mtda.exceptions import RetryException
@@ -36,39 +36,39 @@ class DataStream(object):
         """ Get queued data from the backend"""
 
 
-class NetworkDataStream(DataStream):
+class QueueDataStream(DataStream):
+    """In-process queue-based data stream used by the gRPC StorageWrite RPC.
 
-    def __init__(self, dataport):
-        self._dataport = dataport
-        self._socket = None
+    The server-side servicer pushes chunks onto the queue via push(); the
+    background writer thread consumes them via pop().  An empty bytes object
+    (b'') signals end-of-transfer — the writer thread will stop cleanly when
+    it dequeues that sentinel."""
+
+    def __init__(self):
+        self._queue = queue.Queue(
+            maxsize=int(
+                CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.WRITE_SIZE
+            )
+        )
 
     def prepare(self):
-
-        context = zmq.Context()
-        timeout = CONSTS.WRITER.RECV_TIMEOUT * 1000
-
-        self._socket = context.socket(zmq.PULL)
-        self._socket.setsockopt(zmq.RCVTIMEO, timeout)
-        hwm = int(CONSTS.WRITER.HIGH_WATER_MARK / CONSTS.WRITER.WRITE_SIZE)
-        self._socket.setsockopt(zmq.RCVHWM, hwm)
-        self._socket.setsockopt(zmq.MAXMSGSIZE, CONSTS.WRITER.WRITE_SIZE)
-
-        self._socket.bind(f"tcp://*:{self._dataport}")
-        endpoint = self._socket.getsockopt_string(zmq.LAST_ENDPOINT)
-        result = int(endpoint.split(":")[-1])
-
-        return result
+        """No network socket required; return None (no port)."""
+        return None
 
     def close(self):
-        self._socket.close()
-        self._socket = None
+        """Nothing to clean up."""
+        pass
 
     def push(self, data, callback=None):
-        raise RuntimeError('data to be sent to the backend using zmq')
+        """Enqueue a chunk of data.  Blocks if the queue is full (back-pressure)."""
+        self._queue.put(data)
+        if callback is not None:
+            callback()
 
     def pop(self):
+        """Dequeue the next chunk.  Raises RetryException on timeout so the
+        writer can apply its retry/give-up logic."""
         try:
-            chunk = self._socket.recv()
-            return chunk
-        except zmq.Again:
+            return self._queue.get(timeout=CONSTS.WRITER.RECV_TIMEOUT)
+        except queue.Empty:
             raise RetryException()

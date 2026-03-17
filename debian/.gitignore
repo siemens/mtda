@@ -10,4 +10,5 @@ mtda-docker
 mtda-kvm
 mtda-pytest
 mtda-service
+mtda-systemd-helper
 mtda-www

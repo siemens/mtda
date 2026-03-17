@@ -137,10 +137,12 @@ class Application:
 
         client.console_init()
 
-        # Get prefix key
+        # Get prefix key (as bytes for comparison with getkey() return value)
         prefix_key = None
         if sys.stdin.isatty():
-            prefix_key = client.console_prefix_key()
+            pk = client.console_prefix_key()
+            if pk is not None:
+                prefix_key = pk.encode("utf-8") if isinstance(pk, str) else pk
 
         # Input loop
         while self.exiting is False:
@@ -158,6 +160,8 @@ class Application:
     def console_menukey(self, c):
         client = self.agent
         server = self.client()
+        if isinstance(c, bytes):
+            c = c.decode("latin-1")
         if c == 'a':
             status = server.target_lock()
             if status is True:
