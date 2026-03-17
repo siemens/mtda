@@ -256,7 +256,7 @@ class Application:
             f"\r\n*** console buffer posted to {r.text} ***\r\n")
 
     def console_prompt(self, args):
-        data = self.client().console_prompt(args.prompt)
+        data = self.client().console_prompt(args.prompt_str)
         if data is not None:
             sys.stdout.write(data)
             sys.stdout.flush()
