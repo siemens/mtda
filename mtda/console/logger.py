@@ -174,10 +174,9 @@ class ConsoleLogger:
 
         # Wait for specified string
         self._what = what
-        result = self.rx_cond.wait_for(self._match_any, timeout)
-
-        # Matched?
-        if result is True:
+        try:
+            result = self.rx_cond.wait_for(self._match_any, timeout)
+        finally:
             self.rx_lock.release()
 
         self.mtda.debug(3, f"console.logger.wait: {str(result)}")
