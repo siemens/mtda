@@ -106,7 +106,7 @@ class ConsoleLogger:
             return False
         if prompt.startswith("\r"):
             prompt = prompt[1:]
-        return prompt.endswith(self._prompt)
+        return self._prompt in prompt
 
     def prompt(self, newPrompt=None):
         with self.rx_lock:
