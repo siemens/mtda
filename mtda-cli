@@ -43,11 +43,13 @@ class AppOutput(ScreenOutput):
 
         if len(event) != 6:
             return
-        if event[0] != 'STORAGE' and event[1] != 'WRITING':
+        if event[0] != 'STORAGE' or event[1] != 'WRITING':
             return
 
         app = self.app
         image = app.imgname
+        if image is None:
+            return
         # If the backend has information about the bytes to write (i.e. the mapped bytes)
         # read and total refer to the output stream writes (without seeks) and mapped bytes.
         bytes_read = int(event[2])
