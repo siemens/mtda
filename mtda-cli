@@ -83,6 +83,7 @@ class Application:
         self.remote = None
         self.exiting = False
         self.channel = "console"
+        self.imgname = None
         self.screen = AppOutput(self)
 
     def client(self):
