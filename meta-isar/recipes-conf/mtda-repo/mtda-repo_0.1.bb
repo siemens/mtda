@@ -2,6 +2,7 @@
 # Copyright (c) 2026 Siemens AG
 # SPDX-License-Identifier: MIT
 
+MAINTAINER = "mtda-users <mtda-users@googlegroups.com>"
 DESCRIPTION = "inject mtda binary package feeds into runtime image"
 
 MTDA_APT_URI ??= "https://apt.fury.io/mtda/"

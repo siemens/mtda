@@ -7,6 +7,8 @@
 
 inherit dpkg-raw
 
+MAINTAINER = "mtda-users <mtda-users@googlegroups.com>"
+
 include local.inc
 
 do_install() {

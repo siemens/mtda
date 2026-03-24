@@ -9,6 +9,7 @@ inherit dpkg-raw
 
 PR = "1"
 CHANGELOG_V = "${PV}-${PR}"
+MAINTAINER = "mtda-users <mtda-users@googlegroups.com>"
 
 do_install[network] = "${TASK_USE_NETWORK}"
 do_install() {
