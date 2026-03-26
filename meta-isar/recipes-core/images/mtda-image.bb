@@ -9,6 +9,10 @@ inherit image
 
 DESCRIPTION = "Debian image for MTDA assist boards"
 
+SBOM_DISTRO_SUPPLIER = "mtda-users <mtda-users@googlegroups.com>"
+SBOM_DISTRO_NAME = "MTDA-Debian-GNU-Linux"
+SBOM_DISTRO_SUMMARY = "${DESCRIPTION}"
+
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${LAYERDIR_core}/licenses/COPYING.MIT;md5=838c366f69b72c5df05c96dff79b35f2"
 
