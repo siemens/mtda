@@ -1034,6 +1034,20 @@ class MultiTenantDeviceAccess:
         return result
 
     @Pyro4.expose
+    def storage_to_sysupdate(self, **kwags):
+        # TODO: currently there is no way to go back!
+        from mtda.storage.swupdate import SWUpdate
+        from mtda.storage.writer import AsyncImageWriter
+
+        # TODO: we need to overwrite the global storage object,
+        # as internal calls rely on mtda.storage_status()
+        self.storage = SWUpdate(self)
+        self._writer = AsyncImageWriter(self, self.storage)
+        # TODO: this is technically not true, but this value
+        # is checked all over the place
+        self._storage_event(CONSTS.STORAGE.ON_HOST)
+
+    @Pyro4.expose
     def storage_swap(self, **kwargs):
         self.mtda.debug(3, "main.storage_swap()")
 
