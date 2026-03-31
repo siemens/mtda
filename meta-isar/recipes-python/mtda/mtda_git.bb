@@ -62,6 +62,8 @@ do_gen_working_repo() {
 	for file in ${MTDA_FILES}; do
 		cp -a ${LAYERDIR_mtda}/../$file ${S}/
 	done
+	# delete auto-generated files as they need to be re-generated on building
+	find ${S} -name 'mtda_pb2*.py' -delete
 	rm -f ${S}/debian/source/format
 }
 do_gen_working_repo[cleandirs] += "${S}"
