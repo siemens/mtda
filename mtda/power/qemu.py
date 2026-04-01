@@ -357,7 +357,7 @@ class QemuController(PowerController):
         self.mtda.debug(3, "power.qemu.command()")
 
         result = self.cmd(" ".join(args))
-        result = "\n".join(result.splitlines()[1:])
+        result = "\n".join(result.splitlines()[1:]) if result is not None else ""
 
         self.mtda.debug(3, f"power.qemu.command(): {str(result)}")
         return result
@@ -405,6 +405,8 @@ class QemuController(PowerController):
 
     def usb_ids(self):
         info = self._cmd("info usb")
+        if info is None:
+            return []
         lines = info.splitlines()
         results = []
         for line in lines:
@@ -429,7 +431,7 @@ class QemuController(PowerController):
             output = self._cmd(cmdstr.format(id, file))
             added = False
             reason = "drive_add failed"
-            for line in output.splitlines():
+            for line in (output.splitlines() if output is not None else []):
                 line = line.strip()
                 if line == "OK":
                     added = True
