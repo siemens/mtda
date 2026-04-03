@@ -1,8 +1,24 @@
-mtda (0.46-0) testing; urgency=medium
+mtda (0.46-1) testing; urgency=medium
 
- *  debian: open development window for version 0.46
+  [ Cedric Hombourger ]
+  * BREAKING CHANGE: replace Pyro4/ZMQ transport with gRPC
+  * copyright updates for 2026
+  * initialize result=None in console_tail() before if guard
+  * console prompt reads args.prompt_str not args.prompt
+  * always release rx_lock in wait() regardless of timeout
+  * use substring match for prompt detection
+  * add timeout and try/finally to run() to prevent lock leak
+  * correct STORAGE WRITING event filter logic
+  * initialize imgname to prevent AttributeError
+  * guard against None return from _cmd() in qemu power controller
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Tue, 10 Mar 2026 14:00:00 +0200
+  [ Felix Moessbauer ]
+  * add missing maintainer info
+  * define SBOM distro entity
+  * delete auto-generated pb files
+  * update layers to fix gnu-efi build issue
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Fri, 03 Apr 2026 10:00:00 +0100
 
 mtda (0.45-1) testing; urgency=medium
 
