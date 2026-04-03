@@ -1419,7 +1419,7 @@ class MultiTenantDeviceAccess:
 
         session = kwargs.get("session", None)
         self.session_ping(session)
-        usb_switch = self.usb_find_by_class(className, session)
+        usb_switch = self.usb_find_by_class(className, session=session)
         return usb_switch is not None
 
     def usb_off(self, ndx, **kwargs):
@@ -1439,7 +1439,7 @@ class MultiTenantDeviceAccess:
 
         session = kwargs.get("session", None)
         self.session_ping(session)
-        usb_switch = self.usb_find_by_class(className, session)
+        usb_switch = self.usb_find_by_class(className, session=session)
         if usb_switch is not None:
             return usb_switch.off()
         return False
@@ -1461,7 +1461,7 @@ class MultiTenantDeviceAccess:
 
         session = kwargs.get("session", None)
         self.session_ping(session)
-        usb_switch = self.usb_find_by_class(className, session)
+        usb_switch = self.usb_find_by_class(className, session=session)
         if usb_switch is not None:
             return usb_switch.on()
         return False
