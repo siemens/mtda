@@ -15,6 +15,7 @@ import mtda.constants as CONSTS
 
 # System imports
 import grpc
+import time
 
 from mtda.grpc import mtda_pb2, mtda_pb2_grpc
 
@@ -50,26 +51,49 @@ class RemoteConsole(ConsoleOutput):
                 data = data.encode("utf-8")
             self.write(data)
 
+    def _connection_event(self, status):
+        """Emit a client-side CONNECTION event through the dispatch chain."""
+        event = f"{CONSTS.EVENTS.CONNECTION} {status}"
+        self.dispatch(CONSTS.CHANNEL.EVENTS, event.encode("utf-8"))
+
     def reader(self):
         target = f"{self.host}:{self.port}"
-        self._channel = grpc.insecure_channel(target)
-        stub = mtda_pb2_grpc.MtdaServiceStub(self._channel)
-        try:
-            self._stream = stub.Subscribe(mtda_pb2.Empty())
-            topics = self._topics()
-            for msg in self._stream:
+        backoff = 1
+        max_backoff = 30
+        while not self.exiting:
+            try:
+                self._channel = grpc.insecure_channel(target)
+                stub = mtda_pb2_grpc.MtdaServiceStub(self._channel)
+                self._stream = stub.Subscribe(mtda_pb2.Empty())
+                topics = self._topics()
+                connected = False
+                for msg in self._stream:
+                    if not connected:
+                        backoff = 1
+                        self._connection_event(CONSTS.CONNECTION.ESTABLISHED)
+                        connected = True
+                    if self.exiting:
+                        return
+                    topic = msg.topic
+                    if isinstance(topic, str):
+                        topic = topic.encode("utf-8")
+                    if topic in topics:
+                        self.dispatch(topic, msg.data)
+            except grpc.RpcError:
                 if self.exiting:
-                    break
-                # Normalise topic to bytes for consistent comparison
-                topic = msg.topic
-                if isinstance(topic, str):
-                    topic = topic.encode("utf-8")
-                if topic in topics:
-                    self.dispatch(topic, msg.data)
-        except grpc.RpcError:
-            pass
-        finally:
-            self._stream = None
+                    return
+                self._connection_event(CONSTS.CONNECTION.LOST)
+            finally:
+                self._stream = None
+                if self._channel is not None:
+                    try:
+                        self._channel.close()
+                    except Exception:
+                        pass
+                    self._channel = None
+            self._connection_event(f"{CONSTS.CONNECTION.RECONNECTING} {backoff}")
+            time.sleep(backoff)
+            backoff = min(backoff * 2, max_backoff)
 
     def stop(self):
         super().stop()
