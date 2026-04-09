@@ -369,6 +369,11 @@ The following settings are supported:
 * ``swtpm``: string [optional]
     Path to the ``swtpm`` binary to support emulation of a TPM device.
 
+* ``uuid``: string [optional]
+    UUID to assign to the QEMU/KVM virtual machine (passed via ``-uuid``).
+    When not set, a UUID is automatically generated and persisted in
+    ``/var/lib/mtda/qemu-uuid`` so the same value is reused across restarts.
+
 * ``watchdog``: string [optional]
     Name of the watchdog driver provided by QEMU/KVM for the selected machine.
 

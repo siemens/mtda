@@ -20,6 +20,7 @@ import tempfile
 import threading
 import time
 import multiprocessing
+import uuid
 
 # Local imports
 from mtda.power.controller import PowerController
@@ -47,6 +48,7 @@ class QemuController(PowerController):
         self.pidOfSwTpm = None
         self.pidOfWebsockify = None
         self.swtpm = "/usr/bin/swtpm"
+        self.uuid = None
         self.watchdog = None
         self.websockify = "/usr/bin/websockify"
 
@@ -79,6 +81,11 @@ class QemuController(PowerController):
             self.swtpm = os.path.realpath(conf['swtpm'])
         elif os.path.exists(self.swtpm) is False:
             self.swtpm = None
+        if 'uuid' in conf:
+            try:
+                self.uuid = str(uuid.UUID(conf['uuid']))
+            except ValueError:
+                raise ValueError(f"invalid UUID: {conf['uuid']}")
         if 'watchdog' in conf:
             self.watchdog = conf['watchdog']
         n = 0
@@ -220,6 +227,29 @@ class QemuController(PowerController):
                                            drv, f'{size}G'])
         if self.watchdog is not None:
             options += f" -device {self.watchdog},id=watchdog0"
+
+        # UUID option
+        vm_uuid = self.uuid
+        if vm_uuid is None:
+            uuid_file = "/var/lib/mtda/qemu-uuid"
+            if os.path.exists(uuid_file):
+                with open(uuid_file, "r") as f:
+                    data = f.read().strip()
+                try:
+                    vm_uuid = str(uuid.UUID(data))
+                except ValueError:
+                    self.mtda.debug(1, "power.qemu.start(): "
+                                       f"invalid UUID in {uuid_file}, "
+                                       "generating a new one")
+                    vm_uuid = None
+            if not vm_uuid:
+                vm_uuid = str(uuid.uuid4())
+                os.makedirs("/var/lib/mtda", exist_ok=True)
+                with open(uuid_file, "w") as f:
+                    f.write(vm_uuid + "\n")
+                self.mtda.debug(2, "power.qemu.start(): "
+                                   f"generated UUID {vm_uuid}")
+        options += f" -uuid {vm_uuid}"
 
         # swtpm options
         if self.swtpm is not None:

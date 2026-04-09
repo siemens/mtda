@@ -133,6 +133,7 @@ unmuted
 uncomment
 Uptime
 usb
+UUID
 vdc
 VDC
 VLC
