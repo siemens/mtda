@@ -643,8 +643,8 @@ class MouseEventHandler(RemoteCallHandler):
                 mtda.mouse_move(x, y, 0, session=session)
 
         sid = self.get_argument('session', None)
-        x = float(self.get_argument("x", 0))
-        y = float(self.get_argument("y", 0))
+        x = int(float(self.get_argument("x", 0)) * CONSTS.MOUSE.MAX_X)
+        y = int(float(self.get_argument("y", 0)) * CONSTS.MOUSE.MAX_Y)
         buttons = int(self.get_argument("buttons", 0))
 
         await self.blocking_call(mouse_move, x, y, buttons, session=sid)
