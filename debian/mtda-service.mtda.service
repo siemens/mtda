@@ -7,6 +7,8 @@ ConditionPathExists=/etc/mtda/config
 [Service]
 Type=notify
 ExecStart=/usr/sbin/mtda-service -n
+Restart=on-failure
+RestartSec=10s
 
 [Install]
 WantedBy=multi-user.target
