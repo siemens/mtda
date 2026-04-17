@@ -110,6 +110,19 @@ class UStreamerVideoController(VideoController):
 
         return True
 
+    def snapshot(self):
+        self.mtda.debug(3, "video.ustreamer.snapshot()")
+
+        import urllib.request
+        url = f"http://localhost:{self.port}/snapshot"
+        try:
+            with urllib.request.urlopen(url, timeout=5) as resp:
+                data = resp.read()
+                return (data, "image/jpeg")
+        except Exception as e:
+            self.mtda.debug(1, f"video.ustreamer.snapshot(): {e}")
+            return (None, None)
+
     def url(self, host="", opts=None):
         self.mtda.debug(3, f"video.ustreamer.url(host='{str(host)}')")
 

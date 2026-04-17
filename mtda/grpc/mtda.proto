@@ -274,6 +274,13 @@ message VideoFormatResponse {
     string value     = 2;
 }
 
+// A chunk of a video snapshot image, streamed from server to client.
+// The first chunk includes content_type; subsequent chunks leave it empty.
+message VideoSnapshotChunk {
+    bytes  data         = 1;  // image data chunk
+    string content_type = 2;  // MIME type, set on first chunk only
+}
+
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
@@ -371,4 +378,7 @@ service MtdaService {
     // --- Video ---
     rpc VideoFormat        (Empty)                   returns (VideoFormatResponse);
     rpc VideoUrl           (VideoUrlRequest)         returns (StringResponse);
+    // Server-streaming RPC: captures a single frame and streams it back
+    // as a sequence of chunks.
+    rpc VideoSnapshot      (Empty)                   returns (stream VideoSnapshotChunk);
 }

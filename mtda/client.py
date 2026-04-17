@@ -332,6 +332,19 @@ class _GrpcImpl:
         r = self._call(self._stub.VideoUrl, req)
         return r.value if r.has_value else None
 
+    def video_snapshot(self, **kwargs):
+        chunks = self._stub.VideoSnapshot(mtda_pb2.Empty(),
+                                          metadata=self._meta())
+        data = bytearray()
+        content_type = None
+        for chunk in chunks:
+            if chunk.content_type:
+                content_type = chunk.content_type
+            data.extend(chunk.data)
+        if not data:
+            return (None, None)
+        return (bytes(data), content_type)
+
     def close(self):
         if hasattr(self, '_channel'):
             self._channel.close()
@@ -647,6 +660,9 @@ class Client:
         if host == "":
             host = os.getenv("MTDA_REMOTE", "")
         return self._impl.video_url(host, opts)
+
+    def video_snapshot(self):
+        return self._impl.video_snapshot()
 
 
 class ImageFile:

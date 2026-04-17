@@ -14,6 +14,7 @@ import queue
 
 import grpc
 
+from mtda.constants import VIDEO
 from mtda.grpc import mtda_pb2
 from mtda.grpc import mtda_pb2_grpc
 
@@ -592,5 +593,25 @@ class MtdaServicer(mtda_pb2_grpc.MtdaServiceServicer):
             return _str_response(
                 self._agent.video_url(request.host, opts,
                                       session=_session(context)))
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, str(e))
+
+    def VideoSnapshot(self, request, context):
+        try:
+            data, content_type = self._agent.video_snapshot(
+                session=_session(context))
+            if data is None:
+                context.abort(grpc.StatusCode.NOT_FOUND,
+                              "snapshot not available")
+                return
+            offset = 0
+            first = True
+            while offset < len(data):
+                chunk = data[offset:offset + VIDEO.SNAPSHOT_CHUNK_SIZE]
+                ct = content_type if first else ""
+                first = False
+                yield mtda_pb2.VideoSnapshotChunk(
+                    data=chunk, content_type=ct)
+                offset += VIDEO.SNAPSHOT_CHUNK_SIZE
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
