@@ -1529,6 +1529,19 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, f"main.video_url(): {result}")
         return result
 
+    def video_snapshot(self, **kwargs):
+        self.mtda.debug(3, "main.video_snapshot()")
+
+        result = (None, None)
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+        if self.video is not None:
+            result = self.video.snapshot()
+
+        self.mtda.debug(3, f"main.video_snapshot(): "
+                           f"{len(result[0]) if result[0] else 0} bytes")
+        return result
+
     def load_config(self, remote=None, is_server=False, config_files=None):
         self.mtda.debug(3, "main.load_config()")
 

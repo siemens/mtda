@@ -54,6 +54,25 @@ class QemuVideoController(VideoController):
     def stop(self):
         return True
 
+    def snapshot(self):
+        self.mtda.debug(3, "video.qemu.snapshot()")
+
+        import io
+        import tempfile
+        from PIL import Image
+
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".ppm") as tmp:
+                self.qemu.cmd(f"screendump {tmp.name}")
+                tmp.seek(0)
+                img = Image.open(tmp.name)
+                buf = io.BytesIO()
+                img.save(buf, format="JPEG", quality=85)
+                return (buf.getvalue(), "image/jpeg")
+        except Exception as e:
+            self.mtda.debug(1, f"video.qemu.snapshot(): {e}")
+            return (None, None)
+
     def url(self, host="", opts=None):
         self.mtda.debug(3, f"video.qemu.url(host={host}, opts={opts}")
 

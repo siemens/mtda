@@ -147,6 +147,19 @@ class MJPGStreamerVideoController(VideoController):
         self.mtda.debug(3, f"video.mjpg_streamer.stop(): {str(result)}")
         return result
 
+    def snapshot(self):
+        self.mtda.debug(3, "video.mjpg_streamer.snapshot()")
+
+        import urllib.request
+        url = f"http://localhost:{self.port}/?action=snapshot"
+        try:
+            with urllib.request.urlopen(url, timeout=5) as resp:
+                data = resp.read()
+                return (data, "image/jpeg")
+        except Exception as e:
+            self.mtda.debug(1, f"video.mjpg_streamer.snapshot(): {e}")
+            return (None, None)
+
     def url(self, host="", opts=None):
         self.mtda.debug(3, f"video.mjpg_streamer.url(host='{str(host)}')")
 

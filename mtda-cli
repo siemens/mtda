@@ -602,6 +602,30 @@ class Application:
         result = client.usb_on_by_class(klass)
         return 0 if result else 1
 
+    def video_cmd(self, args):
+        if args.subcommand == "snapshot":
+            return self.video_snapshot(args)
+        return 1
+
+    def video_snapshot(self, args):
+        output = args.output
+        if output is None and sys.stdout.isatty():
+            print("refusing to write binary data to a terminal; "
+                  "use -o FILE or redirect stdout", file=sys.stderr)
+            return 1
+        data, content_type = self.client().video_snapshot()
+        if data is None:
+            print("video snapshot not available", file=sys.stderr)
+            return 1
+        if output is None:
+            sys.stdout.buffer.write(data)
+        else:
+            with open(output, "wb") as f:
+                f.write(data)
+            print(f"{output}: {len(data)} bytes written ({content_type})",
+                  file=sys.stderr)
+        return 0
+
     def print_version(self):
         agent = MultiTenantDeviceAccess()
         print(f"MTDA version: {agent.version}")
@@ -892,6 +916,27 @@ class Application:
         s = subsub.add_parser("on", help="Power on the specified USB device")
         s = subsub.add_parser(
             "off", help="Power off the specified USB device"
+        )
+
+        # subcommand: video
+        cmd = self.video_cmd
+        p = subparsers.add_parser(
+            "video",
+            help="Interact with the video capture device",
+        )
+        p.set_defaults(func=cmd)
+        subsub = p.add_subparsers(dest="subcommand")
+        subsub.required = True
+        s = subsub.add_parser(
+            "snapshot",
+            help="Capture a single frame from the video stream",
+        )
+        s.add_argument(
+            "-o", "--output",
+            metavar="FILE",
+            type=str,
+            default=None,
+            help="Path to the output image file (default: stdout)",
         )
 
         args = parser.parse_args()

@@ -44,3 +44,14 @@ class VideoController(object):
     def url(self, host="", opts=None):
         """ URL for the video stream """
         return None
+
+    def snapshot(self):
+        """Capture a single frame from the video stream.
+
+        Returns:
+            tuple: (data: bytes, content_type: str) where data is the raw
+                   image bytes (e.g. JPEG) and content_type is the MIME type
+                   (e.g. "image/jpeg").  Returns (None, None) if capture is
+                   not available or fails.
+        """
+        return (None, None)

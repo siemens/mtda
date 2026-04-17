@@ -101,6 +101,10 @@ class USB:
     HID_MOUSE = "/dev/mtda-hid-mouse"
 
 
+class VIDEO:
+    SNAPSHOT_CHUNK_SIZE = 64*1024  # 64 KiB
+
+
 class WRITER:
     HIGH_WATER_MARK = 16*1024**2
     RECV_RETRIES = 5
