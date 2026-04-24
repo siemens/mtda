@@ -12,6 +12,7 @@
 
 # System imports
 import os
+import re
 import requests
 import time
 import sys
@@ -120,15 +121,30 @@ class Application:
     def console_clear(self, args):
         self.client().console_clear()
 
+    @staticmethod
+    def _condense_output(data):
+        # Strip VT100/ANSI escape sequences
+        data = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', data)
+        data = re.sub(r'\x1b\][^\x07]*\x07', '', data)
+        data = re.sub(r'\x1b[()][0-9A-B]', '', data)
+        data = re.sub(r'\x1b[=>]', '', data)
+        # Condense consecutive spaces/tabs into a single space
+        data = re.sub(r'[ \t]+', ' ', data)
+        return data
+
     def console_dump(self, args=None):
         data = self.client().console_dump()
         if data is not None:
+            if getattr(args, 'condense', False):
+                data = self._condense_output(data)
             sys.stdout.write(data)
             sys.stdout.flush()
 
     def console_flush(self, args=None):
         data = self.client().console_flush()
         if data is not None:
+            if getattr(args, 'condense', False):
+                data = self._condense_output(data)
             sys.stdout.write(data)
             sys.stdout.flush()
 
@@ -670,16 +686,23 @@ class Application:
         p.set_defaults(func=cmd)
         subsub = p.add_subparsers(dest="subcommand")
         subsub.required = True
+        output_parser = ArgumentParser(add_help=False)
+        output_parser.add_argument(
+            "-c", "--condense", action="store_true", default=False,
+            help="Condense whitespace and strip VT100 escape sequences",
+        )
         s = subsub.add_parser(
             "clear",
             help="Clear any data present in the console buffer",
         )
         s = subsub.add_parser(
             "dump",
+            parents=[output_parser],
             help="Dump content of the console buffer",
         )
         s = subsub.add_parser(
             "flush",
+            parents=[output_parser],
             help="Flush content of the console buffer",
         )
         s = subsub.add_parser(
