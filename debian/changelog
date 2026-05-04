@@ -1,8 +1,19 @@
-mtda (0.47-0) testing; urgency=medium
+mtda (0.47-1) testing; urgency=medium
 
   *  debian: open development window for version 0.47
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 09 Apr 2026 08:00:00 +0100
+  [ Cedric Hombourger ]
+  * attempt to reconnect when remote service dies
+  * generate/use a QEMU virtual machine UUID
+  * use float for mouse coordinates in gRPC proto
+  * add snapshot API and VideoSnapshot gRPC RPC
+  * add --condense flag to console dump and flush
+
+  [ Benedikt Niedermayr ]
+  * restart systemd service on failure
+  * correct typo in docs
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Mon, 04 May 2026 19:00:00 +0100
 
 mtda (0.46-1) testing; urgency=medium
 
