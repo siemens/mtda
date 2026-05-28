@@ -11,14 +11,16 @@
 
 # System imports
 import gpiod
-from gpiod.line import Direction, Value
-from operator import itemgetter
 
 # Local imports
 from mtda.power.controller import PowerController
 
 
-GPIOD_V2 = hasattr(gpiod, "chip")
+try:
+    from gpiod.line import Direction, Value
+    GPIOD_V2 = True
+except (ImportError, ModuleNotFoundError):
+    GPIOD_V2 = False
 
 
 class GpioPowerController(PowerController):
@@ -52,7 +54,12 @@ class GpioPowerController(PowerController):
 
         if 'gpio' in conf:
             for gpio in conf['gpio'].split(','):
-                self.gpiopair.append(itemgetter(0, 1)(gpio.split('@')))
+                parts = gpio.strip().split('@')
+                if len(parts) != 2:
+                    raise ValueError(
+                        f"GPIO entry '{gpio.strip()}' must be in 'chip@pin' format"
+                    )
+                self.gpiopair.append((parts[0], parts[1]))
 
         self.mtda.debug(3, f"power.gpio.configure(): {result}")
         return result
