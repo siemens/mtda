@@ -1,6 +1,44 @@
 Integrate with
 ==============
 
+SWUpdate / WFX
+--------------
+
+Introduction
+~~~~~~~~~~~~
+
+`SWUpdate`_ is a Linux update agent that supports various update strategies,
+including `suricatta`_ mode where it polls a remote backend for update jobs.
+`WFX`_ (Workflow Executor) is a general-purpose workflow execution engine for
+IoT devices. Software updates are realized through its DAU (Device Artifact Update)
+workflow, which ``swupdate``'s suricatta backend uses to drive the
+update process.
+
+MTDA agent images built with A/B rootfs support (the ``*-ebg`` targets) can
+register with a WFX instance and receive update jobs over the network.
+
+Enabling the WFX Backend
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the ``WFX_URL`` variable in your kas configuration file to enable the WFX
+backend::
+
+    local_conf_header:
+      wfx: |
+        WFX_URL = "http://my-wfx-server:8080/api/wfx/v1"
+
+Then build one of the EBG-based targets, e.g.::
+
+    $ ./kas-container build kas/debian/mtda-qemu-amd64-ebg.yml
+
+The same applies to ``mtda-rpi4b-ebg.yml`` and ``mtda-nanopi-neo-ebg.yml``.
+Once deployed, ``swupdate`` connects to the WFX API endpoint on startup and
+waits for update jobs dispatched by the WFX server.
+
+.. _SWUpdate: https://swupdate.org/
+.. _suricatta: https://github.com/sbabic/swupdate/blob/master/doc/source/suricatta.rst
+.. _WFX: https://github.com/siemens/wfx
+
 HomeKit
 -------
 
@@ -119,7 +157,7 @@ preinstalled using the optional `lava.yml` fragment when building with `kas`::
 It is also possible to install that package using `apt install`. Once the new
 image has been deployed (or required packages installed manually), create a
 worker on the lava-server web interface through::
-    
+
     Administration -> Lava Scheduler App -> Worker (Add)
 
 Add hostname and dispatcher version details as shown below:
@@ -127,7 +165,7 @@ Add hostname and dispatcher version details as shown below:
 .. image:: lava_worker_create.png
 
 It should be noted that token value is automatically generated when adding the
-worker. You need to copy this token key and add it to worker configuration. 
+worker. You need to copy this token key and add it to worker configuration.
 
 Use ``vi`` to edit ``/etc/lava-dispatcher/lava-worker``::
 
@@ -151,7 +189,7 @@ Check whether lava-worker is running::
 
     $ sudo systemctl status lava-worker
 
-Verify in the lava-server web interface UI whether the created lava-worker is 
+Verify in the lava-server web interface UI whether the created lava-worker is
 status is listed as online.
 
 Device support
