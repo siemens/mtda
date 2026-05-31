@@ -17,12 +17,15 @@ api
 APIs
 ARCELI
 aviosys
+Backend
+backend
 boolean
 cedric
 chmod
 chombourger
 CIDR
 config
+DAU
 de
 dearmor
 debian
@@ -31,6 +34,7 @@ DHCP
 DNS
 dpkg
 DUT
+EBG
 ECM
 EEPROM
 faq
@@ -101,8 +105,11 @@ rc
 RFB
 RJ
 quickstart
+rootfs
+rst
 samsung
 SBC
+sbabic
 sdmux
 SDmux
 SDMux
@@ -115,6 +122,9 @@ SoC
 SRD
 ssd
 stdout
+suricatta
+swupdate
+SWUpdate
 systemd
 sudo
 tc
@@ -139,5 +149,7 @@ VDC
 VLC
 VNC
 Wi
+wfx
+WFX
 www
 yml
