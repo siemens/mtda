@@ -1680,14 +1680,22 @@ class MultiTenantDeviceAccess:
                 self.remote = parser.get(
                     'remote', 'host', fallback=self.remote)
 
-            # Attempt to resolve remote using Zeroconf
-            import mtda.discovery
-            watcher = mtda.discovery.Watcher(CONSTS.MDNS.TYPE)
-            ip = watcher.lookup(self.remote)
-            if ip is not None:
-                self.debug(2, f"resolved '{self.remote}' "
-                              f"({ip}) using Zeroconf")
-                self.remote = ip
+            # Attempt to resolve remote using Zeroconf (skip if already an
+            # IP address or resolvable via DNS)
+            import ipaddress
+            try:
+                ipaddress.ip_address(self.remote)
+            except ValueError:
+                try:
+                    socket.getaddrinfo(self.remote, None)
+                except socket.gaierror:
+                    import mtda.discovery
+                    watcher = mtda.discovery.Watcher(CONSTS.MDNS.TYPE)
+                    ip = watcher.lookup(self.remote)
+                    if ip is not None:
+                        self.debug(2, f"resolved '{self.remote}' "
+                                      f"({ip}) using Zeroconf")
+                        self.remote = ip
         else:
             self.remote = None
         self.is_remote = self.remote is not None
