@@ -46,6 +46,42 @@ Packages for Ubuntu 24.04 (Noble Numbat) may be installed as follows::
    $ sudo apt-get update
    $ sudo apt-get install -y mtda
 
+Using uv (Recommended for Development)
+--------------------------------------
+
+`uv <https://github.com/astral-sh/uv>`_ is a fast, modern Python package manager. It's recommended for development and local installations.
+
+Install uv::
+
+    $ curl -LsSf https://astral.sh/uv/install.sh | sh
+
+Install MTDA from PyPI::
+
+    $ uv tool install mtda
+
+Or install from source for development::
+
+    $ git clone https://github.com/siemens/mtda
+    $ cd mtda
+    $ uv sync --all-extras
+
+This creates a virtual environment in ``.venv/`` and installs MTDA with all optional dependencies.
+
+Activate the environment and verify installation::
+
+    $ source .venv/bin/activate
+    $ mtda-cli --version
+
+**Platform-specific installation:**
+
+On Linux (with systemd support)::
+
+    $ uv tool install "mtda[linux]"
+
+On macOS (client only, no systemd)::
+
+    $ uv tool install mtda
+
 Using pip
 ---------
 

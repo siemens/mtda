@@ -131,7 +131,7 @@ class Application:
         agent = MultiTenantDeviceAccess()
         print(f"MTDA version: {agent.version}")
 
-    def main(self):
+    def run(self):
         config = None
 
         parser = argparse.ArgumentParser(
@@ -171,6 +171,11 @@ class Application:
         return True
 
 
-if __name__ == '__main__':
+def main():
+    """Entry point for mtda-service command."""
     app = Application()
-    app.main()
+    app.run()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,6 +1,7 @@
 .kas_shell_history
 .pybuild
 .tox
+.venv/
 *.buildinfo
 *.changes
 *.img

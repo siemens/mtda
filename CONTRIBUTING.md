@@ -1,4 +1,4 @@
-Contributing to MTDA 
+Contributing to MTDA
 ====================
 
 Contributions to MTDA are always welcome. This document explains the
@@ -6,12 +6,62 @@ general requirements on contributions and the recommended preparation
 steps. It also sketches the typical integration process of patches.
 
 
+Development Setup
+-----------------
+
+MTDA uses modern Python packaging with `pyproject.toml` and the fast `uv` package manager.
+
+### Quick Start
+
+Install `uv`:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Clone and set up the development environment:
+```bash
+git clone https://github.com/siemens/mtda
+cd mtda
+uv sync --all-extras
+```
+
+This creates a virtual environment in `.venv/` with all dependencies installed in editable mode.
+
+### Running Commands
+
+Activate the virtual environment:
+```bash
+source .venv/bin/activate
+mtda-cli --version
+```
+
+Or use `uv run` without activating:
+```bash
+uv run mtda-cli --help
+uv run pytest
+uv run flake8
+```
+
+### Running Tests
+
+Run the test suite:
+```bash
+uv run pytest
+uv run flake8
+uv run reuse lint
+uv run bash ./scripts/test-using-docker
+```
+
+
 Contribution Checklist
 ----------------------
 
 - use git to manage your changes [**required**]
 
-- follow the existing coding style (run `pycodestyle` on changed files) [**required**]
+- follow the existing coding style [**required**]
+    - run `uv run flake8` on changed files
+    - maximum line length: 120 characters
+    - exclude generated files (`*_pb2.py`, `*_pb2_grpc.py`)
 
 - if `mtda/grpc/mtda.proto` is modified, the Python stubs
   (`mtda_pb2.py`, `mtda_pb2_grpc.py`) are **not** committed — they are
@@ -36,6 +86,7 @@ Contribution Checklist
 - test patches sufficiently (obvious, but...) [**required**]
     - no regressions are caused in affected code
     - the world is still spinning
+    - run the test suite before submitting
 
 - add signed-off to all patches [**required**]
     - to certify the "Developer's Certificate of Origin", see below

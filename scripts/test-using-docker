@@ -80,12 +80,12 @@ xz -f almalinux.tar || exit ${?}
 du -sh *.tar*
 
 echo "# starting mtda in the background"
-${source_dir}/mtda-service -n 2>debug.log &
+mtda-service -n 2>debug.log &
 service_pid=${!}
 sleep 10
 
 echo "# starting mtda-www in the background"
-${source_dir}/mtda-www --debug --port 55558 2>www-debug.log &
+mtda-www --debug --port 55558 2>www-debug.log &
 www_pid=${!}
 sleep 10
 

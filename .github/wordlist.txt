@@ -72,8 +72,11 @@ kas
 keyrings
 kvm
 LEDs
+linters
+linux
 loopback
 LTS
+macOS
 maxdepth
 microSD
 microUSB
@@ -99,6 +102,8 @@ png
 ppa
 prebuilt
 programmatically
+proto
+PyPI
 pytest
 qemu
 rc
@@ -143,6 +148,7 @@ unmuted
 uncomment
 Uptime
 usb
+uv
 UUID
 vdc
 VDC

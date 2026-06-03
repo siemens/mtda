@@ -27,6 +27,28 @@ NanoPi setup:
 [![DOCS](https://readthedocs.org/projects/mtda/badge/?version=latest)](https://mtda.readthedocs.io/en/latest/?badge=latest)
 [![REUSE](https://api.reuse.software/badge/github.com/siemens/mtda)](https://api.reuse.software/info/github.com/siemens/mtda)
 
+# Quick Start
+
+Install [uv](https://github.com/astral-sh/uv) (recommended):
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Install MTDA from PyPI:
+```bash
+uv tool install mtda              # Client only
+uv tool install "mtda[linux]"     # Full server on Linux
+```
+
+Development setup:
+```bash
+git clone https://github.com/siemens/mtda
+cd mtda
+uv sync --all-extras
+source .venv/bin/activate
+mtda-cli --version
+```
+
 # Getting Started
 
  * [Installation](https://mtda.readthedocs.io/en/latest/install.html)

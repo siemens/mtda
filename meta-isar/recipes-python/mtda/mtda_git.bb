@@ -8,6 +8,7 @@
 inherit dpkg
 
 MTDA_FILES = " \
+    .python-version \
     CONTRIBUTING.md \
     COPYING \
     LICENSES/ \
@@ -17,14 +18,10 @@ MTDA_FILES = " \
     configs/ \
     debian/ \
     docs/ \
-    mtda-cli \
-    mtda-service \
-    mtda-systemd-helper \
-    mtda-www \
     mtda.ini \
     mtda/ \
+    pyproject.toml \
     scripts/ \
-    setup.py \
     tests/ \
     tox.ini \
     "

@@ -8,12 +8,13 @@ Build-Depends: debhelper (>=10) | dh-systemd,
                python3-all-dev:any,
                python3-grpc-tools,
                python3-setuptools,
+               pybuild-plugin-pyproject,
                python3-sphinx:native <!nodoc>,
                python3-sphinx-rtd-theme:native <!nodoc>
 Rules-Requires-Root: no
-Standards-Version: 4.5.0 
+Standards-Version: 4.5.0
 Homepage: https://github.com/siemens/mtda
-X-Python3-Version: >= 3.7
+X-Python3-Version: >= 3.8
 
 Package: mtda-service
 Architecture: all
