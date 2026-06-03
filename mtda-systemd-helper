@@ -17,7 +17,6 @@ import sys
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
-import mtda.constants as CONSTS
 
 
 class Application:

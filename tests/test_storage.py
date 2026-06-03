@@ -9,11 +9,6 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
-import time
-
-from common import Consts
-from common import Utils
-
 from mtda.pytest import Console
 from mtda.pytest import Storage
 from mtda.pytest import Target
