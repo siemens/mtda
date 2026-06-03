@@ -25,7 +25,7 @@ import time
 # Local imports
 import mtda.constants as CONSTS
 from mtda import __version__
-from mtda.storage.helpers.image import MissingCowDeviceError
+from mtda.exceptions import MissingCowDeviceError
 
 DEFAULT_PREFIX_KEY = 'ctrl-a'
 DEFAULT_PASTEBIN_EP = "http://pastebin.com/api/api_post.php"

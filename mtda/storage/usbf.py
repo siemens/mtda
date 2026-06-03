@@ -19,7 +19,8 @@ import time
 
 # Local imports
 import mtda.constants as CONSTS
-from mtda.storage.helpers.image import Image, MissingCowDeviceError
+from mtda.exceptions import MissingCowDeviceError
+from mtda.storage.helpers.image import Image
 from mtda.support.usb import Composite
 from mtda.utils import SystemdDeviceUnit
 
