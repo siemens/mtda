@@ -104,23 +104,27 @@ class QemuController(Image):
         return result
 
     def commit(self, ignore_missing=False):
-        if self.cow is None:
-            if ignore_missing:
-                return
-            raise MissingCowDeviceError('commit')
-
-        cmd = ['qemu-img', 'commit', self.cow]
-        subprocess.check_call(cmd)
+        with self.lock:
+            if self.cow is None:
+                if ignore_missing:
+                    return True
+                raise MissingCowDeviceError('commit')
+            if self.id is not None:
+                raise RuntimeError('cannot commit: storage is attached to target')
+            cmd = ['qemu-img', 'commit', self.cow]
+            subprocess.check_call(cmd)
+            return True
 
     def rollback(self, ignore_missing=False):
         if self.cow is None:
             if ignore_missing:
-                return
+                return True
             raise MissingCowDeviceError('rollback')
 
         cmd = ['qemu-img', 'create', '-F', 'raw', '-f', 'qcow2',
-               '-b', self.file, self.cow, f'{self.size}M']
+               '-b', self.file, self.cow, f'{int(self.size / 1024**2)}M']
         subprocess.check_call(cmd)
+        return True
 
     def supports_hotplug(self):
         return True
