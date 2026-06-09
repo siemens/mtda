@@ -15,3 +15,4 @@ require recipes-core/images/mtda-image.bb
 
 # get a hostname via DHCP
 IMAGE_INSTALL:remove = "mtda-hostname"
+IMAGE_INSTALL += "mtda-create-homedir"
