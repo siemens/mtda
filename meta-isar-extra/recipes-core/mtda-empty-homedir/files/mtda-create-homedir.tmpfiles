@@ -1,0 +1,5 @@
+#
+# Copyright (C) 2026 Siemens AG
+# SPDX-License-Identifier: MIT
+#
+d /var/lib/mtda 700 mtda mtda - -
