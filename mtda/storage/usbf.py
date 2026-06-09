@@ -81,7 +81,7 @@ class UsbFunctionController(Image):
             if not os.path.exists(self.user_file):
                 sparse = pathlib.Path(self.user_file)
                 sparse.touch()
-                os.truncate(str(sparse), CONSTS.IMAGE_FILESIZE)
+                os.truncate(str(sparse), CONSTS.DEFAULTS.IMAGE_FILESIZE)
 
         if self.user_device is None and self.user_file is None:
             raise RuntimeError("shared storage device/file not defined!")
