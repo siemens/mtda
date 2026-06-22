@@ -384,10 +384,10 @@ The ``shellcmd`` driver may be used to control power switch with custom shell
 commands, e.g. curl requests:
 
 * ``on-cmd``: string [required]
-    Power-on shell command. The return code should be 1 on success.
+    Power-on shell command. The return code should be 0 on success.
 
 * ``off-cmd``: string [required]
-    Power-off shell command. The return code should be 1 on success.
+    Power-off shell command. The return code should be 0 on success.
 
 * ``check-on``: string [required]
     Shell command to check the power state. Should return 0 if power is on, 1
