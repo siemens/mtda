@@ -40,8 +40,14 @@ class QemuController(PowerController):
         self.cpu = None
         self.smp = None
         self.drives = []
+        self.efi_conf = {}
+        self.usb_bootindex = 100
         self.executable = "kvm"
+        self.firmware_state_file = "/var/lib/mtda/qemu-firmware"
         self.hostname = "mtda-kvm"
+        self.legacy_conf = {}
+        # re-entrant: usb_add()/usb_rm() hold the lock across several
+        # qmp() calls, and qmp() itself locks
         self.lock = threading.RLock()
         self.machine = None
         self.memory = Size.to_bytes(512, 'MiB')
@@ -49,6 +55,7 @@ class QemuController(PowerController):
         self.novnc = "/usr/share/novnc"
         self.pflash_ro = None
         self.pflash_rw = None
+        self.firmware_mode = None
         self.pidOfQemu = None
         self.pidOfSwTpm = None
         self.pidOfWebsockify = None
@@ -116,6 +123,99 @@ class QemuController(PowerController):
             else:
                 break
 
+    def configure_firmware(self, parser):
+        self.mtda.debug(3, "power.qemu.configure_firmware()")
+
+        if parser.has_section('efi'):
+            self.efi_conf = dict(parser.items('efi'))
+        elif self.pflash_ro or self.pflash_rw:
+            # backward compat: flat pflash_ro/pflash_rw under [power]
+            self.efi_conf = {k: v for k, v in
+                             (('pflash_ro', self.pflash_ro),
+                              ('pflash_rw', self.pflash_rw)) if v}
+
+        if parser.has_section('legacy'):
+            self.legacy_conf = dict(parser.items('legacy'))
+        elif self.bios:
+            self.legacy_conf = {'bios': self.bios}
+
+        default = None
+        if parser.has_section('firmware'):
+            default = parser.get('firmware', 'default', fallback=None)
+            if default is not None and default not in ('efi', 'legacy'):
+                raise ValueError(f"unsupported firmware default: {default}")
+            if default == 'efi' and not self.efi_conf:
+                raise ValueError(
+                    "firmware default is 'efi' but no [efi] section "
+                    "(or pflash_ro/pflash_rw) is configured")
+        if default is None:
+            # default to efi unless only legacy is configured
+            default = 'legacy' if (self.legacy_conf and not self.efi_conf) \
+                else 'efi'
+
+        self.firmware_mode = self._load_firmware_state() or default
+        self._apply_firmware(self.firmware_mode)
+
+    def _load_firmware_state(self):
+        if os.path.exists(self.firmware_state_file):
+            with open(self.firmware_state_file, "r") as f:
+                mode = f.read().strip()
+                if mode in ('efi', 'legacy'):
+                    return mode
+        return None
+
+    def _apply_firmware(self, mode):
+        self.mtda.debug(3, f"power.qemu._apply_firmware({mode})")
+
+        if mode == 'efi':
+            conf = self.efi_conf
+            self.bios = None
+            ro = conf.get('pflash_ro')
+            rw = conf.get('pflash_rw')
+            self.pflash_ro = os.path.realpath(ro) if ro else None
+            self.pflash_rw = os.path.realpath(rw) if rw else None
+        else:
+            conf = self.legacy_conf
+            self.pflash_ro = None
+            self.pflash_rw = None
+            bios = conf.get('bios')
+            self.bios = os.path.realpath(bios) if bios else None
+
+    def firmware(self, mode=None):
+        self.mtda.debug(3, "power.qemu.firmware()")
+
+        if mode is not None and mode != self.firmware_mode:
+            if mode not in ('efi', 'legacy'):
+                raise ValueError(f"unsupported firmware mode: {mode}")
+            if mode == 'efi' and not self.efi_conf:
+                raise ValueError(
+                    "efi firmware is not configured (add an [efi] "
+                    "section with pflash_ro/pflash_rw)")
+            self.firmware_mode = mode
+            self._apply_firmware(mode)
+            os.makedirs("/var/lib/mtda", exist_ok=True)
+            with open(self.firmware_state_file, "w") as f:
+                f.write(mode + "\n")
+
+            # the new firmware only takes effect on the next qemu launch;
+            # restart it now if it is already running
+            if self.pidOfQemu is not None:
+                self.mtda.debug(2, "power.qemu.firmware(): "
+                                   f"restarting qemu for {mode} firmware")
+                # start() unlinks and recreates the serial pipes, so any
+                # console already attached to them needs to be closed and
+                # reopened around the restart or it's left reading/writing
+                # a stale (deleted) fifo
+                logger = self.mtda.console_logger
+                if logger is not None:
+                    logger.pause()
+                self.stop()
+                self.start()
+                if logger is not None:
+                    logger.resume()
+
+        return self.firmware_mode
+
     def probe(self):
         self.mtda.debug(3, "power.qemu.probe()")
 
@@ -156,6 +256,7 @@ class QemuController(PowerController):
 
         if self.pidOfQemu is not None:
             return True
+        self.usb_bootindex = 100
         if os.path.exists(self._qmp_socket):
             os.unlink(self._qmp_socket)
         if os.path.exists(self.serial_in):
@@ -178,6 +279,7 @@ class QemuController(PowerController):
         options += " -device usb-tablet"
         options += " -vga virtio"
         options += " -vnc :0,websocket=on"
+        options += " -boot menu=on,splash-time=5000"
 
         # extra options
         if self.bios is not None:
@@ -227,9 +329,15 @@ class QemuController(PowerController):
                                  "or is not a file and cannot be created: "
                                  "%s" % (self.pflash_rw, e))
         if len(self.drives) > 0:
-            for drv, size in self.drives:
+            for n, (drv, size) in enumerate(self.drives):
                 size = int(size / 1024**3)
-                options += f" -drive file={drv},media=disk,format=qcow2"
+                # bootindex can't be passed inline on a qcow2 -drive; split
+                # into a backend (if=none) and an explicit ide-hd frontend
+                # instead. Internal storage gets top priority (lowest index);
+                # user needs to pick the USB drive from the firmware to boot
+                # from it.
+                options += f" -drive if=none,id=hd{n},format=qcow2,file={drv}"
+                options += f" -device ide-hd,drive=hd{n},bootindex={n}"
                 if os.path.exists(drv) is True:
                     cmd = ['qemu-img', 'info', drv]
                     info = subprocess.check_output(cmd, encoding="utf-8")
@@ -338,17 +446,20 @@ class QemuController(PowerController):
         self._usb_devices.clear()
 
         if self.pidOfQemu is not None:
-            result = System.kill("qemu", self.pidOfQemu)
+            still_alive = System.kill("qemu", self.pidOfQemu)
+            result = not still_alive
             if result:
                 self.pidOfQemu = None
 
         if self.pidOfSwTpm is not None:
-            result = System.kill("swtpm", self.pidOfSwTpm)
+            still_alive = System.kill("swtpm", self.pidOfSwTpm)
+            result = not still_alive
             if result:
                 self.pidOfSwTpm = None
 
         if self.pidOfWebsockify is not None:
-            result = System.kill("websockify", self.pidOfWebsockify)
+            still_alive = System.kill("websockify", self.pidOfWebsockify)
+            result = not still_alive
             if result:
                 self.pidOfWebsockify = None
 
@@ -488,12 +599,18 @@ class QemuController(PowerController):
                         "id": id,
                         "drive": id,
                         "removable": True,
+                        "bootindex": self.usb_bootindex,
                     }) is not None
                     if added is False:
                         self.qmp("blockdev-del", {"node-name": id})
                 if added is True:
                     result = id
                     self._usb_devices.add(id)
+                    # hot-plugged devices need an explicit bootindex to be
+                    # added to the firmware boot order (SeaBIOS/OVMF both
+                    # read it from fw_cfg's bootorder, which is otherwise
+                    # only populated from devices present at qemu startup)
+                    self.usb_bootindex += 1
                     self.mtda.debug(2, "power.qemu.usb_add(): "
                                        "usb-storage '{0}' connected"
                                        .format(id))

@@ -436,6 +436,14 @@ class MtdaServicer(mtda_pb2_grpc.MtdaServiceServicer):
     # Target / power
     # ------------------------------------------------------------------
 
+    def TargetFirmware(self, request, context):
+        try:
+            mode = None if request.get_only else request.mode
+            return _str_response(
+                self._agent.target_firmware(mode, session=_session(context)))
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, str(e))
+
     def TargetLock(self, request, context):
         try:
             return _bool_response(

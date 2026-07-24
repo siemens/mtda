@@ -231,6 +231,11 @@ message StorageToggleResponse {
 // Target / power
 // ---------------------------------------------------------------------------
 
+message TargetFirmwareRequest {
+    string mode     = 1;   // "efi" or "legacy"; ignored when get_only is true
+    bool   get_only = 2;
+}
+
 message TargetStatusResponse {
     string status = 1;
 }
@@ -354,6 +359,7 @@ service MtdaService {
     rpc StorageWrite       (stream StorageChunkRequest) returns (StorageWriteResponse);
 
     // --- Target ---
+    rpc TargetFirmware     (TargetFirmwareRequest)   returns (StringResponse);
     rpc TargetLock         (Empty)                   returns (BoolResponse);
     rpc TargetLocked       (Empty)                   returns (BoolResponse);
     rpc TargetOff          (Empty)                   returns (BoolResponse);

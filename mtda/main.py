@@ -1440,6 +1440,23 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, f"main.target_status(): {result}")
         return result
 
+    def target_firmware(self, mode=None, **kwargs):
+        self.mtda.debug(3, "main.target_firmware()")
+
+        session = kwargs.get("session", None)
+        self.session_ping(session)
+        if self.power is None or not hasattr(self.power, 'firmware'):
+            variant = self.power.variant if self.power is not None else "none"
+            raise NotImplementedError(
+                f'firmware is not supported for {variant}')
+        if mode is not None and self.power_locked(session):
+            raise RuntimeError('cannot change firmware, target is locked!')
+        with self._power_lock:
+            result = self.power.firmware(mode)
+
+        self.mtda.debug(3, f"main.target_firmware(): {result}")
+        return result
+
     def target_toggle(self, **kwargs):
         self.mtda.debug(3, "main.target_toggle()")
 
@@ -1750,6 +1767,12 @@ class MultiTenantDeviceAccess:
 
         import atexit
         atexit.register(self.storage_close)
+
+    def post_configure_power(self, power, config, parser):
+        self.mtda.debug(3, "main.post_configure_power()")
+
+        if hasattr(power, 'configure_firmware'):
+            power.configure_firmware(parser)
 
     def load_remote_config(self, parser):
         self.mtda.debug(3, "main.load_remote_config()")
