@@ -92,6 +92,7 @@ netmask
 nmcli
 Numbat
 OTG
+OVMF
 pastebin
 pdu
 php
@@ -102,6 +103,8 @@ prebuilt
 programmatically
 pytest
 qemu
+QEMU
+QEMU's
 rc
 RFB
 RJ
@@ -111,6 +114,7 @@ rst
 samsung
 SBC
 sbabic
+SeaBIOS
 sdmux
 SDmux
 SDMux

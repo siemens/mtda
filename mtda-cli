@@ -544,6 +544,12 @@ class Application:
         print(f"Prefix key:    : ctrl-{prefix_key} ('h' for help)\r")
         print(f"Session        : {session}\r")
         print("Target         : %-6s%s%s\r" % (tgt_status, locked, uptime))
+        try:
+            firmware = client.target_firmware()
+        except Exception:
+            firmware = None
+        if firmware is not None:
+            print(f"Firmware       : {firmware}\r")
         print("Storage on     : %-6s%s\r" % (storage_status, locked))
         print(f"Storage writes : {written} ({writing})\r")
 
@@ -585,6 +591,16 @@ class Application:
     def target_uptime_cmd(self, args=None):
         uptime = self.target_uptime()
         print(uptime)
+        return 0
+
+    def firmware_cmd(self, args=None):
+        mode = getattr(args, "mode", None)
+        try:
+            result = self.client().target_firmware(mode)
+        except Exception as e:
+            print(str(e), file=sys.stderr)
+            return 1
+        print(result)
         return 0
 
     def target_cmd(self, args):
@@ -757,6 +773,18 @@ class Application:
         )
         s.add_argument("wait_string", type=str, help="String to wait")
         s.add_argument("timeout", type=int, nargs="?", help="Timeout")
+
+        # subcommand: firmware
+        cmd = self.firmware_cmd
+        p = subparsers.add_parser(
+            "firmware",
+            help="Get or set the boot firmware (qemu power controller only)",
+        )
+        p.add_argument(
+            "mode", type=str, nargs="?", choices=["efi", "legacy"],
+            help="Firmware mode to switch to"
+        )
+        p.set_defaults(func=cmd)
 
         # subcommand: getenv
         cmd = self.getenv_cmd

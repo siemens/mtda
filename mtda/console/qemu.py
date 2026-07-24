@@ -57,6 +57,10 @@ class QemuConsole(ConsoleInterface):
         self.mtda.debug(3, "console.qemu.close()")
 
         result = True
+        if self.opened is True:
+            self.tx.close()
+            self.rx.close()
+            self.opened = False
 
         self.mtda.debug(3, f"console.qemu.close(): {str(result)}")
         return result

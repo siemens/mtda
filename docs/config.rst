@@ -324,7 +324,9 @@ The ``qemu`` driver may be used to use QEMU/KVM instead of a physical device.
 The following settings are supported:
 
 * ``bios``: string [optional]
-    The BIOS to be loaded by QEMU/KVM.
+    The BIOS to be loaded by QEMU/KVM. Prefer a ``[legacy]`` section (see
+    below) if the boot firmware should be switchable with ``mtda-cli
+    firmware``.
 
 * ``cpu``: string [optional]
     The CPU to be emulated by QEMU/KVM.
@@ -349,10 +351,12 @@ The following settings are supported:
     512 MiB).
 
 * ``pflash_ro``: string [optional]
-    Path to the read-only firmware flash.
+    Path to the read-only firmware flash. Prefer an ``[efi]`` section (see
+    below) if the boot firmware should be switchable with ``mtda-cli
+    firmware``.
 
 * ``pflash_rw``: string [optional]
-    Path to the read-write firmware flash.
+    Path to the read-write firmware flash. See ``pflash_ro`` above.
 
 * ``storage``: string [optional]
     Path to the emulated machine storage. Use ``storage.0``, ``storage.1``,
@@ -376,6 +380,49 @@ The following settings are supported:
 
 * ``watchdog``: string [optional]
     Name of the watchdog driver provided by QEMU/KVM for the selected machine.
+
+``[firmware]``, ``[efi]`` and ``[legacy]`` sections
+""""""""""""""""""""""""""""""""""""""""""""""""""
+
+These optional top-level sections let the boot firmware be switched at
+runtime with ``mtda-cli firmware efi|legacy`` (querying the current mode
+with no argument works too). The selected mode is persisted across
+mtda-agent restarts in ``/var/lib/mtda/qemu-firmware`` and applied the next
+time QEMU is started; if the target is already powered on when switching,
+``mtda-cli firmware`` restarts it automatically. This command returns "not
+supported" for power controllers other than ``qemu``.
+
+* ``[firmware]`` section:
+
+  * ``default``: ``efi`` or ``legacy`` [optional]
+      Starting firmware mode, used only until a mode has been selected at
+      least once via ``mtda-cli firmware`` (afterwards the persisted state
+      in ``/var/lib/mtda/qemu-firmware`` wins). Defaults to ``efi`` if
+      omitted, unless only ``[legacy]`` is configured. Setting this to
+      ``efi`` requires an ``[efi]`` section (or the legacy flat
+      ``pflash_ro``/``pflash_rw`` keys) to also be configured.
+
+* ``[efi]`` section:
+
+  * ``pflash_ro``: string [required to select ``efi``]
+      Path to the read-only OVMF firmware flash (e.g.
+      ``/usr/share/OVMF/OVMF_CODE_4M.fd``).
+
+  * ``pflash_rw``: string [optional]
+      Path to the read-write OVMF variable store. Created automatically if
+      it does not exist yet.
+
+* ``[legacy]`` section:
+
+  * ``bios``: string [optional]
+      Path to a custom legacy BIOS image. May be omitted entirely — an
+      empty (or absent) ``[legacy]`` section selects QEMU's built-in SeaBIOS.
+
+For backward compatibility, a config using the flat ``pflash_ro``/
+``pflash_rw``/``bios`` keys directly under ``[power]`` (without ``[efi]``/
+``[legacy]`` sections) still works: ``mtda-cli firmware`` reports the fixed
+mode implied by those keys, but switching to the other mode requires adding
+the corresponding section.
 
 ``shellcmd`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

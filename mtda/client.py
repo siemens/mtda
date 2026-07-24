@@ -252,6 +252,12 @@ class _GrpcImpl:
 
     # --- Target ---
 
+    def target_firmware(self, mode=None, **kwargs):
+        req = mtda_pb2.TargetFirmwareRequest(
+            mode=mode or '', get_only=(mode is None))
+        r = self._call(self._stub.TargetFirmware, req)
+        return r.value if r.has_value else None
+
     def target_lock(self, **kwargs):
         return self._call(self._stub.TargetLock, mtda_pb2.Empty()).value
 
