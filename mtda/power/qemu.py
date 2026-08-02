@@ -164,6 +164,7 @@ class QemuController(PowerController):
         options += " -netdev user,id=net0,"
         options += f"hostfwd=tcp::2222-:22,hostname={self.hostname}"
         options += " -device qemu-xhci"
+        options += " -vga virtio"
         options += " -vnc :0,websocket=on"
 
         # extra options
