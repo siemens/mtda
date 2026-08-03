@@ -63,7 +63,7 @@ class QemuVideoController(VideoController):
 
         try:
             with tempfile.NamedTemporaryFile(suffix=".ppm") as tmp:
-                self.qemu.cmd(f"screendump {tmp.name}")
+                self.qemu.qmp("screendump", {"filename": tmp.name})
                 tmp.seek(0)
                 img = Image.open(tmp.name)
                 buf = io.BytesIO()

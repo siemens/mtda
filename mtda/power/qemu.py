@@ -11,10 +11,11 @@
 
 # System imports
 import atexit
+import json
 import os
 import pathlib
 import psutil
-import re
+import socket
 import subprocess
 import tempfile
 import threading
@@ -41,7 +42,7 @@ class QemuController(PowerController):
         self.drives = []
         self.executable = "kvm"
         self.hostname = "mtda-kvm"
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.machine = None
         self.memory = Size.to_bytes(512, 'MiB')
         self.mtda = mtda
@@ -55,11 +56,12 @@ class QemuController(PowerController):
         self.uuid = None
         self.watchdog = None
         self.websockify = "/usr/bin/websockify"
+        self._qmp_sock = None
+        self._qmp_file = None
+        self._usb_devices = set()
 
         runtime_dir = _runtime_dir()
-        self._monitor_base = os.path.join(runtime_dir, "qemu-mtda")
-        self._monitor_in = self._monitor_base + ".in"
-        self._monitor_out = self._monitor_base + ".out"
+        self._qmp_socket = os.path.join(runtime_dir, "qemu-mtda.qmp")
         self._serial_base = os.path.join(runtime_dir, "qemu-serial")
         self.serial_in = self._serial_base + ".in"
         self.serial_out = self._serial_base + ".out"
@@ -154,16 +156,12 @@ class QemuController(PowerController):
 
         if self.pidOfQemu is not None:
             return True
-        if os.path.exists(self._monitor_in):
-            os.unlink(self._monitor_in)
-        if os.path.exists(self._monitor_out):
-            os.unlink(self._monitor_out)
+        if os.path.exists(self._qmp_socket):
+            os.unlink(self._qmp_socket)
         if os.path.exists(self.serial_in):
             os.unlink(self.serial_in)
         if os.path.exists(self.serial_out):
             os.unlink(self.serial_out)
-        os.mkfifo(self._monitor_in)
-        os.mkfifo(self._monitor_out)
         os.mkfifo(self.serial_in)
         os.mkfifo(self.serial_out)
 
@@ -171,8 +169,7 @@ class QemuController(PowerController):
 
         # base options
         options = f"-daemonize -S -m {int(self.memory / 1024**2)}"
-        options += f" -chardev pipe,id=monitor,path={self._monitor_base}"
-        options += " -monitor chardev:monitor"
+        options += f" -qmp unix:{self._qmp_socket},server=on,wait=off"
         options += f" -serial pipe:{self._serial_base}"
         options += " -device e1000,netdev=net0"
         options += " -netdev user,id=net0,"
@@ -312,6 +309,10 @@ class QemuController(PowerController):
                 self.mtda.debug(2, "power.qemu.start(): "
                                    "qemu process started "
                                    "[{0}]".format(self.pidOfQemu))
+                if self._qmp_connect() is False:
+                    self.mtda.debug(1, "power.qemu.start(): "
+                                       "could not connect to QMP socket")
+                    return False
                 return True
             else:
                 self.mtda.debug(1, "power.qemu.start(): "
@@ -324,6 +325,16 @@ class QemuController(PowerController):
 
         self.lock.acquire()
         result = True
+
+        if self._qmp_sock is not None:
+            try:
+                self._qmp_file.close()
+                self._qmp_sock.close()
+            except OSError:
+                pass
+            self._qmp_sock = None
+            self._qmp_file = None
+        self._usb_devices.clear()
 
         if self.pidOfQemu is not None:
             result = System.kill("qemu", self.pidOfQemu)
@@ -343,69 +354,78 @@ class QemuController(PowerController):
         self.lock.release()
         return result
 
-    def monitor_output_non_blocking(self):
-        self.mtda.debug(4, "power.qemu.monitor_output_non_blocking()")
+    def _qmp_send(self, msg):
+        self._qmp_file.write(json.dumps(msg) + "\n")
+        self._qmp_file.flush()
 
-        fd = os.open(self._monitor_out, os.O_RDONLY)
-        os.set_blocking(fd, False)
-        try:
-            output = os.read(fd, 2048).decode('utf-8')
-        except BlockingIOError:
-            output = ""
-        os.close(fd)
-        return output
+    def _qmp_recv(self):
+        while True:
+            line = self._qmp_file.readline()
+            if not line:
+                return None
+            msg = json.loads(line)
+            # events may be interleaved with command responses; only a
+            # message without an "event" key answers the command we sent
+            if "event" not in msg:
+                return msg
 
-    def monitor_command_output(self):
-        self.mtda.debug(3, "power.qemu.monitor_command_output()")
+    def _qmp_connect(self, timeout=30):
+        self.mtda.debug(3, "power.qemu._qmp_connect()")
 
-        output = ""
-        while output.endswith("(qemu) ") is False:
-            output += self.monitor_output_non_blocking()
-        if output.endswith("(qemu) "):
-            output = output[:-7]
+        sock = None
+        while timeout > 0:
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            try:
+                sock.connect(self._qmp_socket)
+                break
+            except OSError:
+                sock.close()
+                sock = None
+                time.sleep(1)
+                timeout -= 1
+        if sock is None:
+            return False
 
-        self.mtda.debug(3, f"power.qemu.monitor_command_output(): {output}")
-        return output
+        self._qmp_sock = sock
+        self._qmp_file = sock.makefile(mode="rw")
+        self._qmp_recv()  # greeting
+        self._qmp_send({"execute": "qmp_capabilities"})
+        self._qmp_recv()
+        return True
 
-    def _cmd(self, what):
-        self.mtda.debug(3, "power.qemu._cmd()")
+    def qmp(self, command, arguments=None):
+        self.mtda.debug(3, f"power.qemu.qmp({command})")
 
-        started = self.start()
-        if started is False:
+        with self.lock:
+            started = self.start()
+            if started is False:
+                return None
+            msg = {"execute": command}
+            if arguments:
+                msg["arguments"] = arguments
+            self._qmp_send(msg)
+            response = self._qmp_recv()
+
+        if response is None:
+            self.mtda.debug(1, f"power.qemu.qmp(): no response to '{command}'")
+            return None
+        if "error" in response:
+            self.mtda.debug(1, "power.qemu.qmp(): "
+                               f"'{command}' failed: {response['error']}")
             return None
 
-        # flush monitor output
-        self.monitor_output_non_blocking()
-
-        # send requested command to "out" pipe
-        what += "\n"
-        with open(self._monitor_in, "w") as f:
-            f.write(what)
-
-        # provide response from the monitor
-        output = self.monitor_command_output()
-
-        self.mtda.debug(3, f"power.qemu._cmd(): {str(output)}")
-        return output
-
-    def cmd(self, what):
-        self.mtda.debug(3, "power.qemu.cmd()")
-
-        self.lock.acquire()
-        result = self._cmd(what)
-        self.lock.release()
-
-        self.mtda.debug(3, f"power.qemu.cmd(): {str(result)}")
+        result = response.get("return")
+        self.mtda.debug(3, f"power.qemu.qmp(): {result}")
         return result
 
     def command(self, args):
         self.mtda.debug(3, "power.qemu.command()")
 
-        result = self.cmd(" ".join(args))
-        result = "\n".join(result.splitlines()[1:]) if result is not None else ""
+        result = self.qmp(
+                "human-monitor-command", {"command-line": " ".join(args)})
 
         self.mtda.debug(3, f"power.qemu.command(): {str(result)}")
-        return result
+        return result if result is not None else ""
 
     def on(self):
         self.mtda.debug(3, "power.qemu.on()")
@@ -413,8 +433,8 @@ class QemuController(PowerController):
         s = self.status()
         if s == self.POWER_ON:
             return True
-        self.cmd("system_reset")
-        self.cmd("cont")
+        self.qmp("system_reset")
+        self.qmp("cont")
         return self.status() == self.POWER_ON
 
     def off(self):
@@ -423,102 +443,109 @@ class QemuController(PowerController):
         s = self.status()
         if s == self.POWER_OFF:
             return True
-        self.cmd("stop")
-        self.cmd("system_reset")
+        self.qmp("stop")
+        self.qmp("system_reset")
         return self.status() == self.POWER_OFF
 
     def status(self):
         self.mtda.debug(3, "power.qemu.status()")
 
         result = self.POWER_UNSURE
-        status = self.cmd('info status')
-        if status is not None:
-            for line in status.splitlines():
-                line = line.strip()
-                if line.startswith("VM status:"):
-                    if 'running' in line:
-                        result = self.POWER_ON
-                    elif 'paused' in line:
-                        result = self.POWER_OFF
-                    break
+        info = self.qmp("query-status")
+        if info is not None:
+            result = self.POWER_ON if info.get("running") else self.POWER_OFF
 
         if result == self.POWER_UNSURE:
-            self.mtda.debug(1, f"unknown power status: {str(status)}")
+            self.mtda.debug(1, f"unknown power status: {str(info)}")
 
         self.mtda.debug(3, f"power.qemu.status(): {str(result)}")
         return result
-
-    def usb_ids(self):
-        info = self._cmd("info usb")
-        if info is None:
-            return []
-        lines = info.splitlines()
-        results = []
-        for line in lines:
-            line = line.strip()
-            if line.startswith("Device "):
-                self.mtda.debug(2, f"power.qemu.usb_ids(): {line}")
-                match = re.findall(r'ID: (\S+)$', line)
-                if match:
-                    results.append(match[0])
-        return results
 
     def usb_add(self, id, file):
         self.mtda.debug(3, "power.qemu.usb_add()")
 
         result = None
-        self.lock.acquire()
+        with self.lock:
+            if id not in self._usb_devices:
+                self.mtda.debug(2, "power.qemu."
+                                   f"usb_add(): adding '{file}' as '{id}'")
+                info = subprocess.check_output(
+                        ['qemu-img', 'info', '--output=json', file],
+                        encoding="utf-8")
+                fmt = json.loads(info)['format']
 
-        if id not in self.usb_ids():
-            self.mtda.debug(2, "power.qemu."
-                               f"usb_add(): adding '{file}' as '{id}'")
-            cmdstr = "drive_add 0 if=none,id={0},file={1}"
-            output = self._cmd(cmdstr.format(id, file))
-            added = False
-            reason = "drive_add failed"
-            for line in (output.splitlines() if output is not None else []):
-                line = line.strip()
-                if line == "OK":
-                    added = True
-                    break
-            if added is True:
-                reason = "device_add failed"
-                cmdstr = "device_add usb-storage,id={0},drive={0},removable=on"
-                self._cmd(cmdstr.format(id))
-                added = (id in self.usb_ids())
-            if added is True:
-                result = id
-                self.mtda.debug(2, "power.qemu.usb_add(): "
-                                   "usb-storage '{0}' connected".format(id))
-            else:
-                self.mtda.debug(1, "power.qemu.usb_add(): "
-                                   "usb-storage '{0}' could not be added "
-                                   "({1})!".format(id, reason))
+                reason = "blockdev-add failed"
+                added = self.qmp("blockdev-add", {
+                    "driver": fmt,
+                    "node-name": id,
+                    "file": {"driver": "file", "filename": file},
+                }) is not None
+                if added is True:
+                    reason = "device_add failed"
+                    added = self.qmp("device_add", {
+                        "driver": "usb-storage",
+                        "id": id,
+                        "drive": id,
+                        "removable": True,
+                    }) is not None
+                    if added is False:
+                        self.qmp("blockdev-del", {"node-name": id})
+                if added is True:
+                    result = id
+                    self._usb_devices.add(id)
+                    self.mtda.debug(2, "power.qemu.usb_add(): "
+                                       "usb-storage '{0}' connected"
+                                       .format(id))
+                else:
+                    self.mtda.debug(1, "power.qemu.usb_add(): "
+                                       "usb-storage '{0}' could not be added "
+                                       "({1})!".format(id, reason))
 
         self.mtda.debug(3, f"power.qemu.usb_add(): {str(result)}")
-        self.lock.release()
         return result
 
     def usb_rm(self, id):
         self.mtda.debug(3, "power.qemu.usb_rm()")
 
         result = True
-        self.lock.acquire()
-
-        if id in self.usb_ids():
-            self._cmd(f"device_del {id}")
-            result = (id not in self.usb_ids())
-            if result:
-                self.mtda.debug(2, "power.qemu."
-                                   f"usb_rm(): usb-storage '{id}' removed")
-            else:
-                self.mtda.debug(1, "power.qemu.usb_rm(): "
-                                   "usb-storage '{0}' could not be "
-                                   "removed!".format(id))
+        with self.lock:
+            if id in self._usb_devices:
+                result = self.qmp("device_del", {"id": id}) is not None
+                if result:
+                    if not self._qmp_wait_device_deleted(id):
+                        self.mtda.debug(1, "power.qemu.usb_rm(): "
+                                           f"'{id}' not confirmed removed, "
+                                           "trying blockdev-del anyway")
+                    self.qmp("blockdev-del", {"node-name": id})
+                    self._usb_devices.discard(id)
+                    self.mtda.debug(2, "power.qemu."
+                                       f"usb_rm(): usb-storage '{id}' "
+                                       "removed")
+                else:
+                    self.mtda.debug(1, "power.qemu.usb_rm(): "
+                                       "usb-storage '{0}' could not be "
+                                       "removed!".format(id))
 
         self.mtda.debug(3, f"power.qemu.usb_rm(): {str(result)}")
-        self.lock.release()
         return result
+
+    def _qmp_wait_device_deleted(self, id, timeout=10):
+        self.mtda.debug(3, f"power.qemu._qmp_wait_device_deleted({id})")
+
+        self._qmp_sock.settimeout(timeout)
+        try:
+            while True:
+                line = self._qmp_file.readline()
+                if not line:
+                    return False
+                msg = json.loads(line)
+                if (msg.get("event") == "DEVICE_DELETED"
+                        and msg.get("data", {}).get("device") == id):
+                    return True
+        except socket.timeout:
+            return False
+        finally:
+            self._qmp_sock.settimeout(None)
 
 
 def instantiate(mtda):
