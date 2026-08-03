@@ -55,21 +55,22 @@ class QemuController(KeyboardController):
                 '\n': 'ret'
                 }
 
-        mod = ""
+        mods = []
         if ctrl:
-            mod = "ctrl-"
+            mods.append("ctrl")
         if shift:
-            mod = f"{mod}shift-"
+            mods.append("shift")
         if alt:
-            mod = f"{mod}alt-"
+            mods.append("alt")
         if meta:
-            mod = f"{mod}meta_l-"
+            mods.append("meta_l")
 
         result = True
+        key = symbols[key] if key in symbols else key
+        keys = [{"type": "qcode", "data": k} for k in mods + [key]]
         while repeat > 0:
             repeat = repeat - 1
-            key = symbols[key] if key in symbols else key
-            self.qemu.cmd(f"sendkey {mod}{key}")
+            self.qemu.qmp("send-key", {"keys": keys})
             time.sleep(0.1)
         return result
 
