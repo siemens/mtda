@@ -27,6 +27,10 @@ from mtda.power.controller import PowerController
 from mtda.utils import Size, System
 
 
+def _runtime_dir():
+    return os.environ.get("XDG_RUNTIME_DIR", tempfile.gettempdir())
+
+
 class QemuController(PowerController):
 
     def __init__(self, mtda):
@@ -51,6 +55,16 @@ class QemuController(PowerController):
         self.uuid = None
         self.watchdog = None
         self.websockify = "/usr/bin/websockify"
+
+        runtime_dir = _runtime_dir()
+        self._monitor_base = os.path.join(runtime_dir, "qemu-mtda")
+        self._monitor_in = self._monitor_base + ".in"
+        self._monitor_out = self._monitor_base + ".out"
+        self._serial_base = os.path.join(runtime_dir, "qemu-serial")
+        self.serial_in = self._serial_base + ".in"
+        self.serial_out = self._serial_base + ".out"
+        self._swtpm_dir = os.path.join(runtime_dir, "qemu-swtpm")
+        self._swtpm_sock = os.path.join(self._swtpm_dir, "sock")
 
     def configure(self, conf):
         self.mtda.debug(3, "power.qemu.configure()")
@@ -140,26 +154,26 @@ class QemuController(PowerController):
 
         if self.pidOfQemu is not None:
             return True
-        if os.path.exists("/tmp/qemu-mtda.in"):
-            os.unlink("/tmp/qemu-mtda.in")
-        if os.path.exists("/tmp/qemu-mtda.out"):
-            os.unlink("/tmp/qemu-mtda.out")
-        if os.path.exists("/tmp/qemu-serial.in"):
-            os.unlink("/tmp/qemu-serial.in")
-        if os.path.exists("/tmp/qemu-serial.out"):
-            os.unlink("/tmp/qemu-serial.out")
-        os.mkfifo("/tmp/qemu-mtda.in")
-        os.mkfifo("/tmp/qemu-mtda.out")
-        os.mkfifo("/tmp/qemu-serial.in")
-        os.mkfifo("/tmp/qemu-serial.out")
+        if os.path.exists(self._monitor_in):
+            os.unlink(self._monitor_in)
+        if os.path.exists(self._monitor_out):
+            os.unlink(self._monitor_out)
+        if os.path.exists(self.serial_in):
+            os.unlink(self.serial_in)
+        if os.path.exists(self.serial_out):
+            os.unlink(self.serial_out)
+        os.mkfifo(self._monitor_in)
+        os.mkfifo(self._monitor_out)
+        os.mkfifo(self.serial_in)
+        os.mkfifo(self.serial_out)
 
         atexit.register(self.stop)
 
         # base options
         options = f"-daemonize -S -m {int(self.memory / 1024**2)}"
-        options += " -chardev pipe,id=monitor,path=/tmp/qemu-mtda"
+        options += f" -chardev pipe,id=monitor,path={self._monitor_base}"
         options += " -monitor chardev:monitor"
-        options += " -serial pipe:/tmp/qemu-serial"
+        options += f" -serial pipe:{self._serial_base}"
         options += " -device e1000,netdev=net0"
         options += " -netdev user,id=net0,"
         options += f"hostfwd=tcp::2222-:22,hostname={self.hostname}"
@@ -255,12 +269,12 @@ class QemuController(PowerController):
         # swtpm options
         if self.swtpm is not None:
             with tempfile.NamedTemporaryFile() as pidfile:
-                os.makedirs("/tmp/qemu-swtpm", exist_ok=True)
+                os.makedirs(self._swtpm_dir, exist_ok=True)
                 result = os.system(
                       self.swtpm
                       + " socket -d"
-                      + " --tpmstate dir=/tmp/qemu-swtpm"
-                      + " --ctrl type=unixio,path=/tmp/qemu-swtpm/sock"
+                      + f" --tpmstate dir={self._swtpm_dir}"
+                      + f" --ctrl type=unixio,path={self._swtpm_sock}"
                       + f" --pid file={pidfile.name} --tpm2")
                 if result == 0:
                     self.pidOfSwTpm = self.getpid(pidfile.name)
@@ -274,7 +288,7 @@ class QemuController(PowerController):
                     return False
 
                 options += " -chardev socket,id=chrtpm,"
-                options += "path=/tmp/qemu-swtpm/sock"
+                options += f"path={self._swtpm_sock}"
                 options += " -tpmdev emulator,id=tpm0,chardev=chrtpm"
                 options += " -device tpm-tis,tpmdev=tpm0"
 
@@ -332,7 +346,7 @@ class QemuController(PowerController):
     def monitor_output_non_blocking(self):
         self.mtda.debug(4, "power.qemu.monitor_output_non_blocking()")
 
-        fd = os.open("/tmp/qemu-mtda.out", os.O_RDONLY)
+        fd = os.open(self._monitor_out, os.O_RDONLY)
         os.set_blocking(fd, False)
         try:
             output = os.read(fd, 2048).decode('utf-8')
@@ -365,7 +379,7 @@ class QemuController(PowerController):
 
         # send requested command to "out" pipe
         what += "\n"
-        with open("/tmp/qemu-mtda.in", "w") as f:
+        with open(self._monitor_in, "w") as f:
             f.write(what)
 
         # provide response from the monitor
