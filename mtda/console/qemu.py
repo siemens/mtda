@@ -41,8 +41,8 @@ class QemuConsole(ConsoleInterface):
         result = self.opened
         if self.opened is False:
             try:
-                self.tx = open("/tmp/qemu-serial.in",  mode="wb", buffering=0)
-                self.rx = open("/tmp/qemu-serial.out", mode="rb", buffering=0)
+                self.tx = open(self.qemu.serial_in,  mode="wb", buffering=0)
+                self.rx = open(self.qemu.serial_out, mode="rb", buffering=0)
 
                 result = True
             finally:
