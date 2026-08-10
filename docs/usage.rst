@@ -173,6 +173,27 @@ need to be enclosed between < and >
 
 For instance: ``mtda-cli keyboard write "<down><enter>hello world<enter>"``
 
+Modifier combinations are supported by joining modifiers and a key with ``-`` inside
+angle brackets. Supported modifiers are ``ctrl``, ``shift``, ``alt`` and ``meta``.
+Multiple modifiers may be combined.
+
+For instance::
+
+    # Ctrl+C (interrupt)
+    $ mtda-cli keyboard write "<ctrl-c>"
+
+    # Alt+F4 (close window)
+    $ mtda-cli keyboard write "<alt-f4>"
+
+    # Ctrl+Alt+Delete
+    $ mtda-cli keyboard write "<ctrl-alt-delete>"
+
+    # Ctrl+Shift+T (new terminal tab)
+    $ mtda-cli keyboard write "<ctrl-shift-t>"
+
+    # Ctrl+Z (suspend)
+    $ mtda-cli keyboard write "<ctrl-z>"
+
 .. list-table:: Special Keys
    :widths: 20 80
    :header-rows: 1
@@ -221,6 +242,27 @@ For instance: ``mtda-cli keyboard write "<down><enter>hello world<enter>"``
      - <up>
    * - Down
      - <down>
+
+.. list-table:: Modifier Key Combinations
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Example
+     - Description
+   * - <ctrl-c>
+     - Ctrl + C
+   * - <ctrl-z>
+     - Ctrl + Z
+   * - <alt-f4>
+     - Alt + F4
+   * - <ctrl-alt-delete>
+     - Ctrl + Alt + Delete
+   * - <ctrl-shift-t>
+     - Ctrl + Shift + T
+   * - <shift-tab>
+     - Shift + Tab (reverse focus)
+   * - <meta-l>
+     - Meta (Super/Windows key) + L
 
 Interactive
 -----------

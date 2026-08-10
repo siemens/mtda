@@ -250,11 +250,11 @@ class HidKeyboardController(KeyboardController):
         self.mtda.debug(3, "keyboard.hid.tab()")
         return self.send(0x2b, repeat, ctrl, shift, alt, meta)
 
-    def write(self, what):
+    def write(self, what, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.hid.write()")
 
         for k in what:
-            self.press(k)
+            self.press(k, ctrl=ctrl, shift=shift, alt=alt, meta=meta)
 
 
 def instantiate(mtda):

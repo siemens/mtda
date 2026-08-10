@@ -71,7 +71,7 @@ class KeyboardController(object):
         return False
 
     @abc.abstractmethod
-    def write(self, str):
+    def write(self, str, ctrl=False, shift=False, alt=False, meta=False):
         return
 
     @abc.abstractmethod

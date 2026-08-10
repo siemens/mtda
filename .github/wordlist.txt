@@ -25,6 +25,7 @@ chmod
 chombourger
 CIDR
 config
+Ctrl
 DAU
 de
 dearmor
