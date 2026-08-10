@@ -517,6 +517,79 @@ class MultiTenantDeviceAccess:
             return special_keys[key]
         return None
 
+    def _keyboard_parse_combo(self, token):
+        """Parse a modifier+key combo token such as <ctrl-x> or <alt-shift-f4>.
+
+        Returns (fn, ctrl, shift, alt, meta) where fn is a callable that
+        accepts (repeat, ctrl, shift, alt, meta), or None when the token is
+        not a recognised combo.
+        """
+        # Strip surrounding angle brackets: '<ctrl-x>' -> 'ctrl-x'
+        inner = token[1:-1].lower()
+        parts = inner.split('-')
+
+        ctrl = shift = alt = meta = False
+        consumed = 0
+        for part in parts:
+            if part == 'ctrl':
+                ctrl = True
+                consumed += 1
+            elif part == 'shift':
+                shift = True
+                consumed += 1
+            elif part == 'alt':
+                alt = True
+                consumed += 1
+            elif part == 'meta':
+                meta = True
+                consumed += 1
+            else:
+                break
+
+        # At least one modifier must be present and a key must follow
+        if consumed == 0 or consumed >= len(parts):
+            return None
+
+        # Rejoin any remaining parts in case key name contains '-' (e.g. f10)
+        key_name = '-'.join(parts[consumed:])
+
+        # Map named keys to their keyboard method
+        named = {
+            'backspace': self.keyboard.backspace,
+            'capslock':  self.keyboard.capsLock,
+            'enter':     self.keyboard.enter,
+            'tab':       self.keyboard.tab,
+            'esc':       self.keyboard.esc,
+            'f1':        self.keyboard.f1,
+            'f2':        self.keyboard.f2,
+            'f3':        self.keyboard.f3,
+            'f4':        self.keyboard.f4,
+            'f5':        self.keyboard.f5,
+            'f6':        self.keyboard.f6,
+            'f7':        self.keyboard.f7,
+            'f8':        self.keyboard.f8,
+            'f9':        self.keyboard.f9,
+            'f10':       self.keyboard.f10,
+            'f11':       self.keyboard.f11,
+            'f12':       self.keyboard.f12,
+            'left':      self.keyboard.left,
+            'right':     self.keyboard.right,
+            'up':        self.keyboard.up,
+            'down':      self.keyboard.down,
+        }
+
+        if key_name in named:
+            return (named[key_name], ctrl, shift, alt, meta)
+
+        # Single character keys (a-z, 0-9, punctuation)
+        if len(key_name) == 1:
+            def fn(repeat=1, ctrl=ctrl, shift=shift, alt=alt, meta=meta,
+                   _k=key_name):
+                return self.keyboard.press(_k, repeat, ctrl, shift, alt, meta)
+            return (fn, ctrl, shift, alt, meta)
+
+        return None
+
     def keyboard_press(self, key, repeat=1, ctrl=False, shift=False,
                        alt=False, meta=False, **kwargs):
         self.mtda.debug(3, "main.keyboard_press()")
@@ -543,9 +616,18 @@ class MultiTenantDeviceAccess:
         self.session_ping(session)
         if self.keyboard is not None:
             while what != "":
-                # check for special keys such as <esc>
+                # check for special/combo keys such as <esc> or <ctrl-x>
                 if what.startswith('<') and '>' in what:
                     key = what.split('>')[0] + '>'
+                    # try modifier combo first (e.g. <ctrl-x>, <alt-shift-f4>)
+                    combo = self._keyboard_parse_combo(key)
+                    if combo is not None:
+                        fn, ctrl, shift, alt, meta = combo
+                        offset = len(key)
+                        what = what[offset:]
+                        fn(1, ctrl, shift, alt, meta)
+                        continue
+                    # fall back to plain special key (e.g. <esc>, <f1>)
                     special_key = self._keyboard_special_key(key)
                     if special_key is not None:
                         offset = len(key)

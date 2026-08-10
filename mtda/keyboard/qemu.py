@@ -159,11 +159,11 @@ class QemuController(KeyboardController):
         self.mtda.debug(3, "keyboard.qemu.tab()")
         return self.press("tab", repeat, ctrl, shift, alt, meta)
 
-    def write(self, str):
+    def write(self, str, ctrl=False, shift=False, alt=False, meta=False):
         self.mtda.debug(3, "keyboard.qemu.write()")
 
         for k in str:
-            self.press(k)
+            self.press(k, ctrl=ctrl, shift=shift, alt=alt, meta=meta)
 
 
 def instantiate(mtda):
