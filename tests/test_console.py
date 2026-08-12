@@ -83,7 +83,7 @@ def test_www_console_head(powered_on):
         result = response.json()["result"]["content"] if status == 200 else None
         return status, result
     do_console_head(head)
- 
+
 
 def do_console_tail(tail):
     prompt = "shell$ "
@@ -106,6 +106,6 @@ def test_www_console_tail(powered_on):
         response = requests.get(f"{Consts.BASE_URL}/console-tail",
                                 params=params)
         status = response.status_code
-        result = response.json()["result"]["content"] if status== 200 else None
+        result = response.json()["result"]["content"] if status == 200 else None
         return status, result
     do_console_tail(tail)

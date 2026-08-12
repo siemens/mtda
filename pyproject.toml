@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Build system configuration for MTDA
+# MTDA Project Configuration
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -10,5 +10,143 @@
 # ---------------------------------------------------------------------------
 
 [build-system]
-requires = ["setuptools>=40.8.0", "grpcio-tools>=1.51"]
+requires = ["setuptools>=61.0", "grpcio-tools>=1.51,<1.81"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "mtda"
+dynamic = ["version"]
+description = "Multi-Tenant Device Access"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Cedric Hombourger", email = "cedric.hombourger@siemens.com"}
+]
+maintainers = [
+    {name = "Cedric Hombourger", email = "cedric.hombourger@siemens.com"}
+]
+keywords = ["remote", "test", "device", "hardware"]
+classifiers = [
+    "Topic :: Utilities",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Embedded Systems",
+    "License :: OSI Approved :: MIT License",
+]
+
+# Cross-platform dependencies (work on Linux, macOS, Windows)
+dependencies = [
+    "docker",
+    "gevent",
+    "netifaces>=0.11.0",
+    "pyserial>=2.6",
+    "python-daemon>=2.0",
+    "grpcio>=1.51",
+    "pyusb>=1.0",
+    "psutil",
+    "requests",
+    "tornado",
+    "zstandard>=0.14",
+    "zeroconf>=0.28.6",
+    "protobuf>=5.29.6",
+]
+
+[project.optional-dependencies]
+# Linux-specific dependencies (server functionality)
+linux = [
+    "systemd-python>=234",
+]
+
+# Development dependencies
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "flake8>=5.0",
+    "reuse",
+    "python-debian",
+    "tox>=4.0",
+    # grpcio-tools>=1.81 bundles a protoc whose gencode stamp (7.35.x)
+    # is incompatible with the protobuf runtime it itself requires
+    # (protobuf<7.0.0), so generated stubs fail to import.
+    "grpcio-tools>=1.51,<1.81",
+]
+
+# Documentation dependencies
+docs = [
+    "sphinx>=5.0",
+    "sphinx-rtd-theme>=1.0",
+]
+
+# All optional dependencies combined
+all = [
+    "mtda[linux,dev,docs]",
+]
+
+[project.urls]
+Homepage = "https://github.com/siemens/mtda"
+Documentation = "https://github.com/siemens/mtda/tree/main/docs"
+Repository = "https://github.com/siemens/mtda"
+Issues = "https://github.com/siemens/mtda/issues"
+
+[project.scripts]
+mtda-cli = "mtda.scripts.cli:main"
+mtda-service = "mtda.scripts.service:main"
+mtda-systemd-helper = "mtda.scripts.systemd_helper:main"
+mtda-www = "mtda.scripts.www:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "mtda.__version__.__version__"}
+
+[tool.setuptools.packages.find]
+exclude = ["demos", "demos.*", "tests", "tests.*"]
+
+[tool.setuptools.package-data]
+mtda = [
+    "assets/*.*",
+    "templates/*.html",
+    "grpc/*.proto",
+    "grpc/*_pb2.py",
+    "grpc/*_pb2_grpc.py",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+
+[tool.coverage.run]
+source = ["mtda"]
+omit = [
+    "*/tests/*",
+    "*/mtda/grpc/mtda_pb2.py",
+    "*/mtda/grpc/mtda_pb2_grpc.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

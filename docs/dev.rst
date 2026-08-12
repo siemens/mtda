@@ -5,22 +5,79 @@ Contributions are welcome from anyone. This section provides guidelines for
 setting up your environment to run a development copy of MTDA on your system
 without requiring special hardware either using Docker or KVM.
 
-Docker
-~~~~~~
+Development Setup
+~~~~~~~~~~~~~~~~~
+
+Setting up a development environment for MTDA is straightforward using modern
+Python tooling. We recommend using ``uv`` for fast, reliable dependency
+management.
+
+Install uv
+^^^^^^^^^^
+
+Install ``uv`` (a fast Python package manager)::
+
+    $ curl -LsSf https://astral.sh/uv/install.sh | sh
+
+Clone the repository
+^^^^^^^^^^^^^^^^^^^^
+
+Get a copy of the MTDA code::
+
+    $ git clone https://github.com/siemens/mtda
+    $ cd mtda
+
+Install dependencies
+^^^^^^^^^^^^^^^^^^^^
+
+Use ``uv sync`` to create a virtual environment and install all dependencies::
+
+    $ uv sync --all-extras
+
+This command will:
+
+- Create a ``.venv/`` directory with a virtual environment
+- Install MTDA in editable mode
+- Install all optional dependencies (dev, docs, linux on Linux systems)
+- Generate/verify gRPC stubs automatically
+
+On macOS (client-only development)::
+
+    $ uv sync --extra dev --extra docs
+
+Activate the environment
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Activate the virtual environment::
+
+    $ source .venv/bin/activate
+
+Verify the installation::
+
+    $ mtda-cli --version
+
+Running commands
+^^^^^^^^^^^^^^^^
+
+With the virtual environment activated, you can run MTDA commands directly::
+
+    $ mtda-cli --help
+    $ mtda-service --help
+
+Or use ``uv run`` without activating::
+
+    $ uv run mtda-cli --help
+    $ uv run pytest
+    $ uv run flake8
+
+Docker Development Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Docker is a popular container technology and it may be used as a virtual test
 platform to develop general purpose tests or APIs for MTDA.
 
-MTDA requires several Python packages, it is recommended to install them using
-``pip`` and under your user to leave your system intact. Use ``apt`` to install
-``pip``::
-
-    $ sudo apt-get install -y python3-pip
-
-and modify your environment to have the shell look for programs in
-``$HOME/.local/bin``::
-
-    $ echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+Install Docker
+^^^^^^^^^^^^^^
 
 The docker engine may be installed as follows on Debian::
 
@@ -35,35 +92,57 @@ up and running::
 
     $ docker images
 
-You may then get a copy of the MTDA code with::
+Running with Docker
+^^^^^^^^^^^^^^^^^^^
 
-    $ git clone https://github.com/siemens/mtda
-
-and required Python packages and MTDA may be installed with::
-
-    $ cd mtda
-    $ pip3 install --user .
-
-A configuration file is then needed for MTDA to use the various ``docker``
-drivers using the ``MTDA_CONFIG`` environment variable.
-
-The agent may then be started with::
+After setting up your development environment (see above), start the MTDA
+service with a Docker configuration::
 
     $ export MTDA_CONFIG=$PWD/configs/docker.ini
-    $ export PYTHONPATH=$PWD
-    $ ./mtda-service -n
+    $ uv run mtda-service -n
 
 Use a different shell to start a client session::
 
     $ cd mtda
     $ export MTDA_CONFIG=$PWD/configs/docker.ini
-    $ export PYTHONPATH=$PWD
-    $ ./mtda-cli target on
-    $ ./mtda-cli
+    $ uv run mtda-cli target on
+    $ uv run mtda-cli
 
 The container should be running. Hit return to get a shell prompt and run any
 shell commands available in the container selected in your ``MTDA_CONFIG``
 file.
+
+Regenerating gRPC Stubs
+~~~~~~~~~~~~~~~~~~~~~~~
+
+gRPC stubs are auto-generated at build time and are NOT committed to git.
+If you modify ``mtda/grpc/mtda.proto``, regenerate stubs locally for testing::
+
+    $ python scripts/generate-grpc-stubs.py --force
+
+This will:
+
+- Run ``protoc`` to generate Python stubs from the .proto file
+- Fix imports for proper package usage
+- Create ``mtda/grpc/mtda_pb2.py`` and ``mtda/grpc/mtda_pb2_grpc.py``
+
+These generated files should not be committed to version control.
+
+Running Tests
+~~~~~~~~~~~~~
+
+Run the test suite::
+
+    $ uv run pytest
+
+Run code linters::
+
+    $ uv run flake8
+    $ uv run reuse lint
+
+Run tests in Docker containers (as done in CI)::
+
+    $ uv run bash ./scripts/test-using-docker
 
 Release Process
 ---------------

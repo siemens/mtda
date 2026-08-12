@@ -90,6 +90,7 @@ def test_www_target_toggle(powered_off):
         return status, result
     do_target_toggle(toggle)
 
+
 def do_target_uptime(uptime):
     status, t1 = uptime()
     assert status == 200

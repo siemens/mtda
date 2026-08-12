@@ -646,7 +646,7 @@ class Application:
         agent = MultiTenantDeviceAccess()
         print(f"MTDA version: {agent.version}")
 
-    def main(self):
+    def run(self):
         parser = ArgumentParser(
             allow_abbrev=False,
             formatter_class=RawTextHelpFormatter,
@@ -978,6 +978,11 @@ class Application:
         sys.exit(status)
 
 
-if __name__ == '__main__':
+def main():
+    """Entry point for mtda-cli command."""
     app = Application()
-    app.main()
+    app.run()
+
+
+if __name__ == '__main__':
+    main()

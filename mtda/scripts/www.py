@@ -1397,6 +1397,11 @@ class Service:
         await asyncio.Event().wait()
 
 
-if __name__ == '__main__':
+def main():
+    """Entry point for mtda-www command."""
     srv = Service()
     asyncio.run(srv.run())
+
+
+if __name__ == '__main__':
+    main()

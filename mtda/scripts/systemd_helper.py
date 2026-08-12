@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ---------------------------------------------------------------------------
-# Command Line Interface for MTDA
+# MTDA Systemd Helper
 # ---------------------------------------------------------------------------
 #
 # This software is a part of MTDA.
@@ -17,7 +17,6 @@ import sys
 
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
-import mtda.constants as CONSTS
 
 
 class Application:
@@ -31,7 +30,7 @@ class Application:
     def print_version(self):
         return None
 
-    def main(self):
+    def run(self):
         config = None
 
         options, stuff = getopt.getopt(
@@ -62,6 +61,11 @@ class Application:
         return 0
 
 
-if __name__ == '__main__':
+def main():
+    """Entry point for mtda-systemd-helper command."""
     app = Application()
-    sys.exit(app.main())
+    sys.exit(app.run())
+
+
+if __name__ == '__main__':
+    main()

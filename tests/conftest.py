@@ -10,11 +10,7 @@
 # ---------------------------------------------------------------------------
 
 import pytest
-import time
 
-from common import Consts
-
-from mtda.pytest import Console
 from mtda.pytest import Target
 from mtda.pytest import Test
 

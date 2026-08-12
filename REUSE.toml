@@ -10,6 +10,18 @@ SPDX-FileCopyrightText = "2026 Siemens AG"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
+path = ".python-version"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "uv.lock"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Siemens AG"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
 path = "**.md"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Siemens AG"

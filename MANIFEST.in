@@ -9,4 +9,11 @@
 # SPDX-License-Identifier: MIT
 # ---------------------------------------------------------------------------
 
+include README.md
+include LICENSE
 include Kconfig
+include pyproject.toml
+include scripts/generate-grpc-stubs.py
+recursive-include mtda/grpc *.proto
+recursive-include mtda/assets *.*
+recursive-include mtda/templates *.html
