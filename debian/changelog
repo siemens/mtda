@@ -1,8 +1,33 @@
-mtda (0.48-0) testing; urgency=medium
+mtda (0.48-1) testing; urgency=medium
 
   *  debian: open development window for version 0.47
 
- -- Cedric Hombourger <cedric.hombourger@siemens.com>  Sun, 31 May 2026 17:00:00 +0100
+  [ Cedric Hombourger ]
+  * skip Zeroconf lookup when remote is an IP or hostname
+  * qemu: use virtio-vga for display output
+  * qemu: use XDG_RUNTIME_DIR instead of /tmp
+  * qemu: switch monitor transport from HMP to QMP
+  * qemu: add QEMU mouse driver
+  * qemu: add mtda-cli firmware command to switch boot firmware
+
+  [ Benedikt Niedermayr ]
+  * use /var/lib/mtda as home directory for mtda user
+  * fix libgpiod imports for V1 based systems
+  * remove custom swupdate-wfx recipe
+  * bump cip-core to current master
+
+  [ Felix Moessbauer ]
+  * use correct default constant in usbf storage
+  * ro-image: create mtda homedir
+
+  [ Shivaschandra KL ]
+  * keyboard: add modifier key combination support
+  * storage_flush check thread exists before joining
+
+  [ Dr. Johann Pfefferl ]
+  *  docs: power shellcmd return codes corrected
+
+ -- Cedric Hombourger <cedric.hombourger@siemens.com>  Thu, 13 Aug 2026 07:00:00 +0100
 
 mtda (0.47-1) testing; urgency=medium
 
