@@ -314,8 +314,14 @@ of the device attached to MTDA. The following settings are supported:
 * ``hostname``: string [required]
     The PDU which will run power commands sent by the MTDA agent.
 
-* ``port``: integer [required]
-    The port on the specified PDU to which the device is connected.
+* ``port``: string [required]
+    Comma-separated list of ports on the specified PDU to which the device is connected.
+    Ports are powered on and off in the order listed.
+
+    Example::
+
+        port = 1
+        port = 1,2
 
 ``qemu`` driver settings
 ~~~~~~~~~~~~~~~~~~~~~~~~
