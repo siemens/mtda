@@ -22,12 +22,11 @@ import threading
 import time
 import zstandard as zstd
 
-import grpc
-
 from mtda.main import MultiTenantDeviceAccess
 from mtda.grpc import mtda_pb2, mtda_pb2_grpc
 from mtda.utils import Compression, BmapUtils
 import mtda.constants as CONSTS
+import mtda.tls
 
 
 class _GrpcImpl:
@@ -460,8 +459,11 @@ class Client:
         agent = MultiTenantDeviceAccess()
         agent.load_config(host, config_files=config_files)
         if agent.remote is not None:
-            target = f'{agent.remote}:{agent.ctrlport}'
-            channel = grpc.insecure_channel(target)
+            host = agent.remote
+            if ':' in host and not host.startswith('['):
+                host = f'[{host}]'  # bracket IPv6 literals for host:port
+            target = f'{host}:{agent.ctrlport}'
+            channel = mtda.tls.build_channel(target, agent)
             stub = mtda_pb2_grpc.MtdaServiceStub(channel)
             impl = _GrpcImpl(stub, session, timeout)
             impl._channel = channel
@@ -484,6 +486,14 @@ class Client:
                 return attr(*args, **kwargs)
             return wrapper
         return attr
+
+    @property
+    def agent(self):
+        """Underlying agent/config object (exposes the [security] tls_*
+        settings), so other gRPC clients built around this Client (e.g.
+        mtda-www's WebConsole) can build their own TLS-aware channels
+        consistently instead of always connecting insecurely."""
+        return self._agent
 
     def console_prefix_key(self):
         return self._agent.console_prefix_key()

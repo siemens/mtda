@@ -31,6 +31,7 @@ from mtda.main import MultiTenantDeviceAccess
 from mtda.grpc import mtda_pb2_grpc
 from mtda.grpc.servicer import MtdaServicer
 import mtda.constants as CONSTS
+import mtda.tls
 
 
 class Application:
@@ -63,6 +64,26 @@ class Application:
             return status
 
     def _addresses(self):
+        # When [security] bind restricts the gRPC listener to a specific
+        # address, advertise only that address via mDNS instead of every
+        # network interface - otherwise clients discovering the agent via
+        # ZeroConf (e.g. mtda-tv) would be pointed at addresses the server
+        # isn't actually listening on and fail to connect (see
+        # docs/hardening.rst). "[::]"/"0.0.0.0" (the default, listen on
+        # every interface) keeps advertising every non-loopback interface
+        # as before.
+        bind = self.agent.security_bind
+        wildcard = {'[::]', '::', '0.0.0.0', ''}
+        if bind not in wildcard:
+            host = bind.strip('[]')
+            try:
+                socket.inet_aton(host)
+                return [host]
+            except OSError:
+                # Not an IPv4 literal (e.g. an IPv6 address or hostname);
+                # nothing safe to advertise via this IPv4-only mechanism.
+                return []
+
         results = []
         for iface in netifaces.interfaces():
             if iface.startswith("lo"):
@@ -84,7 +105,12 @@ class Application:
             concurrent.futures.ThreadPoolExecutor(max_workers=10))
         mtda_pb2_grpc.add_MtdaServiceServicer_to_server(
             MtdaServicer(self.agent), self._grpc_server)
-        self._grpc_server.add_insecure_port(f'[::]:{self.agent.ctrlport}')
+        addr = f'{self.agent.security_bind}:{self.agent.ctrlport}'
+        credentials = mtda.tls.build_server_credentials(self.agent)
+        if credentials is not None:
+            self._grpc_server.add_secure_port(addr, credentials)
+        else:
+            self._grpc_server.add_insecure_port(addr)
         self._grpc_server.start()
 
         # Initialize ZeroConf

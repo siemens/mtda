@@ -182,6 +182,32 @@ General settings
       ``mtda-tv``'s own port (bypassing the proxy) so tile links keep
       pointing at the proxy instead of ``mtda-tv`` itself.
 
+* ``security``: section [optional]
+   Hardens an agent's gRPC control port, typically when it sits behind a
+   reverse proxy terminating mutual TLS (mTLS). See :ref:`hardening` for a
+   complete walkthrough.
+
+  * ``bind``: string [optional]
+      Address the gRPC server binds to (defaults to ``[::]``, all
+      interfaces). Restrict this to a loopback or private/management
+      address (e.g. ``127.0.0.1``) when the agent is only meant to be
+      reached through a reverse proxy.
+
+  * ``trust_proxy_identity``: boolean [optional]
+      When enabled (defaults to ``false``), the session identity used for
+      locking/idle tracking is derived from the reverse proxy's
+      verified TLS-client-certificate header instead of the
+      client-supplied ``mtda-session`` metadata, which cannot otherwise be
+      trusted to identify the caller (anyone can send an arbitrary value).
+      Only enable this once ``bind`` (or a firewall) guarantees the agent
+      cannot be reached other than through that proxy.
+
+  * ``identity_header``: string [optional]
+      gRPC metadata key carrying the proxy-verified client identity
+      (defaults to ``x-forwarded-tls-client-cert-info``, matching
+      Traefik's ``passTLSClientCert`` middleware). Only the Subject CN is
+      extracted and used as the session name, prefixed with ``cert:``.
+
 Console, Monitor & Keyboard settings
 ------------------------------------
 

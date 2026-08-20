@@ -12,6 +12,7 @@
 # Local imports
 from mtda.console.output import ConsoleOutput
 import mtda.constants as CONSTS
+import mtda.tls
 
 # System imports
 import grpc
@@ -28,10 +29,11 @@ class RemoteConsole(ConsoleOutput):
     # Topics this console cares about (bytes form for comparison)
     TOPICS = {CONSTS.CHANNEL.CONSOLE, CONSTS.CHANNEL.EVENTS}
 
-    def __init__(self, host, port, screen):
+    def __init__(self, host, port, screen, agent=None):
         ConsoleOutput.__init__(self, screen)
         self.host = host
         self.port = port
+        self._agent = agent
         self._channel = None
         self._stream = None
 
@@ -62,7 +64,11 @@ class RemoteConsole(ConsoleOutput):
         max_backoff = 30
         while not self.exiting:
             try:
-                self._channel = grpc.insecure_channel(target)
+                if self._agent is not None:
+                    self._channel = mtda.tls.build_channel(
+                        target, self._agent)
+                else:
+                    self._channel = grpc.insecure_channel(target)
                 stub = mtda_pb2_grpc.MtdaServiceStub(self._channel)
                 self._stream = stub.Subscribe(mtda_pb2.Empty())
                 topics = self._topics()

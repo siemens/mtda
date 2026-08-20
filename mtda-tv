@@ -23,13 +23,13 @@ import re
 import socket
 import threading
 
-import grpc
 import tornado.web
 import tornado.ioloop
 import zeroconf
 
 from mtda.grpc import mtda_pb2, mtda_pb2_grpc
 import mtda.constants as CONSTS
+import mtda.tls
 
 
 logging.basicConfig(level=logging.INFO,
@@ -59,6 +59,18 @@ class GatewayConfig:
         self.prefix = '/agents'
         self.strip_prefix = True
         self.base_url = ''
+        self.tls_entry_point = ''
+        # Client-side TLS settings used when polling agents over gRPC
+        # (AgentTracker.poll_agent) - same [security] keys as mtda-cli and
+        # mtda-www, since mtda-tv is itself just another gRPC client here.
+        # Applied uniformly to every discovered agent: mtda-tv is meant to
+        # poll a fleet of agents behind a single trust domain/CA (see
+        # docs/hardening.rst), not to hold a different identity per agent.
+        self.tls_enabled = CONSTS.SECURITY.TLS_ENABLED
+        self.tls_ca = CONSTS.SECURITY.TLS_CA
+        self.tls_cert = CONSTS.SECURITY.TLS_CERT
+        self.tls_key = CONSTS.SECURITY.TLS_KEY
+        self.tls_server_name = CONSTS.SECURITY.TLS_SERVER_NAME
         self._load()
 
     def _config_files(self):
@@ -77,6 +89,17 @@ class GatewayConfig:
     def _load(self):
         parser = configparser.ConfigParser()
         parser.read(self._config_files())
+        if parser.has_section('security'):
+            self.tls_enabled = parser.getboolean(
+                'security', 'tls', fallback=self.tls_enabled)
+            self.tls_ca = parser.get(
+                'security', 'tls_ca', fallback=self.tls_ca)
+            self.tls_cert = parser.get(
+                'security', 'tls_cert', fallback=self.tls_cert)
+            self.tls_key = parser.get(
+                'security', 'tls_key', fallback=self.tls_key)
+            self.tls_server_name = parser.get(
+                'security', 'tls_server_name', fallback=self.tls_server_name)
         if not parser.has_section('gateway'):
             return
         self.enabled = parser.getboolean(
@@ -87,6 +110,17 @@ class GatewayConfig:
             'gateway', 'strip_prefix', fallback=self.strip_prefix)
         self.base_url = parser.get(
             'gateway', 'base_url', fallback=self.base_url).rstrip('/')
+        # Name of a Traefik entry point (e.g. "websecure") that terminates
+        # TLS/mTLS in front of the agent's own web UI (see docs/hardening.rst).
+        # Left empty by default: routers are then only ever generated for
+        # plain (non-TLS) entry points, exactly as before this option
+        # existed. A router needs its own explicit "tls" section to be
+        # served over a TLS entry point in Traefik - and, conversely, a
+        # router carrying "tls" is excluded from plain entry points - so a
+        # second, TLS-only router is generated per agent whenever this is
+        # set, alongside the original plain one.
+        self.tls_entry_point = parser.get(
+            'gateway', 'tls_entry_point', fallback=self.tls_entry_point)
 
     def agent_prefix(self, name):
         return f'{self.prefix}/{name}'
@@ -127,11 +161,16 @@ class AgentInfo:
 class AgentTracker:
     """Discovers MTDA agents via ZeroConf and polls them for snapshots."""
 
-    def __init__(self, poll_interval=2.0):
+    def __init__(self, poll_interval=2.0, security=None):
         self._agents = {}
         self._lock = threading.Lock()
         self._poll_interval = poll_interval
         self._running = False
+        # Client-side TLS settings (a GatewayConfig instance, or any object
+        # exposing the same tls_* attributes) used to poll agents; None (or
+        # an object with tls_enabled=False) preserves the historical plain
+        # gRPC behavior.
+        self._security = security
 
     @property
     def agents(self):
@@ -172,7 +211,8 @@ class AgentTracker:
     def poll_agent(self, agent):
         """Fetch snapshot and metadata from a single agent via gRPC."""
         try:
-            channel = grpc.insecure_channel(agent.grpc_target)
+            channel = mtda.tls.build_channel(
+                agent.grpc_target, self._security)
             stub = mtda_pb2_grpc.MtdaServiceStub(channel)
 
             # Fetch snapshot (best-effort: agents without a video source
@@ -265,6 +305,16 @@ class TraefikConfigHandler(tornado.web.RequestHandler):
     the result with no reload/restart, so routes stay in sync with
     ZeroConf discovery. Returns 404 unless gateway support is enabled
     via the [gateway] config.d fragment (see configs/20-gateway.conf).
+
+    When [gateway] tls_entry_point names a Traefik entry point (e.g.
+    "websecure") that terminates TLS/mTLS in front of this proxy (see
+    docs/hardening.rst), a second router/middleware pair is generated
+    for each agent, restricted to that entry point and carrying an
+    explicit (empty) "tls" section - required for Traefik to route
+    HTTPS traffic to it at all. A single router cannot serve both plain
+    and TLS entry points: once "tls" is present, Traefik excludes that
+    router from any entry point without TLS, hence the duplication
+    rather than reusing the plain router as-is.
     """
 
     ROUTE_RE = re.compile(r'[^a-zA-Z0-9_-]')
@@ -286,9 +336,10 @@ class TraefikConfigHandler(tornado.web.RequestHandler):
             # use as map keys; sanitize the (user-controlled) agent name.
             slug = self.ROUTE_RE.sub('-', name)
             prefix = gateway.agent_prefix(name)
+            service_key = f"agent-{slug}"
             router = {
                 "rule": f"PathPrefix(`{prefix}`)",
-                "service": f"agent-{slug}",
+                "service": service_key,
             }
 
             if gateway.strip_prefix:
@@ -298,12 +349,18 @@ class TraefikConfigHandler(tornado.web.RequestHandler):
                 }
                 router["middlewares"] = [strip_key]
 
-            routers[f"agent-{slug}"] = router
-            services[f"agent-{slug}"] = {
+            routers[service_key] = router
+            services[service_key] = {
                 "loadBalancer": {
                     "servers": [{"url": agent.www_url}]
                 }
             }
+
+            if gateway.tls_entry_point:
+                tls_router = dict(router)
+                tls_router["entryPoints"] = [gateway.tls_entry_point]
+                tls_router["tls"] = {}
+                routers[f"{service_key}-tls"] = tls_router
 
         config = {
             "http": {
@@ -398,9 +455,10 @@ class Service:
         self._interval = args.interval
 
     async def run(self):
-        tracker = AgentTracker(poll_interval=self._interval)
-        tracker.start_discovery()
         gateway = GatewayConfig()
+        tracker = AgentTracker(
+            poll_interval=self._interval, security=gateway)
+        tracker.start_discovery()
         if gateway.enabled:
             logger.info(f"gateway support enabled (prefix={gateway.prefix})")
 

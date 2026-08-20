@@ -78,6 +78,20 @@ class MultiTenantDeviceAccess:
         self.blksz = CONSTS.WRITER.READ_SIZE
         self.usb_switches = []
         self.ctrlport = 5556
+        self.security_bind = CONSTS.SECURITY.BIND
+        self.trust_proxy_identity = CONSTS.SECURITY.TRUST_PROXY_IDENTITY
+        self.identity_header = CONSTS.SECURITY.IDENTITY_HEADER
+        self.tls_enabled = CONSTS.SECURITY.TLS_ENABLED
+        self.tls_ca = CONSTS.SECURITY.TLS_CA
+        self.tls_cert = CONSTS.SECURITY.TLS_CERT
+        self.tls_key = CONSTS.SECURITY.TLS_KEY
+        self.tls_server_name = CONSTS.SECURITY.TLS_SERVER_NAME
+        self.server_tls = CONSTS.SECURITY.SERVER_TLS
+        self.server_cert = CONSTS.SECURITY.SERVER_CERT
+        self.server_key = CONSTS.SECURITY.SERVER_KEY
+        self.server_client_ca = CONSTS.SECURITY.SERVER_CLIENT_CA
+        self.server_require_client_cert = \
+            CONSTS.SECURITY.SERVER_REQUIRE_CLIENT_CERT
         self.prefix_key = self._prefix_key_code(DEFAULT_PREFIX_KEY)
         self.is_remote = False
         self.is_server = False
@@ -357,7 +371,7 @@ class MultiTenantDeviceAccess:
                 # Create and start our remote console
                 from mtda.console.remote import RemoteConsole
                 self.console_output = RemoteConsole(
-                    host, self.ctrlport, screen)
+                    host, self.ctrlport, screen, agent=self)
                 self.console_output.start()
             else:
                 self.console_output = None
@@ -666,7 +680,7 @@ class MultiTenantDeviceAccess:
                 # (i.e. buffering) state
                 from mtda.console.remote import RemoteMonitor
                 self.monitor_output = RemoteMonitor(
-                    host, self.ctrlport, screen)
+                    host, self.ctrlport, screen, agent=self)
                 self.monitor_output.pause()
                 self.monitor_output.start()
             else:
@@ -1650,6 +1664,22 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(2, f"main.load_config(): config_files={config_files}")
 
         self.remote = os.getenv('MTDA_REMOTE', remote)
+
+        # Let the remote value itself carry a non-default port and/or
+        # request TLS (mtda://, mtdas:// schemes or a "host:port" form),
+        # convenient for one-off connections through a Traefik mTLS
+        # front-end without editing a configuration file. Applied further
+        # below, after config-file settings are loaded, so it can override
+        # them (an explicit -r/$MTDA_REMOTE wins over the config file).
+        self._remote_port_override = None
+        self._remote_tls_override = False
+        if self.remote is not None:
+            from mtda.tls import parse_remote
+            host, port, tls = parse_remote(self.remote)
+            self.remote = host
+            self._remote_port_override = port
+            self._remote_tls_override = tls
+
         self.is_remote = self.remote is not None
         self.is_server = is_server
         parser = configparser.ConfigParser()
@@ -1661,8 +1691,16 @@ class MultiTenantDeviceAccess:
             self.load_main_config(parser)
         if parser.has_section('pastebin'):
             self.load_pastebin_config(parser)
-        if parser.has_section('remote'):
+        if parser.has_section('remote') or self.remote is not None:
+            # Also run this when an explicit -r/$MTDA_REMOTE was given even
+            # without a [remote] section in the config file, so its port/TLS
+            # overrides (see parse_remote() above) still apply for one-off
+            # connections that don't otherwise need a config file at all.
             self.load_remote_config(parser)
+        if parser.has_section('security'):
+            self.load_security_config(parser)
+        if self._remote_tls_override:
+            self.tls_enabled = True
         self.load_timeouts_config(parser)
         if parser.has_section('ui'):
             self.load_ui_config(parser)
@@ -1779,6 +1817,11 @@ class MultiTenantDeviceAccess:
 
         self.ctrlport = int(
             parser.get('remote', 'control', fallback=self.ctrlport))
+        if self._remote_port_override is not None:
+            # An explicit port in -r/$MTDA_REMOTE (e.g. "host:8443" or
+            # "mtdas://host:8443") takes precedence over the config file,
+            # since it was given for this specific connection.
+            self.ctrlport = self._remote_port_override
         if self.is_server is False:
             if self.remote is None:
                 # Load remote setting from the configuration
@@ -1804,6 +1847,69 @@ class MultiTenantDeviceAccess:
         else:
             self.remote = None
         self.is_remote = self.remote is not None
+
+    def load_security_config(self, parser):
+        self.mtda.debug(3, "main.load_security_config()")
+
+        # Address the gRPC server binds to. Restrict this to a loopback or
+        # private/management interface (e.g. "127.0.0.1") when the agent
+        # sits behind a reverse proxy (Traefik) so it cannot be reached
+        # directly, bypassing the proxy's TLS/mTLS enforcement.
+        self.security_bind = parser.get(
+            'security', 'bind', fallback=self.security_bind)
+
+        # When enabled, the session identity used for locking/idle tracking
+        # is taken from a header set by a trusted reverse proxy after it
+        # has verified the caller's TLS client certificate, instead of the
+        # client-supplied "mtda-session" metadata (which anyone can forge).
+        # Only enable this when the agent is reachable exclusively through
+        # that proxy (see "bind" above and the hardening guide).
+        self.trust_proxy_identity = parser.getboolean(
+            'security', 'trust_proxy_identity',
+            fallback=self.trust_proxy_identity)
+        self.identity_header = parser.get(
+            'security', 'identity_header',
+            fallback=self.identity_header)
+
+        # Client-side (and Traefik-facing) TLS settings, used to reach a
+        # remote agent's control port over TLS/mTLS instead of in the
+        # clear. "tls_ca" verifies the server (Traefik) certificate;
+        # "tls_cert"/"tls_key" present this client's own certificate for
+        # mutual TLS. "tls_server_name" overrides the name used for
+        # certificate hostname verification, useful when connecting by IP
+        # or through a tunnel/SSH port-forward under a different name than
+        # the certificate's Subject/SAN.
+        self.tls_enabled = parser.getboolean(
+            'security', 'tls', fallback=self.tls_enabled)
+        self.tls_ca = parser.get(
+            'security', 'tls_ca', fallback=self.tls_ca)
+        self.tls_cert = parser.get(
+            'security', 'tls_cert', fallback=self.tls_cert)
+        self.tls_key = parser.get(
+            'security', 'tls_key', fallback=self.tls_key)
+        self.tls_server_name = parser.get(
+            'security', 'tls_server_name', fallback=self.tls_server_name)
+
+        # Server-side TLS for the agent's own gRPC listener (add_secure_port
+        # in mtda-service), used when Traefik and the agent run on separate
+        # nodes and the hop between them must itself be authenticated and
+        # encrypted rather than relying on network trust alone. Traefik is
+        # expected to act as a TLS *client* on this hop (see
+        # serversTransport in dynamic-mtls.yml); "server_client_ca" verifies
+        # that Traefik is who it claims to be, which is what makes it safe
+        # for the agent to trust the identity header Traefik forwards from
+        # the first (client-facing) mTLS hop.
+        self.server_tls = parser.getboolean(
+            'security', 'server_tls', fallback=self.server_tls)
+        self.server_cert = parser.get(
+            'security', 'server_cert', fallback=self.server_cert)
+        self.server_key = parser.get(
+            'security', 'server_key', fallback=self.server_key)
+        self.server_client_ca = parser.get(
+            'security', 'server_client_ca', fallback=self.server_client_ca)
+        self.server_require_client_cert = parser.getboolean(
+            'security', 'server_require_client_cert',
+            fallback=self.server_require_client_cert)
 
     def load_timeouts_config(self, parser):
         self.mtda.debug(3, "main.load_timeouts_config()")

@@ -1,0 +1,113 @@
+# ---------------------------------------------------------------------------
+# Sample Traefik dynamic configuration: mTLS in front of an MTDA agent
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2026 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+#
+# Terminates mutual TLS (mTLS) for MTDA's gRPC control channel and forwards
+# the verified client certificate's identity to the agent, which can then
+# use it (instead of the client-supplied "mtda-session" metadata) as the
+# session identity for locking/idle tracking. See docs/hardening.rst for
+# the full walkthrough, including CA/certificate issuance and the matching
+# [security] settings on the agent side (configs/30-security.conf).
+#
+# Two independent mTLS hops are configured below:
+#   1. client <-> Traefik   (tls.options.mtls, verifies the end user)
+#   2. Traefik <-> agent    (serversTransport, verifies Traefik itself)
+#
+# The second hop matters whenever Traefik and the agent run on different
+# nodes (e.g. Traefik + mtda-tv on a gateway host, mtda-service/mtda-www on
+# each device-under-test node): without it, the identity header forwarded
+# by Traefik would travel over the network in the clear and could be
+# spoofed by anyone able to reach the agent directly, defeating the first
+# hop's guarantees. If Traefik and the agent run on the very same host
+# (loopback-only traffic), hop 2 may be skipped and the agent's
+# [security] server_tls left disabled - only do so once "bind" (see
+# configs/30-security.conf) guarantees no other host can reach the agent.
+#
+# Load this alongside traefik.yml, e.g. by adding to its static config:
+#
+#   entryPoints:
+#     agents:
+#       address: ":8443"
+#
+#   providers:
+#     file:
+#       filename: /etc/traefik/dynamic-mtls.yml
+#
+# Adjust "rule", "address" and certificate paths below to your environment.
+# One router/service pair is needed per agent (or generate them the same
+# way mtda-tv's /api/traefik-config generates HTTP routes for the grid).
+# ---------------------------------------------------------------------------
+
+tls:
+  options:
+    mtls:
+      minVersion: "VersionTLS12"
+      clientAuth:
+        # Path to the CA certificate used to sign client certificates.
+        caFiles:
+          - "/etc/traefik/certs/ca.pem"
+        clientAuthType: "RequireAndVerifyClientCert"
+
+  certificates:
+    - certFile: "/etc/traefik/certs/traefik.pem"
+      keyFile: "/etc/traefik/certs/traefik-key.pem"
+
+http:
+  middlewares:
+    # Extracts the verified client certificate's Subject into the
+    # X-Forwarded-Tls-Client-Cert-Info header, which the agent parses for
+    # the Subject CN when [security] trust_proxy_identity is enabled.
+    mtda-identity:
+      passTLSClientCert:
+        info:
+          subject:
+            commonName: true
+
+  routers:
+    my-agent:
+      rule: "Host(`my-agent.example.com`)"
+      entryPoints:
+        - "agents"
+      tls:
+        options: "mtls"
+      middlewares:
+        - "mtda-identity"
+      service: "my-agent"
+
+  services:
+    my-agent:
+      loadBalancer:
+        # Second hop (Traefik -> agent), see serversTransports below.
+        # Use "h2c://" instead of "https://" only when the agent runs on
+        # the same trusted host as Traefik (see note above); otherwise
+        # this must be "https://" with [security] server_tls enabled on
+        # the agent so the hop is itself encrypted and authenticated.
+        serversTransport: "my-agent-transport"
+        servers:
+          # MTDA's gRPC control port (default 5556) on the agent's own
+          # node, reachable only from this Traefik instance once the
+          # agent's [security] bind/firewall restricts direct access
+          # (see configs/30-security.conf).
+          - url: "https://my-agent.example.com:5556"
+
+  serversTransports:
+    my-agent-transport:
+      # Traefik's own client certificate for the second hop, checked by
+      # the agent against [security] server_client_ca when
+      # server_require_client_cert is enabled.
+      certificates:
+        - certFile: "/etc/traefik/certs/traefik-backend.pem"
+          keyFile: "/etc/traefik/certs/traefik-backend-key.pem"
+      # CA that signed the agent's server certificate ([security]
+      # server_cert), so Traefik can verify it is really talking to the
+      # expected agent rather than an impersonator.
+      rootCAs:
+        - "/etc/traefik/certs/ca.pem"
+
