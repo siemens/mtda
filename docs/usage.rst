@@ -156,14 +156,6 @@ the host, changes may be either committed or reverted using the
     $ mtda-cli storage host
     $ mtda-cli storage commit # or rollback
 
-Monitor commands
-~~~~~~~~~~~~~~~~
-
-When using KVM in lieu of an actual target device, arbitrary commands
-may be sent to the QEMU monitor using the ``command`` command::
-
-    $ mtda-cli command hostfwd_add tcp::8080-:8080
-
 Keyboard
 ~~~~~~~~
 

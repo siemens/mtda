@@ -110,14 +110,6 @@ class Application:
     def debug(self, level, msg):
         self.client().debug(level, msg)
 
-    def command_cmd(self, args):
-        result = self.client().command(args.cmd_command)
-        if isinstance(result, str):
-            print(result)
-        else:
-            print(f"Device command '{' '.join(args)}' failed!",
-                  file=sys.stderr)
-
     def console_clear(self, args):
         self.client().console_clear()
 
@@ -683,20 +675,9 @@ class Application:
                  "docs/hardening.rst)",
         )
 
-        # subcommand: command
+        # subcommand: console
         subparsers = parser.add_subparsers(dest="command")
         subparsers.required = False
-        cmd = self.command_cmd
-        p = subparsers.add_parser(
-            "command",
-            help="Send a command (string) to the device",
-        )
-        p.add_argument(
-            "cmd_command", metavar="cmd", type=str, help="Command to send"
-        )
-        p.set_defaults(func=cmd)
-
-        # subcommand: console
         cmd = self.console_cmd
         p = subparsers.add_parser(
             "console",

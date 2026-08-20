@@ -54,14 +54,6 @@ message AgentInfoResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Power / command
-// ---------------------------------------------------------------------------
-
-message CommandRequest {
-    string args = 1;
-}
-
-// ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 
@@ -299,9 +291,6 @@ service MtdaService {
     // --- Agent ---
     rpc AgentVersion       (Empty)                   returns (AgentVersionResponse);
     rpc AgentInfo          (Empty)                   returns (AgentInfoResponse);
-
-    // --- Power / command ---
-    rpc Command            (CommandRequest)           returns (BoolResponse);
 
     // --- Config ---
     rpc ConfigSetPowerTimeout   (SetPowerTimeoutRequest)   returns (Int32Response);

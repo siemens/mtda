@@ -45,9 +45,6 @@ class ShellCmdPowerController(PowerController):
             raise ValueError("check-on not specified")
         self.mtda.debug(3, f"check_on: {self.check_on}")
 
-    def command(self, args):
-        return False
-
     def on(self):
         proc = subprocess.run(self.on_cmd, shell=True, capture_output=True)
         if proc.returncode != 0:

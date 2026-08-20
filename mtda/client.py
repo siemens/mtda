@@ -53,12 +53,6 @@ class _GrpcImpl:
         return self._call(self._stub.AgentVersion,
                           mtda_pb2.Empty()).version or None
 
-    # --- Power / command ---
-
-    def command(self, args, **kwargs):
-        return self._call(self._stub.Command,
-                          mtda_pb2.CommandRequest(args=args)).value
-
     # --- Config ---
 
     def config_set_power_timeout(self, timeout, **kwargs):

@@ -106,9 +106,6 @@ class DockerPowerController(PowerController):
         self.mtda.debug(3, f"power.docker._stop(): {result}")
         return result
 
-    def command(self, args):
-        return False
-
     def _import_close(self):
         self.mtda.debug(3, "power.docker._import_close()")
 
