@@ -21,11 +21,21 @@
 entryPoints:
   web:
     address: ":8000"
+  # Uncomment to terminate mutual TLS (mTLS) in front of an agent's gRPC
+  # control port, forwarding the verified client identity so the agent can
+  # authenticate sessions instead of trusting caller-supplied session
+  # names. See dynamic-mtls.yml and docs/hardening.rst for full setup.
+  # agents:
+  #   address: ":8443"
 
 providers:
   http:
     endpoint: "http://localhost:5005/api/traefik-config"
     pollInterval: "3s"
+  # Loads dynamic-mtls.yml (TLS options, mTLS router/service) alongside the
+  # HTTP provider above; both providers can be active at the same time.
+  # file:
+  #   filename: /etc/traefik/dynamic-mtls.yml
 
 # Uncomment to expose the Traefik dashboard (development only - disable or
 # secure it before using this in anything resembling production).

@@ -16,6 +16,7 @@ Welcome to MTDA's documentation!
    fixtures
    integration
    config
+   hardening
    build
    dev
    FAQ

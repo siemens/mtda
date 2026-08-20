@@ -41,6 +41,9 @@ override_dh_auto_install:
 	install -m 0755 -d debian/mtda-service/usr/sbin
 	mv debian/mtda-service/usr/bin/mtda-service debian/mtda-service/usr/sbin/
 	:
+	install -m 0755 -d debian/mtda-service/usr/share/doc/mtda-service/examples/
+	install -m 0644 configs/30-security.conf debian/mtda-service/usr/share/doc/mtda-service/examples/
+	:
 	install -m 0755 -d debian/mtda-systemd-helper/usr/sbin
 	mv debian/mtda-service/usr/bin/mtda-systemd-helper debian/mtda-systemd-helper/usr/sbin/
 	:
@@ -56,6 +59,7 @@ override_dh_auto_install:
 	mv debian/mtda-service$(MTDA_DIST)/constants.py debian/mtda-common$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/main.py debian/mtda-common$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/discovery.py debian/mtda-common$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/tls.py debian/mtda-common$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/grpc/__init__.py debian/mtda-common$(MTDA_DIST)/grpc/
 	mv debian/mtda-service$(MTDA_DIST)/grpc/mtda_pb2.py debian/mtda-common$(MTDA_DIST)/grpc/
 	mv debian/mtda-service$(MTDA_DIST)/grpc/mtda_pb2_grpc.py debian/mtda-common$(MTDA_DIST)/grpc/
@@ -105,6 +109,7 @@ override_dh_auto_install:
 	install -m 0755 -d debian/mtda-tv-gateway/usr/share/doc/mtda-tv-gateway/examples/traefik/
 	install -m 0644 configs/traefik/traefik.yml debian/mtda-tv-gateway/usr/share/doc/mtda-tv-gateway/examples/traefik/
 	install -m 0644 configs/traefik/docker-compose.yml debian/mtda-tv-gateway/usr/share/doc/mtda-tv-gateway/examples/traefik/
+	install -m 0644 configs/traefik/dynamic-mtls.yml debian/mtda-tv-gateway/usr/share/doc/mtda-tv-gateway/examples/traefik/
 
 override_dh_installsystemd:
 	dh_installsystemd -p mtda-tv mtda-tv.service

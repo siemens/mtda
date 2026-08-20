@@ -71,6 +71,22 @@ class RPC:
     TIMEOUT = 2*60
 
 
+class SECURITY:
+    BIND = '[::]'
+    TRUST_PROXY_IDENTITY = False
+    IDENTITY_HEADER = 'x-forwarded-tls-client-cert-info'
+    TLS_ENABLED = False
+    TLS_CA = None
+    TLS_CERT = None
+    TLS_KEY = None
+    TLS_SERVER_NAME = None
+    SERVER_TLS = False
+    SERVER_CERT = None
+    SERVER_KEY = None
+    SERVER_CLIENT_CA = None
+    SERVER_REQUIRE_CLIENT_CERT = True
+
+
 class SESSION:
     MIN_TIMEOUT = 10
     ACTIVE = "ACTIVE"

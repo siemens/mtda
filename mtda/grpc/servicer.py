@@ -11,6 +11,8 @@
 
 import json
 import queue
+import re
+import urllib.parse
 
 import grpc
 
@@ -20,8 +22,57 @@ from mtda.grpc import mtda_pb2
 from mtda.grpc import mtda_pb2_grpc
 
 
+# Security posture applied when extracting the caller's session identity.
+# Configured once from the agent's [security] settings when the servicer is
+# constructed (see MtdaServicer.__init__ / mtda.main load_security_config).
+_trust_proxy_identity = False
+_identity_header = CONSTS.SECURITY.IDENTITY_HEADER
+
+# Matches the CN= component of the Subject DN in Traefik's
+# passTLSClientCert "info" header, e.g. Subject="CN=my-client,O=Example".
+_CN_RE = re.compile(r'CN=([^,;"]+)')
+
+
+def configure_security(trust_proxy_identity, identity_header=None):
+    """Apply the [security] settings from the agent configuration. Must be
+    called before any RPC is handled (done from MtdaServicer.__init__)."""
+    global _trust_proxy_identity, _identity_header
+    _trust_proxy_identity = bool(trust_proxy_identity)
+    _identity_header = identity_header or CONSTS.SECURITY.IDENTITY_HEADER
+
+
+def _proxy_identity(context):
+    """Extract a verified client identity from the reverse proxy's
+    TLS-client-cert header, if present. Returns None if the header is
+    missing or does not carry a recognizable Subject CN.
+
+    Traefik's passTLSClientCert middleware percent-encodes this header's
+    value (e.g. "CN%3Dchristophe" for "CN=christophe"), so it must be
+    URL-decoded before the Subject CN can be matched - otherwise this
+    always (silently) fails to find a CN and trust_proxy_identity falls
+    through to treating every caller as anonymous."""
+    header = _identity_header.lower()
+    for key, value in context.invocation_metadata():
+        if key == header:
+            value = urllib.parse.unquote(value)
+            match = _CN_RE.search(value)
+            if match:
+                return f"cert:{match.group(1)}"
+    return None
+
+
 def _session(context):
-    """Extract the mtda-session value from gRPC call metadata."""
+    """Return the session identity to use for this call.
+
+    When trust_proxy_identity is enabled, the identity asserted by the
+    reverse proxy (derived from a verified TLS client certificate) is used
+    and any client-supplied "mtda-session" metadata is ignored, since it
+    cannot be trusted to identify the caller. Otherwise, fall back to the
+    caller-provided "mtda-session" metadata value (legacy behavior, not an
+    authentication mechanism)."""
+    if _trust_proxy_identity:
+        return _proxy_identity(context)
+
     for key, value in context.invocation_metadata():
         if key == 'mtda-session':
             return value
@@ -45,6 +96,9 @@ class MtdaServicer(mtda_pb2_grpc.MtdaServiceServicer):
 
     def __init__(self, agent):
         self._agent = agent
+        configure_security(
+            getattr(agent, 'trust_proxy_identity', False),
+            getattr(agent, 'identity_header', None))
 
     # ------------------------------------------------------------------
     # Agent

@@ -677,7 +677,10 @@ class Application:
             metavar="",
             default="localhost",
             required=False,
-            help="remote",
+            help="remote agent to connect to: host, host:port, "
+                 "mtda://host[:port] or mtdas://host[:port] to connect "
+                 "over TLS (e.g. through a Traefik mTLS front-end, see "
+                 "docs/hardening.rst)",
         )
 
         # subcommand: command
