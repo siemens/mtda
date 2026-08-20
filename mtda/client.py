@@ -24,7 +24,7 @@ import zstandard as zstd
 
 from mtda.main import MultiTenantDeviceAccess
 from mtda.grpc import mtda_pb2, mtda_pb2_grpc
-from mtda.utils import Compression, BmapUtils
+from mtda.utils import Compression, BmapUtils, SafeXml
 import mtda.constants as CONSTS
 import mtda.tls
 
@@ -606,9 +606,7 @@ class Client:
             try:
                 bmap = file.bmap(bmap_path)
                 if bmap is not None:
-                    import xml.etree.ElementTree as ET
-
-                    bmap = ET.fromstring(bmap)
+                    bmap = SafeXml.fromstring(bmap)
                     print(f"Discovered bmap file '{bmap_path}'")
                     bmapDict = BmapUtils.parseBmap(bmap, bmap_path)
                     self._impl.storage_bmap_dict(bmapDict)
