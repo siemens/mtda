@@ -8,6 +8,12 @@ SPDX-License-Identifier: MIT
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <!-- Apple iOS Safari settings -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script>
+      // Base path of this page (not the origin root), so absolute-looking
+      // references below keep working when served through a reverse proxy
+      // under a path prefix (e.g. mtda-tv's [gateway] support).
+      window.MTDA_BASE = window.location.pathname.replace(/[^/]*$/, '');
+    </script>
     <link rel="stylesheet" href="./assets/dropzone.css">
     <link rel="stylesheet" href="./assets/material_icons.css">
     <link rel="stylesheet" href="./assets/modern.min.css">
@@ -230,10 +236,10 @@ SPDX-License-Identifier: MIT
 
             // Load extra Python packages/wheels
             const packages = [
-              "/whl/pluggy-1.6.0-py3-none-any.whl",
-              "/whl/pygments-2.19.2-py3-none-any.whl",
-              "/whl/iniconfig-2.1.0-py3-none-any.whl",
-              "/whl/pytest-8.4.1-py3-none-any.whl"
+              `${window.MTDA_BASE}whl/pluggy-1.6.0-py3-none-any.whl`,
+              `${window.MTDA_BASE}whl/pygments-2.19.2-py3-none-any.whl`,
+              `${window.MTDA_BASE}whl/iniconfig-2.1.0-py3-none-any.whl`,
+              `${window.MTDA_BASE}whl/pytest-8.4.1-py3-none-any.whl`
             ];
             for (const pkgPath of packages) {
               await this.pyodide.loadPackage(pkgPath, { checkIntegrity: false });
@@ -582,7 +588,7 @@ SPDX-License-Identifier: MIT
         $('a#old-python-open').bind('click', function() {
           new WinBox({
             title: "Python",
-            url: "/pyodide/console.html",
+            url: window.MTDA_BASE + "pyodide/console.html",
             width: '640px',
             height: '480px',
             x: "center",
@@ -593,7 +599,7 @@ SPDX-License-Identifier: MIT
         $('a#swagger-open').bind('click', function() {
           new WinBox({
             title: "MTDA API Documentation",
-            url: "/api/swagger",
+            url: window.MTDA_BASE + "api/swagger",
             width: '800px',
             height: '600px',
             x: "center",
@@ -710,7 +716,11 @@ SPDX-License-Identifier: MIT
         }
       }
 
-      const socket = new WebSocket(`ws://${window.location.host}/mtda`);
+      // Build the WebSocket URL relative to this page's own path (not the
+      // origin root) so it keeps working when served through a reverse
+      // proxy under a path prefix (e.g. mtda-tv's [gateway] support).
+      const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const socket = new WebSocket(`${wsScheme}://${window.location.host}${window.MTDA_BASE}mtda`);
 
       socket.addEventListener("open", () => {
         status.innerHTML = '<span style="color: green;"><b>Connected</b></span>';
