@@ -40,11 +40,12 @@ class _GrpcImpl:
         self._session = session
         self._timeout = timeout
 
-    def _meta(self):
-        return (('mtda-session', self._session),) if self._session else ()
+    def _meta(self, session=None):
+        session = session or self._session
+        return (('mtda-session', session),) if session else ()
 
-    def _call(self, method, request):
-        return method(request, metadata=self._meta(),
+    def _call(self, method, request, session=None):
+        return method(request, metadata=self._meta(session),
                       timeout=self._timeout)
 
     # --- Agent ---
@@ -222,8 +223,9 @@ class _GrpcImpl:
         return self._call(self._stub.StorageNetwork, mtda_pb2.Empty()).value
 
     def storage_open(self, size=0, **kwargs):
+        session = kwargs.get('session')
         self._call(self._stub.StorageOpen,
-                   mtda_pb2.StorageOpenRequest(size=size))
+                   mtda_pb2.StorageOpenRequest(size=size), session=session)
         return None
 
     def storage_rollback(self, **kwargs):
@@ -478,7 +480,7 @@ class Client:
         attr = getattr(self._impl, name)
         if self._session and callable(attr):
             def wrapper(*args, **kwargs):
-                kwargs['session'] = self._session
+                kwargs.setdefault('session', self._session)
                 return attr(*args, **kwargs)
             return wrapper
         return attr
@@ -532,18 +534,19 @@ class Client:
     def storage_open(self, size=0, **kwargs):
         session = kwargs.get('session', self._session)
         self._impl.storage_open(size, session=session)
-        self._data = self._storage_socket()
+        self._data = self._storage_socket(session)
         return self._data
 
-    def _storage_socket(self):
+    def _storage_socket(self, session=None):
+        session = session or self._session
         if isinstance(self._impl, _GrpcImpl):
             return _GrpcStorageSocket(
                 self._impl._stub,
-                self._impl._session,
+                session,
                 self._impl._timeout,
             )
         else:
-            return _LocalStorageSocket(self._impl, self._session)
+            return _LocalStorageSocket(self._impl, session)
 
     def storage_update(self, dest, src=None, **kwargs):
         session = kwargs.get('session', self._session)
