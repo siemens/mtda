@@ -104,14 +104,6 @@ class GpioPowerController(PowerController):
         self.mtda.debug(3, f"power.gpio.probe(): {result}")
         return result
 
-    def command(self, args):
-        self.mtda.debug(3, "power.gpio.command()")
-
-        result = False
-
-        self.mtda.debug(3, f"power.gpio.command(): {result}")
-        return result
-
     def on(self):
         self.mtda.debug(3, "power.gpio.on()")
 

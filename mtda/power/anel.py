@@ -49,9 +49,6 @@ class AnelPowerController(PowerController):
         if self._plug is None:
             raise ValueError("plug not specified")
 
-    def command(self, args):
-        return False
-
     @contextmanager
     def _in(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

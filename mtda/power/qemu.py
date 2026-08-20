@@ -530,15 +530,6 @@ class QemuController(PowerController):
         self.mtda.debug(3, f"power.qemu.qmp(): {result}")
         return result
 
-    def command(self, args):
-        self.mtda.debug(3, "power.qemu.command()")
-
-        result = self.qmp(
-                "human-monitor-command", {"command-line": " ".join(args)})
-
-        self.mtda.debug(3, f"power.qemu.command(): {str(result)}")
-        return result if result is not None else ""
-
     def on(self):
         self.mtda.debug(3, "power.qemu.on()")
 

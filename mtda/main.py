@@ -126,18 +126,6 @@ class MultiTenantDeviceAccess:
     def agent_version(self,  **kwargs):
         return self.version
 
-    def command(self, args, **kwargs):
-        self.mtda.debug(3, "main.command()")
-
-        result = False
-        session = kwargs.get("session", None)
-        self.session_ping(session)
-        if self.power_locked(session) is False:
-            result = self.power.command(args)
-
-        self.mtda.debug(3, f"main.command(): {str(result)}")
-        return result
-
     def _composite_needed(self):
         if self.console is not None and self.console.variant == 'usbf':
             return True

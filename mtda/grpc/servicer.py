@@ -125,18 +125,6 @@ class MtdaServicer(mtda_pb2_grpc.MtdaServiceServicer):
             context.abort(grpc.StatusCode.INTERNAL, str(e))
 
     # ------------------------------------------------------------------
-    # Power / command
-    # ------------------------------------------------------------------
-
-    def Command(self, request, context):
-        try:
-            result = self._agent.command(request.args,
-                                         session=_session(context))
-            return _bool_response(result)
-        except Exception as e:
-            context.abort(grpc.StatusCode.INTERNAL, str(e))
-
-    # ------------------------------------------------------------------
     # Config
     # ------------------------------------------------------------------
 

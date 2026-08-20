@@ -52,9 +52,6 @@ class UsbRelayPowerController(PowerController):
             if line not in statuses:
                 raise ValueError(f"usbrelay: {line} not detected!")
 
-    def command(self, args):
-        return False
-
     def on(self):
         if self._set_lines("1") is False:
             return False
