@@ -25,7 +25,7 @@ import logging
 import functools
 
 from mtda.client import Client
-from mtda.utils import BmapUtils, Compression
+from mtda.utils import BmapUtils, Compression, SafeXml
 import mtda.constants as CONSTS
 import mtda.tls
 from mtda.console.remote import RemoteConsole
@@ -725,14 +725,12 @@ class StorageBmapHandler(RemoteCallHandler):
         def storage_bmap_dict(mtda, bmap, session):
             mtda.storage_bmap_dict(bmap, session=session)
 
-        import xml.etree.ElementTree as ET
-
         sid = self.get_argument('session')
         file_info = self.request.files.get('filename')[0]
         file_content = file_info['body'].decode('utf-8')
         filename = file_info['filename']
 
-        bmap_xml = ET.fromstring(file_content)
+        bmap_xml = SafeXml.fromstring(file_content)
         bmap = BmapUtils.parseBmap(bmap_xml, filename)
         await self.blocking_call(storage_bmap_dict, bmap, session=sid)
         return 204, None

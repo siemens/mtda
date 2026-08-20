@@ -18,6 +18,35 @@ import time
 import mtda.constants as CONSTS
 
 
+class SafeXml:
+    @staticmethod
+    def fromstring(data):
+        """Parse XML from a string like xml.etree.ElementTree.fromstring(),
+        but reject any DOCTYPE declaration. Since custom (and hence
+        recursively expandable, "billion laughs" style) entities can only
+        be declared from a DOCTYPE's internal subset, refusing any DOCTYPE
+        outright prevents entity-expansion denial-of-service without
+        needing an extra dependency (e.g. defusedxml)."""
+        import xml.parsers.expat
+        from xml.etree.ElementTree import TreeBuilder, ParseError
+
+        builder = TreeBuilder()
+        parser = xml.parsers.expat.ParserCreate()
+        parser.StartElementHandler = builder.start
+        parser.EndElementHandler = builder.end
+        parser.CharacterDataHandler = builder.data
+
+        def _forbid_doctype(name, pubid, sysid, has_internal_subset):
+            raise ParseError("XML DOCTYPE declarations are not allowed")
+
+        parser.StartDoctypeDeclHandler = _forbid_doctype
+
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+        parser.Parse(data, True)
+        return builder.close()
+
+
 class BmapUtils:
     def parseBmap(bmap, bmap_path):
         try:
