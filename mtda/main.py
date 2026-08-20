@@ -244,7 +244,7 @@ class MultiTenantDeviceAccess:
 
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session):
+        if self._locked_out(session):
             self.mtda.debug(2, "console_clear(): console is locked")
             return None
         if self.console_logger is not None:
@@ -260,7 +260,7 @@ class MultiTenantDeviceAccess:
 
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session):
+        if self._locked_out(session):
             self.mtda.debug(2, "console_dump(): console is locked")
             return None
 
@@ -276,7 +276,7 @@ class MultiTenantDeviceAccess:
 
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session):
+        if self._locked_out(session):
             self.mtda.debug(2, "console_flush(): console is locked")
             return None
 
@@ -340,7 +340,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session) is False and \
+        if self._locked_out(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.prompt(newPrompt)
 
@@ -373,7 +373,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session) is False and \
+        if self._locked_out(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.run(cmd)
 
@@ -386,7 +386,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session) is False and \
+        if self._locked_out(session) is False and \
            self.console_logger is not None:
             if not isinstance(data, bytes):
                 if raw is False:
@@ -404,7 +404,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session) is False and \
+        if self._locked_out(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.tail()
 
@@ -435,7 +435,7 @@ class MultiTenantDeviceAccess:
             timeout = CONSTS.RPC.TIMEOUT
             self.warn('console_wait() without timeout, '
                       f'using default ({timeout})')
-        if self.console_is_owner(session) is False and \
+        if self._locked_out(session) is False and \
            self.console_logger is not None:
             result = self.console_logger.wait(what, timeout)
 
@@ -683,7 +683,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.console_is_owner(session) is False and \
+        if self._locked_out(session) is False and \
            self.monitor_logger is not None:
             if not isinstance(data, bytes):
                 if raw is False:
@@ -705,7 +705,7 @@ class MultiTenantDeviceAccess:
             timeout = CONSTS.RPC.TIMEOUT
             self.warn('monitor_wait() called without timeout, '
                       'using default({})'.format(timeout))
-        if self.console_is_owner(session) is False and \
+        if self._locked_out(session) is False and \
            self.monitor_logger is not None:
             result = self.monitor_logger.wait(what, timeout)
 
@@ -875,7 +875,7 @@ class MultiTenantDeviceAccess:
         result = False
         reason = "unsure"
         self.session_ping(session)
-        if self._is_lock_owner(session):
+        if self._locked_out(session):
             reason = "target is locked"
             result = True
         # Cannot swap the shared storage device between the host and target
@@ -1300,7 +1300,7 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, "main._target_on()")
 
         result = False
-        if self.power_is_owner(session) is False:
+        if self._locked_out(session) is False:
             # Toggle the mass storage functions of the usbf controller
             result = self._composite_start()
 
@@ -1345,7 +1345,7 @@ class MultiTenantDeviceAccess:
             status = self._target_status()
             if status != CONSTS.POWER.ON:
                 result = False
-                if self.power_is_owner(session) is False:
+                if self._locked_out(session) is False:
                     result = self._target_on(session)
 
         self.mtda.debug(3, f"main.target_on(): {result}")
@@ -1416,7 +1416,7 @@ class MultiTenantDeviceAccess:
             status = self._target_status()
             if status != CONSTS.POWER.OFF:
                 result = False
-                if self.power_is_owner(session) is False:
+                if self._locked_out(session) is False:
                     result = self._target_off(session)
 
         self.mtda.debug(3, f"main.target_off(): {result}")
@@ -1452,7 +1452,7 @@ class MultiTenantDeviceAccess:
             variant = self.power.variant if self.power is not None else "none"
             raise NotImplementedError(
                 f'firmware is not supported for {variant}')
-        if mode is not None and self.power_is_owner(session):
+        if mode is not None and self._locked_out(session):
             raise RuntimeError('cannot change firmware, target is locked!')
         with self._power_lock:
             result = self.power.firmware(mode)
@@ -1467,7 +1467,7 @@ class MultiTenantDeviceAccess:
         session = kwargs.get("session", None)
         self.session_ping(session)
         with self._power_lock:
-            if self.power_is_owner(session) is False:
+            if self._locked_out(session) is False:
                 status = self._target_status(session)
                 if status == CONSTS.POWER.OFF:
                     if self._target_on() is True:
@@ -2202,6 +2202,21 @@ class MultiTenantDeviceAccess:
         result = (owner is not None and session == owner)
 
         self.mtda.debug(3, f"main._is_lock_owner: {result}")
+        return result
+
+    def _locked_out(self, session):
+        """True if the device is locked by a session other than the one
+        making this call, i.e. the caller should be denied write access
+        (console/monitor/keyboard/mouse input, power control, storage
+        swap) but may still be allowed read-only access."""
+        self.mtda.debug(3, "main._locked_out()")
+
+        owner = None
+        if self._session_manager is not None:
+            owner = self._session_manager.locked(session)
+        result = (owner is not None and session != owner)
+
+        self.mtda.debug(3, f"main._locked_out: {result}")
         return result
 
     def _system_monitor(self):
