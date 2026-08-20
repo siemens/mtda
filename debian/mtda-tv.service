@@ -1,0 +1,17 @@
+[Unit]
+Description=mtda-tv service
+After=network.target
+
+[Service]
+Environment=HOST=0.0.0.0
+Environment=PORT=5005
+Environment=INTERVAL=2.0
+ExecStart=/usr/libexec/mtda/tv --host $HOST --port $PORT --interval $INTERVAL
+Restart=always
+StandardOutput=journal
+StandardError=journal
+PrivateTmp=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

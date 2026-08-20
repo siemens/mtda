@@ -20,6 +20,7 @@ MTDA_FILES = " \
     mtda-cli \
     mtda-service \
     mtda-systemd-helper \
+    mtda-tv \
     mtda-www \
     mtda.ini \
     mtda/ \

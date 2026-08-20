@@ -15,6 +15,7 @@ import queue
 import grpc
 
 from mtda.constants import VIDEO
+import mtda.constants as CONSTS
 from mtda.grpc import mtda_pb2
 from mtda.grpc import mtda_pb2_grpc
 
@@ -53,6 +54,19 @@ class MtdaServicer(mtda_pb2_grpc.MtdaServiceServicer):
         try:
             ver = self._agent.agent_version(session=_session(context))
             return mtda_pb2.AgentVersionResponse(version=ver or '')
+        except Exception as e:
+            context.abort(grpc.StatusCode.INTERNAL, str(e))
+
+    def AgentInfo(self, request, context):
+        try:
+            info = {}
+            ver = self._agent.agent_version(session=_session(context))
+            if ver:
+                info['version'] = ver
+            info['name'] = self._agent.name or ''
+            info['www_port'] = str(self._agent._www_port
+                                   or CONSTS.DEFAULTS.WWW_PORT)
+            return mtda_pb2.AgentInfoResponse(info=info)
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
 

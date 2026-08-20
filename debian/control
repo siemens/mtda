@@ -32,7 +32,6 @@ Depends: mtda-common,
          python3-serial,
          python3-systemd,
          python3-usb,
-         python3-zeroconf,
          python3-zstandard,
          usbrelay,
          ${misc:Depends},
@@ -82,9 +81,10 @@ Package: mtda-common
 Architecture: all
 Multi-Arch: foreign
 Depends: python3:any (>= 3.7~),
-         python3-grpcio
+         python3-grpcio,
+         python3-zeroconf
 Description: common modules for Multi-Tenant Device Access
- Modules shared between the service and the client.
+ Modules shared between the service, client, and TV.
 
 Package: mtda-docker
 Architecture: all
@@ -117,7 +117,8 @@ Description: support for pytest code that uses MTDA
 Package: mtda-www
 Architecture: all
 Multi-Arch: foreign
-Depends: mtda-service,
+Depends: mtda-assets,
+         mtda-service,
          python3-systemd,
          python3-tornado,
          novnc,
@@ -127,3 +128,38 @@ Depends: mtda-service,
 Description: web-based user-interface for MTDA
  Provide a simple web-base user-interface to interact with
  devices under test.
+
+Package: mtda-tv
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda-assets,
+         mtda-common,
+         python3-tornado,
+         ${misc:Depends}
+Description: multi-agent video grid for MTDA
+ Discover MTDA instances on the network using ZeroConf and
+ present their video streams in a TV-style grid view.
+
+Package: mtda-tv-gateway
+Architecture: all
+Multi-Arch: foreign
+Depends: mtda-tv,
+         ${misc:Depends}
+Suggests: docker.io | podman
+Description: transparent gateway/proxy support for mtda-tv
+ Enables mtda-tv's [gateway] configuration, letting it act as a
+ discovery source for a reverse proxy (validated against Traefik's
+ HTTP provider) so agents become reachable through a single hostname
+ instead of linking directly to each agent's own mtda-www instance.
+ .
+ Traefik itself is not packaged for Debian and must be installed
+ separately (static binary or container); see the mtda documentation
+ (Traefik / mtda-tv gateway) for setup instructions. A sample Traefik
+ configuration is shipped under
+ /usr/share/doc/mtda-tv-gateway/examples/traefik/.
+
+Package: mtda-assets
+Architecture: all
+Multi-Arch: foreign
+Description: shared web assets for MTDA
+ Static CSS and icon files shared between mtda-www and mtda-tv.

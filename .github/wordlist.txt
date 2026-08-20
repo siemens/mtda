@@ -69,6 +69,7 @@ jpc
 jpg
 jqc
 JQC
+JSON
 kas
 keyrings
 kvm
@@ -98,6 +99,7 @@ pdu
 php
 pinout
 png
+Podman's
 ppa
 prebuilt
 programmatically
@@ -140,8 +142,11 @@ tizen
 Tizen's
 TPM
 tpmtool
+Traefik
+traefik
 trixie
 ttyS
+tv
 UDP
 UI
 unmuted
@@ -153,8 +158,10 @@ vdc
 VDC
 VLC
 VNC
+walkthrough
 Wi
 wfx
 WFX
 www
 yml
+ZeroConf

@@ -1,3 +1,5 @@
+.. _config:
+
 Configuration
 =============
 
@@ -149,6 +151,36 @@ General settings
       Host address to listen on. This defaults to ``127.0.0.1`` to only
       accept connections from the machine running the MTDA service.
       Change to ``0.0.0.0`` to accept connections from anywhere.
+
+* ``gateway``: section [optional, mtda-tv only]
+   Lets ``mtda-tv`` act as a discovery source for a reverse proxy sitting
+   in front of it, so agent tiles can be reached through a single
+   hostname/port instead of linking directly to each agent's own
+   ``mtda-www`` instance. See :ref:`mtda-tv-gateway` for a complete setup
+   walkthrough.
+
+  * ``enabled``: boolean [optional]
+      Enables gateway support (defaults to ``false``). When enabled,
+      ``mtda-tv`` serves a discovered-agents routing table (read-only, not
+      tied to any specific reverse proxy) on ``/api/traefik-config``.
+
+  * ``prefix``: string [optional]
+      Path prefix used to route to agents, e.g. ``/agents`` results in
+      routes such as ``/agents/<name>/`` (defaults to ``/agents``).
+
+  * ``strip_prefix``: boolean [optional]
+      Whether the routing table should ask the reverse proxy to strip the
+      agent's prefix before forwarding (defaults to ``true``). Disable
+      only if your reverse proxy already strips the prefix itself.
+
+  * ``base_url``: string [optional]
+      Base URL where the reverse proxy is reachable, e.g.
+      ``http://tv.example.com`` or ``http://<host>:8000``. Tile links are
+      relative to ``mtda-tv``'s own origin by default, which only resolves
+      correctly when the grid page itself is served through the same
+      reverse proxy. Set this when the grid is browsed directly on
+      ``mtda-tv``'s own port (bypassing the proxy) so tile links keep
+      pointing at the proxy instead of ``mtda-tv`` itself.
 
 Console, Monitor & Keyboard settings
 ------------------------------------
