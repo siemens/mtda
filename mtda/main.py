@@ -732,9 +732,10 @@ class MultiTenantDeviceAccess:
         self.mtda.debug(3, f"main.power_locked(): {str(result)}")
         return result
 
-    def subscribe(self):
+    def subscribe(self, session=None):
         """Register a new subscriber queue and return it."""
         import queue
+        self.session_ping(session)
         q = queue.SimpleQueue()
         with self._subscriber_lock:
             self._subscribers.append(q)

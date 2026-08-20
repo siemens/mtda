@@ -270,7 +270,11 @@ class MtdaServicer(mtda_pb2_grpc.MtdaServiceServicer):
         """Long-lived server-streaming RPC.  Pushes console bytes (topic CON
         or MON) and async events (topic EVT) to the client as they occur.
         The stream stays open until the client cancels or disconnects."""
-        q = self._agent.subscribe()
+        session = _session(context)
+        if _trust_proxy_identity and session is None:
+            context.abort(grpc.StatusCode.UNAUTHENTICATED,
+                          "a verified client identity is required")
+        q = self._agent.subscribe(session)
         try:
             while context.is_active():
                 try:
