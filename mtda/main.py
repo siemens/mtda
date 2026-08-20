@@ -599,7 +599,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.keyboard is not None:
+        if self._locked_out(session) is False and self.keyboard is not None:
             special_key = self._keyboard_special_key(key)
             if special_key is not None:
                 result = special_key(repeat, ctrl, shift, alt, meta)
@@ -616,7 +616,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.keyboard is not None:
+        if self._locked_out(session) is False and self.keyboard is not None:
             while what != "":
                 # check for special/combo keys such as <esc> or <ctrl-x>
                 if what.startswith('<') and '>' in what:
@@ -649,7 +649,7 @@ class MultiTenantDeviceAccess:
         result = None
         session = kwargs.get("session", None)
         self.session_ping(session)
-        if self.mouse is not None:
+        if self._locked_out(session) is False and self.mouse is not None:
             self.mouse.move(x, y, buttons)
 
         self.mtda.debug(3, f"main.mouse_move(): {result}")
