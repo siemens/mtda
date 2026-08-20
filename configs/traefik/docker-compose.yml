@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------------------
+# Sample Docker Compose file for the mtda-tv gateway's Traefik instance
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2026 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+#
+# Runs Traefik as a systemd-managed, auto-restarting container so it comes
+# back up after a crash or a machine reboot (Docker/Podman's own service
+# must be enabled for the latter, e.g. "systemctl enable --now docker").
+#
+# Usage:
+#   $ docker compose -f docker-compose.yml up -d
+#
+# ---------------------------------------------------------------------------
+
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: mtda-tv-traefik
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro

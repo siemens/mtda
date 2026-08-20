@@ -1,0 +1,437 @@
+#!/usr/bin/env python3
+# ---------------------------------------------------------------------------
+# TV service for MTDA - shows video snapshots from discovered agents
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2026 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+
+import argparse
+import asyncio
+import base64
+import concurrent.futures
+import configparser
+import glob
+import json
+import logging
+import os
+import re
+import socket
+import threading
+
+import grpc
+import tornado.web
+import tornado.ioloop
+import zeroconf
+
+from mtda.grpc import mtda_pb2, mtda_pb2_grpc
+import mtda.constants as CONSTS
+
+
+logging.basicConfig(level=logging.INFO,
+                    format='# %(levelname)s: %(message)s')
+logging.getLogger("tornado.access").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
+
+BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mtda")
+if not os.path.isdir(os.path.join(BASE_DIR, "templates")):
+    # Installed layout: use the mtda package directory
+    import mtda
+    BASE_DIR = os.path.dirname(mtda.__file__)
+
+
+# ---------------------------------------------------------------------------
+# Gateway configuration - lets mtda-tv act as a discovery source for a
+# reverse proxy (e.g. Traefik's HTTP provider) so agent tiles can be
+# reached through a single hostname instead of linking directly to each
+# agent's own mtda-www instance. Disabled unless a "mtda-tv-gateway"-style
+# config.d fragment enables it (see configs/20-gateway.conf).
+# ---------------------------------------------------------------------------
+
+class GatewayConfig:
+
+    def __init__(self):
+        self.enabled = False
+        self.prefix = '/agents'
+        self.strip_prefix = True
+        self.base_url = ''
+        self._load()
+
+    def _config_files(self):
+        files = []
+        if os.path.exists('/etc/mtda'):
+            files.append(os.path.join('/etc', 'mtda', 'config'))
+        if os.path.exists('/etc/mtda/config.d'):
+            fragments = glob.glob('/etc/mtda/config.d/*.conf')
+            if len(fragments) > 0:
+                files.extend(sorted(fragments))
+        home = os.getenv('HOME', '')
+        if home != '':
+            files.append(os.path.join(home, '.mtda', 'config'))
+        return files
+
+    def _load(self):
+        parser = configparser.ConfigParser()
+        parser.read(self._config_files())
+        if not parser.has_section('gateway'):
+            return
+        self.enabled = parser.getboolean(
+            'gateway', 'enabled', fallback=self.enabled)
+        self.prefix = parser.get(
+            'gateway', 'prefix', fallback=self.prefix).rstrip('/')
+        self.strip_prefix = parser.getboolean(
+            'gateway', 'strip_prefix', fallback=self.strip_prefix)
+        self.base_url = parser.get(
+            'gateway', 'base_url', fallback=self.base_url).rstrip('/')
+
+    def agent_prefix(self, name):
+        return f'{self.prefix}/{name}'
+
+    def agent_url(self, name):
+        if not self.enabled:
+            return None
+        return f'{self.base_url}{self.agent_prefix(name)}/'
+
+
+# ---------------------------------------------------------------------------
+# Agent tracker - discovers and polls MTDA instances
+# ---------------------------------------------------------------------------
+
+class AgentInfo:
+    """Tracks a discovered MTDA agent."""
+
+    def __init__(self, name, address, port):
+        self.name = name
+        self.address = address
+        self.port = port
+        self.snapshot = None
+        self.content_type = None
+        self.power = None
+        self.version = None
+        self.uptime = None
+        self.www_port = CONSTS.DEFAULTS.WWW_PORT
+
+    @property
+    def grpc_target(self):
+        return f'{self.address}:{self.port}'
+
+    @property
+    def www_url(self):
+        return f'http://{self.address}:{self.www_port}/'
+
+
+class AgentTracker:
+    """Discovers MTDA agents via ZeroConf and polls them for snapshots."""
+
+    def __init__(self, poll_interval=2.0):
+        self._agents = {}
+        self._lock = threading.Lock()
+        self._poll_interval = poll_interval
+        self._running = False
+
+    @property
+    def agents(self):
+        with self._lock:
+            return dict(self._agents)
+
+    def on_service_event(self, event, name, info=None):
+        agent_name = name.replace(f'.{CONSTS.MDNS.TYPE}', '')
+        if event in ("ADD", "UPDATE") and info is not None:
+            address = socket.inet_ntoa(info.addresses[0])
+            port = info.port
+            with self._lock:
+                if agent_name not in self._agents:
+                    logger.info(f"Discovered agent: {agent_name} "
+                                f"at {address}:{port}")
+                self._agents[agent_name] = AgentInfo(
+                    agent_name, address, port)
+        elif event == "REMOVE":
+            with self._lock:
+                if agent_name in self._agents:
+                    logger.info(f"Agent removed: {agent_name}")
+                    del self._agents[agent_name]
+
+    def start_discovery(self):
+        """Start ZeroConf browsing in a background thread."""
+        from mtda.discovery import Watcher
+        self._watcher = Watcher(
+            CONSTS.MDNS.TYPE, onServiceEvent=self.on_service_event)
+        self._discovery_thread = threading.Thread(
+            target=self._watcher.listen, daemon=True)
+        self._discovery_thread.start()
+
+    def stop(self):
+        self._running = False
+        if hasattr(self, '_watcher'):
+            self._watcher.shutdown()
+
+    def poll_agent(self, agent):
+        """Fetch snapshot and metadata from a single agent via gRPC."""
+        try:
+            channel = grpc.insecure_channel(agent.grpc_target)
+            stub = mtda_pb2_grpc.MtdaServiceStub(channel)
+
+            # Fetch snapshot (best-effort: agents without a video source
+            # configured will fail here and should not prevent the other
+            # metadata below from being fetched)
+            try:
+                chunks = stub.VideoSnapshot(
+                    mtda_pb2.Empty(), timeout=5)
+                data = bytearray()
+                content_type = None
+                for chunk in chunks:
+                    if chunk.content_type:
+                        content_type = chunk.content_type
+                    data.extend(chunk.data)
+                if data:
+                    agent.snapshot = bytes(data)
+                    agent.content_type = content_type
+            except Exception as e:
+                logger.debug(f"VideoSnapshot failed for {agent.name}: {e}")
+
+            # Fetch agent info (version, www_port, etc.)
+            try:
+                resp = stub.AgentInfo(
+                    mtda_pb2.Empty(), timeout=5)
+                info = dict(resp.info)
+                agent.version = info.get('version')
+                www_port = info.get('www_port')
+                if www_port:
+                    agent.www_port = int(www_port)
+            except Exception as e:
+                logger.debug(f"AgentInfo failed for {agent.name}: {e}")
+
+            # Fetch target uptime
+            try:
+                resp = stub.TargetUptime(
+                    mtda_pb2.Empty(), timeout=5)
+                agent.uptime = resp.uptime or None
+            except Exception:
+                pass
+
+            channel.close()
+        except Exception as e:
+            logger.debug(f"Failed to poll {agent.name}: {e}")
+
+    def poll_all(self):
+        """Poll all known agents for updated snapshots."""
+        agents = self.agents
+        for agent in agents.values():
+            self.poll_agent(agent)
+
+
+# ---------------------------------------------------------------------------
+# Tornado Handlers
+# ---------------------------------------------------------------------------
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("tv.html")
+
+
+class AgentsHandler(tornado.web.RequestHandler):
+    """Returns JSON list of discovered agents and their status."""
+    def get(self):
+        tracker = self.application.settings['tracker']
+        gateway = self.application.settings['gateway']
+        agents = []
+        for name, agent in tracker.agents.items():
+            agents.append({
+                'name': name,
+                'address': agent.address,
+                'port': agent.port,
+                'www_url': agent.www_url,
+                'gateway_url': gateway.agent_url(name),
+                'has_snapshot': agent.snapshot is not None,
+                'version': agent.version,
+                'uptime': agent.uptime,
+            })
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(agents))
+
+
+class TraefikConfigHandler(tornado.web.RequestHandler):
+    """Renders discovered agents as a Traefik HTTP provider dynamic
+    configuration (https://doc.traefik.io/traefik/providers/http/).
+
+    Each agent gets a router matching <gateway.prefix>/<name>/... , a
+    matching stripPrefix middleware (so the agent's own mtda-www still
+    sees paths rooted at /), and a service pointing at the agent's
+    www_url. Traefik polls this endpoint on an interval and hot-applies
+    the result with no reload/restart, so routes stay in sync with
+    ZeroConf discovery. Returns 404 unless gateway support is enabled
+    via the [gateway] config.d fragment (see configs/20-gateway.conf).
+    """
+
+    ROUTE_RE = re.compile(r'[^a-zA-Z0-9_-]')
+
+    def get(self):
+        gateway = self.application.settings['gateway']
+        if not gateway.enabled:
+            self.set_status(404)
+            self.write("gateway support is not enabled")
+            return
+
+        tracker = self.application.settings['tracker']
+        routers = {}
+        middlewares = {}
+        services = {}
+
+        for name, agent in tracker.agents.items():
+            # Traefik router/service/middleware names must be safe for
+            # use as map keys; sanitize the (user-controlled) agent name.
+            slug = self.ROUTE_RE.sub('-', name)
+            prefix = gateway.agent_prefix(name)
+            router = {
+                "rule": f"PathPrefix(`{prefix}`)",
+                "service": f"agent-{slug}",
+            }
+
+            if gateway.strip_prefix:
+                strip_key = f"strip-{slug}"
+                middlewares[strip_key] = {
+                    "stripPrefix": {"prefixes": [prefix]}
+                }
+                router["middlewares"] = [strip_key]
+
+            routers[f"agent-{slug}"] = router
+            services[f"agent-{slug}"] = {
+                "loadBalancer": {
+                    "servers": [{"url": agent.www_url}]
+                }
+            }
+
+        config = {
+            "http": {
+                "routers": routers,
+                "middlewares": middlewares,
+                "services": services,
+            }
+        }
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(config))
+
+
+class SnapshotHandler(tornado.web.RequestHandler):
+    """Serves the latest snapshot for a given agent."""
+    def get(self, agent_name):
+        tracker = self.application.settings['tracker']
+        agents = tracker.agents
+        agent = agents.get(agent_name)
+        if agent is None or agent.snapshot is None:
+            self.set_status(404)
+            self.write("No snapshot available")
+            return
+        self.set_header("Content-Type",
+                        agent.content_type or "image/jpeg")
+        self.set_header("Cache-Control", "no-cache")
+        self.write(agent.snapshot)
+
+
+class MjpegStreamHandler(tornado.web.RequestHandler):
+    """Serves an MJPEG stream for a given agent (multipart/x-mixed-replace).
+    The browser displays frames seamlessly with no flicker."""
+
+    BOUNDARY = "mtda-tv-frame"
+
+    def initialize(self):
+        self._auto_finish = False
+
+    async def get(self, agent_name):
+        tracker = self.application.settings['tracker']
+        interval = tracker._poll_interval
+
+        self.set_header("Content-Type",
+                        f"multipart/x-mixed-replace; "
+                        f"boundary={self.BOUNDARY}")
+        self.set_header("Cache-Control", "no-cache")
+        self.set_header("Connection", "close")
+        await self.flush()
+
+        while True:
+            agents = tracker.agents
+            agent = agents.get(agent_name)
+            if agent is not None and agent.snapshot is not None:
+                frame = agent.snapshot
+                content_type = agent.content_type or "image/jpeg"
+                header = (f"--{self.BOUNDARY}\r\n"
+                          f"Content-Type: {content_type}\r\n"
+                          f"Content-Length: {len(frame)}\r\n\r\n")
+                try:
+                    self.write(header.encode())
+                    self.write(frame)
+                    self.write(b"\r\n")
+                    await self.flush()
+                except Exception:
+                    break
+            await asyncio.sleep(interval)
+        self.finish()
+
+
+class AssetsHandler(tornado.web.StaticFileHandler):
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Service
+# ---------------------------------------------------------------------------
+
+class Service:
+
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            description="MTDA TV - multi-agent video grid")
+        parser.add_argument('-p', '--port', type=int, default=5005,
+                            help='HTTP port (default: 5005)')
+        parser.add_argument('-H', '--host', default='0.0.0.0',
+                            help='Bind address (default: 0.0.0.0)')
+        parser.add_argument('-i', '--interval', type=float, default=2.0,
+                            help='Snapshot poll interval in seconds '
+                                 '(default: 2.0)')
+        args = parser.parse_args()
+        self._port = args.port
+        self._host = args.host
+        self._interval = args.interval
+
+    async def run(self):
+        tracker = AgentTracker(poll_interval=self._interval)
+        tracker.start_discovery()
+        gateway = GatewayConfig()
+        if gateway.enabled:
+            logger.info(f"gateway support enabled (prefix={gateway.prefix})")
+
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+
+        application = tornado.web.Application([
+            (r"/", MainHandler),
+            (r"/api/agents", AgentsHandler),
+            (r"/api/traefik-config", TraefikConfigHandler),
+            (r"/api/snapshot/(.*)", SnapshotHandler),
+            (r"/api/stream/(.*)", MjpegStreamHandler),
+            (r"/assets/(.*)", AssetsHandler, {
+                "path": os.path.join(BASE_DIR, "assets")
+            }),
+        ], template_path=os.path.join(BASE_DIR, "templates"),
+           tracker=tracker, gateway=gateway, debug=False)
+
+        application.listen(self._port, self._host)
+        logger.info(f"mtda-tv listening on http://{self._host}:{self._port}")
+
+        # Periodic polling in the thread pool
+        async def poll_loop():
+            while True:
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(self.executor, tracker.poll_all)
+                await asyncio.sleep(self._interval)
+
+        asyncio.create_task(poll_loop())
+        await asyncio.Event().wait()
+
+
+if __name__ == '__main__':
+    srv = Service()
+    asyncio.run(srv.run())

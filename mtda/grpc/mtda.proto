@@ -49,6 +49,10 @@ message AgentVersionResponse {
     string version = 1;
 }
 
+message AgentInfoResponse {
+    map<string, string> info = 1;
+}
+
 // ---------------------------------------------------------------------------
 // Power / command
 // ---------------------------------------------------------------------------
@@ -294,6 +298,7 @@ service MtdaService {
 
     // --- Agent ---
     rpc AgentVersion       (Empty)                   returns (AgentVersionResponse);
+    rpc AgentInfo          (Empty)                   returns (AgentInfoResponse);
 
     // --- Power / command ---
     rpc Command            (CommandRequest)           returns (BoolResponse);

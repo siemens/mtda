@@ -1,0 +1,37 @@
+# ---------------------------------------------------------------------------
+# Sample Traefik static configuration for the mtda-tv gateway
+# ---------------------------------------------------------------------------
+#
+# This software is a part of MTDA.
+# Copyright (C) 2026 Siemens AG
+#
+# ---------------------------------------------------------------------------
+# SPDX-License-Identifier: MIT
+# ---------------------------------------------------------------------------
+#
+# Points Traefik's HTTP provider at mtda-tv's /api/traefik-config endpoint,
+# which is only served (non-404) once the [gateway] section is enabled in
+# mtda-tv's configuration (see configs/20-gateway.conf). Traefik polls this
+# endpoint and hot-applies routing changes as agents come and go, with no
+# restart or reload required.
+#
+# Adjust the "endpoint" below to the host/port where mtda-tv is reachable.
+# ---------------------------------------------------------------------------
+
+entryPoints:
+  web:
+    address: ":8000"
+
+providers:
+  http:
+    endpoint: "http://localhost:5005/api/traefik-config"
+    pollInterval: "3s"
+
+# Uncomment to expose the Traefik dashboard (development only - disable or
+# secure it before using this in anything resembling production).
+# api:
+#   dashboard: true
+#   insecure: true
+
+log:
+  level: INFO

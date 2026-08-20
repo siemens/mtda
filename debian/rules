@@ -23,12 +23,15 @@ override_dh_auto_install:
 	dh_auto_install
 	:
 	rm -rf debian/mtda
+	rm -rf debian/mtda-assets
 	rm -rf debian/mtda-client
 	rm -rf debian/mtda-common
 	rm -rf debian/mtda-docker
 	rm -rf debian/mtda-kvm
 	rm -rf debian/mtda-pytest
 	rm -rf debian/mtda-service
+	rm -rf debian/mtda-tv
+	rm -rf debian/mtda-tv-gateway
 	rm -rf debian/mtda-www
 	# lintian package-installs-python-pycache-dir
 	find debian -name "__pycache__" -type f -delete
@@ -49,8 +52,13 @@ override_dh_auto_install:
 	install -m 0644 debian/mtda-client.sudoers debian/mtda-client/etc/sudoers.d/mtda-client
 	:
 	install -m 0755 -d debian/mtda-common$(MTDA_DIST)/
+	install -m 0755 -d debian/mtda-common$(MTDA_DIST)/grpc
 	mv debian/mtda-service$(MTDA_DIST)/constants.py debian/mtda-common$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/main.py debian/mtda-common$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/discovery.py debian/mtda-common$(MTDA_DIST)/
+	mv debian/mtda-service$(MTDA_DIST)/grpc/__init__.py debian/mtda-common$(MTDA_DIST)/grpc/
+	mv debian/mtda-service$(MTDA_DIST)/grpc/mtda_pb2.py debian/mtda-common$(MTDA_DIST)/grpc/
+	mv debian/mtda-service$(MTDA_DIST)/grpc/mtda_pb2_grpc.py debian/mtda-common$(MTDA_DIST)/grpc/
 	:
 	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/console
 	install -m 0755 -d debian/mtda-docker$(MTDA_DIST)/power
@@ -74,10 +82,32 @@ override_dh_auto_install:
 	install -m 0755 -d debian/mtda-www/usr/libexec/mtda/
 	mv debian/mtda-service$(MTDA_DIST)/assets debian/mtda-www$(MTDA_DIST)/
 	mv debian/mtda-service$(MTDA_DIST)/templates debian/mtda-www$(MTDA_DIST)/
+	rm -f debian/mtda-www$(MTDA_DIST)/templates/tv.html
 	mv debian/mtda-service/usr/bin/mtda-www debian/mtda-www/usr/libexec/mtda/www
 	install -m 0644 configs/10-www.conf debian/mtda-www/etc/mtda/config.d/
+	:
+	# Shared assets: remove from mtda-www (mtda-assets owns them)
+	rm -f debian/mtda-www$(MTDA_DIST)/assets/modern.min.css
+	rm -f debian/mtda-www$(MTDA_DIST)/assets/material_icons.css
+	rm -f debian/mtda-www$(MTDA_DIST)/assets/material_icons.ttf
+	install -m 0755 -d debian/mtda-assets$(MTDA_DIST)/assets
+	install -m 0644 mtda/assets/modern.min.css debian/mtda-assets$(MTDA_DIST)/assets/
+	install -m 0644 mtda/assets/material_icons.css debian/mtda-assets$(MTDA_DIST)/assets/
+	install -m 0644 mtda/assets/material_icons.ttf debian/mtda-assets$(MTDA_DIST)/assets/
+	:
+	install -m 0755 -d debian/mtda-tv/usr/libexec/mtda/
+	install -m 0755 -d debian/mtda-tv$(MTDA_DIST)/templates
+	mv debian/mtda-service/usr/bin/mtda-tv debian/mtda-tv/usr/libexec/mtda/tv
+	install -m 0644 mtda/templates/tv.html debian/mtda-tv$(MTDA_DIST)/templates/
+	:
+	install -m 0755 -d debian/mtda-tv-gateway/etc/mtda/config.d/
+	install -m 0644 configs/20-gateway.conf debian/mtda-tv-gateway/etc/mtda/config.d/
+	install -m 0755 -d debian/mtda-tv-gateway/usr/share/doc/mtda-tv-gateway/examples/traefik/
+	install -m 0644 configs/traefik/traefik.yml debian/mtda-tv-gateway/usr/share/doc/mtda-tv-gateway/examples/traefik/
+	install -m 0644 configs/traefik/docker-compose.yml debian/mtda-tv-gateway/usr/share/doc/mtda-tv-gateway/examples/traefik/
 
 override_dh_installsystemd:
+	dh_installsystemd -p mtda-tv mtda-tv.service
 	dh_installsystemd -p mtda-www mtda-www.service
 	dh_installsystemd -p mtda-service --name=mtda
 	dh_installsystemd -p mtda-systemd-helper mtda-systemd-helper.path

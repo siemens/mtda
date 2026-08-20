@@ -89,6 +89,7 @@ setup(
         'mtda-cli',
         'mtda-service',
         'mtda-systemd-helper',
+        'mtda-tv',
         'mtda-www'
     ],
     packages=find_packages(exclude=["demos"]),

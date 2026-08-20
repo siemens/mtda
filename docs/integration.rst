@@ -388,3 +388,78 @@ the test is started with the device off. It is then turned on with
 ``Target.on`` and we then expect ``login:`` to be printed on the console.
 
 MTDA client APIs may be used to write more complex tests.
+
+.. _mtda-tv-gateway:
+
+Traefik (mtda-tv gateway)
+-------------------------
+
+Introduction
+~~~~~~~~~~~~
+
+``mtda-tv`` discovers MTDA agents on the network (via ZeroConf) and shows
+their video snapshots in a grid. By default, clicking a tile opens that
+agent's own ``mtda-www`` instance directly, which means every agent must be
+individually reachable from the client's browser.
+
+Enabling the ``[gateway]`` section lets ``mtda-tv`` additionally act as a
+discovery source for a reverse proxy placed in front of it, so agents become
+reachable through a single hostname/port (``http://<tv-host>/agents/<name>/``)
+instead. This requires a reverse proxy capable of pulling its routing table
+from an HTTP endpoint and applying changes without a restart; `Traefik`_'s
+`HTTP provider`_ is recommended.
+
+Note that the config surface (the ``[gateway]`` section and the shape of the
+JSON served on ``/api/traefik-config``) is intentionally proxy-agnostic;
+any reverse proxy able to consume an HTTP-polled routing table in the same
+shape could be used instead of Traefik.
+
+Enabling the gateway
+~~~~~~~~~~~~~~~~~~~~~
+
+Install the ``mtda-tv-gateway`` package (or manually drop in the equivalent
+``[gateway]`` config.d fragment, see :ref:`config`) and restart ``mtda-tv``::
+
+    $ sudo apt install mtda-tv-gateway
+    $ sudo systemctl restart mtda-tv
+
+This serves a live, discovered-agents routing table on
+``http://<tv-host>:5005/api/traefik-config`` (404 until the gateway is
+enabled).
+
+Running Traefik
+~~~~~~~~~~~~~~~
+
+A sample static configuration is installed under
+``/usr/share/doc/mtda-tv-gateway/examples/traefik/traefik.yml``. Adjust the
+``providers.http.endpoint`` to point at your ``mtda-tv`` instance.
+
+A ``docker-compose.yml`` is provided alongside it so Traefik survives
+crashes and machine reboots (``restart: unless-stopped``, picked up by
+Docker/Podman's own service on boot)::
+
+    $ cd /usr/share/doc/mtda-tv-gateway/examples/traefik/
+    $ docker compose up -d
+
+This is preferred over a one-off ``docker run``, which does not come back
+after a reboot unless started with ``--restart`` and re-run manually. If
+you'd rather run it directly::
+
+    $ docker run -d --name mtda-tv-traefik --network host \
+        --restart unless-stopped \
+        -v /usr/share/doc/mtda-tv-gateway/examples/traefik/traefik.yml:/etc/traefik/traefik.yml:ro \
+        traefik:v3.1
+
+Traefik polls ``/api/traefik-config`` on the interval configured in
+``traefik.yml`` (every 3 seconds by default) and hot-applies routing changes
+as agents are discovered or removed - no restart or reload of Traefik is
+needed, and unrelated routes/connections are unaffected when a single agent
+comes or goes.
+
+Agents are then reachable at ``http://<traefik-host>:8000/agents/<name>/``,
+and ``mtda-tv``'s grid automatically links tiles there instead of directly to
+each agent once the gateway is enabled.
+
+.. _Traefik: https://traefik.io/
+.. _HTTP provider: https://doc.traefik.io/traefik/providers/http/
+

@@ -1,0 +1,202 @@
+<!---
+Copyright (C) 2026 Siemens AG
+SPDX-License-Identifier: MIT
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./assets/material_icons.css">
+    <link rel="stylesheet" href="./assets/modern.min.css">
+    <title>MTDA TV</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: "Muli", sans-serif;
+        background: #1a1a1a;
+        color: #f0f0f0;
+      }
+      h1 {
+        text-align: center;
+        font-weight: 100;
+        margin-bottom: 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+      }
+      .tile {
+        background: #2d2d2d;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+      }
+      .tile:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      }
+      .tile img {
+        width: 100%;
+        height: 240px;
+        object-fit: contain;
+        background: #000;
+        display: block;
+        filter: blur(2px);
+        transition: filter 0.2s;
+      }
+      .tile:hover img {
+        filter: blur(0);
+      }
+      .tile .no-video {
+        width: 100%;
+        height: 240px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        color: #666;
+        font-size: 14px;
+      }
+      .tile-footer {
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .tile-name {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tile-version {
+        font-size: 11px;
+        color: #888;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #666;
+      }
+      .empty-state i {
+        font-size: 64px;
+        display: block;
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MTDA TV</h1>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty-state" style="display:none;">
+      <i class="material-icons">search</i>
+      <p>Searching for MTDA devices on the network...</p>
+    </div>
+
+    <script>
+      const grid = document.getElementById('grid');
+      const empty = document.getElementById('empty');
+      let agents = [];
+
+      async function refresh() {
+        try {
+          const resp = await fetch('/api/agents');
+          agents = await resp.json();
+        } catch (e) {
+          console.error('Failed to fetch agents:', e);
+          return;
+        }
+
+        if (agents.length === 0) {
+          grid.style.display = 'none';
+          empty.style.display = 'block';
+          return;
+        }
+
+        grid.style.display = '';
+        empty.style.display = 'none';
+
+        // Build or update tiles
+        const existing = grid.querySelectorAll('.tile');
+        const existingNames = new Set();
+        existing.forEach(el => existingNames.add(el.dataset.name));
+
+        const agentNames = new Set(agents.map(a => a.name));
+
+        // Remove tiles for agents that are gone
+        existing.forEach(el => {
+          if (!agentNames.has(el.dataset.name)) {
+            el.remove();
+          }
+        });
+
+        // Add/update tiles
+        agents.forEach(agent => {
+          let tile = grid.querySelector(`.tile[data-name="${agent.name}"]`);
+          if (!tile) {
+            tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.dataset.name = agent.name;
+            tile.innerHTML = `
+              <div class="video-container"></div>
+              <div class="tile-footer">
+                <span class="tile-name"></span>
+                <span class="tile-version"></span>
+              </div>
+            `;
+            tile.addEventListener('click', () => {
+              const current = agents.find(a => a.name === tile.dataset.name);
+              const url = current && current.gateway_url
+                ? new URL(current.gateway_url, window.location.origin).href
+                : (current ? current.www_url : agent.www_url);
+              window.open(url, '_blank');
+            });
+            grid.appendChild(tile);
+          }
+
+          // Update snapshot - use MJPEG stream (no flicker)
+          const container = tile.querySelector('.video-container');
+          if (agent.has_snapshot) {
+            let img = container.querySelector('img');
+            if (!img) {
+              img = document.createElement('img');
+              img.src = `/api/stream/${agent.name}`;
+              img.alt = agent.name;
+              container.innerHTML = '';
+              container.appendChild(img);
+            }
+          } else {
+            if (!container.querySelector('.no-video')) {
+              container.innerHTML =
+                `<div class="no-video"><i class="material-icons">videocam_off</i></div>`;
+            }
+          }
+
+          let displayName = agent.name;
+          if (agent.uptime) {
+            const totalSec = Math.floor(parseFloat(agent.uptime));
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            const upStr = h > 0
+              ? `${h}h${String(m).padStart(2,'0')}m`
+              : `${m}m${String(s).padStart(2,'0')}s`;
+            displayName += ` (${upStr})`;
+          }
+          tile.querySelector('.tile-name').textContent = displayName;
+          tile.querySelector('.tile-version').textContent =
+            agent.version ? `v${agent.version}` : '';
+        });
+      }
+
+      // Initial load + periodic refresh
+      refresh();
+      setInterval(refresh, 2000);
+    </script>
+  </body>
+</html>

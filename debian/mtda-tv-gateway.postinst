@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+
+  configure)
+    # mtda-tv-gateway only ships a config.d fragment; it does not own the
+    # mtda-tv.service unit (mtda-tv does), so dh_installsystemd's restart
+    # handling for this package does not cover it. Restart mtda-tv here so
+    # the [gateway] configuration takes effect without a manual restart.
+    if [ -x /usr/bin/deb-systemd-invoke ]; then
+      deb-systemd-invoke try-restart mtda-tv.service >/dev/null || true
+    fi
+    ;;
+
+esac
+
+#DEBHELPER#
