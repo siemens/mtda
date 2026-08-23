@@ -70,7 +70,7 @@ class ShellCmdPowerController(PowerController):
         elif proc.returncode == 1:
             return self.POWER_OFF
         else:
-            self.POWER_UNSURE
+            return self.POWER_UNSURE
 
     def toggle(self):
         s = self.status()
