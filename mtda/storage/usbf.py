@@ -150,7 +150,7 @@ class UsbFunctionController(Image):
     def rollback(self, ignore_missing=False):
         if self.cow_device is None:
             if ignore_missing:
-                return
+                return True
             raise MissingCowDeviceError('rollback')
 
         subprocess.run(['/sbin/kpartx', '-dv', f"/dev/mapper/{DM_COW}"])
@@ -165,11 +165,12 @@ class UsbFunctionController(Image):
                f"0 {self.base_size} snapshot "
                f"{self.base_device} {self.cow_device} P 8"]
         subprocess.check_call(cmd)
+        return True
 
     def commit(self, ignore_missing=False):
         if self.cow_device is None:
             if ignore_missing:
-                return
+                return True
             raise MissingCowDeviceError('commit')
 
         # Trigger merge
@@ -222,6 +223,7 @@ class UsbFunctionController(Image):
                f"0 {self.base_size} snapshot "
                f"{self.base_device} {self.cow_device} P 8"]
         subprocess.check_call(cmd)
+        return True
 
     """ Get file used by the USB Function driver"""
     def probe(self):

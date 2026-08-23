@@ -105,21 +105,23 @@ class QemuController(Image):
     def commit(self, ignore_missing=False):
         if self.cow is None:
             if ignore_missing:
-                return
+                return True
             raise MissingCowDeviceError('commit')
 
         cmd = ['qemu-img', 'commit', self.cow]
         subprocess.check_call(cmd)
+        return True
 
     def rollback(self, ignore_missing=False):
         if self.cow is None:
             if ignore_missing:
-                return
+                return True
             raise MissingCowDeviceError('rollback')
 
         cmd = ['qemu-img', 'create', '-F', 'raw', '-f', 'qcow2',
                '-b', self.file, self.cow, f'{self.size}M']
         subprocess.check_call(cmd)
+        return True
 
     def supports_hotplug(self):
         return True
