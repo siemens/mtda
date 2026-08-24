@@ -112,6 +112,13 @@ class RemoteConsole(ConsoleOutput):
         if self._channel is not None:
             self._channel.close()
             self._channel = None
+        # cancel()+close() above only request the reader thread's blocking
+        # 'for msg in self._stream' to unblock -- join() so stop() doesn't
+        # return until it actually has. A caller that forks right after
+        # stop() would otherwise race grpc-core's own thread pool, which
+        # won't report idle to that fork while this channel is still
+        # mid-teardown.
+        self.join(timeout=5)
 
 
 class RemoteMonitor(RemoteConsole):

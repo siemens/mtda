@@ -61,6 +61,15 @@ class ConsoleOutput:
     def stop(self):
         self.exiting = True
 
+    def join(self, timeout=None):
+        """Wait for the rx thread to actually exit. A subclass whose
+        reader() blocks on something stop() alone can't interrupt (a
+        socket, a streaming RPC) should unblock it first, then call this,
+        so a caller relying on stop() to mean "actually stopped" -- not
+        just "told to stop" -- gets that guarantee."""
+        if self.rx_thread is not None:
+            self.rx_thread.join(timeout=timeout)
+
     def toggle(self):
         with self.rx_lock:
             if self.rx_paused is True:
