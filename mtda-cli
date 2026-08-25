@@ -14,11 +14,16 @@
 import os
 import re
 import requests
+import re
 import time
 import sys
 import socket
 from argparse import ArgumentParser, RawTextHelpFormatter
-
+# Pyro
+try:
+    from Pyro5.compatibility import Pyro4
+except ImportError:
+    import Pyro4
 # Local imports
 from mtda.main import MultiTenantDeviceAccess
 from mtda.client import Client
@@ -34,6 +39,30 @@ def human_readable_bytes(size):
     else:
         return f"{size / 1024 / 1024 / 1024:.2f} GiB"
 
+def find_devices_in_pattern(ip_pattern):
+    """
+    Generates all IP addresses for a given pattern of the first three octets,
+    assuming the last octet iterates from 0 to 255.
+    """
+    if not re.fullmatch(r'(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\*', ip_pattern):
+        print("Error: Invalid pattern for the first three octets. Please use the format X.X.X (e.g., 134.86.254).")
+        return []
+    octets_prefix = ip_pattern.split('.')[:3]
+    for i, octet_str in enumerate(octets_prefix):
+        try:
+            val = int(octet_str)
+            if not (0 <= val <= 255):
+                print(f"Error: Invalid octet value '{octet_str}' in position {i+1}. Octets must be between 0 and 255.")
+                return []
+        except ValueError:
+            print(f"Error: Invalid octet value '{octet_str}' in position {i+1}. Octets must be numbers.")
+            return []
+        found_ips = []
+        base_ip = ".".join(octets_prefix)
+        for last_octet in range(256):
+            full_ip = f"{base_ip}.{last_octet}"
+            found_ips.append(full_ip)
+    return found_ips
 
 class AppOutput(ScreenOutput):
     def __init__(self, app):
@@ -388,6 +417,21 @@ class Application:
     def monitor_wait(self, args):
         result = self.client().monitor_wait(args.wait_string, args.timeout)
         return 0 if result is True else 1
+
+    def search_cmd(self, args):
+        ip_pattern_from_args = args.ip_range
+        print(f"The IP pattern provided is: {ip_pattern_from_args}")
+        os.system("ulimit -n 4096")
+        patterns_to_try = find_devices_in_pattern(ip_pattern_from_args)
+        for ip in patterns_to_try:
+            try:
+                local_client = Client(host=ip)
+                _, writing, written = local_client.storage_status()
+                local_client._impl._pyroRelease()
+                print(f"Found MTDA Device at IP : {ip}")
+            except Pyro4.errors.CommunicationError as e:
+                continue
+        return 0
 
     def setenv_cmd(self, args=None):
         self.agent.env_set(args.name, args.value)
@@ -844,6 +888,22 @@ class Application:
             type=int,
             help="buttons"
         )
+
+        # subcommand: search
+        cmd = self.search_cmd
+        p = subparsers.add_parser(
+            "search",
+            help="This utility helps you find devices within a specified IP pattern.\n"
+                 "Please enter an IP pattern using numbers (0-255) and '*' as a wildcard.\n"
+                 "Example: 192.168.1.*"
+        )
+        p.add_argument(
+            "ip_range",
+            metavar="ip_range",
+            type=str,
+            help="The IP pattern to search for (e.g., 134.86.254.*). "
+        )
+        p.set_defaults(func=cmd)
 
         # subcommand: monitor
         cmd = self.monitor_cmd
