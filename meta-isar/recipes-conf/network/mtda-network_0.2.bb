@@ -8,7 +8,9 @@ DEBIAN_DEPENDS = "nbd-server, network-manager"
 DPKG_ARCH = "all"
 
 SRC_URI = "file://postinst \
-           file://90-systemd-networkd-disabled.preset"
+           file://90-systemd-networkd-disabled.preset \
+           file://90-mtda-require-config.conf \
+"
 
 inherit dpkg-raw
 
@@ -16,4 +18,6 @@ do_install() {
     # disable systemd-networkd service
     install -d -m 755 ${D}/etc/systemd/system-preset
     install -m 755 ${WORKDIR}/90-systemd-networkd-disabled.preset ${D}/etc/systemd/system-preset/
+    install -d -m 755 ${D}/etc/systemd/system/nbd-server.service.d
+    install -m 644 ${WORKDIR}/90-mtda-require-config.conf ${D}/etc/systemd/system/nbd-server.service.d/
 }
