@@ -11,6 +11,7 @@ DESCRIPTION = "create mtda homedir if not present"
 MAINTAINER = "mtda-users <mtda-users@googlegroups.com>"
 
 SRC_URI = "file://${BPN}.tmpfiles"
+DEBIAN_DEPENDS .= ",\${misc:Depends}"
 
 do_prepare_build:append() {
     cp ${WORKDIR}/${BPN}.tmpfiles ${S}/debian/
