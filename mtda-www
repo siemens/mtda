@@ -175,6 +175,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             messages.append({"mtda-version": {"version": version}})
 
             console_output = mtda.console_dump()
+            if console_output is not None:
+                console_output = base64.b64encode(
+                        console_output.encode('utf-8')).decode('utf-8')
             messages.append({"console-output": {"output": console_output}})
 
             power_status = mtda.target_status()
