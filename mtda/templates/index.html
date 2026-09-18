@@ -682,7 +682,9 @@ SPDX-License-Identifier: MIT
           if (consoleWindow.hidden) {
             consoleWindow.show();
           }
-          term.write(atob(data.output));
+          const bytes = Uint8Array.from(
+              atob(data.output), (character) => character.charCodeAt(0));
+          term.write(bytes);
         }
       }
 
