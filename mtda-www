@@ -99,6 +99,14 @@ class RemoteCallHandler(BaseHandler):
     Handles common logic for offloading blocking calls to a thread pool
     and centralized error handling for remote interactions.
     """
+    def set_default_headers(self):
+        # These GETs change state (keyboard-input, mouse-move, ...). The
+        # browser must not cache them, or a repeated request (e.g. the
+        # same key typed twice) would never reach the server.
+        self.set_header("Cache-Control",
+                        "no-store, no-cache, must-revalidate, max-age=0")
+        self.set_header("Pragma", "no-cache")
+
     async def get(self):
         try:
             logger.debug(f"Request: {self.__class__.__name__}")
