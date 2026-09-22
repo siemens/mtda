@@ -504,6 +504,10 @@ SPDX-License-Identifier: MIT
     <script src="./assets/keyboard.js"></script>
     <script src="./assets/keysight.js"></script>
     <script type=text/javascript>
+      // These GETs change state (keyboard-input, mouse-move, ...). Stop
+      // the browser from caching them, or a repeated request would be
+      // dropped instead of reaching the server.
+      $.ajaxSetup({ cache: false });
       window.addEventListener("keydown", function(event) {
         // check if the video window is active or ignore keydown event
         if (!videoWindow || !videoWindow.focused) {
