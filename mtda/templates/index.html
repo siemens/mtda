@@ -451,19 +451,18 @@ SPDX-License-Identifier: MIT
             minheight: "768px",
             hidden: true
         });
-	for (let i = 1; i <= 8; i++) {
+        for (let i = 1; i <= 8; i++) {
           videoWindow.addControl({
             index: i,
             class: `wb-terminal-icon wb-terminal-${i}`,
             click: function(event, winbox) {
-              $.getJSON('./keyboard-input', {
+              sendKeyboardInput({
                 input: `<f${i}>`,
                 ctrl: true,
                 alt: true,
                 session: localStorage.getItem('session')
-            }, function(key) {
-              // do nothing
-            });}
+              });
+            }
           });
         }
         uploadWindow = new WinBox("Upload", {
@@ -504,14 +503,22 @@ SPDX-License-Identifier: MIT
     <script src="./assets/keyboard.js"></script>
     <script src="./assets/keysight.js"></script>
     <script type=text/javascript>
-      // These GETs change state (keyboard-input, mouse-move, ...). Stop
+      function sendKeyboardInput(params) {
+        if (window.socket && window.socket.readyState === WebSocket.OPEN) {
+          window.socket.send(JSON.stringify({
+            "keyboard-input": params
+          }));
+        }
+      }
+
+      // These GETs change state (mouse-move, ...). Stop
       // the browser from caching them, or a repeated request would be
       // dropped instead of reaching the server.
       $.ajaxSetup({ cache: false });
       window.addEventListener("keydown", function(event) {
         // check if the video window is active or ignore keydown event
         if (!videoWindow || !videoWindow.focused) {
-          // do nothing
+          return;
         }
 
         var key = keysight(event)
@@ -533,15 +540,13 @@ SPDX-License-Identifier: MIT
             key.char = specialKeys[event.key];
         }
         console.log("#### <KEY> " + JSON.stringify(key))
-        $.getJSON('./keyboard-input', {
+        sendKeyboardInput({
           input: key.char,
           ctrl:  key.ctrl,
           shift: key.shift,
           alt:   key.alt,
           meta:  key.cmd,
           session: localStorage.getItem('session')
-        }, function(key) {
-          // do nothing
         });
       });
       $(function() {
@@ -573,21 +578,19 @@ SPDX-License-Identifier: MIT
         $('a#keyboard-show').bind('click', function() {
           Keyboard.open('', function(data) {
             console.log("#### <VKEY> " + data);
-            $.getJSON('./keyboard-input', {
+            sendKeyboardInput({
               input: data,
               ctrl:  false,
               shift: false,
               alt:   false,
               meta:  false,
               session: localStorage.getItem('session')
-            }, function(key) {
-              // do nothing
             });
           }, '');
           return false;
         });
         $('a#python-open').bind('click', function() {
-		new PythonTerminal();
+          new PythonTerminal();
         });
         $('a#old-python-open').bind('click', function() {
           new WinBox({
@@ -727,6 +730,7 @@ SPDX-License-Identifier: MIT
       // proxy under a path prefix (e.g. mtda-tv's [gateway] support).
       const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
       const socket = new WebSocket(`${wsScheme}://${window.location.host}${window.MTDA_BASE}mtda`);
+      window.socket = socket;
 
       socket.addEventListener("open", () => {
         status.innerHTML = '<span style="color: green;"><b>Connected</b></span>';

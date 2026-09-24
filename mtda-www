@@ -57,6 +57,30 @@ def remote_call(func):
         return func(mtda, *args, **kwargs)
     return wrapper
 
+
+def normalize_keyboard_input(input_key, shift=False):
+    key_map = {
+        "esc": "<esc>",
+        "f1": "<f1>", "f2": "<f2>", "f3": "<f3>", "f4": "<f4>",
+        "f5": "<f5>", "f6": "<f6>", "f7": "<f7>", "f8": "<f8>",
+        "f9": "<f9>", "f10": "<f10>", "f11": "<f11>", "f12": "<f12>",
+        "\b": "<backspace>", "    ": "<tab>", "caps": "<capslock>",
+        "\n": "<enter>",
+        "left": "<left>", "right": "<right>",
+        "up": "<up>", "down": "<down>",
+        "<space>": " "
+    }
+
+    if input_key in key_map:
+        input_key = key_map[input_key]
+
+    if input_key.isupper() and shift is False:
+        input_key = input_key.lower()
+        shift = True
+
+    return input_key, shift
+
+
 # ---------------------------------------------------------------------------
 # Core Tornado Handlers (not directly interacting with MTDA)
 # ---------------------------------------------------------------------------
@@ -235,6 +259,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         def console_send(mtda, data, session):
             mtda.console_send(data, raw=False, session=session)
 
+        @remote_call
+        def keyboard_press(mtda, key, ctrl, shift, alt, meta, session):
+            mtda.keyboard_press(key, ctrl=ctrl, shift=shift, alt=alt,
+                                meta=meta, session=session)
+
         sid = self.session_id
         if isinstance(message, bytes):
             logger.debug(f"www.ws.on_message({len(message)} bytes, "
@@ -264,8 +293,41 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                     logger.exception("Error sending console input "
                                      f"for session {sid}: {e}")
                     self.write_message(
-                            {"error": "Error sending console"
-                                      f"console input: {e}"}
+                            {"error": "Error sending console input: "
+                                      f"{e}"}
+                    )
+            elif 'keyboard-input' in data:
+                kb = data['keyboard-input']
+                input_key = kb.get('input', '')
+                shift = kb.get('shift', False)
+                ctrl = kb.get('ctrl', False)
+                alt = kb.get('alt', False)
+                meta = kb.get('meta', False)
+                session = kb.get('session', sid)
+
+                input_key, shift = normalize_keyboard_input(input_key, shift)
+                try:
+                    tornado.ioloop.IOLoop.current().add_callback(
+                            keyboard_press,
+                            input_key,
+                            ctrl=ctrl,
+                            shift=shift,
+                            alt=alt,
+                            meta=meta,
+                            session=session
+                    )
+                except grpc.RpcError:
+                    logger.warning("timeout for keyboard_press "
+                                   f"for session {sid}.")
+                    self.write_message(
+                            {"error": "keyboard send timed out"}
+                    )
+                except Exception as e:
+                    logger.exception("Error sending keyboard input "
+                                     f"for session {sid}: {e}")
+                    self.write_message(
+                            {"error": "Error sending keyboard input: "
+                                      f"{e}"}
                     )
 
     def on_close(self):
@@ -510,8 +572,18 @@ class ConsoleTailHandler(RemoteCallHandler):
 
 
 class KeyboardInputHandler(RemoteCallHandler):
+    """
+    HTTP handler for sending keyboard input.
+    Note: Delivery order is not guaranteed over HTTP when sending
+    consecutive keys due to asynchronous request handling. For interactive
+    typing, use the WebSocket interface (/mtda).
+    """
     spec = {"get": {
         "summary": "Send keyboard input",
+        "description": "Sends a key press event. Note: delivery order is not "
+                       "guaranteed over HTTP when sending consecutive keys; "
+                       "use the WebSocket interface (/mtda) for interactive "
+                       "typing.",
         "parameters": [{
             "name": "input",
             "in": "query",
@@ -571,26 +643,9 @@ class KeyboardInputHandler(RemoteCallHandler):
 
         input_key = self.get_argument("input", "")
         sid = self.get_argument('session', None)
-
-        key_map = {
-            "esc": "<esc>",
-            "f1": "<f1>", "f2": "<f2>", "f3": "<f3>", "f4": "<f4>",
-            "f5": "<f5>", "f6": "<f6>", "f7": "<f7>", "f8": "<f8>",
-            "f9": "<f9>", "f10": "<f10>", "f11": "<f11>", "f12": "<12>",
-            "\b": "<backspace>", "    ": "<tab>", "caps": "<capslock>",
-            "\n": "<enter>",
-            "left": "<left>", "right": "<right>",
-            "up": "<up>", "down": "<down>",
-            "<space>": " "
-        }
-
-        if input_key in key_map:
-            input_key = key_map[input_key]
-
         shift = self.get_argument('shift', 'false') == 'true'
-        if input_key.isupper() and shift is False:
-            input_key = input_key.lower()
-            shift = True
+
+        input_key, shift = normalize_keyboard_input(input_key, shift)
 
         await self.blocking_call(
                 keyboard_press,
